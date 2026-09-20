@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LEAP-V2 · 编程｜Python 递归入门：阶乘与调用栈</title>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   LEAP 视觉设计系统 v1.0 · 令牌层
+   规范来源：LEAP_视觉设计理念_给Gemini.md §4
+   ══════════════════════════════════════════════════════════════ */
+:root{
+  --paper:#FAF9F6; --surface:#FFFFFF; --surface-sunk:#F3F1EC; --surface-mute:#EDEAE3;
+  --ink:#191B20; --ink-2:#565E6B; --ink-3:#8A909C;
+  --hairline:#E8E4DC; --rule:#D8D3C9;
+  --accent:#2B4AC4; --accent-deep:#1E3699; --accent-wash:#EDF0FD;
+  --ok:#2E7D5B; --ok-wash:#EAF4EF;
+  --warn:#B3861A; --warn-wash:#FBF3E0;
+  --err:#B4432F; --err-wash:#FBEDEA;
+  --hint-1:#E4C77C; --hint-2:#D4A43C; --hint-3:#B3861A; --hint-4:#7A7F8A;
+  --ev-estimated:#9AA1AD; --ev-practiced:#4C7BD9; --ev-demonstrated:#2E8B84;
+  --ev-retained:#4C8B3F; --ev-transferred:#B3861A;
+
+  --font-display:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",Georgia,serif;
+  --font-sans:"Noto Sans SC","PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+
+  --fs-display:32px; --fs-h2:22px; --fs-h3:17px; --fs-body:15.5px;
+  --fs-small:13px; --fs-micro:11.5px; --fs-mono:12px;
+
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px;
+  --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px; --s-16:64px; --s-20:80px;
+  --r-xs:3px; --r-sm:6px; --r-md:8px; --r-lg:10px; --r-xl:12px; --r-2xl:16px; --r-pill:999px;
+
+  --sh-1:0 1px 2px rgba(25,27,32,.05);
+  --sh-2:0 2px 8px -2px rgba(25,27,32,.10);
+  --sh-3:0 16px 40px -24px rgba(25,27,32,.28);
+
+  --t-1:120ms; --t-2:200ms; --t-3:320ms; --t-4:520ms;
+  --ease-out:cubic-bezier(.16,.84,.32,1); --ease-inout:cubic-bezier(.4,0,.2,1);
+
+  --page-max:1280px; --page-pad:80px;
+  --read-col:680px; --side-col:380px; --col-gap:60px; --zone-gap:64px;
+}
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-sans);font-size:var(--fs-body);line-height:1.78;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3{margin:0;font-family:var(--font-display);font-weight:600;line-height:1.35}
+p{margin:0}
+code,kbd,pre{font-family:var(--font-mono)}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--r-xs)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:absolute;left:-9999px;top:0;z-index:50;background:var(--accent);color:#fff;padding:10px 16px;border-radius:0 0 var(--r-md) 0}
+.skip:focus{left:0}
+
+.wrap{max-width:var(--page-max);margin:0 auto;padding:0 var(--page-pad)}
+.micro{font-family:var(--font-mono);font-size:var(--fs-micro);font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);line-height:1.4}
+.micro--accent{color:var(--accent)}
+
+/* ── 进度脊柱 ───────────────────────────────────────────── */
+.spine{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--hairline)}
+.spine-in{max-width:var(--page-max);margin:0 auto;padding:14px var(--page-pad);display:flex;align-items:center;gap:var(--s-8);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.brand-mark{width:12px;height:12px;border-radius:var(--r-xs);background:var(--accent);flex:0 0 auto}
+.brand-name{font-family:var(--font-mono);font-weight:700;font-size:15px;letter-spacing:.06em}
+.brand-node{font-size:var(--fs-small);color:var(--ink-2);font-weight:500}
+.spine-ev{flex:0 0 auto}
+.ev-track{display:flex;gap:6px;margin-top:6px}
+.ev-seg{width:34px;height:10px;border-radius:5px;background:var(--hairline);transition:background var(--t-4) var(--ease-out)}
+.ev-seg.is-on[data-stage="estimated"]{background:var(--ev-estimated)}
+.ev-seg.is-on[data-stage="practiced"]{background:var(--ev-practiced)}
+.ev-seg.is-on[data-stage="demonstrated"]{background:var(--ev-demonstrated)}
+.ev-seg.is-on[data-stage="retained"]{background:var(--ev-retained)}
+.ev-seg.is-on[data-stage="transferred"]{background:var(--ev-transferred)}
+.spine-hop{display:flex;align-items:baseline;gap:10px;flex:0 0 auto}
+.spine-name{font-size:13px;font-weight:500;color:var(--ev-practiced);transition:color var(--t-2) var(--ease-inout)}
+.spine-mas{flex:0 0 auto}
+.mas-row{display:flex;align-items:center;gap:10px;margin-top:6px}
+.mas-track{width:110px;height:8px;border-radius:4px;background:var(--hairline);overflow:hidden}
+.mas-fill{height:100%;width:62%;background:var(--accent);border-radius:4px;transition:width var(--t-4) var(--ease-out)}
+.mas-val{font-family:var(--font-mono);font-size:13px;font-weight:500}
+.spine-rev{flex:0 0 auto;margin-left:auto}
+.spine-rev .val{display:block;margin-top:4px;font-size:12.5px;font-weight:500;color:var(--warn)}
+.spine-note{max-width:var(--page-max);margin:0 auto;padding:0 var(--page-pad) 8px;font-size:11px;color:var(--ink-3)}
+
+/* ── Zone 骨架 ──────────────────────────────────────────── */
+.zone{padding-top:var(--s-16)}
+.zone + .zone{padding-top:var(--s-16)}
+.zone-head{display:block;padding-bottom:var(--s-3)}
+.zone-title{font-size:var(--fs-display);font-weight:700;line-height:1.3;letter-spacing:-.01em;margin-top:var(--s-3)}
+.zone-goal{margin-top:var(--s-3);font-size:14.5px;color:var(--ink-2);max-width:760px}
+.zone-meta{margin-top:var(--s-2);font-size:12.5px;font-weight:500;color:var(--ink-3)}
+.zone-rule{height:1px;background:var(--hairline);margin-top:var(--s-4)}
+.zone-body{padding-top:var(--s-8)}
+
+.cols{display:grid;grid-template-columns:minmax(0,var(--read-col)) var(--side-col);gap:var(--col-gap);align-items:start}
+.col-main > * + *{margin-top:var(--s-6)}
+.side{display:grid;gap:var(--s-10)}
+
+/* ── 阅读列 ─────────────────────────────────────────────── */
+.quote{background:var(--surface-sunk);border-left:3px solid var(--accent);padding:14px 16px;border-radius:0 var(--r-md) var(--r-md) 0;font-size:14.5px;line-height:1.7}
+.terms{list-style:none;padding:0;margin:0;display:grid;gap:var(--s-3)}
+.terms li{font-size:14.5px;color:var(--ink-2);line-height:1.7}
+.terms b{color:var(--ink);font-weight:600}
+
+/* ── 侧栏卡 ─────────────────────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.card--err{background:var(--err-wash);border-left:3px solid var(--err)}
+.card--sunk{background:var(--surface-sunk);border:none}
+.card > .micro{display:block;margin-bottom:var(--s-4)}
+.card--err > .micro{color:var(--err)}
+.card-body{font-size:13px;line-height:1.7}
+.formula{font-family:var(--font-mono);font-size:15px;font-weight:500;line-height:1.9;display:block}
+.formula--base{color:var(--ok)}
+.card-foot{margin-top:var(--s-3);font-size:var(--fs-micro);color:var(--ink-3);line-height:1.6}
+.reqs{list-style:none;padding:0;margin:0;display:grid;gap:var(--s-3)}
+.reqs li{position:relative;padding-left:18px;font-size:12.5px;color:var(--ink-2);line-height:1.6}
+.reqs li::before{content:"";position:absolute;left:0;top:.42em;width:6px;height:6px;border-radius:2px;background:var(--accent)}
+.reqs li[data-kind="transfer"]::before{background:var(--warn)}
+
+/* ── 理解检查 ───────────────────────────────────────────── */
+.cp{margin-top:var(--s-6);background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.cp-q{margin-top:var(--s-4);font-size:15px;font-weight:600;line-height:1.6}
+.cp-opts{display:grid;gap:var(--s-2);margin-top:var(--s-4)}
+.opt{display:block;width:100%;text-align:left;padding:9px 16px;min-height:38px;background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-md);cursor:pointer;font-size:14px;color:var(--ink-2);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout)}
+.opt:hover{border-color:var(--rule);background:#fff}
+.opt[aria-pressed="true"][data-v="ok"]{background:var(--ok-wash);border:1.5px solid var(--ok);color:var(--ok);font-weight:600}
+.opt[aria-pressed="true"][data-v="bad"]{background:var(--err-wash);border:1.5px solid var(--err);color:var(--err);font-weight:600}
+.cp-rule{height:1px;background:var(--hairline);margin-top:var(--s-5)}
+.cp-fb{margin-top:var(--s-4);font-size:12.5px;line-height:1.65;color:var(--ink-2);display:none}
+.cp-fb.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+.cp-fb b{color:var(--ok)}
+
+/* ── Stage ──────────────────────────────────────────────── */
+.stage{background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-2xl);padding:var(--s-5) var(--s-6) var(--s-6)}
+.stage-title{margin-top:6px;font-size:14px;font-weight:600}
+.stage-grid{display:grid;grid-template-columns:252px minmax(0,1fr);gap:var(--s-5);margin-top:var(--s-4)}
+.tube-label{font-family:var(--font-mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;color:var(--ink-3)}
+.tube-wrap{display:flex;flex-direction:column;gap:6px}
+.tube{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);height:232px;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;overflow:hidden}
+.tf{display:flex;align-items:center;height:40px;padding:0 12px;border-radius:var(--r-sm);font-family:var(--font-mono);font-size:12px;font-weight:500;border:1px solid transparent;transition:background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout),border-color var(--t-2) var(--ease-inout),transform var(--t-2) var(--ease-out);animation:push var(--t-3) var(--ease-out) both}
+.tf[data-s="active"]{background:var(--accent);color:#fff}
+.tf[data-s="waiting"]{background:var(--accent-wash);color:var(--ink-2)}
+.tf[data-s="base"]{background:var(--ok-wash);color:var(--ok);border:1.5px solid var(--ok)}
+.tf[data-s="done"]{background:var(--surface-sunk);color:var(--ink-3)}
+@keyframes push{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.stage-side{display:grid;gap:var(--s-3);align-content:start}
+.step-panel{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s-5)}
+.step-text{margin-top:var(--s-3);font-size:13px;line-height:1.7;min-height:66px}
+.step-count{margin-top:var(--s-3);font-family:var(--font-mono);font-size:11.5px;font-weight:500;color:var(--ink-3)}
+.legend{font-size:11.5px;color:var(--ink-3)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:1px}
+.stage-ctrl{display:flex;align-items:center;gap:var(--s-3);flex-wrap:wrap;margin-top:var(--s-4)}
+.kbd-hint{margin-left:auto;font-size:var(--fs-micro);color:var(--ink-3)}
+
+/* ── 按钮 ───────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 18px;border-radius:var(--r-md);border:1px solid transparent;background:var(--surface);cursor:pointer;font-size:13.5px;font-weight:500;color:var(--ink-2);transition:background var(--t-1) var(--ease-inout),border-color var(--t-1) var(--ease-inout),color var(--t-1) var(--ease-inout),transform var(--t-1) var(--ease-out)}
+.btn:hover{background:var(--surface-sunk)}
+.btn:active{transform:translateY(1px)}
+.btn--primary{background:var(--accent);color:#fff;font-weight:600}
+.btn--primary:hover{background:var(--accent-deep)}
+.btn--outline{border-color:var(--rule)}
+.btn--outline:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-wash)}
+.btn--ghost{color:var(--ink-3);background:transparent}
+.btn--ghost:hover{background:var(--surface-sunk);color:var(--ink-2)}
+.btn--sm{height:32px;padding:0 14px;font-size:12.5px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn-row{display:flex;gap:var(--s-3);flex-wrap:wrap;align-items:center}
+
+/* ── 任务块 ─────────────────────────────────────────────── */
+.task{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-2xl);padding:var(--s-6)}
+.task-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.task-title{font-size:var(--fs-h3);font-weight:600}
+.task-id{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.08em}
+.task-lead{margin-top:var(--s-3);font-size:13.5px;color:var(--ink-2);line-height:1.7}
+.task-lead + .task-lead{margin-top:var(--s-2)}
+.note{margin-top:var(--s-4);padding:12px 14px;border-radius:var(--r-md);background:var(--surface-sunk);font-size:12px;color:var(--ink-3);line-height:1.65}
+.note--warn{background:var(--warn-wash);color:#8A6A2A}
+
+/* 代码填空 */
+.code{position:relative;margin-top:var(--s-4);background:var(--surface-mute);border-radius:var(--r-lg);padding:var(--s-5);font-family:var(--font-mono);font-size:13px;line-height:2.1;overflow-x:auto}
+.code-line{white-space:pre;display:flex;align-items:center;gap:0;flex-wrap:nowrap}
+.tok-kw{color:var(--accent)}
+.tok-fn{color:#7A4BB8}
+.tok-num{color:var(--ok)}
+.tok-cmt{color:var(--ink-3)}
+.blank{font-family:var(--font-mono);font-size:12.5px;background:#fff;border:1px solid var(--rule);border-bottom-width:2px;border-radius:var(--r-sm);padding:2px 10px;min-width:170px;color:var(--ink);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.blank:focus{outline:none;border-color:var(--accent);background:var(--accent-wash)}
+.blank[data-state="ok"]{border-color:var(--ok);background:var(--ok-wash);color:var(--ok)}
+.blank[data-state="bad"]{border-color:var(--err);background:var(--err-wash);color:var(--err)}
+.blank[data-state="hint"]{border-color:var(--warn);background:var(--warn-wash)}
+
+/* 代码运行器 */
+.runner{margin-top:var(--s-4);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s-4)}
+.editor{display:block;width:100%;min-height:150px;background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:var(--s-4);font-family:var(--font-mono);font-size:12.5px;line-height:1.75;resize:vertical;tab-size:4}
+.editor:focus{outline:none;border-color:var(--accent)}
+.term{background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:var(--s-4);font-family:var(--font-mono);font-size:12px;line-height:1.7;height:150px;overflow:auto;white-space:pre-wrap;color:var(--ink-2)}
+.term .ok{color:var(--ok)}
+.term .err{color:var(--err);font-weight:600}
+.term .dim{color:var(--ink-3)}
+.run-ctrl{display:flex;gap:var(--s-3);align-items:center;margin-top:var(--s-4);flex-wrap:wrap}
+.num-in{width:64px;height:34px;padding:0 10px;background:#fff;border:1px solid var(--rule);border-radius:var(--r-md);font-family:var(--font-mono);font-size:12.5px}
+
+/* 拖拽匹配 */
+.match{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s-6);margin-top:var(--s-4)}
+.match-col-h{margin-bottom:var(--s-3)}
+.stage-slots{display:grid;gap:var(--s-3)}
+.slot{min-height:56px;border:1px dashed var(--rule);border-radius:var(--r-md);padding:8px 10px;background:var(--surface);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.slot.is-over{border:1.5px solid var(--accent);background:var(--accent-wash)}
+.slot[data-state="ok"]{border:1.5px solid var(--ok);background:var(--ok-wash)}
+.slot[data-state="bad"]{border:1.5px solid var(--err);background:var(--err-wash)}
+.slot-label{font-size:12.5px;font-weight:600;color:var(--ink)}
+.chips{display:grid;gap:var(--s-3);align-content:start}
+.chip{display:block;width:100%;text-align:left;min-height:36px;padding:8px 14px;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);font-size:12.5px;line-height:1.5;cursor:grab;transition:transform var(--t-1) var(--ease-out),box-shadow var(--t-1) var(--ease-out),border-color var(--t-1) var(--ease-inout)}
+.chip:hover{border-color:var(--rule)}
+.chip.is-sel{border-color:var(--accent);background:var(--accent-wash);box-shadow:var(--sh-2)}
+.chip.is-drag{transform:scale(1.02);box-shadow:var(--sh-2)}
+.chip[data-state="ok"]{border-color:var(--ok);background:var(--ok-wash)}
+.chip[data-state="bad"]{border-color:var(--err);background:var(--err-wash)}
+.slot .chip{margin:0}
+.match-fb{margin-top:var(--s-4);font-size:12.5px;line-height:1.7;display:none}
+.match-fb.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+
+/* ── 提示阶梯 ───────────────────────────────────────────── */
+.ladder{margin-top:var(--s-8)}
+.ladder-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.ladder-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s-6);align-items:end;margin-top:var(--s-5);border-bottom:1px solid var(--rule);padding-bottom:0}
+.ladder-step{display:flex;flex-direction:column;justify-content:space-between;gap:var(--s-3);padding:14px 16px;border-radius:var(--r-lg);border:1px solid transparent;cursor:pointer;text-align:left;transition:transform var(--t-2) var(--ease-out),border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.ladder-step[data-h="1"]{height:60px}
+.ladder-step[data-h="2"]{height:76px}
+.ladder-step[data-h="3"]{height:96px}
+.ladder-step[data-h="4"]{height:112px}
+.ladder-step .ls-t{font-size:13.5px;font-weight:600;line-height:1.4}
+.ladder-step .ls-s{font-size:11px;line-height:1.4}
+.ladder-step[data-state="used"][data-h="1"]{background:var(--hint-1)}
+.ladder-step[data-state="used"][data-h="2"]{background:var(--hint-2)}
+.ladder-step[data-state="used"] .ls-t{color:var(--ink)}
+.ladder-step[data-state="used"] .ls-s{color:#3F3210}
+.ladder-step[data-state="avail"]{background:var(--warn-wash);border:1.5px solid var(--warn)}
+.ladder-step[data-state="avail"] .ls-t{color:var(--warn)}
+.ladder-step[data-state="avail"] .ls-s{color:#8A6A2A}
+.ladder-step[data-state="locked"]{background:var(--surface-sunk);border:1px solid var(--hairline)}
+.ladder-step[data-state="locked"] .ls-t{color:var(--ink-2)}
+.ladder-step[data-state="locked"] .ls-s{color:var(--ink-3)}
+.ladder-step:hover{transform:translateY(-2px)}
+.ladder-note{margin-top:var(--s-3);font-size:12px;color:var(--ink-3)}
+.hint-body{margin-top:var(--s-4);display:grid;gap:var(--s-4)}
+.hint-card{background:var(--surface);border:1px solid var(--hairline);border-left:3px solid var(--hint-1);border-radius:0 var(--r-lg) var(--r-lg) 0;padding:var(--s-5)}
+.hint-card[data-lv="2"]{border-left-color:var(--hint-2)}
+.hint-card[data-lv="3"]{border-left-color:var(--hint-3)}
+.hint-card[data-lv="4"]{border-left-color:var(--hint-4)}
+.hint-card .micro{display:block;margin-bottom:var(--s-3)}
+.hint-card p{font-size:13.5px;line-height:1.75;color:var(--ink-2)}
+.hint-card pre{margin:var(--s-3) 0 0;background:var(--surface-mute);border-radius:var(--r-md);padding:var(--s-4);font-size:12.5px;line-height:1.8;overflow-x:auto}
+.confirm{margin-top:var(--s-3);padding:var(--s-5);border-radius:var(--r-lg);background:var(--warn-wash);border:1.5px solid var(--warn)}
+.confirm p{font-size:13px;line-height:1.7;color:#8A6A2A;margin-bottom:var(--s-4)}
+.verify{margin-top:var(--s-6);background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.verify textarea{display:block;width:100%;min-height:72px;margin-top:var(--s-4);background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s-4);font-size:13px;line-height:1.7;resize:vertical}
+.verify textarea:focus{outline:none;border-color:var(--accent)}
+
+/* ── 反馈面板 ───────────────────────────────────────────── */
+.result{display:grid;grid-template-columns:minmax(0,1fr) var(--side-col);gap:var(--col-gap);margin-top:var(--s-16);align-items:start}
+.fb{position:relative;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6);overflow:hidden}
+.fb-bar{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);transition:background var(--t-2) var(--ease-inout)}
+.fb-badge{display:inline-block;padding:3px 12px;border-radius:var(--r-pill);background:var(--surface-sunk);font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--ink-3);transition:background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout)}
+.fb-badge[data-t="ok"]{background:var(--ok-wash);color:var(--ok)}
+.fb-badge[data-t="warn"]{background:var(--warn-wash);color:var(--warn)}
+.fb-badge[data-t="err"]{background:var(--err-wash);color:var(--err)}
+.fb-sec{margin-top:var(--s-5)}
+.fb-sec h4{margin:0 0 4px;font-family:var(--font-sans);font-size:12.5px;font-weight:600}
+.fb-sec p{font-size:13px;line-height:1.65;color:var(--ink-2)}
+.fb-s1 h4{color:var(--ok)} .fb-s2 h4{color:var(--warn)} .fb-s3 h4{color:var(--accent)}
+.score{background:var(--surface-sunk);border-radius:var(--r-xl);padding:var(--s-6)}
+.score-rows{margin-top:var(--s-5);display:grid;gap:var(--s-4)}
+.score-row{display:grid;grid-template-columns:minmax(0,1fr) 136px;gap:var(--s-4);align-items:center}
+.score-key{font-size:11.5px;font-weight:500;color:var(--ink-2)}
+.score-key b{font-family:var(--font-mono);font-weight:600;margin-left:6px}
+.score-track{height:7px;border-radius:4px;background:var(--hairline);overflow:hidden}
+.score-fill{height:100%;width:0;border-radius:4px;background:var(--accent);transition:width var(--t-4) var(--ease-out)}
+.score-fill[data-k="correctness"]{background:var(--ok)}
+.score-fill[data-k="reasoning_quality"]{background:var(--warn)}
+
+/* ── 证据轨 ─────────────────────────────────────────────── */
+.rail{margin-top:var(--s-16)}
+.rail-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.rail-track{position:relative;height:2px;background:var(--hairline);margin-top:var(--s-5)}
+.rail-dots{position:absolute;inset:0}
+.rail-dot{position:absolute;top:-3px;width:8px;height:8px;border-radius:4px;transition:transform var(--t-3) var(--ease-out);animation:pop var(--t-3) var(--ease-out) both}
+.rail-dot--last{width:12px;height:12px;top:-5px;border-radius:6px;box-shadow:0 0 0 3px var(--paper),0 0 0 4px var(--accent-wash)}
+@keyframes pop{from{transform:scale(.4)}to{transform:scale(1)}}
+.rail-foot{display:flex;justify-content:space-between;gap:var(--s-4);margin-top:var(--s-4);font-size:11.5px;color:var(--ink-3);flex-wrap:wrap}
+
+/* ── 输出控制台 ─────────────────────────────────────────── */
+.console{margin-top:var(--s-8)}
+.console-bar{display:flex;align-items:center;gap:var(--s-4);width:100%;min-height:46px;padding:0 var(--s-5);background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-lg);cursor:pointer;text-align:left;transition:background var(--t-1) var(--ease-inout)}
+.console-bar:hover{background:var(--surface-mute)}
+.console-bar .cb-t{font-size:12.5px;font-weight:500;color:var(--ink-2)}
+.console-bar .cb-a{margin-left:auto;font-size:12px;font-weight:500;color:var(--accent);white-space:nowrap}
+.console-json{display:none;margin-top:var(--s-3);background:var(--surface-mute);border-radius:var(--r-lg);padding:var(--s-5);max-height:420px;overflow:auto}
+.console-json.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+#leap-interaction-output{margin:0;font-size:11.5px;line-height:1.65;color:var(--ink-2);white-space:pre}
+.foot{margin-top:var(--s-16);padding:var(--s-8) 0 var(--s-16);border-top:1px solid var(--hairline);font-size:11.5px;color:var(--ink-3);line-height:1.8}
+
+/* ── 响应式 ─────────────────────────────────────────────── */
+@media (max-width:1199px){
+  :root{--page-pad:48px;--page-max:776px}
+  .cols{grid-template-columns:minmax(0,1fr)}
+  .side{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .result{grid-template-columns:minmax(0,1fr)}
+  .stage-grid{grid-template-columns:minmax(0,1fr)}
+  .runner{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:899px){
+  :root{--page-pad:32px;--page-gap:40px;--col-gap:40px}
+  .spine-rev{margin-left:0}
+  .match{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:600px){
+  :root{--page-pad:20px;--fs-display:23px;--fs-h2:19px;--fs-h3:16px;--fs-body:15px;--zone-gap:48px}
+  .spine-in{gap:var(--s-5);padding:12px 20px}
+  .brand-node{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mas-track{width:80px}
+  .ev-seg{width:18px;height:7px}
+  .ladder-steps{grid-template-columns:minmax(0,1fr);gap:var(--s-3);border-bottom:none}
+  .ladder-step{height:auto!important;min-height:48px;flex-direction:row;align-items:center;justify-content:flex-start;gap:var(--s-4)}
+  .btn{height:36px;padding:0 14px}
+  .code{font-size:11.5px}
+  .blank{min-width:120px;font-size:11.5px}
+}
+  /* ── 宿主桥接条（LEAP_HOST_BRIDGE）──────────────────── */
+  .bridge-strip{display:flex;align-items:center;justify-content:space-between;gap:var(--s-4);
+    min-height:46px;padding:var(--s-3) var(--s-5);margin-bottom:var(--s-3);
+    background:var(--accent-wash);border:1px solid var(--hairline);border-radius:var(--r-lg)}
+  .bs-l{display:flex;flex-direction:column;gap:var(--s-1);min-width:0}
+  .bs-t{font-size:var(--fs-small);color:var(--ink-2)}
+  .bs-btn{flex:0 0 auto;height:32px;padding:0 var(--s-4);border:1px solid var(--rule);
+    border-radius:var(--r-md);background:var(--surface);color:var(--accent);
+    font:500 12.5px/1 var(--font-sans);cursor:pointer;transition:background var(--t-2) var(--ease-out)}
+  .bs-btn:hover{background:var(--accent-wash)}
+  .bs-btn:disabled{color:var(--ink-3);background:var(--surface-sunk);cursor:default}
+  .bridge-out{margin:0 0 var(--s-3);padding:var(--s-5);background:var(--surface-mute);
+    border:1px solid var(--hairline);border-radius:var(--r-lg);
+    font:400 var(--fs-mono)/1.6 var(--font-mono);color:var(--ink-2);
+    white-space:pre-wrap;word-break:break-all;max-height:320px;overflow:auto}
+
+</style>
+</head>
+<body>
+<a class="skip" href="#teaching">跳到教学内容</a>
+
+<!-- ═══ 进度脊柱 ═════════════════════════════════════════════ -->
+<header class="spine">
+  <div class="spine-in">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">LEAP</span>
+      <span class="brand-node">Python · 递归 · 阶乘 factorial(n)</span>
+    </div>
+
+    <div class="spine-ev">
+      <div class="micro" id="evLabel">EVIDENCE STAGE · 证据阶段</div>
+      <div class="ev-track" id="evTrack" role="img" aria-label="证据阶段轨道，当前为 practiced 练习过">
+        <span class="ev-seg" data-stage="estimated"></span>
+        <span class="ev-seg" data-stage="practiced"></span>
+        <span class="ev-seg" data-stage="demonstrated"></span>
+        <span class="ev-seg" data-stage="retained"></span>
+        <span class="ev-seg" data-stage="transferred"></span>
+      </div>
+    </div>
+    <div class="spine-hop"><span class="spine-name" id="evName">practiced · 练习过</span></div>
+
+    <div class="spine-mas">
+      <div class="micro">MASTERY · 掌握度</div>
+      <div class="mas-row">
+        <div class="mas-track"><div class="mas-fill" id="masFill"></div></div>
+        <span class="mas-val" id="masVal">0.62</span>
+      </div>
+    </div>
+
+    <div class="spine-rev">
+      <div class="micro">NEXT REVIEW</div>
+      <span class="val">2 天后 · 09/21</span>
+    </div>
+  </div>
+  <p class="spine-note" id="spineNote">本页掌握度与证据阶段为<b>本地模拟</b>，用于演示界面如何呈现学习状态；真实系统中二者由 LEAP Runtime 的 BKT 估计器与 State Guard 计算（见 LEAP_Framework_V2 §10.2‑1）。</p>
+</header>
+
+<main class="wrap">
+
+  <!-- ═══ Zone 01 · 教学内容 ═══════════════════════════════ -->
+  <section class="zone" id="teaching" aria-labelledby="z1t">
+    <div class="zone-head">
+      <div class="micro micro--accent">01 · TEACHING · 教学内容</div>
+      <h1 class="zone-title" id="z1t">阶乘递归：基线条件与递归条件</h1>
+      <p class="zone-goal">学完这一节，你能读懂并补全任意简单递归函数，并说清调用栈的「展开 → 命中基线 → 回退求值」全过程。</p>
+      <p class="zone-meta">预计 12 分钟　·　难度 2/5　·　先修：函数定义与返回值</p>
+      <div class="zone-rule"></div>
+    </div>
+
+    <div class="zone-body">
+      <div class="cols">
+        <div class="col-main">
+          <p>递归函数把一个问题拆成<b>同类型、但规模更小</b>的子问题，直到小到可以直接回答为止。这个「小到可以直接回答」的情形，就是<b>基线条件</b>（base case）。缺少基线条件的递归会一直往下展开，永远不会开始回退。</p>
+
+          <div class="quote">递归 = 先把问题拆到基线，再一层层回来算。<br>基线条件决定<b>什么时候停</b>，递归条件决定<b>怎么变小</b>。</div>
+
+          <h2 style="font-size:var(--fs-h3)">两个条件缺一不可</h2>
+          <ul class="terms">
+            <li>①　<b>基线条件</b> —— <code>n &lt;= 1</code> 时直接返回 1，递归在这里停止。</li>
+            <li>②　<b>递归条件</b> —— 把 <code>factorial(n)</code> 化为 <code>n × factorial(n-1)</code>，规模每次减 1。</li>
+          </ul>
+
+          <!-- 理解检查 -->
+          <div class="cp" id="cp">
+            <div class="micro micro--accent">CHECKPOINT · 理解检查</div>
+            <p class="cp-q">如果删掉 <code>factorial</code> 的基线条件，Python 会发生什么？</p>
+            <div class="cp-opts" role="group" aria-label="理解检查选项">
+              <button class="opt" type="button" data-v="bad" data-why="Python 不会在定义时检查递归是否收敛——语法完全合法。" aria-pressed="false">A. 直接报语法错误，函数根本无法定义</button>
+              <button class="opt" type="button" data-v="ok" data-why="正确。CPython 默认递归深度上限为 1000，没有基线条件就会一直压栈直到 RecursionError。注意：这是运行时的保护机制，不是语言层面的限制。" aria-pressed="false">B. 触发 RecursionError：调用层数超过上限</button>
+            </div>
+            <div class="cp-rule"></div>
+            <p class="cp-fb" id="cpFb" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <aside class="side" aria-label="辅助卡片">
+          <div class="card">
+            <span class="micro">KEY FORM · 关键式子</span>
+            <span class="formula">factorial(n) = n × factorial(n-1)</span>
+            <span class="formula formula--base">factorial(0) = 1　（等价写法 n &lt;= 1）</span>
+            <p class="card-foot">墨色 = 递归条件，绿色 = 基线条件。</p>
+          </div>
+
+          <div class="card card--err">
+            <span class="micro">MISCONCEPTION · 常见误解</span>
+            <p class="card-body">「递归就是自己调用自己」——这句话只说对了一半。真正让递归成立的是<b>基线的存在</b>；只有「调用自己」的那部分是死循环。</p>
+          </div>
+
+          <div class="card card--sunk">
+            <span class="micro">REQUIRED EVIDENCE · 达标要求</span>
+            <ul class="reqs">
+              <li>掌握度 mastery ≥ 0.80</li>
+              <li>提示依赖 hint_dependency ≤ 0.50</li>
+              <li>至少 1 次在无提示条件下独立完成</li>
+              <li data-kind="transfer">迁移验证：改写为累加版本 sum(n)</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Zone 02 · 交互练习 ═════════════════════════════════ -->
+  <section class="zone" id="practice" aria-labelledby="z2t">
+    <div class="zone-head">
+      <div class="micro micro--accent">02 · PRACTICE · 交互练习</div>
+      <h2 class="zone-title" id="z2t">调用栈：压栈、命中基线、回退求值</h2>
+      <p class="zone-goal">先把 factorial(4) 的执行过程看清楚，再动手把代码补完整。</p>
+      <p class="zone-meta">4 个交互环节　·　即时反馈　·　全部结果写入下方 Agent 输出区</p>
+      <div class="zone-rule"></div>
+    </div>
+
+    <div class="zone-body">
+
+      <!-- Stage：调用栈 -->
+      <div class="stage">
+        <div class="micro">STAGE · CALL STACK SIMULATION</div>
+        <p class="stage-title">factorial(4) 的展开与回退</p>
+
+        <div class="stage-grid">
+          <div class="tube-wrap">
+            <span class="tube-label">TOP · 栈顶</span>
+            <div class="tube" id="tube" role="img" aria-label="调用栈可视化"></div>
+            <span class="tube-label">BOTTOM · 栈底</span>
+          </div>
+
+          <div class="stage-side">
+            <div class="step-panel">
+              <div class="micro">CURRENT STEP · 当前步骤</div>
+              <p class="step-text" id="stepText">点击「单步」或「播放」，观察调用栈如何一层层生长、又一层层收回。</p>
+              <div class="step-count" id="stepCount">步骤 0 / 9　·　状态：待开始</div>
+            </div>
+            <p class="legend">
+              <i style="background:var(--accent)"></i>当前层　
+              <i style="background:var(--accent-wash);border:1px solid var(--hairline)"></i>等待返回　
+              <i style="background:var(--ok-wash);border:1px solid var(--ok)"></i>命中基线　
+              <i style="background:var(--surface-sunk);border:1px solid var(--hairline)"></i>已返回
+            </p>
+          </div>
+        </div>
+
+        <div class="stage-ctrl">
+          <button class="btn btn--primary" id="btnPlay" type="button">播放</button>
+          <button class="btn btn--outline" id="btnStep" type="button">单步</button>
+          <button class="btn btn--outline" id="btnReset" type="button">重置</button>
+          <span class="kbd-hint">← → 单步　·　空格 播放 / 暂停</span>
+        </div>
+      </div>
+
+      <!-- 任务 1：代码填空 -->
+      <div class="task" style="margin-top:var(--s-16)">
+        <div class="task-head">
+          <span class="task-id">Q1</span>
+          <h3 class="task-title">补全 factorial 的两个关键位置</h3>
+        </div>
+        <p class="task-lead">两个空都不许留空。填完点「提交作答」，系统会区分你是「概念错了」还是「写法错了」。</p>
+
+        <div class="code" aria-label="代码填空">
+          <div class="code-line"><span class="tok-kw">def</span>&nbsp;<span class="tok-fn">factorial</span>(n):</div>
+          <div class="code-line">　　<span class="tok-kw">if</span>&nbsp;<input class="blank" id="blankA" type="text" aria-label="基线条件表达式" placeholder="基线条件？" autocomplete="off" spellcheck="false">:</div>
+          <div class="code-line">　　　　<span class="tok-kw">return</span>&nbsp;<span class="tok-num">1</span></div>
+          <div class="code-line">　　<span class="tok-kw">return</span>&nbsp;<input class="blank" id="blankB" type="text" aria-label="递归条件表达式" placeholder="递归条件？" autocomplete="off" spellcheck="false"></div>
+        </div>
+
+        <div class="btn-row" style="margin-top:var(--s-5)">
+          <button class="btn btn--primary" id="btnSubmitQ1" type="button">提交作答</button>
+          <button class="btn btn--ghost btn--sm" id="btnClearQ1" type="button">清空重填</button>
+        </div>
+
+        <div class="match-fb" id="q1Fb" role="status" aria-live="polite"></div>
+
+        <div class="note">本页只判定这一种写法范围：基线条件须让 <code>n</code> 小于等于某个常数时返回 1；递归条件须把规模缩小并调用自身。等价的几种写法都算正确。</div>
+      </div>
+
+      <!-- 提示阶梯 -->
+      <div class="ladder">
+        <div class="ladder-head">
+          <div class="micro micro--accent">PROGRESSIVE DISCLOSURE · 提示阶梯</div>
+          <span style="font-size:12px;color:var(--ink-3)">每一级都必须由你主动点击——它会被记为你的提示依赖</span>
+        </div>
+
+        <div class="ladder-steps" id="ladder" role="group" aria-label="分级提示">
+          <button class="ladder-step" type="button" data-lv="1" data-h="1" data-state="avail">
+            <span class="ls-t">① 引导问题</span><span class="ls-s">只给方向</span>
+          </button>
+          <button class="ladder-step" type="button" data-lv="2" data-h="2" data-state="locked" disabled>
+            <span class="ls-t">② 策略提示</span><span class="ls-s">给思路</span>
+          </button>
+          <button class="ladder-step" type="button" data-lv="3" data-h="3" data-state="locked" disabled>
+            <span class="ls-t">③ 部分示范</span><span class="ls-s">给前半段</span>
+          </button>
+          <button class="ladder-step" type="button" data-lv="4" data-h="4" data-state="locked" disabled>
+            <span class="ls-t">④ 完整答案</span><span class="ls-s">需二次确认</span>
+          </button>
+        </div>
+        <p class="ladder-note" id="ladderNote">阶梯高度 = 支持强度。已用层级越高，hint_dependency 越高；本节点当前 0.00。</p>
+
+        <div class="hint-body" id="hintBody"></div>
+      </div>
+
+      <!-- 任务 2：拖拽匹配 -->
+      <div class="task" style="margin-top:var(--s-16)">
+        <div class="task-head">
+          <span class="task-id">Q2</span>
+          <h3 class="task-title">把「递归步骤」拖到它对应的「执行阶段」</h3>
+        </div>
+        <p class="task-lead">可以拖拽，也可以先点卡片、再点空位（键盘用户请用后一种方式）。四个都放好后点「提交匹配」。</p>
+
+        <div class="match">
+          <div>
+            <div class="micro match-col-h">TARGET · 执行阶段</div>
+            <div class="stage-slots" id="slots"></div>
+          </div>
+          <div>
+            <div class="micro match-col-h">SOURCE · 递归步骤（可拖拽）</div>
+            <div class="chips" id="chips"></div>
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top:var(--s-5)">
+          <button class="btn btn--primary" id="btnSubmitQ2" type="button">提交匹配</button>
+          <button class="btn btn--ghost btn--sm" id="btnClearQ2" type="button">全部取回</button>
+        </div>
+        <div class="match-fb" id="q2Fb" role="status" aria-live="polite"></div>
+      </div>
+
+      <!-- 任务 3：代码运行器 -->
+      <div class="task" style="margin-top:var(--s-16)">
+        <div class="task-head">
+          <span class="task-id">Q3</span>
+          <h3 class="task-title">受控代码运行器：亲手验证一次</h3>
+        </div>
+        <p class="task-lead">改代码、改参数，看每一次调用与返回。建议你试两个实验：① 把基线条件注释掉，看会发生什么；② 把 <code>n *</code> 改成 <code>n +</code>，看结果变了多少。</p>
+
+        <div class="runner">
+          <div>
+            <label class="micro" for="srcCode" style="display:block;margin-bottom:6px">CODE</label>
+            <textarea class="editor" id="srcCode" spellcheck="false" aria-label="可编辑的 Python 代码">def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)</textarea>
+          </div>
+          <div>
+            <div class="micro" style="margin-bottom:6px">CONSOLE</div>
+            <div class="term" id="term" role="log" aria-live="polite"><span class="dim">按「运行」开始。每一步调用与返回都会打印在这里。</span></div>
+          </div>
+        </div>
+
+        <div class="run-ctrl">
+          <label class="micro" for="argN">N =</label>
+          <input class="num-in" id="argN" type="text" value="4" aria-label="传入的 n 值">
+          <button class="btn btn--primary btn--sm" id="btnRun" type="button">运行</button>
+          <button class="btn btn--ghost btn--sm" id="btnRunClear" type="button">清空控制台</button>
+        </div>
+
+        <div class="note note--warn">本运行器是<b>受控语义模拟</b>，不是通用 Python 解释器。它只支持「单个函数 / 单参数 / 单基线条件 / 单递归步」这一形式（factorial、sum 这类）。它做的是真实的递归语义执行与调用栈追踪，不是打印预设文本。</div>
+      </div>
+
+      <!-- 反馈 + 评分 -->
+      <div class="result">
+        <div class="fb" id="fb">
+          <div class="fb-bar" id="fbBar"></div>
+          <span class="fb-badge" id="fbBadge">等待作答</span>
+          <div class="fb-sec fb-s1">
+            <h4>你做对的部分</h4>
+            <p id="fbS1">提交任意一题后，这里会先指出你判断正确的部分。</p>
+          </div>
+          <div class="fb-sec fb-s2">
+            <h4>卡在哪里</h4>
+            <p id="fbS2">如果答错，这里会定位到具体的错误点，并说明缺失的是哪个概念。</p>
+          </div>
+          <div class="fb-sec fb-s3">
+            <h4>下一步</h4>
+            <p id="fbS3">这里会给一个你现在就能执行的动作。</p>
+          </div>
+        </div>
+
+        <div class="score">
+          <div class="micro">ASSESSMENT · 多维评分</div>
+          <div class="score-rows" id="scoreRows"></div>
+          <p class="card-foot">transfer 与 hint_dependency 不参与 overall_score 聚合，仅作为 Policy 输入。</p>
+        </div>
+      </div>
+
+      <!-- 后置验证 -->
+      <div class="verify" id="verify" hidden>
+        <div class="micro micro--accent">POST-VERIFICATION · 后置验证（完整答案后必做）</div>
+        <p class="task-lead" style="margin-top:var(--s-4)">你已经看过完整答案。要证明你理解的是<b>原理</b>而不是这一段文字，请回答下面这个问题——这是本次任务结束的唯一条件。</p>
+        <p style="margin-top:var(--s-4);font-size:13.5px;font-weight:600">如果基线条件写成 <code>n == 1</code> 而不是 <code>n &lt;= 1</code>，调用 <code>factorial(0)</code> 会发生什么？为什么？</p>
+        <textarea id="verifyInput" aria-label="后置验证作答" placeholder="用一两句话说清楚即可。"></textarea>
+        <div class="btn-row" style="margin-top:var(--s-4)">
+          <button class="btn btn--primary" id="btnVerify" type="button">提交自我解释</button>
+        </div>
+        <div class="match-fb" id="verifyFb" role="status" aria-live="polite"></div>
+      </div>
+
+      <!-- 证据轨 -->
+      <div class="rail">
+        <div class="rail-head">
+          <div class="micro">EVIDENCE TRAIL · 本次会话事件</div>
+          <span style="font-size:12px;color:var(--ink-3)" id="railCount">已产生 0 条事件（只追加，不覆盖）</span>
+        </div>
+        <div class="rail-track">
+          <div class="rail-dots" id="railDots"></div>
+        </div>
+        <div class="rail-foot">
+          <span id="railLast">尚无事件</span>
+          <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--ev-practiced);margin-right:5px"></i>作答　<i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--warn);margin-right:5px;margin-left:10px"></i>提示　<i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--ev-demonstrated);margin-right:5px;margin-left:10px"></i>运行　<i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--ok);margin-right:5px;margin-left:10px"></i>完成</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Zone 03 · Agent 数据输出 ═══════════════════════════ -->
+  <section class="zone" id="output" aria-labelledby="z3t">
+    <div class="zone-head">
+      <div class="micro micro--accent">03 · AGENT OUTPUT · 数据输出</div>
+      <h2 class="zone-title" id="z3t">交给宿主 Agent 的交互结果</h2>
+      <p class="zone-goal">这一区不是调试信息，而是学习者本次会话的完整档案。宿主 Agent 通过它驱动下一轮教学决策。</p>
+      <div class="zone-rule"></div>
+    </div>
+
+    <div class="zone-body">
+      <div class="bridge-strip" id="bridgeStrip">
+        <div class="bs-l">
+          <span class="micro micro--accent" id="bridgeMode">BRIDGE · 演示模式</span>
+          <span class="bs-t" id="bridgeSummary">未接入宿主 Agent；学习动作会累积为待执行的 MCP 调用。</span>
+        </div>
+        <button class="bs-btn" id="bridgeDrain" type="button">取出调用队列 ▾</button>
+      </div>
+      <pre class="bridge-out" id="bridgeOutbox" hidden></pre>
+      <div class="console">
+        <button class="console-bar" id="consoleBar" type="button" aria-expanded="false" aria-controls="consoleJson">
+          <span class="cb-t" id="consoleSummary">AGENT OUTPUT · 已记录 0 条事件</span>
+          <span class="cb-a" id="consoleAction">展开 JSON ▾</span>
+        </button>
+        <div class="console-json" id="consoleJson">
+          <pre id="leap-interaction-output"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot">
+    LEAP‑V2 分学科前端示例 · 示例 1（编程 / Python 递归）　·　node_id <code>py.recursion.factorial</code>　·　unit_tag <code>python-recursion</code><br>
+    单文件零依赖 · 零 CDN · 零外部图片 · 全部图形为内联 SVG / DOM 绘制　·　结构规范见 <code>examples/_shared/leap-web-spec.md</code>，视觉规范见 <code>LEAP_视觉设计理念_给Gemini.md</code>
+  </p>
+</main>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   LEAP Runtime 交互结果内核（JSON 契约 · 证据轨 · 评分聚合）
+   契约来源：examples/_shared/interaction-output.schema.json
+   ══════════════════════════════════════════════════════════════ */
+window.LEAP = (function () {
+  "use strict";
+
+  var state = {
+    leap_version: "2.0",
+    example_id: "python-recursion",
+    subject: "programming",
+    node: { node_id: "py.recursion.factorial", title: "阶乘递归", unit_tag: "python-recursion" },
+    learner: { learner_id: "REPLACE_WITH_LEARNER_ID", session_id: "REPLACE_WITH_SESSION_ID" },
+    events: [],
+    assessment: blankAssessment(),
+    ui_state: {
+      mode: "demo", hosted: false, pending_mcp_calls: 0,
+      hint_dependency: 0, hint_level: 0, answer_revealed: false, completed: false
+    }
+  };
+
+  var mastery = 0.62;                       /* 本地模拟值 */
+  var HINT_DEP = [0, 0.25, 0.40, 0.60, 0.85];
+  var STAGE_ORDER = ["estimated", "practiced", "demonstrated", "retained", "transferred"];
+  var EVENT_COLOR = {
+    attempt_submitted: "#4C7BD9",
+    hint_used: "#B3861A",
+    answer_revealed: "#7A7F8A",
+    drag_submitted: "#4C7BD9",
+    code_run: "#2E8B84",
+    reflection_recorded: "#4C8B3F",
+    item_completed: "#2E7D5B"
+  };
+
+  /* ══ LEAP_HOST_BRIDGE · 宿主桥接 ══════════════════════════════════
+     本页只负责「呈现 + 采集」，不做任何状态判定：
+       · mastery_probability / evidence_stage / hint_dependency 由 LEAP Runtime
+         计算（LEAP_Framework_V2 §10.2‑1），本页只显示 hydrate() 注入的值；
+       · 学习者的每个动作都会被翻译成一条待执行的 MCP 调用，进入 outbox，
+         由宿主 Agent 通过 LEAP.drainOutbox() 取走后真正执行。
+     未调用 hydrate() 时保持 demo 模式，本地推算值一律标记 provisional。 */
+  var bridge = {
+    mode: "demo",
+    context: null,
+    server: {
+      mastery_probability: mastery,
+      evidence_stage: "estimated",
+      hint_dependency: 0,
+      next_review_at: null,
+      transfer_required: false
+    },
+    outbox: [],
+    seq: 0,
+    hooks: [],
+    last_attempt_call_id: null,
+    last_raw_answer: ""
+  };
+
+  function clamp01(v) { return Math.max(0, Math.min(1, Number(v))); }
+  function isHosted() { return bridge.mode === "hosted"; }
+  function peekOutbox() { return clone(bridge.outbox); }
+  function drainOutbox() { var out = clone(bridge.outbox); bridge.outbox.length = 0; renderAll(); return out; }
+  function onOutboxChange(fn) { if (typeof fn === "function") bridge.hooks.push(fn); }
+
+  function enqueue(tool, args, note) {
+    var call = {
+      call_id: "call_" + (++bridge.seq),
+      tool: tool,
+      args: args || {},
+      status: "pending",
+      created_at: nowSec(),
+      note: note || ""
+    };
+    bridge.outbox.push(call);
+    for (var i = 0; i < bridge.hooks.length; i++) { try { bridge.hooks[i](call, bridge.outbox.length); } catch (e) {} }
+    return call;
+  }
+
+  /* 事件 → MCP 调用映射。hint_used / answer_revealed / item_completed 不单独
+     产生调用：它们的信息通过后续 attempt 的 hint_level 一并提交。 */
+  var EVENT_TO_TOOL = {
+    attempt_submitted: "submit_attempt",
+    drag_submitted: "submit_attempt",
+    code_run: "submit_attempt",
+    reflection_recorded: "record_reflection"
+  };
+
+  function enqueueForEvent(ev) {
+    var tool = EVENT_TO_TOOL[ev.event_type];
+    if (!tool) return null;
+    var raw = ev.answer == null ? "" : String(ev.answer);
+
+    if (tool === "submit_attempt") {
+      bridge.last_raw_answer = raw;
+      var call = enqueue("submit_attempt", {
+        session_id: state.learner.session_id,
+        answer: raw,
+        node_id: state.node.node_id,
+        item_id: ev.item_id || null,
+        hint_level: typeof ev.hint_level === "number" ? ev.hint_level : state.ui_state.hint_level,
+        response_time: typeof ev.response_time === "number" ? ev.response_time : null
+      }, "提交本次作答；返回的 attempt_id 供 commit_assessment 使用");
+      bridge.last_attempt_call_id = call.call_id;
+      return call;
+    }
+    return enqueue("record_reflection", {
+      session_id: state.learner.session_id,
+      reflection: raw,
+      node_id: state.node.node_id
+    }, "保存反思");
+  }
+
+  /* 宿主注入：直接吃 get_teaching_context 的返回值 */
+  function hydrate(ctx) {
+    if (!ctx || typeof ctx !== "object") { throw new TypeError("LEAP.hydrate(context) 需要一个对象参数"); }
+    bridge.context = clone(ctx);
+    bridge.mode = "hosted";
+
+    var sess = ctx.session || {};
+    var node = ctx.current_node || ctx.node || {};
+    var ks = ctx.knowledge_state || {};
+
+    var learnerId = ctx.learner_id || sess.learner_id;
+    var sessionId = ctx.session_id || sess.session_id;
+    if (learnerId) state.learner.learner_id = learnerId;
+    if (sessionId) state.learner.session_id = sessionId;
+    if (node.node_id) state.node.node_id = node.node_id;
+    if (node.title) state.node.title = node.title;
+    if (node.unit_tag) state.node.unit_tag = node.unit_tag;
+
+    if (typeof ks.mastery_probability === "number") {
+      bridge.server.mastery_probability = clamp01(ks.mastery_probability);
+      mastery = bridge.server.mastery_probability;
+    }
+    if (ks.evidence_stage) {
+      bridge.server.evidence_stage = ks.evidence_stage;
+      state.assessment.evidence_stage = ks.evidence_stage;
+    }
+    if (typeof ks.hint_dependency === "number") {
+      bridge.server.hint_dependency = clamp01(ks.hint_dependency);
+      state.ui_state.hint_dependency = bridge.server.hint_dependency;
+    }
+    if (ks.next_review_at) bridge.server.next_review_at = ks.next_review_at;
+    if (typeof ctx.transfer_requirement === "boolean") bridge.server.transfer_required = ctx.transfer_requirement;
+
+    bridge.available_actions = ctx.recommended_actions || [];
+    bridge.recommended_strategy = ctx.recommended_strategy || "";
+    bridge.due_reviews = ctx.due_reviews || [];
+
+    renderAll();
+    return snapshot();
+  }
+
+  function toggleOutboxView() {
+    var pre = document.getElementById("bridgeOutbox");
+    var btn = document.getElementById("bridgeDrain");
+    if (!pre) return;
+    var opening = pre.hidden;
+    pre.hidden = !opening;
+    if (btn) btn.textContent = opening ? "收起调用队列 ▴" : "取出调用队列 ▾";
+    if (opening) {
+      var calls = drainOutbox();
+      pre.textContent = calls.length
+        ? JSON.stringify(calls, null, 2)
+        : "（队列为空：尚无需要提交给 LEAP Runtime 的调用）";
+    }
+  }
+
+  var drainWired = false;
+  function renderBridge() {
+    var modeEl = document.getElementById("bridgeMode");
+    var sumEl = document.getElementById("bridgeSummary");
+    var noteEl = document.getElementById("spineNote");
+    var n = bridge.outbox.length;
+
+    if (modeEl) modeEl.textContent = "BRIDGE · " + (isHosted() ? "已接入宿主" : "演示模式");
+    if (sumEl) {
+      sumEl.textContent = isHosted()
+        ? "已注入 Runtime 上下文（" + state.node.node_id + "）；待执行的 MCP 调用 " + n + " 条。"
+        : "未接入宿主 Agent；学习动作会累积为待执行的 MCP 调用（当前 " + n + " 条）。";
+    }
+    if (noteEl) {
+      noteEl.innerHTML = isHosted()
+        ? "本页状态由 <b>LEAP Runtime</b> 注入（<code>LEAP.hydrate()</code>）；掌握度与证据阶段由服务端 BKT 与 State Guard 计算，本页不自行推算。"
+        : "本页掌握度与证据阶段为<b>本地模拟</b>，用于演示界面如何呈现学习状态；真实系统中二者由 LEAP Runtime 的 BKT 估计器与 State Guard 计算（见 LEAP_Framework_V2 §10.2‑1）。";
+    }
+
+    var btn = document.getElementById("bridgeDrain");
+    if (btn && !drainWired) { drainWired = true; btn.addEventListener("click", toggleOutboxView); }
+    if (btn && !n) { btn.disabled = true; } else if (btn) { btn.disabled = false; }
+  }
+
+  function blankAssessment() {
+    return {
+      item_id: "", correctness: 0, conceptual_understanding: 0, reasoning_quality: 0,
+      application: 0, transfer: 0, hint_dependency: 0, confidence: 0, overall_score: 0,
+      error_type: "none", misconception: "", feedback: "",
+      evidence_stage: "estimated", assessor_type: "rule", provisional: true
+    };
+  }
+  function nowSec() { return Math.floor(Date.now() / 1000); }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  /* overall_score：correctness .4 / conceptual .3 / reasoning .2 / application .1
+     缺失维度自动归一化；transfer 与 hint_dependency 不参与聚合 */
+  function aggregate(d) {
+    var w = { correctness: 0.4, conceptual_understanding: 0.3, reasoning_quality: 0.2, application: 0.1 };
+    var sum = 0, tw = 0, k;
+    for (k in w) {
+      if (typeof d[k] === "number" && isFinite(d[k])) { sum += d[k] * w[k]; tw += w[k]; }
+    }
+    return tw ? Math.round((sum / tw) * 100) / 100 : 0;
+  }
+
+  function pushEvent(event_type, payload) {
+    var ev = { event_type: event_type };
+    if (payload) { for (var k in payload) { if (Object.prototype.hasOwnProperty.call(payload, k)) ev[k] = payload[k]; } }
+    ev.created_at = nowSec();
+    state.events.push(ev);
+    enqueueForEvent(ev);
+    renderAll();
+    return ev;
+  }
+
+  function setHint(level) {
+    if (level > state.ui_state.hint_level) state.ui_state.hint_level = level;
+    if (level === 4) state.ui_state.answer_revealed = true;
+    state.ui_state.hint_dependency = HINT_DEP[Math.min(state.ui_state.hint_level, 4)];
+    renderAll();
+  }
+
+  function commitAssessment(item) {
+    var dep = HINT_DEP[Math.min(state.ui_state.hint_level, 4)];
+    var a = {
+      item_id: item.item_id,
+      correctness: r2(item.correctness),
+      conceptual_understanding: r2(item.conceptual_understanding),
+      reasoning_quality: r2(item.reasoning_quality),
+      application: r2(item.application),
+      transfer: r2(item.transfer || 0),
+      hint_dependency: r2(dep),
+      confidence: 0,
+      overall_score: 0,
+      error_type: item.error_type || "none",
+      misconception: item.misconception || "",
+      feedback: item.feedback || "",
+      evidence_stage: "practiced",
+      assessor_type: item.assessor_type || "rule"
+    };
+    a.overall_score = aggregate(a);
+
+    if (bridge.mode === "demo") {
+      /* 演示模式：本地粗略推进，仅为让界面动起来。
+         接入宿主后（hosted）这两项一律以 Runtime 返回值回填（§10.2‑1）。 */
+      a.evidence_stage = deriveStage(a);
+      if (typeof item.transfer === "number" && item.transfer >= 0.7) a.evidence_stage = "transferred";
+      mastery = Math.max(0, Math.min(0.98, mastery + (a.correctness - 0.5) * 0.14 - dep * 0.04));
+      bridge.server.mastery_probability = mastery;
+      bridge.server.evidence_stage = a.evidence_stage;
+      a.provisional = true;
+    } else {
+      a.evidence_stage = bridge.server.evidence_stage;
+      a.provisional = false;
+    }
+    state.assessment = a;
+    state.ui_state.hint_dependency = a.hint_dependency;
+
+    /* 评估证据必须回传 Runtime：raw_answer 不可丢弃（§22.8）。 */
+    enqueue("commit_assessment", {
+      attempt_id: bridge.last_attempt_call_id
+        ? "{{" + bridge.last_attempt_call_id + ".attempt_id}}" : "{{attempt_id}}",
+      raw_answer: bridge.last_raw_answer,
+      assessor_type: a.assessor_type,
+      correctness: a.correctness,
+      conceptual_understanding: a.conceptual_understanding,
+      reasoning_quality: a.reasoning_quality,
+      application: a.application,
+      transfer: a.transfer,
+      hint_dependency: a.hint_dependency,
+      confidence: a.confidence
+    }, "提交评估证据；attempt_id 由上一条 submit_attempt 的返回值填充，mastery 由 Runtime 计算");
+    renderAll();
+    return a;
+  }
+
+  function deriveStage(a) {
+    if (a.correctness >= 0.8 && a.hint_dependency <= 0.5) return "demonstrated";
+    return "practiced";
+  }
+  function r2(v) { return Math.round((v || 0) * 100) / 100; }
+
+  function setCompleted(itemId, reason) {
+    state.ui_state.completed = true;
+    pushEvent("item_completed", { item_id: itemId, reason: reason || "verified" });
+  }
+
+  /* ── 渲染 ─────────────────────────────────────────────── */
+  var renderHooks = [];
+  function onRender(fn) { renderHooks.push(fn); fn(); }
+  function renderAll() {
+    renderOutput(); renderSpine(); renderRail(); renderBridge();
+    for (var i = 0; i < renderHooks.length; i++) { try { renderHooks[i](); } catch (e) { /* 单个面板失败不影响契约输出 */ } }
+  }
+
+
+
+  function renderOutput() {
+    var el = document.getElementById("leap-interaction-output");
+    if (el) el.textContent = JSON.stringify(snapshot(), null, 2);
+    var sum = document.getElementById("consoleSummary");
+    if (sum) {
+      var last = state.events.length ? state.events[state.events.length - 1].event_type : null;
+      sum.textContent = "AGENT OUTPUT · 已记录 " + state.events.length + " 条事件" +
+        (last ? " · 最近 " + last : "") + (state.ui_state.completed ? " · 本节点已完成" : "");
+    }
+  }
+
+  function renderSpine() {
+    var cur = state.assessment.evidence_stage;
+    var idx = Math.max(0, STAGE_ORDER.indexOf(cur));
+    var segs = document.querySelectorAll("#evTrack .ev-seg");
+    for (var i = 0; i < segs.length; i++) {
+      if (i <= idx) { segs[i].classList.add("is-on"); } else { segs[i].classList.remove("is-on"); }
+    }
+    var nameEl = document.getElementById("evName");
+    if (nameEl) {
+      nameEl.textContent = cur + " · " + STAGE_CN[cur];
+      nameEl.style.color = "var(--ev-" + cur + ")";
+    }
+    var fill = document.getElementById("masFill");
+    if (fill) fill.style.width = Math.round(mastery * 100) + "%";
+    var val = document.getElementById("masVal");
+    if (val) val.textContent = mastery.toFixed(2);
+    var note = document.getElementById("ladderNote");
+    if (note) {
+      note.textContent = "阶梯高度 = 支持强度。已用层级越高，hint_dependency 越高；本节点当前 " +
+        HINT_DEP[Math.min(state.ui_state.hint_level, 4)].toFixed(2) + "。";
+    }
+  }
+
+  var STAGE_CN = {
+    estimated: "仅估计", practiced: "练习过", demonstrated: "独立展示",
+    retained: "延迟保持", transferred: "已迁移"
+  };
+
+  function renderRail() {
+    var host = document.getElementById("railDots");
+    if (!host) return;
+    var n = state.events.length;
+    host.innerHTML = "";
+    if (!n) return;
+    var gap = n === 1 ? 0 : 1120 / (n + 1);
+    /* 使用百分比定位，随容器宽度自适应 */
+    for (var i = 0; i < n; i++) {
+      var d = document.createElement("span");
+      var isLast = (i === n - 1);
+      d.className = "rail-dot" + (isLast ? " rail-dot--last" : "");
+      var pct = n === 1 ? 50 : ((i + 1) / (n + 1)) * 100;
+      d.style.left = pct + "%";
+      d.style.background = EVENT_COLOR[state.events[i].event_type] || "#9AA1AD";
+      d.title = state.events[i].event_type;
+      host.appendChild(d);
+    }
+    var cnt = document.getElementById("railCount");
+    if (cnt) cnt.textContent = "已产生 " + n + " 条事件（只追加，不覆盖）";
+    var last = document.getElementById("railLast");
+    if (last) {
+      var e = state.events[n - 1];
+      last.textContent = "最近：" + e.event_type + (e.item_id ? " · " + e.item_id : "") +
+        " · hint_level " + state.ui_state.hint_level + " · " + fmtTime(e.created_at);
+    }
+  }
+  function fmtTime(t) {
+    var d = new Date(t * 1000);
+    return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2) + ":" + ("0" + d.getSeconds()).slice(-2);
+  }
+
+  /* ── 对外接口 ─────────────────────────────────────────── */
+  function snapshot() {
+    var out = clone(state);
+    out.ui_state.mode = bridge.mode;
+    out.ui_state.hosted = isHosted();
+    out.ui_state.pending_mcp_calls = bridge.outbox.length;
+    out.outbox = clone(bridge.outbox);
+    return out;
+  }
+  function getInteractionResult() { return snapshot(); }
+  function getState() { return state; }
+  function getMastery() { return mastery; }
+
+  return {
+    /* ── 输入：宿主 Agent 注入 Runtime 上下文 ── */
+    hydrate: hydrate,
+    isHosted: isHosted,
+    /* ── 输出：契约对象 ── */
+    getInteractionResult: getInteractionResult,
+    /* ── 输出：待执行的 MCP 调用队列 ── */
+    peekOutbox: peekOutbox,
+    drainOutbox: drainOutbox,
+    onOutboxChange: onOutboxChange,
+    pushEvent: pushEvent,
+    setHint: setHint,
+    commitAssessment: commitAssessment,
+    setCompleted: setCompleted,
+    aggregate: aggregate,
+    getState: getState,
+    getMastery: getMastery,
+    onRender: onRender,
+    refresh: renderAll,
+    HINT_DEP: HINT_DEP,
+    STAGE_CN: STAGE_CN
+  };
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   页面交互
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var S = window.LEAP.getState();
+
+  /* ── 1. 理解检查 ───────────────────────────────────────── */
+  (function checkpoint() {
+    var opts = document.querySelectorAll("#cp .opt");
+    var fb = $("cpFb");
+    var done = false;
+    Array.prototype.forEach.call(opts, function (b) {
+      b.addEventListener("click", function () {
+        Array.prototype.forEach.call(opts, function (x) { x.setAttribute("aria-pressed", "false"); });
+        b.setAttribute("aria-pressed", "true");
+        var ok = b.dataset.v === "ok";
+        fb.innerHTML = (ok ? "<b>正确。</b> " : "<b>再想一想。</b> ") + b.dataset.why;
+        fb.classList.add("is-on");
+        if (!done) {
+          done = true;
+          window.LEAP.pushEvent("attempt_submitted", {
+            item_id: "cp-01", answer: b.textContent.trim(), hint_level: 0,
+            response_time: 0, attempt_index: 1, predicted_performance: null,
+            error_type: ok ? "none" : "misconception"
+          });
+        }
+      });
+    });
+  })();
+
+  /* ── 2. 调用栈动画 ─────────────────────────────────────── */
+  var STEPS = [
+    { d: "调用 factorial(4)：把这一层压入调用栈，等待子问题返回。", s: [{ n: 4, st: "active" }] },
+    { d: "4 <= 1 不成立 → 进入递归条件，调用 factorial(3) 并压栈。", s: [{ n: 4, st: "waiting" }, { n: 3, st: "active" }] },
+    { d: "3 <= 1 不成立 → 继续调用 factorial(2) 并压栈。", s: [{ n: 4, st: "waiting" }, { n: 3, st: "waiting" }, { n: 2, st: "active" }] },
+    { d: "2 <= 1 不成立 → 继续调用 factorial(1) 并压栈。", s: [{ n: 4, st: "waiting" }, { n: 3, st: "waiting" }, { n: 2, st: "waiting" }, { n: 1, st: "active" }] },
+    { d: "1 <= 1 成立 —— 命中基线条件，直接返回 1，不再继续压栈。", s: [{ n: 4, st: "waiting" }, { n: 3, st: "waiting" }, { n: 2, st: "waiting" }, { n: 1, st: "base" }] },
+    { d: "factorial(1) 出栈；factorial(2) 拿到返回值 1，计算 2 × 1 = 2。", s: [{ n: 4, st: "waiting" }, { n: 3, st: "waiting" }, { n: 2, st: "active" }] },
+    { d: "factorial(2) 出栈；factorial(3) 计算 3 × 2 = 6。", s: [{ n: 4, st: "waiting" }, { n: 3, st: "active" }] },
+    { d: "factorial(3) 出栈；factorial(4) 计算 4 × 6 = 24。", s: [{ n: 4, st: "active" }] },
+    { d: "factorial(4) 返回 24。展开与回退全部结束，调用栈清空。", s: [{ n: 4, st: "done" }] }
+  ];
+  var cur = 0, timer = null;
+
+  function drawStack() {
+    var tube = $("tube");
+    tube.innerHTML = "";
+    var st = cur === 0 ? [] : STEPS[cur - 1].s;
+    for (var i = 0; i < st.length; i++) {
+      var f = document.createElement("div");
+      f.className = "tf";
+      f.dataset.s = st[i].st;
+      var tag = st[i].st === "base" ? "  ·  BASE HIT" : "";
+      f.textContent = "factorial(" + st[i].n + ")" + tag;
+      tube.appendChild(f);
+    }
+    if (!st.length) {
+      var e = document.createElement("div");
+      e.style.cssText = "font-size:11.5px;color:var(--ink-3);text-align:center;padding:0 0 96px";
+      e.textContent = "栈为空 · 尚未开始";
+      tube.appendChild(e);
+    }
+    var st1 = document.querySelector(".tube-label");
+    if (st1) st1.textContent = cur === 0 ? "TOP · 栈顶" : "TOP · 栈顶（深度 " + (cur >= 9 ? 0 : STEPS[cur - 1].s.filter(function (x) { return x.st !== "done"; }).length) + "）";
+    $("stepText").textContent = cur === 0 ? "点击「单步」或「播放」，观察调用栈如何一层层生长、又一层层收回。" : STEPS[cur - 1].d;
+    $("stepCount").textContent = "步骤 " + cur + " / " + STEPS.length + "　·　状态：" +
+      (cur === 0 ? "待开始" : (cur < 5 ? "展开中" : (cur < 9 ? "回退中" : "已完成")));
+  }
+  function stepFwd() {
+    if (cur < STEPS.length) { cur++; drawStack(); }
+    else stopPlay();
+  }
+  function stepBack() { if (cur > 0) { cur--; drawStack(); } }
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; }
+    $("btnPlay").textContent = "播放";
+  }
+  function togglePlay() {
+    if (timer) { stopPlay(); return; }
+    if (cur >= STEPS.length) cur = 0;
+    $("btnPlay").textContent = "暂停";
+    timer = setInterval(function () {
+      if (cur >= STEPS.length) { stopPlay(); return; }
+      stepFwd();
+    }, 900);
+    drawStack();
+  }
+  $("btnPlay").addEventListener("click", togglePlay);
+  $("btnStep").addEventListener("click", function () { stopPlay(); stepFwd(); });
+  $("btnReset").addEventListener("click", function () { stopPlay(); cur = 0; drawStack(); });
+  document.addEventListener("keydown", function (e) {
+    var t = e.target.tagName;
+    if (t === "INPUT" || t === "TEXTAREA") return;
+    if (e.key === "ArrowRight") { stopPlay(); stepFwd(); e.preventDefault(); }
+    else if (e.key === "ArrowLeft") { stopPlay(); stepBack(); e.preventDefault(); }
+    else if (e.key === " " || e.code === "Space") { togglePlay(); e.preventDefault(); }
+  });
+  drawStack();
+
+  /* ── 3. 提示阶梯 ───────────────────────────────────────── */
+  var HINTS = {
+    1: { t: "① 引导问题 · 只给方向", h: "先问自己一个问题：这个函数在<b>哪一步必须停下来</b>？如果没有这一步，<code>n</code> 会一直减到 0、再减到负数——那时候会发生什么？" },
+    2: { t: "② 策略提示 · 给思路", h: "递归函数需要两个分支：一个<b>不调用自身</b>的出口，一个把问题变小的入口。<br>· 出口：判断 <code>n</code> 与一个常数的关系，满足就直接给值；<br>· 入口：里面必须出现 <code>factorial(比 n 更小的值)</code>，并且整体规模要能收敛。" },
+    3: { t: "③ 部分示范 · 给前半段", h: "先把<b>出口</b>写完整（这一半我替你写）：", c: "def factorial(n):\n    if n <= 1:          # 出口：n 为 0 或 1 时直接返回\n        return 1        # 这里不调用自身，递归在此终止\n    return ______       # 入口：这一半留给你" },
+    4: { t: "④ 完整答案 · 已展示", h: "完整代码（含每一步的理由）：", c: "# 基线条件：写 n <= 1 可以同时覆盖 n == 0 与 n == 1 两种终止情形，\n#             这样 factorial(1) 直接返回 1，不再多压一层栈。\ndef factorial(n):\n    if n <= 1:\n        return 1\n    # 递归条件：把规模从 n 缩小到 n - 1，并把子问题的结果乘回来\n    return n * factorial(n - 1)" }
+  };
+  var ladderNote = $("ladderNote");
+
+  function setLadderState() {
+    var lvl = S.ui_state.hint_level;
+    Array.prototype.forEach.call(document.querySelectorAll("#ladder .ladder-step"), function (b) {
+      var lv = parseInt(b.dataset.lv, 10);
+      b.dataset.state = lv <= lvl ? "used" : (lv === lvl + 1 ? "avail" : "locked");
+      b.disabled = (lv > lvl + 1);
+      b.setAttribute("aria-disabled", String(lv > lvl + 1));
+    });
+    ladderNote.textContent = "阶梯高度 = 支持强度。已用层级越高，hint_dependency 越高；本节点当前 " +
+      window.LEAP.HINT_DEP[Math.min(lvl, 4)].toFixed(2) +
+      (lvl >= 3 ? "（> 0.50，已不足以升级到 demonstrated）" : "（≤ 0.50，仍可升级到 demonstrated）") + "。";
+  }
+
+  function showHint(lv) {
+    var body = $("hintBody");
+    var box = document.createElement("div");
+    box.className = "hint-card";
+    box.dataset.lv = lv;
+    if (lv === 4) {
+      box.innerHTML = '<span class="micro">④ 完整答案</span><p>' + HINTS[4].h + '</p><pre>' + esc(HINTS[4].c) + '</pre>';
+      body.appendChild(box);
+      $("verify").hidden = false;
+      $("verify").scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    box.innerHTML = '<span class="micro">' + HINTS[lv].t + '</span><p>' + HINTS[lv].h + '</p>' +
+      (HINTS[lv].c ? '<pre>' + esc(HINTS[lv].c) + '</pre>' : '');
+    body.appendChild(box);
+  }
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  Array.prototype.forEach.call(document.querySelectorAll("#ladder .ladder-step"), function (b) {
+    b.addEventListener("click", function () {
+      var lv = parseInt(b.dataset.lv, 10);
+      if (lv > S.ui_state.hint_level + 1) return;
+      if (lv <= S.ui_state.hint_level) return;
+      if (lv === 4) {
+        renderConfirm();
+        return;
+      }
+      window.LEAP.setHint(lv);
+      window.LEAP.pushEvent("hint_used", { item_id: "q1", hint_level: lv, answer: "", response_time: 0, attempt_index: 1, predicted_performance: null });
+      showHint(lv);
+      setLadderState();
+    });
+  });
+
+  function renderConfirm() {
+    if ($("confirmBox")) return;
+    var box = document.createElement("div");
+    box.className = "confirm";
+    box.id = "confirmBox";
+    box.innerHTML = '<p>展开完整答案后，本次作答会被记录为 <code>answer_revealed</code>，' +
+      '<b>hint_dependency 升到 0.85</b>，并且你<b>必须完成一题后置验证</b>，本任务才算结束。' +
+      '如果你只想再试一次，建议先点「③ 部分示范」。</p>' +
+      '<div class="btn-row"><button class="btn btn--primary btn--sm" id="btnConfirmReveal" type="button">我确认，展开完整答案</button>' +
+      '<button class="btn btn--ghost btn--sm" id="btnCancelReveal" type="button">先不展开</button></div>';
+    $("hintBody").appendChild(box);
+    $("btnCancelReveal").addEventListener("click", function () { box.remove(); });
+    $("btnConfirmReveal").addEventListener("click", function () {
+      box.remove();
+      window.LEAP.setHint(4);
+      window.LEAP.pushEvent("answer_revealed", { item_id: "q1", hint_level: 4, answer: "", response_time: 0, attempt_index: 1, predicted_performance: null });
+      showHint(4);
+      setLadderState();
+    });
+  }
+  setLadderState();
+
+  /* ── 4. Q1 代码填空 ────────────────────────────────────── */
+  var Q1_RULES = {
+    base: [
+      { re: /^n\s*<=\s*1$/, ok: true },
+      { re: /^n\s*<\s*2$/, ok: true },
+      { re: /^n\s*==\s*0$/, ok: true, partial: true, why: "n == 0 也正确，但它只覆盖 0，factorial(1) 会多压一层栈——写成 n <= 1 更省。" },
+      { re: /^n\s*==\s*1$/, ok: false, kind: "reasoning_error", why: "n == 1 漏掉了 n == 0。调用 factorial(0) 时基线不成立，会一路减到负数并触发 RecursionError。" },
+      { re: /^n\s*=\s*0$/, ok: false, kind: "misconception", why: "单个 = 是赋值不是比较，Python 里会直接报语法错误。这里需要的是判断相等的 ==" },
+      { re: /^(?:true|1)$/i, ok: false, kind: "misconception", why: "写成一个恒真条件，等于没有基线——递归永远不会停。基线条件必须真的能在某个规模上成立。" },
+      { re: /^n\s*>=\s*1$/, ok: false, kind: "reasoning_error", why: "方向反了：n >= 1 在 n=4 时就成立，函数会直接返回 1，结果永远是 1。" },
+      { re: /^n\s*<\s*0$/, ok: false, kind: "reasoning_error", why: "n < 0 永远不会对正数成立，递归没有出口。" }
+    ],
+    rec: [
+      { re: /^n\s*\*\s*(?:factorial|f)\s*\(\s*n\s*-\s*1\s*\)$/, ok: true },
+      { re: /^(?:factorial|f)\s*\(\s*n\s*-\s*1\s*\)\s*\*\s*n$/, ok: true },
+      { re: /^n\s*\*\s*(?:factorial|f)\s*\(\s*n\s*-\s*(?:1|one)\s*\)$/, ok: true },
+      { re: /^n\s*\+\s*(?:factorial|f)\s*\(\s*n\s*-\s*1\s*\)$/, ok: false, kind: "answer_error", why: "结构完全正确，只是把乘号写成了加号。factorial 求的是连乘，用 + 会得到阶乘的「累加版」，结果差得很远。" },
+      { re: /^n\s*\*\s*(?:factorial|f)\s*\(\s*n\s*\+\s*1\s*\)$/, ok: false, kind: "reasoning_error", why: "递归参数在变大，规模没有缩小，永远不会触到基线——这是典型的「看似递归实为死循环」。" },
+      { re: /^n\s*\*\s*(?:factorial|f)\s*\(\s*n\s*\)$/, ok: false, kind: "reasoning_error", why: "参数没有变，每一层都是同样的问题，栈会一直长到 RecursionError。递归条件必须让规模严格变小。" },
+      { re: /^n\s*\*\s*factorial\s*\(\s*n\s*-\s*2\s*\)$/, ok: false, kind: "reasoning_error", why: "步长是 2，会跳过 n == 1（n 从 2 直接到 0），结果是 0。递归步长必须能与基线条件严丝合缝地对上。" },
+      { re: /^(?:factorial|f)\s*\(\s*n\s*\)$/, ok: false, kind: "reasoning_error", why: "只调用了自身却没有把结果与 n 结合，等于什么都没算，而且参数没变小。" }
+    ]
+  };
+  function norm(s) {
+    return String(s || "").replace(/[\s\u3000]+/g, "").replace(/×/g, "*").replace(/[（]/g, "(").replace(/[）]/g, ")").toLowerCase();
+  }
+  function matchRule(kind, raw) {
+    var v = norm(raw);
+    if (!v) return null;
+    var list = Q1_RULES[kind];
+    for (var i = 0; i < list.length; i++) if (list[i].re.test(v)) return list[i];
+    return { ok: false, kind: "answer_error", why: "这个写法不在本示例的判定范围内。请按形如 n <= 1 与 n * factorial(n - 1) 的形式书写。" };
+  }
+  function keyForm(raw) { return norm(raw).replace(/[()]/g, "").replace(/factorial|f/g, "f"); }
+
+  var q1Tried = 0;
+  $("btnSubmitQ1").addEventListener("click", function () {
+    var a = $("blankA").value, b = $("blankB").value;
+    if (!norm(a) && !norm(b)) { flashQ1("两个空都还空着。先写出基线条件，再写递归条件。", "warn"); return; }
+    q1Tried++;
+    var ra = matchRule("base", a), rb = matchRule("rec", b);
+    var ca = ra && ra.ok ? 1 : 0, cb = rb && rb.ok ? 1 : 0;
+    var partialA = ra && ra.partial, partialB = rb && (rb.ok && !rb.partial);
+    var correctness = Math.min(1, (ca ? (partialA ? 0.85 : 1) : 0) * 0.4 + (cb ? 1 : 0) * 0.6);
+    /* 概念维度：基线条件错通常是概念问题，递归条件错通常是推理问题 */
+    var misconception = "";
+    var errType = "none";
+    if (!ca) { errType = ra && ra.kind ? ra.kind : "answer_error"; if (errType === "misconception") misconception = "把「判断」与「赋值」混淆 / 认为基线可以省略"; }
+    else if (!cb) { errType = rb && rb.kind ? rb.kind : "answer_error"; if (errType === "misconception") misconception = "递归条件的方向错误"; }
+
+    var conceptual = (ca ? (partialA ? 0.8 : 1) : 0.3) * 0.7 + (cb ? 0.3 : 0.1);
+    var reasoning = cb ? (ca ? 1 : 0.6) : 0.3;
+    var application = (ca && cb) ? 1 : (ca || cb ? 0.5 : 0);
+    var allOk = ca && cb && !partialA && !partialB;
+
+    $("blankA").dataset.state = ca ? "ok" : "bad";
+    $("blankB").dataset.state = cb ? "ok" : "bad";
+
+    var fb1, fb2, fb3;
+    if (allOk) {
+      fb1 = "基线条件与递归条件都写对了：<b>" + esc(a.trim()) + "</b> 能让递归在 n 为 0 或 1 时停下，<b>" + esc(b.trim()) + "</b> 把规模严格缩小并调用自身。";
+      fb2 = "没有发现错误。";
+      fb3 = q1Tried === 1 && S.ui_state.hint_level === 0
+        ? "一次无提示通过。建议再点一下 Q3 的运行器，把基线条件注释掉亲自看一次 RecursionError——把「知道」变成「见过」。"
+        : "建议再做一次 Q3 的实验：把 n * 改成 n +，对比结果差异，确认你理解的是「连乘」而不是「套模板」。";
+    } else {
+      var wrongs = [];
+      if (!ca) wrongs.push("基线条件：" + (ra ? ra.why : "无法判定"));
+      if (!cb) wrongs.push("递归条件：" + (rb ? rb.why : "无法判定"));
+      fb1 = (ca || cb) ? "你写对了一半：" + (ca ? "基线条件 " + esc(a.trim()) + " 是正确的" : "递归条件 " + esc(b.trim()) + " 是正确的") + "。" : "别急——两个条件可以先分开想：先想「什么时候能直接回答」，再想「怎么把问题变小」。";
+      fb2 = wrongs.join("　");
+      fb3 = (!ca) ? "先只改第一个空：让 n 与一个常数比较、在 n 很小时成立。改完直接提交，不用等第二个空。" :
+        "第二个空的关键是「规模必须严格变小」：把 n 换成 n - 1，并且别忘了把 n 与子问题的结果用 × 结合起来。";
+    }
+    flashQ1("", null);
+    setFeedback(errType, fb1, fb2, fb3, !allOk);
+    window.LEAP.pushEvent("attempt_submitted", {
+      item_id: "q1", answer: "base: " + a.trim() + " | rec: " + b.trim(),
+      hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: q1Tried,
+      predicted_performance: null, error_type: errType
+    });
+    window.LEAP.commitAssessment({
+      item_id: "q1", correctness: correctness, conceptual_understanding: conceptual,
+      reasoning_quality: reasoning, application: application, transfer: 0,
+      error_type: errType, misconception: misconception, feedback: fb1 + " " + fb2,
+      assessor_type: "rule"
+    });
+    if (allOk && !S.ui_state.answer_revealed) window.LEAP.setCompleted("q1", "solved_without_reveal");
+    if (allOk) { $("verify").hidden = true; }
+  });
+  $("btnClearQ1").addEventListener("click", function () {
+    $("blankA").value = ""; $("blankB").value = "";
+    $("blankA").dataset.state = ""; $("blankB").dataset.state = "";
+  });
+  function flashQ1(msg, kind) {
+    var el = $("q1Fb");
+    if (!msg) { el.classList.remove("is-on"); el.textContent = ""; return; }
+    el.innerHTML = msg;
+    el.style.color = kind === "warn" ? "var(--warn)" : "var(--ink-2)";
+    el.classList.add("is-on");
+  }
+
+  /* ── 5. Q2 拖拽匹配 ────────────────────────────────────── */
+  var STAGES = [
+    { id: "push", label: "压栈：把当前这一层放入调用栈，等子问题返回" },
+    { id: "base", label: "基线命中：条件成立，直接取 1，不再往下调用" },
+    { id: "unwind", label: "回退求值：拿到子结果后，算 n × 子结果" },
+    { id: "ret", label: "返回结果：把本层算好的值交还给上一层" }
+  ];
+  var CARDS = [
+    { id: "push", text: "调用 factorial(4) 时，先把这一层放进调用栈，然后才去找 factorial(3)" },
+    { id: "base", text: "n <= 1 成立，直接返回 1 —— 这是整个递归唯一的出口" },
+    { id: "unwind", text: "factorial(3) 拿到 factorial(2) 的返回值 2，算出 3 × 2 = 6" },
+    { id: "ret", text: "factorial(2) 把 2 交给上一层；每一层都这样把值往上送" }
+  ];
+  var slotHost = $("slots"), chipHost = $("chips");
+  var selectedChip = null;
+
+  function buildMatch() {
+    slotHost.innerHTML = ""; chipHost.innerHTML = "";
+    STAGES.forEach(function (s) {
+      var d = document.createElement("div");
+      d.className = "slot"; d.dataset.slot = s.id;
+      d.setAttribute("role", "button");
+      d.setAttribute("tabindex", "0");
+      d.setAttribute("aria-label", "目标位置：" + s.label);
+      d.innerHTML = '<span class="slot-label">' + s.label + '</span>';
+      d.addEventListener("dragover", function (e) { e.preventDefault(); d.classList.add("is-over"); });
+      d.addEventListener("dragleave", function () { d.classList.remove("is-over"); });
+      d.addEventListener("drop", function (e) {
+        e.preventDefault(); d.classList.remove("is-over");
+        var id = e.dataTransfer.getData("text/plain");
+        placeChip(id, s.id);
+      });
+      d.addEventListener("click", function () { if (selectedChip) placeChip(selectedChip, s.id); });
+      d.addEventListener("keydown", function (e) {
+        if ((e.key === "Enter" || e.key === " ") && selectedChip) { e.preventDefault(); placeChip(selectedChip, s.id); }
+      });
+      slotHost.appendChild(d);
+    });
+    shuffle(CARDS.slice()).forEach(function (c) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "chip"; b.draggable = true;
+      b.dataset.chip = c.id; b.textContent = c.text;
+      b.addEventListener("dragstart", function (e) { e.dataTransfer.setData("text/plain", c.id); b.classList.add("is-drag"); });
+      b.addEventListener("dragend", function () { b.classList.remove("is-drag"); });
+      b.addEventListener("click", function () {
+        if (b.dataset.state === "ok") return;
+        if (selectedChip === c.id) { selectedChip = null; b.classList.remove("is-sel"); return; }
+        Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (x) { x.classList.remove("is-sel"); });
+        selectedChip = c.id; b.classList.add("is-sel");
+      });
+      chipHost.appendChild(b);
+    });
+  }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+  function placeChip(chipId, slotId) {
+    var chip = chipHost.querySelector('.chip[data-chip="' + chipId + '"]');
+    var slot = slotHost.querySelector('.slot[data-slot="' + slotId + '"]');
+    if (!chip || !slot) return;
+    var occupied = slot.querySelector(".chip");
+    if (occupied && occupied !== chip) chipHost.appendChild(occupied);
+    slot.appendChild(chip);
+    chip.classList.remove("is-sel", "is-drag");
+    chip.dataset.state = "";
+    slot.dataset.state = "";
+    selectedChip = null;
+  }
+  function clearStates() {
+    Array.prototype.forEach.call(document.querySelectorAll(".slot"), function (s) { s.dataset.state = ""; });
+    Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (c) { c.dataset.state = ""; });
+  }
+  $("btnClearQ2").addEventListener("click", function () {
+    Array.prototype.forEach.call(document.querySelectorAll(".slot .chip"), function (c) { chipHost.appendChild(c); });
+    clearStates(); $("q2Fb").classList.remove("is-on");
+  });
+
+  var q2Tried = 0;
+  $("btnSubmitQ2").addEventListener("click", function () {
+    var placed = 0, firstWrong = null, correct = 0;
+    STAGES.forEach(function (s) {
+      var slot = slotHost.querySelector('.slot[data-slot="' + s.id + '"]');
+      var chip = slot.querySelector(".chip");
+      if (!chip) return;
+      placed++;
+      if (chip.dataset.chip === s.id) { correct++; chip.dataset.state = "ok"; slot.dataset.state = "ok"; }
+      else { chip.dataset.state = "bad"; slot.dataset.state = "bad"; if (!firstWrong) firstWrong = { slot: s, chip: chip.dataset.chip }; }
+    });
+    var el = $("q2Fb");
+    if (placed < STAGES.length) {
+      el.innerHTML = "还有 " + (STAGES.length - placed) + " 个位置是空的。全部放好后再提交。";
+      el.style.color = "var(--warn)"; el.classList.add("is-on"); return;
+    }
+    q2Tried++;
+    var correctness = correct / STAGES.length;
+    var ok = correct === STAGES.length;
+    var why = "";
+    if (!ok) {
+      var want = STAGES.filter(function (x) { return x.id === firstWrong.chip; })[0];
+      var got = CARDS.filter(function (x) { return x.id === firstWrong.chip; })[0];
+      why = "第一处错误：你把「" + got.text.slice(0, 18) + "…」放进了「" + firstWrong.slot.label.split("：")[0] +
+        "」。它实际描述的是<b>" + want.label.split("：")[0] + "</b>——" + want.label.split("：")[1] + "。";
+    }
+    var errType = ok ? "none" : (correct >= 2 ? "answer_error" : "misconception");
+    var misconception = (!ok && correct <= 1) ? "把「压栈」与「回退」的先后顺序混淆" : "";
+    var f1 = ok ? "四个阶段全部对上。你已经能分清「往下走」和「往回收」这两段了。" :
+      "你放对了 " + correct + "/4 个位置。";
+    var f2 = ok ? "没有发现错误。" : why;
+    var f3 = ok ? "下一步：打开 Q3，把基线条件注释掉跑一次，亲眼看到 RecursionError。" :
+      "按这个顺序重排一遍口诀：<b>先压到底 → 命中基线 → 再逐层回退算 → 最后把值交给上一层</b>。";
+    el.innerHTML = "<b>" + f1 + "</b>　" + f2;
+    el.style.color = ok ? "var(--ok)" : "var(--ink-2)";
+    el.classList.add("is-on");
+    setFeedback(errType, f1, f2, f3, !ok);
+    window.LEAP.pushEvent("drag_submitted", {
+      item_id: "q2", answer: "correct " + correct + "/" + STAGES.length,
+      hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: q2Tried,
+      predicted_performance: null, error_type: errType
+    });
+    window.LEAP.commitAssessment({
+      item_id: "q2", correctness: correctness,
+      conceptual_understanding: ok ? 1 : (correct / STAGES.length) * 0.8 + 0.1,
+      reasoning_quality: ok ? 1 : 0.5, application: ok ? 1 : correctness,
+      transfer: 0, error_type: errType, misconception: misconception,
+      feedback: f1 + " " + (why || ""), assessor_type: "rule"
+    });
+  });
+
+  /* ── 6. 反馈面板 + 评分面板 ────────────────────────────── */
+  function setFeedback(errType, f1, f2, f3, isBad) {
+    var t = errType === "none" ? "ok" : (errType === "misconception" ? "err" : "warn");
+    var badge = $("fbBadge");
+    badge.textContent = errType === "none" ? "no_error" : errType;
+    badge.dataset.t = t;
+    $("fbBar").style.background = t === "ok" ? "var(--ok)" : (t === "err" ? "var(--err)" : "var(--warn)");
+    $("fbS1").innerHTML = f1;
+    $("fbS2").innerHTML = f2;
+    $("fbS3").innerHTML = f3;
+  }
+  function renderScore() {
+    var a = S.assessment;
+    var rows = [
+      { k: "correctness", v: a.correctness, c: "var(--ok)" },
+      { k: "reasoning_quality", v: a.reasoning_quality, c: "var(--warn)" },
+      { k: "hint_dependency", v: a.hint_dependency, c: "var(--accent)" },
+      { k: "overall_score", v: a.overall_score, c: "var(--accent)", strong: true }
+    ];
+    var host = $("scoreRows");
+    host.innerHTML = "";
+    rows.forEach(function (r) {
+      var d = document.createElement("div");
+      d.className = "score-row";
+      d.innerHTML = '<span class="score-key">' + r.k + '<b style="color:' + r.c + '">' + r.v.toFixed(2) + '</b></span>' +
+        '<span class="score-track"><span class="score-fill" data-k="' + r.k + '" style="width:' + (r.v * 100) + '%"></span></span>';
+      host.appendChild(d);
+    });
+  }
+  renderScore();
+  window.LEAP.onRender(renderScore);
+
+  /* ── 7. Q3 受控迷你解释器 ──────────────────────────────── */
+  var MAX_DEPTH = 120;
+  function ParseErr(msg) { this.name = "ParseError"; this.message = msg; }
+
+  function parseFn(src) {
+    var text = String(src).replace(/\r/g, "")
+      .split("\n").map(function (l) { return l.replace(/#.*$/, "").trim(); }).filter(Boolean).join("\n");
+    var def = text.match(/def\s+([A-Za-z_]\w*)\s*\(\s*([A-Za-z_]\w*)\s*\)\s*:/);
+    if (!def) throw new ParseErr("没有找到函数定义。本运行器只支持形如 def factorial(n): 的单参数函数。");
+    var name = def[1], prm = def[2];
+
+    var condRe = new RegExp("if\\s+" + prm + "\\s*(<=|>=|==|!=|<|>)\\s*(-?\\d+)\\s*:\\s*return\\s+(-?\\d+)");
+    var cond = text.match(condRe);
+    if (!cond) throw new ParseErr("没有找到基线条件。需要形如：if " + prm + " <= 1: return 1 的一行。");
+
+    var rets = [];
+    String(src).replace(/\r/g, "").split("\n").forEach(function (l) {
+      var s = l.replace(/#.*$/, "").trim();
+      if (/^return\b/.test(s)) rets.push(s.replace(/^return\s+/, ""));
+    });
+    if (rets.length < 2) throw new ParseErr("还缺一行递归 return。需要形如：return " + prm + " * " + name + "(" + prm + " - 1)");
+    var recExpr = rets[rets.length - 1];
+
+    var callM = recExpr.match(new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*\\(\\s*([^)]*)\\)"));
+    if (!callM) throw new ParseErr("递归 return 里没有调用 " + name + " 自身。");
+    var argExpr = callM[1].replace(/\s+/g, "");
+    var argM = argExpr.match(new RegExp("^" + prm + "([-+])(\\d+)$"));
+    if (!argM) throw new ParseErr("本示例只支持把参数写成 " + prm + " - 常数（或 " + prm + " + 常数）的形式，以便追踪调用栈。");
+    var argDelta = (argM[1] === "-" ? -1 : 1) * parseInt(argM[2], 10);
+
+    var outer = recExpr.replace(new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*\\(\\s*[^)]*\\)"), "\u00a7").replace(/\s+/g, "");
+    var comb = outer.match(new RegExp("^(" + prm + "|\\d+)([*+\\-])\u00a7$")) ||
+      outer.match(new RegExp("^\u00a7([*+\\-])(" + prm + "|\\d+)$"));
+    if (!comb) throw new ParseErr("递归 return 的形式需要是 " + prm + " * " + name + "(" + prm + " - 1)（或把乘号换成加号），本示例不支持更复杂的组合。");
+    var leftIsParam = /^[A-Za-z_]/.test(comb[1]);
+    var op = comb[2], operand = leftIsParam ? prm : comb[1];
+
+    return {
+      name: name, param: prm,
+      baseOp: cond[1], baseConst: parseInt(cond[2], 10), baseValue: parseInt(cond[3], 10),
+      argDelta: argDelta, op: op, operand: operand
+    };
+  }
+  function testBase(spec, v) {
+    switch (spec.baseOp) {
+      case "<=": return v <= spec.baseConst;
+      case "<": return v < spec.baseConst;
+      case "==": return v === spec.baseConst;
+      case "!=": return v !== spec.baseConst;
+      case ">=": return v >= spec.baseConst;
+      case ">": return v > spec.baseConst;
+    }
+    return false;
+  }
+  function runCode(src, arg) {
+    var spec = parseFn(src);
+    var out = [];
+    var depth = 0;
+    function call(v) {
+      if (depth >= MAX_DEPTH) { var e = new Error("RecursionError"); e.isRecursion = true; throw e; }
+      depth++;
+      out.push({ t: "call", s: "  ".repeat(depth - 1) + "\u2192 " + spec.name + "(" + v + ")" + (depth > 1 ? "   深度 " + depth : "") });
+      var res;
+      if (testBase(spec, v)) {
+        res = spec.baseValue;
+        out.push({ t: "base", s: "  ".repeat(depth - 1) + "\u2713 基线成立：" + spec.param + " " + spec.baseOp + " " + spec.baseConst + " \u2192 返回 " + res });
+      } else {
+        var sub;
+        try { sub = call(v + spec.argDelta); }
+        catch (err) { depth--; throw err; }
+        var lv = spec.operand === spec.param ? v : parseInt(spec.operand, 10);
+        var rv = sub;
+        res = spec.op === "*" ? lv * rv : (spec.op === "+" ? lv + rv : lv - rv);
+        out.push({ t: "ret", s: "  ".repeat(depth - 1) + "\u21a9 " + spec.name + "(" + v + ") = " + res + (spec.op === "*" ? "   （" + lv + " \u00d7 " + rv + "）" : "") });
+      }
+      depth--;
+      return res;
+    }
+    var value;
+    try { value = call(arg); }
+    catch (e) {
+      if (e && e.isRecursion) return { lines: out, error: "RecursionError: maximum recursion depth exceeded（本运行器上限 " + MAX_DEPTH + " 层）" };
+      throw e;
+    }
+    return { lines: out, value: value, spec: spec };
+  }
+
+  $("btnRun").addEventListener("click", function () {
+    var src = $("srcCode").value;
+    var argRaw = $("argN").value.trim();
+    var arg = parseInt(argRaw, 10);
+    var term = $("term");
+    if (isNaN(arg)) { term.innerHTML = '<span class="err">n 需要是一个整数。</span>'; return; }
+    var r;
+    try { r = runCode(src, arg); }
+    catch (e) {
+      term.innerHTML = '<span class="err">' + esc(e.message) + '</span>';
+      window.LEAP.pushEvent("code_run", { item_id: "q3", answer: "parse_error", hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: 1, predicted_performance: null, error_type: "misconception" });
+      return;
+    }
+    var html = "";
+    r.lines.forEach(function (l) {
+      var cls = l.t === "base" ? "ok" : (l.t === "call" ? "" : "dim");
+      html += '<span class="' + cls + '">' + esc(l.s) + '</span>\n';
+    });
+    if (r.error) {
+      html += '\n<span class="err">' + esc(r.error) + '</span>\n';
+      html += '<span class="dim">\n提示：这就是「没有基线条件」或「规模没有变小」的真实后果 —— 栈会一直长，直到运行时强制中断。\n对照理解检查里的答案，你现在应该能解释它为什么发生了。</span>';
+    } else {
+      html += '\n<span class="ok">' + r.spec.name + "(" + arg + ") = " + r.value + '\n</span>';
+    }
+    term.innerHTML = html;
+    window.LEAP.pushEvent("code_run", {
+      item_id: "q3", answer: "n=" + arg + " -> " + (r.error ? "RecursionError" : r.value),
+      hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: 1,
+      predicted_performance: null, error_type: r.error ? "reasoning_error" : "none"
+    });
+    if (r.error) {
+      setFeedback("reasoning_error",
+        "你能主动改代码做实验，这个动作本身就是对的——比只看讲解记得牢得多。",
+        "这次运行触发了 RecursionError：" + esc(r.error) + "。说明当前代码在这个 n 上<b>没有出口</b>，或者每一步没有真正把规模缩小。",
+        "检查两件事：① 基线条件那一行是否真的会在某个 n 上成立；② 递归调用里的参数是否严格变小（n - 1 而不是 n 或 n + 1）。改完再运行一次。", true);
+    }
+  });
+  $("btnRunClear").addEventListener("click", function () {
+    $("term").innerHTML = '<span class="dim">按「运行」开始。每一步调用与返回都会打印在这里。</span>';
+  });
+
+  /* ── 8. 后置验证 ───────────────────────────────────────── */
+  $("btnVerify").addEventListener("click", function () {
+    var v = $("verifyInput").value.trim();
+    var fb = $("verifyFb");
+    if (v.length < 6) {
+      fb.innerHTML = "再写具体一点：至少说清「会不会出错」以及「为什么」。";
+      fb.style.color = "var(--warn)"; fb.classList.add("is-on"); return;
+    }
+    var hitKey = /(0|零)/.test(v) && /(不|无法|没有|不会)/.test(v) && /(0|零|负)/.test(v);
+    var hitRec = /(递归|栈|深度|recursion|上限|1000|报错)/i.test(v);
+    var transfer = (hitKey ? 0.5 : 0.2) + (hitRec ? 0.4 : 0.1);
+    transfer = Math.min(1, transfer);
+    var ok = transfer >= 0.7;
+    fb.innerHTML = ok
+      ? "<b>就对了。</b> n == 1 只覆盖 1 这一个值，调用 factorial(0) 时基线不成立，n 会继续减到 -1、-2……直到触发 RecursionError。这说明你抓住的是<b>「基线必须覆盖所有终止情形」</b>这个原理。"
+      : "<b>方向还差一点。</b> 关键在「覆盖范围」：n == 1 只挡住了一个值，0 没有被挡住，于是 n 会一路减到负数。再想一次：基线的职责是让递归<b>一定能停</b>。";
+    fb.style.color = ok ? "var(--ok)" : "var(--ink-2)";
+    fb.classList.add("is-on");
+    window.LEAP.pushEvent("reflection_recorded", {
+      item_id: "q1-verify", answer: v, hint_level: S.ui_state.hint_level,
+      response_time: 0, attempt_index: 1, predicted_performance: null,
+      error_type: ok ? "none" : "reasoning_error"
+    });
+    window.LEAP.commitAssessment({
+      item_id: "q1-verify", correctness: transfer, conceptual_understanding: transfer,
+      reasoning_quality: transfer, application: 0.8, transfer: transfer,
+      error_type: ok ? "none" : "reasoning_error", misconception: "",
+      feedback: ok ? "后置验证通过。" : "后置验证未通过。", assessor_type: "hybrid"
+    });
+    if (ok) window.LEAP.setCompleted("q1", "post_verification_passed");
+  });
+
+  /* ── 9. 输出控制台折叠 ─────────────────────────────────── */
+  $("consoleBar").addEventListener("click", function () {
+    var on = $("consoleJson").classList.toggle("is-on");
+    $("consoleBar").setAttribute("aria-expanded", String(on));
+    $("consoleAction").textContent = on ? "收起 JSON ▴" : "展开 JSON ▾";
+  });
+
+  /* ── 初始渲染 ──────────────────────────────────────────── */
+  renderScore();
+  setFeedback("none",
+    "还没有提交任何作答。先看调用栈动画，再去做 Q1。",
+    "答错也没关系——反馈会区分「概念错」与「写法错」，两种的处理方式完全不同。",
+    "建议路径：看完 Stage 的 9 步 → 做 Q1 → 需要时再点提示阶梯。");
+  window.LEAP.refresh();
+})();
+</script>
+</body>
+</html>

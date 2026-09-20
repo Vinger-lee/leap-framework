@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LEAP-V2 · 数学｜一元一次方程 —— 等价变形与解法</title>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   LEAP 视觉设计系统 v1.0 · 令牌层
+   规范来源：LEAP_视觉设计理念_给Gemini.md §4
+   ══════════════════════════════════════════════════════════════ */
+:root{
+  --paper:#FAF9F6; --surface:#FFFFFF; --surface-sunk:#F3F1EC; --surface-mute:#EDEAE3;
+  --ink:#191B20; --ink-2:#565E6B; --ink-3:#8A909C;
+  --hairline:#E8E4DC; --rule:#D8D3C9;
+  --accent:#2B4AC4; --accent-deep:#1E3699; --accent-wash:#EDF0FD;
+  --ok:#2E7D5B; --ok-wash:#EAF4EF;
+  --warn:#B3861A; --warn-wash:#FBF3E0;
+  --err:#B4432F; --err-wash:#FBEDEA;
+  --hint-1:#E4C77C; --hint-2:#D4A43C; --hint-3:#B3861A; --hint-4:#7A7F8A;
+  --ev-estimated:#9AA1AD; --ev-practiced:#4C7BD9; --ev-demonstrated:#2E8B84;
+  --ev-retained:#4C8B3F; --ev-transferred:#B3861A;
+
+  --font-display:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",Georgia,serif;
+  --font-sans:"Noto Sans SC","PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+
+  --fs-display:32px; --fs-h2:22px; --fs-h3:17px; --fs-body:15.5px;
+  --fs-small:13px; --fs-micro:11.5px; --fs-mono:12px;
+
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px;
+  --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px; --s-16:64px; --s-20:80px;
+  --r-xs:3px; --r-sm:6px; --r-md:8px; --r-lg:10px; --r-xl:12px; --r-2xl:16px; --r-pill:999px;
+
+  --sh-1:0 1px 2px rgba(25,27,32,.05);
+  --sh-2:0 2px 8px -2px rgba(25,27,32,.10);
+  --sh-3:0 16px 40px -24px rgba(25,27,32,.28);
+
+  --t-1:120ms; --t-2:200ms; --t-3:320ms; --t-4:520ms;
+  --ease-out:cubic-bezier(.16,.84,.32,1); --ease-inout:cubic-bezier(.4,0,.2,1);
+
+  --page-max:1280px; --page-pad:80px;
+  --read-col:680px; --side-col:380px; --col-gap:60px; --zone-gap:64px;
+}
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-sans);font-size:var(--fs-body);line-height:1.78;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3{margin:0;font-family:var(--font-display);font-weight:600;line-height:1.35}
+p{margin:0}
+code,kbd,pre{font-family:var(--font-mono)}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--r-xs)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:absolute;left:-9999px;top:0;z-index:50;background:var(--accent);color:#fff;padding:10px 16px;border-radius:0 0 var(--r-md) 0}
+.skip:focus{left:0}
+
+.wrap{max-width:var(--page-max);margin:0 auto;padding:0 var(--page-pad)}
+.micro{font-family:var(--font-mono);font-size:var(--fs-micro);font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);line-height:1.4}
+.micro--accent{color:var(--accent)}
+
+/* ── 进度脊柱 ───────────────────────────────────────────── */
+.spine{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--hairline)}
+.spine-in{max-width:var(--page-max);margin:0 auto;padding:14px var(--page-pad);display:flex;align-items:center;gap:var(--s-8);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.brand-mark{width:12px;height:12px;border-radius:var(--r-xs);background:var(--accent);flex:0 0 auto}
+.brand-name{font-family:var(--font-mono);font-weight:700;font-size:15px;letter-spacing:.06em}
+.brand-node{font-size:var(--fs-small);color:var(--ink-2);font-weight:500}
+.spine-ev{flex:0 0 auto}
+.ev-track{display:flex;gap:6px;margin-top:6px}
+.ev-seg{width:34px;height:10px;border-radius:5px;background:var(--hairline);transition:background var(--t-4) var(--ease-out)}
+.ev-seg.is-on[data-stage="estimated"]{background:var(--ev-estimated)}
+.ev-seg.is-on[data-stage="practiced"]{background:var(--ev-practiced)}
+.ev-seg.is-on[data-stage="demonstrated"]{background:var(--ev-demonstrated)}
+.ev-seg.is-on[data-stage="retained"]{background:var(--ev-retained)}
+.ev-seg.is-on[data-stage="transferred"]{background:var(--ev-transferred)}
+.spine-hop{display:flex;align-items:baseline;gap:10px;flex:0 0 auto}
+.spine-name{font-size:13px;font-weight:500;color:var(--ev-practiced);transition:color var(--t-2) var(--ease-inout)}
+.spine-mas{flex:0 0 auto}
+.mas-row{display:flex;align-items:center;gap:10px;margin-top:6px}
+.mas-track{width:110px;height:8px;border-radius:4px;background:var(--hairline);overflow:hidden}
+.mas-fill{height:100%;width:62%;background:var(--accent);border-radius:4px;transition:width var(--t-4) var(--ease-out)}
+.mas-val{font-family:var(--font-mono);font-size:13px;font-weight:500}
+.spine-rev{flex:0 0 auto;margin-left:auto}
+.spine-rev .val{display:block;margin-top:4px;font-size:12.5px;font-weight:500;color:var(--warn)}
+.spine-note{max-width:var(--page-max);margin:0 auto;padding:0 var(--page-pad) 8px;font-size:11px;color:var(--ink-3)}
+
+/* ── Zone 骨架 ──────────────────────────────────────────── */
+.zone{padding-top:var(--s-16)}
+.zone + .zone{padding-top:var(--s-16)}
+.zone-head{display:block;padding-bottom:var(--s-3)}
+.zone-title{font-size:var(--fs-display);font-weight:700;line-height:1.3;letter-spacing:-.01em;margin-top:var(--s-3)}
+.zone-goal{margin-top:var(--s-3);font-size:14.5px;color:var(--ink-2);max-width:760px}
+.zone-meta{margin-top:var(--s-2);font-size:12.5px;font-weight:500;color:var(--ink-3)}
+.zone-rule{height:1px;background:var(--hairline);margin-top:var(--s-4)}
+.zone-body{padding-top:var(--s-8)}
+
+.cols{display:grid;grid-template-columns:minmax(0,var(--read-col)) var(--side-col);gap:var(--col-gap);align-items:start}
+.col-main > * + *{margin-top:var(--s-6)}
+.side{display:grid;gap:var(--s-10)}
+
+/* ── 阅读列 ─────────────────────────────────────────────── */
+.quote{background:var(--surface-sunk);border-left:3px solid var(--accent);padding:14px 16px;border-radius:0 var(--r-md) var(--r-md) 0;font-size:14.5px;line-height:1.7}
+.terms{list-style:none;padding:0;margin:0;display:grid;gap:var(--s-3)}
+.terms li{font-size:14.5px;color:var(--ink-2);line-height:1.7}
+.terms b{color:var(--ink);font-weight:600}
+
+/* ── 侧栏卡 ─────────────────────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.card--err{background:var(--err-wash);border-left:3px solid var(--err)}
+.card--sunk{background:var(--surface-sunk);border:none}
+.card > .micro{display:block;margin-bottom:var(--s-4)}
+.card--err > .micro{color:var(--err)}
+.card-body{font-size:13px;line-height:1.7}
+.formula{font-family:var(--font-mono);font-size:15px;font-weight:500;line-height:1.9;display:block}
+.formula--base{color:var(--ok)}
+.card-foot{margin-top:var(--s-3);font-size:var(--fs-micro);color:var(--ink-3);line-height:1.6}
+.reqs{list-style:none;padding:0;margin:0;display:grid;gap:var(--s-3)}
+.reqs li{position:relative;padding-left:18px;font-size:12.5px;color:var(--ink-2);line-height:1.6}
+.reqs li::before{content:"";position:absolute;left:0;top:.42em;width:6px;height:6px;border-radius:2px;background:var(--accent)}
+.reqs li[data-kind="transfer"]::before{background:var(--warn)}
+
+/* ── 理解检查 ───────────────────────────────────────────── */
+.cp{margin-top:var(--s-6);background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.cp-q{margin-top:var(--s-4);font-size:15px;font-weight:600;line-height:1.6}
+.cp-opts{display:grid;gap:var(--s-2);margin-top:var(--s-4)}
+.opt{display:block;width:100%;text-align:left;padding:9px 16px;min-height:38px;background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-md);cursor:pointer;font-size:14px;color:var(--ink-2);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout)}
+.opt:hover{border-color:var(--rule);background:#fff}
+.opt[aria-pressed="true"][data-v="ok"]{background:var(--ok-wash);border:1.5px solid var(--ok);color:var(--ok);font-weight:600}
+.opt[aria-pressed="true"][data-v="bad"]{background:var(--err-wash);border:1.5px solid var(--err);color:var(--err);font-weight:600}
+.cp-rule{height:1px;background:var(--hairline);margin-top:var(--s-5)}
+.cp-fb{margin-top:var(--s-4);font-size:12.5px;line-height:1.65;color:var(--ink-2);display:none}
+.cp-fb.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+.cp-fb b{color:var(--ok)}
+
+/* ── Stage ──────────────────────────────────────────────── */
+.stage{background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-2xl);padding:var(--s-5) var(--s-6) var(--s-6)}
+.stage-title{margin-top:6px;font-size:14px;font-weight:600}
+.stage-grid{display:grid;grid-template-columns:252px minmax(0,1fr);gap:var(--s-5);margin-top:var(--s-4)}
+.tube-label{font-family:var(--font-mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;color:var(--ink-3)}
+.tube-wrap{display:flex;flex-direction:column;gap:6px}
+.tube{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);height:232px;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;overflow:hidden}
+.tf{display:flex;align-items:center;height:40px;padding:0 12px;border-radius:var(--r-sm);font-family:var(--font-mono);font-size:12px;font-weight:500;border:1px solid transparent;transition:background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout),border-color var(--t-2) var(--ease-inout),transform var(--t-2) var(--ease-out);animation:push var(--t-3) var(--ease-out) both}
+.tf[data-s="active"]{background:var(--accent);color:#fff}
+.tf[data-s="waiting"]{background:var(--accent-wash);color:var(--ink-2)}
+.tf[data-s="base"]{background:var(--ok-wash);color:var(--ok);border:1.5px solid var(--ok)}
+.tf[data-s="done"]{background:var(--surface-sunk);color:var(--ink-3)}
+@keyframes push{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.stage-side{display:grid;gap:var(--s-3);align-content:start}
+.step-panel{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s-5)}
+.step-text{margin-top:var(--s-3);font-size:13px;line-height:1.7;min-height:66px}
+.step-count{margin-top:var(--s-3);font-family:var(--font-mono);font-size:11.5px;font-weight:500;color:var(--ink-3)}
+.legend{font-size:11.5px;color:var(--ink-3)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:1px}
+.stage-ctrl{display:flex;align-items:center;gap:var(--s-3);flex-wrap:wrap;margin-top:var(--s-4)}
+.kbd-hint{margin-left:auto;font-size:var(--fs-micro);color:var(--ink-3)}
+
+/* ── 按钮 ───────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 18px;border-radius:var(--r-md);border:1px solid transparent;background:var(--surface);cursor:pointer;font-size:13.5px;font-weight:500;color:var(--ink-2);transition:background var(--t-1) var(--ease-inout),border-color var(--t-1) var(--ease-inout),color var(--t-1) var(--ease-inout),transform var(--t-1) var(--ease-out)}
+.btn:hover{background:var(--surface-sunk)}
+.btn:active{transform:translateY(1px)}
+.btn--primary{background:var(--accent);color:#fff;font-weight:600}
+.btn--primary:hover{background:var(--accent-deep)}
+.btn--outline{border-color:var(--rule)}
+.btn--outline:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-wash)}
+.btn--ghost{color:var(--ink-3);background:transparent}
+.btn--ghost:hover{background:var(--surface-sunk);color:var(--ink-2)}
+.btn--sm{height:32px;padding:0 14px;font-size:12.5px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn-row{display:flex;gap:var(--s-3);flex-wrap:wrap;align-items:center}
+
+/* ── 任务块 ─────────────────────────────────────────────── */
+.task{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-2xl);padding:var(--s-6)}
+.task-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.task-title{font-size:var(--fs-h3);font-weight:600}
+.task-id{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.08em}
+.task-lead{margin-top:var(--s-3);font-size:13.5px;color:var(--ink-2);line-height:1.7}
+.task-lead + .task-lead{margin-top:var(--s-2)}
+.note{margin-top:var(--s-4);padding:12px 14px;border-radius:var(--r-md);background:var(--surface-sunk);font-size:12px;color:var(--ink-3);line-height:1.65}
+.note--warn{background:var(--warn-wash);color:#8A6A2A}
+
+/* 代码填空 */
+.code{position:relative;margin-top:var(--s-4);background:var(--surface-mute);border-radius:var(--r-lg);padding:var(--s-5);font-family:var(--font-mono);font-size:13px;line-height:2.1;overflow-x:auto}
+.code-line{white-space:pre;display:flex;align-items:center;gap:0;flex-wrap:nowrap}
+.tok-kw{color:var(--accent)}
+.tok-fn{color:#7A4BB8}
+.tok-num{color:var(--ok)}
+.tok-cmt{color:var(--ink-3)}
+.blank{font-family:var(--font-mono);font-size:12.5px;background:#fff;border:1px solid var(--rule);border-bottom-width:2px;border-radius:var(--r-sm);padding:2px 10px;min-width:170px;color:var(--ink);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.blank:focus{outline:none;border-color:var(--accent);background:var(--accent-wash)}
+.blank[data-state="ok"]{border-color:var(--ok);background:var(--ok-wash);color:var(--ok)}
+.blank[data-state="bad"]{border-color:var(--err);background:var(--err-wash);color:var(--err)}
+.blank[data-state="hint"]{border-color:var(--warn);background:var(--warn-wash)}
+
+/* 代码运行器 */
+.runner{margin-top:var(--s-4);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s-4)}
+.editor{display:block;width:100%;min-height:150px;background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:var(--s-4);font-family:var(--font-mono);font-size:12.5px;line-height:1.75;resize:vertical;tab-size:4}
+.editor:focus{outline:none;border-color:var(--accent)}
+.term{background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:var(--s-4);font-family:var(--font-mono);font-size:12px;line-height:1.7;height:150px;overflow:auto;white-space:pre-wrap;color:var(--ink-2)}
+.term .ok{color:var(--ok)}
+.term .err{color:var(--err);font-weight:600}
+.term .dim{color:var(--ink-3)}
+.run-ctrl{display:flex;gap:var(--s-3);align-items:center;margin-top:var(--s-4);flex-wrap:wrap}
+.num-in{width:64px;height:34px;padding:0 10px;background:#fff;border:1px solid var(--rule);border-radius:var(--r-md);font-family:var(--font-mono);font-size:12.5px}
+
+/* 拖拽匹配 */
+.match{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s-6);margin-top:var(--s-4)}
+.match-col-h{margin-bottom:var(--s-3)}
+.stage-slots{display:grid;gap:var(--s-3)}
+.slot{min-height:56px;border:1px dashed var(--rule);border-radius:var(--r-md);padding:8px 10px;background:var(--surface);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.slot.is-over{border:1.5px solid var(--accent);background:var(--accent-wash)}
+.slot[data-state="ok"]{border:1.5px solid var(--ok);background:var(--ok-wash)}
+.slot[data-state="bad"]{border:1.5px solid var(--err);background:var(--err-wash)}
+.slot-label{font-size:12.5px;font-weight:600;color:var(--ink)}
+.chips{display:grid;gap:var(--s-3);align-content:start}
+.chip{display:block;width:100%;text-align:left;min-height:36px;padding:8px 14px;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);font-size:12.5px;line-height:1.5;cursor:grab;transition:transform var(--t-1) var(--ease-out),box-shadow var(--t-1) var(--ease-out),border-color var(--t-1) var(--ease-inout)}
+.chip:hover{border-color:var(--rule)}
+.chip.is-sel{border-color:var(--accent);background:var(--accent-wash);box-shadow:var(--sh-2)}
+.chip.is-drag{transform:scale(1.02);box-shadow:var(--sh-2)}
+.chip[data-state="ok"]{border-color:var(--ok);background:var(--ok-wash)}
+.chip[data-state="bad"]{border-color:var(--err);background:var(--err-wash)}
+.slot .chip{margin:0}
+.match-fb{margin-top:var(--s-4);font-size:12.5px;line-height:1.7;display:none}
+.match-fb.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+
+/* ── 提示阶梯 ───────────────────────────────────────────── */
+.ladder{margin-top:var(--s-8)}
+.ladder-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.ladder-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s-6);align-items:end;margin-top:var(--s-5);border-bottom:1px solid var(--rule);padding-bottom:0}
+.ladder-step{display:flex;flex-direction:column;justify-content:space-between;gap:var(--s-3);padding:14px 16px;border-radius:var(--r-lg);border:1px solid transparent;cursor:pointer;text-align:left;transition:transform var(--t-2) var(--ease-out),border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.ladder-step[data-h="1"]{height:60px}
+.ladder-step[data-h="2"]{height:76px}
+.ladder-step[data-h="3"]{height:96px}
+.ladder-step[data-h="4"]{height:112px}
+.ladder-step .ls-t{font-size:13.5px;font-weight:600;line-height:1.4}
+.ladder-step .ls-s{font-size:11px;line-height:1.4}
+.ladder-step[data-state="used"][data-h="1"]{background:var(--hint-1)}
+.ladder-step[data-state="used"][data-h="2"]{background:var(--hint-2)}
+.ladder-step[data-state="used"] .ls-t{color:var(--ink)}
+.ladder-step[data-state="used"] .ls-s{color:#3F3210}
+.ladder-step[data-state="avail"]{background:var(--warn-wash);border:1.5px solid var(--warn)}
+.ladder-step[data-state="avail"] .ls-t{color:var(--warn)}
+.ladder-step[data-state="avail"] .ls-s{color:#8A6A2A}
+.ladder-step[data-state="locked"]{background:var(--surface-sunk);border:1px solid var(--hairline)}
+.ladder-step[data-state="locked"] .ls-t{color:var(--ink-2)}
+.ladder-step[data-state="locked"] .ls-s{color:var(--ink-3)}
+.ladder-step:hover{transform:translateY(-2px)}
+.ladder-note{margin-top:var(--s-3);font-size:12px;color:var(--ink-3)}
+.hint-body{margin-top:var(--s-4);display:grid;gap:var(--s-4)}
+.hint-card{background:var(--surface);border:1px solid var(--hairline);border-left:3px solid var(--hint-1);border-radius:0 var(--r-lg) var(--r-lg) 0;padding:var(--s-5)}
+.hint-card[data-lv="2"]{border-left-color:var(--hint-2)}
+.hint-card[data-lv="3"]{border-left-color:var(--hint-3)}
+.hint-card[data-lv="4"]{border-left-color:var(--hint-4)}
+.hint-card .micro{display:block;margin-bottom:var(--s-3)}
+.hint-card p{font-size:13.5px;line-height:1.75;color:var(--ink-2)}
+.hint-card pre{margin:var(--s-3) 0 0;background:var(--surface-mute);border-radius:var(--r-md);padding:var(--s-4);font-size:12.5px;line-height:1.8;overflow-x:auto}
+.confirm{margin-top:var(--s-3);padding:var(--s-5);border-radius:var(--r-lg);background:var(--warn-wash);border:1.5px solid var(--warn)}
+.confirm p{font-size:13px;line-height:1.7;color:#8A6A2A;margin-bottom:var(--s-4)}
+.verify{margin-top:var(--s-6);background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.verify textarea{display:block;width:100%;min-height:72px;margin-top:var(--s-4);background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s-4);font-size:13px;line-height:1.7;resize:vertical}
+.verify textarea:focus{outline:none;border-color:var(--accent)}
+
+/* ── 反馈面板 ───────────────────────────────────────────── */
+.result{display:grid;grid-template-columns:minmax(0,1fr) var(--side-col);gap:var(--col-gap);margin-top:var(--s-16);align-items:start}
+.fb{position:relative;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6);overflow:hidden}
+.fb-bar{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);transition:background var(--t-2) var(--ease-inout)}
+.fb-badge{display:inline-block;padding:3px 12px;border-radius:var(--r-pill);background:var(--surface-sunk);font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--ink-3);transition:background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout)}
+.fb-badge[data-t="ok"]{background:var(--ok-wash);color:var(--ok)}
+.fb-badge[data-t="warn"]{background:var(--warn-wash);color:var(--warn)}
+.fb-badge[data-t="err"]{background:var(--err-wash);color:var(--err)}
+.fb-sec{margin-top:var(--s-5)}
+.fb-sec h4{margin:0 0 4px;font-family:var(--font-sans);font-size:12.5px;font-weight:600}
+.fb-sec p{font-size:13px;line-height:1.65;color:var(--ink-2)}
+.fb-s1 h4{color:var(--ok)} .fb-s2 h4{color:var(--warn)} .fb-s3 h4{color:var(--accent)}
+.score{background:var(--surface-sunk);border-radius:var(--r-xl);padding:var(--s-6)}
+.score-rows{margin-top:var(--s-5);display:grid;gap:var(--s-4)}
+.score-row{display:grid;grid-template-columns:minmax(0,1fr) 136px;gap:var(--s-4);align-items:center}
+.score-key{font-size:11.5px;font-weight:500;color:var(--ink-2)}
+.score-key b{font-family:var(--font-mono);font-weight:600;margin-left:6px}
+.score-track{height:7px;border-radius:4px;background:var(--hairline);overflow:hidden}
+.score-fill{height:100%;width:0;border-radius:4px;background:var(--accent);transition:width var(--t-4) var(--ease-out)}
+.score-fill[data-k="correctness"]{background:var(--ok)}
+.score-fill[data-k="reasoning_quality"]{background:var(--warn)}
+
+/* ── 证据轨 ─────────────────────────────────────────────── */
+.rail{margin-top:var(--s-16)}
+.rail-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.rail-track{position:relative;height:2px;background:var(--hairline);margin-top:var(--s-5)}
+.rail-dots{position:absolute;inset:0}
+.rail-dot{position:absolute;top:-3px;width:8px;height:8px;border-radius:4px;transition:transform var(--t-3) var(--ease-out);animation:pop var(--t-3) var(--ease-out) both}
+.rail-dot--last{width:12px;height:12px;top:-5px;border-radius:6px;box-shadow:0 0 0 3px var(--paper),0 0 0 4px var(--accent-wash)}
+@keyframes pop{from{transform:scale(.4)}to{transform:scale(1)}}
+.rail-foot{display:flex;justify-content:space-between;gap:var(--s-4);margin-top:var(--s-4);font-size:11.5px;color:var(--ink-3);flex-wrap:wrap}
+
+/* ── 输出控制台 ─────────────────────────────────────────── */
+.console{margin-top:var(--s-8)}
+.console-bar{display:flex;align-items:center;gap:var(--s-4);width:100%;min-height:46px;padding:0 var(--s-5);background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-lg);cursor:pointer;text-align:left;transition:background var(--t-1) var(--ease-inout)}
+.console-bar:hover{background:var(--surface-mute)}
+.console-bar .cb-t{font-size:12.5px;font-weight:500;color:var(--ink-2)}
+.console-bar .cb-a{margin-left:auto;font-size:12px;font-weight:500;color:var(--accent);white-space:nowrap}
+.console-json{display:none;margin-top:var(--s-3);background:var(--surface-mute);border-radius:var(--r-lg);padding:var(--s-5);max-height:420px;overflow:auto}
+.console-json.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+#leap-interaction-output{margin:0;font-size:11.5px;line-height:1.65;color:var(--ink-2);white-space:pre}
+.foot{margin-top:var(--s-16);padding:var(--s-8) 0 var(--s-16);border-top:1px solid var(--hairline);font-size:11.5px;color:var(--ink-3);line-height:1.8}
+
+/* ── 响应式 ─────────────────────────────────────────────── */
+@media (max-width:1199px){
+  :root{--page-pad:48px;--page-max:776px}
+  .cols{grid-template-columns:minmax(0,1fr)}
+  .side{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .result{grid-template-columns:minmax(0,1fr)}
+  .stage-grid{grid-template-columns:minmax(0,1fr)}
+  .runner{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:899px){
+  :root{--page-pad:32px;--page-gap:40px;--col-gap:40px}
+  .spine-rev{margin-left:0}
+  .match{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:600px){
+  :root{--page-pad:20px;--fs-display:23px;--fs-h2:19px;--fs-h3:16px;--fs-body:15px;--zone-gap:48px}
+  .spine-in{gap:var(--s-5);padding:12px 20px}
+  .brand-node{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mas-track{width:80px}
+  .ev-seg{width:18px;height:7px}
+  .ladder-steps{grid-template-columns:minmax(0,1fr);gap:var(--s-3);border-bottom:none}
+  .ladder-step{height:auto!important;min-height:48px;flex-direction:row;align-items:center;justify-content:flex-start;gap:var(--s-4)}
+  .btn{height:36px;padding:0 14px}
+  .code{font-size:11.5px}
+  .blank{min-width:120px;font-size:11.5px}
+}
+
+/* ══════════════════════════════════════════════════════════════
+   数学学科新增 CSS（仅本页图形所需：公式 / 滑块 / 数轴 / 排序）
+   规范：只用变量、只用 4pt 间距、只用已定义字阶，不改动既有类
+   ══════════════════════════════════════════════════════════════ */
+
+/* 原生 MathML 公式 */
+.eq-math{margin:var(--s-5) 0;display:block}
+.eq-math math{font-size:var(--fs-h3);font-family:var(--font-display);line-height:1.5}
+.eq-math .v{color:var(--accent);font-style:normal}
+.eq-math .n{color:var(--ink);font-style:normal}
+.eq-math .op{color:var(--ink-2);font-style:normal}
+.eq-seq{display:grid;gap:var(--s-4);margin-top:var(--s-4)}
+.eq-seq .eq-math{margin:0}
+
+/* 参数计算器 */
+.calc{display:grid;gap:var(--s-5);margin-top:var(--s-5);background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-2xl);padding:var(--s-6)}
+.calc-row{display:grid;grid-template-columns:40px minmax(0,1fr) 56px;align-items:center;gap:var(--s-4)}
+.calc-lab{font-family:var(--font-mono);font-size:var(--fs-micro);font-weight:600;letter-spacing:.08em;color:var(--ink-2)}
+.calc-val{font-family:var(--font-mono);font-size:var(--fs-h3);font-weight:600;color:var(--accent);text-align:right}
+.rng{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:var(--r-pill);background:var(--hairline);outline-offset:3px}
+.rng:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:var(--r-pill);background:var(--accent);cursor:pointer;border:2px solid var(--surface);box-shadow:var(--sh-1)}
+.rng::-moz-range-thumb{width:16px;height:16px;border:2px solid var(--surface);border-radius:var(--r-pill);background:var(--accent);cursor:pointer}
+.calc-eq{margin-top:var(--s-5);padding:var(--s-5);background:var(--surface-sunk);border-radius:var(--r-lg);font-family:var(--font-mono);font-size:var(--fs-h3);line-height:2.1;color:var(--ink);text-align:center}
+.calc-eq .dim{color:var(--ink-3)}
+.calc-eq .sym{color:var(--accent)}
+.calc-steps{display:grid;gap:var(--s-3);margin-top:var(--s-5)}
+.calc-step{display:grid;grid-template-columns:96px minmax(0,1fr);gap:var(--s-4);align-items:baseline;font-family:var(--font-mono);font-size:var(--fs-body);line-height:1.9}
+.calc-step .tag{flex:0 0 auto;font-size:var(--fs-micro);font-weight:600;letter-spacing:.04em;color:var(--ink-2)}
+.calc-step .ok{color:var(--ok)}
+.calc-step .ac{color:var(--accent)}
+
+/* SVG 数轴 */
+.nline{margin-top:var(--s-5)}
+.nline svg{display:block;width:100%;height:auto}
+.nline text{font-family:var(--font-mono);font-size:var(--fs-micro);fill:var(--ink-3)}
+.nline .axis{stroke:var(--ink-3);stroke-width:1}
+.nline .tick{stroke:var(--ink-3);stroke-width:1}
+.nline .sol{fill:var(--accent)}
+.nline .sol-ring{fill:none;stroke:var(--accent);stroke-width:1.5}
+.nline .sol-lab{fill:var(--accent);font-weight:600;font-family:var(--font-mono);font-size:var(--fs-micro)}
+
+/* 分步求解 */
+.step-block{margin-top:var(--s-5)}
+.step-q{font-size:13.5px;font-weight:600;color:var(--ink)}
+.step-in{margin-top:var(--s-3);display:flex;gap:var(--s-3);align-items:center;flex-wrap:wrap}
+.step-fb{margin-top:var(--s-3);font-size:12.5px;line-height:1.65;display:none}
+.step-fb.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+.step-hint{margin-top:var(--s-3);display:none}
+.step-hint.is-on{display:block}
+
+/* 拖拽排序：步骤编号标签 */
+.sort-pos{font-family:var(--font-mono);font-size:var(--fs-micro);font-weight:600;color:var(--ink-3);margin-bottom:6px;display:block}
+  /* ── 宿主桥接条（LEAP_HOST_BRIDGE）──────────────────── */
+  .bridge-strip{display:flex;align-items:center;justify-content:space-between;gap:var(--s-4);
+    min-height:46px;padding:var(--s-3) var(--s-5);margin-bottom:var(--s-3);
+    background:var(--accent-wash);border:1px solid var(--hairline);border-radius:var(--r-lg)}
+  .bs-l{display:flex;flex-direction:column;gap:var(--s-1);min-width:0}
+  .bs-t{font-size:var(--fs-small);color:var(--ink-2)}
+  .bs-btn{flex:0 0 auto;height:32px;padding:0 var(--s-4);border:1px solid var(--rule);
+    border-radius:var(--r-md);background:var(--surface);color:var(--accent);
+    font:500 12.5px/1 var(--font-sans);cursor:pointer;transition:background var(--t-2) var(--ease-out)}
+  .bs-btn:hover{background:var(--accent-wash)}
+  .bs-btn:disabled{color:var(--ink-3);background:var(--surface-sunk);cursor:default}
+  .bridge-out{margin:0 0 var(--s-3);padding:var(--s-5);background:var(--surface-mute);
+    border:1px solid var(--hairline);border-radius:var(--r-lg);
+    font:400 var(--fs-mono)/1.6 var(--font-mono);color:var(--ink-2);
+    white-space:pre-wrap;word-break:break-all;max-height:320px;overflow:auto}
+
+</style>
+</head>
+<body>
+<a class="skip" href="#teaching">跳到教学内容</a>
+
+<!-- ═══ 进度脊柱 ═════════════════════════════════════════════ -->
+<header class="spine">
+  <div class="spine-in">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">LEAP</span>
+      <span class="brand-node">数学 · 代数 · 一元一次方程 ax+b=c</span>
+    </div>
+
+    <div class="spine-ev">
+      <div class="micro" id="evLabel">EVIDENCE STAGE · 证据阶段</div>
+      <div class="ev-track" id="evTrack" role="img" aria-label="证据阶段轨道，当前为 practiced 练习过">
+        <span class="ev-seg" data-stage="estimated"></span>
+        <span class="ev-seg" data-stage="practiced"></span>
+        <span class="ev-seg" data-stage="demonstrated"></span>
+        <span class="ev-seg" data-stage="retained"></span>
+        <span class="ev-seg" data-stage="transferred"></span>
+      </div>
+    </div>
+    <div class="spine-hop"><span class="spine-name" id="evName">practiced · 练习过</span></div>
+
+    <div class="spine-mas">
+      <div class="micro">MASTERY · 掌握度</div>
+      <div class="mas-row">
+        <div class="mas-track"><div class="mas-fill" id="masFill"></div></div>
+        <span class="mas-val" id="masVal">0.55</span>
+      </div>
+    </div>
+
+    <div class="spine-rev">
+      <div class="micro">NEXT REVIEW</div>
+      <span class="val">5 天后 · 09/24</span>
+    </div>
+  </div>
+  <p class="spine-note" id="spineNote">本页掌握度与证据阶段为<b>本地模拟</b>，用于演示界面如何呈现学习状态；真实系统中二者由 LEAP Runtime 的 BKT 估计器与 State Guard 计算（见 LEAP_Framework_V2 §10.2‑1）。</p>
+</header>
+
+<main class="wrap">
+
+  <!-- ═══ Zone 01 · 教学内容 ═══════════════════════════════ -->
+  <section class="zone" id="teaching" aria-labelledby="z1t">
+    <div class="zone-head">
+      <div class="micro micro--accent">01 · TEACHING · 教学内容</div>
+      <h1 class="zone-title" id="z1t">一元一次方程 —— 等价变形与解法</h1>
+      <p class="zone-goal">学完这一节，你能把任意一元一次方程写成「未知数系数为 1」的形式，并说清每一步变形背后是「等式两边同时做了同一件事」。</p>
+      <p class="zone-meta">预计 14 分钟　·　难度 2/5　·　先修：用字母表示数、四则运算</p>
+      <div class="zone-rule"></div>
+    </div>
+
+    <div class="zone-body">
+      <div class="cols">
+        <div class="col-main">
+          <p>一元一次方程是指只含一个未知数、且未知数次数恰为 1 的等式，一般写成 <math><mrow><mi class="n">a</mi><mo class="op">·</mo><mi class="v">x</mi><mo class="op">+</mo><mi class="n">b</mi><mo class="op">=</mo><mi class="n">c</mi></mrow></math>（其中 <math><mrow><mi class="n">a</mi><mo class="op">≠</mo><mn class="n">0</mn></mrow></math>）。「解」就是让等式成立的那个 <math><mi class="v">x</mi></math> 的值。</p>
+
+          <p>解它的核心思路只有一个：<b>每次都对等号两边做同一件事</b>，把 <math><mi class="v">x</mi></math> 一层层「松绑」，直到它单独留在等号一边。这种操作称为<b>等价变形</b>——变形后的方程和原方程有完全相同的解。</p>
+
+          <div class="eq-math">
+            <div class="eq-seq">
+              <math display="block"><mrow><mi class="n">a</mi><mo class="op">·</mo><mi class="v">x</mi><mo class="op">+</mo><mi class="n">b</mi><mo class="op">=</mo><mi class="n">c</mi></mrow></math>
+              <math display="block"><mrow><mi class="n">a</mi><mo class="op">·</mo><mi class="v">x</mi><mo class="op">=</mo><mi class="n">c</mi><mo class="op">−</mo><mi class="n">b</mi><mo class="op">　</mo><mtext class="op">(两边同减 b)</mtext></mrow></math>
+              <math display="block"><mrow><mi class="v">x</mi><mo class="op">=</mo><mfrac><mrow><mi class="n">c</mi><mo class="op">−</mo><mi class="n">b</mi></mrow><mi class="n">a</mi></mfrac><mo class="op">　</mo><mtext class="op">(两边同除以 a，a ≠ 0)</mtext></mrow></math>
+            </div>
+          </div>
+
+          <div class="quote">
+            <b style="font-family:var(--font-display);font-size:var(--fs-h3);color:var(--ink)">等价变形四大原则</b>
+            <div style="margin-top:var(--s-3);display:grid;gap:var(--s-2)">
+              <div>①　<b>保持相等</b> —— 等号两边同时做同一件事，等式才继续成立。</div>
+              <div>②　<b>移项本质</b> —— 「移项变号」其实是「两边同加 / 同减」，不是把符号随便翻过来。</div>
+              <div>③　<b>系数归一</b> —— 未知数前的系数用「两边同除」消成 1，且除数必须非零。</div>
+              <div>④　<b>逐步化简</b> —— 一次只做一种变形，每一步都仍是等价方程。</div>
+            </div>
+          </div>
+
+          <h2 style="font-size:var(--fs-h3)">为什么「移项」不是符号魔法</h2>
+          <p>初学者常把「移项变号」记成一句口诀，却说不清为什么。它的真正来源是<b>等式两边同减</b>：要去掉左边的 <math><mo class="op">+</mo><mi class="n">b</mi></math>，就在两边都减去 <math><mi class="n">b</mi></math>，于是 <math><mrow><mo class="op">+</mo><mi class="n">b</mi><mo class="op">−</mo><mi class="n">b</mi><mo class="op">=</mo><mn class="n">0</mn></mrow></math> 消失在左边，而 <math><mo class="op">−</mo><mi class="n">b</mi></math> 出现在右边。所谓「变号」，只是这次减法的结果，不是可以随意套用的规则。</p>
+
+          <h2 style="font-size:var(--fs-h3)">四个必须分清的概念</h2>
+          <ul class="terms">
+            <li>①　<b>未知数</b> —— 想求的那个量，记作 <math><mi class="v">x</mi></math>；解就是把它的系数变成 1。</li>
+            <li>②　<b>系数</b> —— <math><mi class="v">x</mi></math> 前面的数 <math><mi class="n">a</mi></math>；归一时用「两边同除以 a」。</li>
+            <li>③　<b>常数项</b> —— 不含 <math><mi class="v">x</mi></math> 的数 <math><mi class="n">b</mi></math> 与 <math><mi class="n">c</mi></math>；用「两边同加 / 同减」搬动。</li>
+            <li>④　<b>等价</b> —— 原方程与变形后的方程解完全相同，这才叫「等价变形」。</li>
+          </ul>
+
+          <!-- 理解检查 -->
+          <div class="cp" id="cp">
+            <div class="micro micro--accent">CHECKPOINT · 理解检查</div>
+            <p class="cp-q">解方程 <math><mrow><mn class="n">3</mn><mo class="op">·</mo><mi class="v">x</mi><mo class="op">+</mo><mn class="n">5</mn><mo class="op">=</mo><mn class="n">20</mn></mrow></math> 时，第一步「两边同减 5」之后，等号左边变成什么？</p>
+            <div class="cp-opts" role="group" aria-label="理解检查选项">
+              <button class="opt" type="button" data-v="ok" data-why="正确。左边 3x + 5 − 5 只剩 3x；右边 20 − 5 = 15，所以这一步得到 3x = 15。注意减 5 是「两边同时减」，不是只动左边。" aria-pressed="false">A. 只剩 <math><mn class="n">3</mn><mo class="op">·</mo><mi class="v">x</mi></math>（得到 <math><mrow><mn class="n">3</mn><mo class="op">·</mo><mi class="v">x</mi><mo class="op">=</mo><mn class="n">15</mn></mrow></math>）</button>
+              <button class="opt" type="button" data-v="bad" data-why="这是把「移项」当成了「符号随便变」：只把 +5 翻成 −5 留在左边，却没在右边减去 5，等式已经不相等了。正确做法是两边都减 5。" aria-pressed="false">B. 变成 <math><mrow><mn class="n">3</mn><mo class="op">·</mo><mi class="v">x</mi><mo class="op">−</mo><mn class="n">5</mn></mrow></math></button>
+            </div>
+            <div class="cp-rule"></div>
+            <p class="cp-fb" id="cpFb" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <aside class="side" aria-label="辅助卡片">
+          <div class="card">
+            <span class="micro">KEY FORM · 关键式子</span>
+            <span class="formula">a·x + b = c　（a ≠ 0）</span>
+            <span class="formula formula--base">x = (c − b) / a</span>
+            <p class="card-foot">墨色 = 参数；绿色 = 最终解。除以 a 前务必确认 a ≠ 0。</p>
+          </div>
+
+          <div class="card card--err">
+            <span class="micro">MISCONCEPTION · 常见误解</span>
+            <p class="card-body">「移项就是变号」——这句话只描述了表面，没说清来源。本质是<b>两边同加 / 同减</b>：把 <math><mo class="op">+</mo><mi class="n">b</mi></math> 从左边去掉时，右边也必须同时减 <math><mi class="n">b</mi></math>。只翻符号、不加减数，等式就被你改写了。</p>
+          </div>
+
+          <div class="card card--sunk">
+            <span class="micro">REQUIRED EVIDENCE · 达标要求</span>
+            <ul class="reqs">
+              <li>掌握度 mastery ≥ 0.80</li>
+              <li>提示依赖 hint_dependency ≤ 0.50</li>
+              <li>至少 1 次在无提示条件下独立完成分步求解</li>
+              <li data-kind="transfer">迁移验证：能解释「移项变号」的本质</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Zone 02 · 交互练习 ═════════════════════════════════ -->
+  <section class="zone" id="practice" aria-labelledby="z2t">
+    <div class="zone-head">
+      <div class="micro micro--accent">02 · PRACTICE · 交互练习</div>
+      <h2 class="zone-title" id="z2t">等价变形：从参数到解，全程可见</h2>
+      <p class="zone-goal">先用计算器建立「方程 → 解 → 数轴」的直观，再用排序和分步求解把每一步变形说清楚。</p>
+      <p class="zone-meta">4 个交互环节　·　即时反馈　·　全部结果写入下方 Agent 输出区</p>
+      <div class="zone-rule"></div>
+    </div>
+
+    <div class="zone-body">
+
+      <!-- Stage：参数计算器 + 数轴 -->
+      <div class="stage">
+        <div class="micro">STAGE · EQUIVALENT TRANSFORMATION EXPLORER</div>
+        <p class="stage-title">拖动滑块，方程、解与数轴实时同步</p>
+
+        <div class="calc" role="group" aria-label="参数计算器">
+          <div class="calc-row">
+            <span class="calc-lab">a</span>
+            <input class="rng" id="rngA" type="range" min="-9" max="9" step="1" value="3" aria-label="系数 a，范围 -9 到 9 且不为 0">
+            <span class="calc-val" id="valA">3</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-lab">b</span>
+            <input class="rng" id="rngB" type="range" min="-20" max="20" step="1" value="5" aria-label="常数项 b，范围 -20 到 20">
+            <span class="calc-val" id="valB">5</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-lab">c</span>
+            <input class="rng" id="rngC" type="range" min="-20" max="20" step="1" value="20" aria-label="常数项 c，范围 -20 到 20">
+            <span class="calc-val" id="valC">20</span>
+          </div>
+
+          <div class="calc-eq" id="calcEq" aria-live="polite"></div>
+
+          <div class="calc-steps" id="calcSteps" aria-live="polite"></div>
+        </div>
+
+        <div class="nline" id="nline" aria-label="解在数轴上的位置"></div>
+
+        <div class="stage-ctrl">
+          <button class="btn btn--outline" id="btnResetCalc" type="button">重置默认</button>
+          <span class="kbd-hint">Tab 聚焦滑块　·　← → 调整数值</span>
+        </div>
+      </div>
+
+      <!-- 任务 1：拖拽排序 -->
+      <div class="task" style="margin-top:var(--s-16)">
+        <div class="task-head">
+          <span class="task-id">Q1</span>
+          <h3 class="task-title">把四个「变形步骤」拖成正确求解顺序</h3>
+        </div>
+        <p class="task-lead">可以拖拽，也可以先点卡片、再点空位（键盘用户请用后一种方式）。四个位置都放好后点「提交排序」。</p>
+
+        <div class="match">
+          <div>
+            <div class="micro match-col-h">ORDER · 求解顺序（第 1 → 第 4 步）</div>
+            <div class="stage-slots" id="slots"></div>
+          </div>
+          <div>
+            <div class="micro match-col-h">SOURCE · 变形步骤（可拖拽）</div>
+            <div class="chips" id="chips"></div>
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top:var(--s-5)">
+          <button class="btn btn--primary" id="btnSubmitQ1" type="button">提交排序</button>
+          <button class="btn btn--ghost btn--sm" id="btnClearQ1" type="button">全部取回</button>
+        </div>
+        <div class="match-fb" id="q1Fb" role="status" aria-live="polite"></div>
+      </div>
+
+      <!-- 任务 2：分步求解 -->
+      <div class="task" style="margin-top:var(--s-16)">
+        <div class="task-head">
+          <span class="task-id">Q2</span>
+          <h3 class="task-title">分步求解 <math><mrow><mn class="n">3</mn><mo class="op">·</mo><mi class="v">x</mi><mo class="op">+</mo><mn class="n">5</mn><mo class="op">=</mo><mn class="n">20</mn></mrow></math></h3>
+        </div>
+        <p class="task-lead">每一步单独判定、单独给反馈。先写出「两边同减 5」后的式子，再写出 x 的值。错误会被区分成「算错」「变形步骤用错」「把移项当符号随便变」。</p>
+
+        <div class="step-block">
+          <p class="step-q">第一步：两边同减 5 后，等式应写成什么？</p>
+          <div class="step-in">
+            <input class="blank" id="step1" type="text" aria-label="第一步：两边同减 5 后的等式" placeholder="例如 3x = 15" autocomplete="off" spellcheck="false">
+            <button class="btn btn--outline btn--sm" id="btnStep1" type="button">检查第 1 步</button>
+            <button class="btn btn--ghost btn--sm" id="btnHint1" type="button" aria-expanded="false" aria-controls="hint1">提示</button>
+          </div>
+          <div class="step-hint" id="hint1">
+            <div class="note">把等号两边都减去 5：左边 <math><mrow><mn class="n">3</mn><mo class="op">·</mo><mi class="v">x</mi><mo class="op">+</mo><mn class="n">5</mn><mo class="op">−</mo><mn class="n">5</mn></mrow></math> 只剩 <math><mrow><mn class="n">3</mn><mo class="op">·</mo><mi class="v">x</mi></math>；右边 <math><mrow><mn class="n">20</mn><mo class="op">−</mo><mn class="n">5</mn><mo class="op">=</mo><mn class="n">15</mn></mrow></math>。所以应得到 <math><mrow><mn class="n">3</mn><mo class="op">·</mo><mi class="v">x</mi><mo class="op">=</mo><mn class="n">15</mn></mrow></math>。</div>
+          </div>
+          <p class="step-fb" id="step1Fb" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="step-block">
+          <p class="step-q">第二步：两边同除以 3，写出 x 的值。</p>
+          <div class="step-in">
+            <input class="blank" id="step2" type="text" aria-label="第二步：x 的值" placeholder="例如 x = 5" autocomplete="off" spellcheck="false">
+            <button class="btn btn--outline btn--sm" id="btnStep2" type="button">检查第 2 步</button>
+            <button class="btn btn--ghost btn--sm" id="btnHint2" type="button" aria-expanded="false" aria-controls="hint2">提示</button>
+          </div>
+          <div class="step-hint" id="hint2">
+            <div class="note">把 <math><mrow><mn class="n">3</mn><mo class="op">·</mo><mi class="v">x</mi><mo class="op">=</mo><mn class="n">15</mn></mrow></math> 的两边同除以 3：<math><mrow><mi class="v">x</mi><mo class="op">=</mo><mn class="n">15</mn><mo class="op">÷</mo><mn class="n">3</mn><mo class="op">=</mo><mn class="n">5</mn></mrow></math>。</div>
+          </div>
+          <p class="step-fb" id="step2Fb" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <!-- 提示阶梯 -->
+      <div class="ladder">
+        <div class="ladder-head">
+          <div class="micro micro--accent">PROGRESSIVE DISCLOSURE · 提示阶梯</div>
+          <span style="font-size:12px;color:var(--ink-3)">每一级都必须由你主动点击——它会被记为你的提示依赖</span>
+        </div>
+
+        <div class="ladder-steps" id="ladder" role="group" aria-label="分级提示">
+          <button class="ladder-step" type="button" data-lv="1" data-h="1" data-state="avail">
+            <span class="ls-t">① 引导问题</span><span class="ls-s">只给方向</span>
+          </button>
+          <button class="ladder-step" type="button" data-lv="2" data-h="2" data-state="locked" disabled>
+            <span class="ls-t">② 策略提示</span><span class="ls-s">给思路</span>
+          </button>
+          <button class="ladder-step" type="button" data-lv="3" data-h="3" data-state="locked" disabled>
+            <span class="ls-t">③ 部分示范</span><span class="ls-s">给前半段</span>
+          </button>
+          <button class="ladder-step" type="button" data-lv="4" data-h="4" data-state="locked" disabled>
+            <span class="ls-t">④ 完整答案</span><span class="ls-s">需二次确认</span>
+          </button>
+        </div>
+        <p class="ladder-note" id="ladderNote">阶梯高度 = 支持强度。已用层级越高，hint_dependency 越高；本节点当前 0.00。</p>
+
+        <div class="hint-body" id="hintBody"></div>
+      </div>
+
+      <!-- 反馈 + 评分 -->
+      <div class="result">
+        <div class="fb" id="fb">
+          <div class="fb-bar" id="fbBar"></div>
+          <span class="fb-badge" id="fbBadge">等待作答</span>
+          <div class="fb-sec fb-s1">
+            <h4>你做对的部分</h4>
+            <p id="fbS1">提交任意一题后，这里会先指出你判断正确的部分。</p>
+          </div>
+          <div class="fb-sec fb-s2">
+            <h4>卡在哪里</h4>
+            <p id="fbS2">如果答错，这里会定位到具体的错误点，并说明缺失的是哪个概念。</p>
+          </div>
+          <div class="fb-sec fb-s3">
+            <h4>下一步</h4>
+            <p id="fbS3">这里会给一个你现在就能执行的动作。</p>
+          </div>
+        </div>
+
+        <div class="score">
+          <div class="micro">ASSESSMENT · 多维评分</div>
+          <div class="score-rows" id="scoreRows"></div>
+          <p class="card-foot">transfer 与 hint_dependency 不参与 overall_score 聚合，仅作为 Policy 输入。</p>
+        </div>
+      </div>
+
+      <!-- 后置验证 -->
+      <div class="verify" id="verify" hidden>
+        <div class="micro micro--accent">POST-VERIFICATION · 后置验证（完整答案后必做）</div>
+        <p class="task-lead" style="margin-top:var(--s-4)">你已经看过完整答案。要证明你理解的是<b>原理</b>而不是这一段文字，请回答下面这个问题——这是本次任务结束的唯一条件。</p>
+        <p style="margin-top:var(--s-4);font-size:var(--fs-small);font-weight:600">为什么说「移项变号」的本质是「两边同加 / 同减」，而不是「把符号随便反过来」？举一个会出错的例子。</p>
+        <textarea id="verifyInput" aria-label="后置验证作答" placeholder="用一两句话说清楚即可。"></textarea>
+        <div class="btn-row" style="margin-top:var(--s-4)">
+          <button class="btn btn--primary" id="btnVerify" type="button">提交自我解释</button>
+        </div>
+        <div class="match-fb" id="verifyFb" role="status" aria-live="polite"></div>
+      </div>
+
+      <!-- 证据轨 -->
+      <div class="rail">
+        <div class="rail-head">
+          <div class="micro">EVIDENCE TRAIL · 本次会话事件</div>
+          <span style="font-size:12px;color:var(--ink-3)" id="railCount">已产生 0 条事件（只追加，不覆盖）</span>
+        </div>
+        <div class="rail-track">
+          <div class="rail-dots" id="railDots"></div>
+        </div>
+        <div class="rail-foot">
+          <span id="railLast">尚无事件</span>
+          <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--ev-practiced);margin-right:5px"></i>作答　<i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--warn);margin-right:5px;margin-left:10px"></i>提示　<i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--ev-demonstrated);margin-right:5px;margin-left:10px"></i>运行　<i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--ok);margin-right:5px;margin-left:10px"></i>完成</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Zone 03 · Agent 数据输出 ═══════════════════════════ -->
+  <section class="zone" id="output" aria-labelledby="z3t">
+    <div class="zone-head">
+      <div class="micro micro--accent">03 · AGENT OUTPUT · 数据输出</div>
+      <h2 class="zone-title" id="z3t">交给宿主 Agent 的交互结果</h2>
+      <p class="zone-goal">这一区不是调试信息，而是学习者本次会话的完整档案。宿主 Agent 通过它驱动下一轮教学决策。</p>
+      <div class="zone-rule"></div>
+    </div>
+
+    <div class="zone-body">
+      <div class="bridge-strip" id="bridgeStrip">
+        <div class="bs-l">
+          <span class="micro micro--accent" id="bridgeMode">BRIDGE · 演示模式</span>
+          <span class="bs-t" id="bridgeSummary">未接入宿主 Agent；学习动作会累积为待执行的 MCP 调用。</span>
+        </div>
+        <button class="bs-btn" id="bridgeDrain" type="button">取出调用队列 ▾</button>
+      </div>
+      <pre class="bridge-out" id="bridgeOutbox" hidden></pre>
+      <div class="console">
+        <button class="console-bar" id="consoleBar" type="button" aria-expanded="false" aria-controls="consoleJson">
+          <span class="cb-t" id="consoleSummary">AGENT OUTPUT · 已记录 0 条事件</span>
+          <span class="cb-a" id="consoleAction">展开 JSON ▾</span>
+        </button>
+        <div class="console-json" id="consoleJson">
+          <pre id="leap-interaction-output"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot">
+    LEAP‑V2 分学科前端示例 · 示例 2（数学 / 一元一次方程）　·　node_id <code>math.algebra.linear_equation</code>　·　unit_tag <code>linear-equation</code><br>
+    单文件零依赖 · 零 CDN · 零外部图片 · 全部图形为内联 SVG / DOM 绘制　·　结构规范见 <code>examples/_shared/leap-web-spec.md</code>，视觉规范见 <code>LEAP_视觉设计理念_给Gemini.md</code>
+  </p>
+</main>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   LEAP Runtime 交互结果内核（JSON 契约 · 证据轨 · 评分聚合）
+   契约来源：examples/_shared/interaction-output.schema.json
+   ══════════════════════════════════════════════════════════════ */
+window.LEAP = (function () {
+  "use strict";
+
+  var state = {
+    leap_version: "2.0",
+    example_id: "linear-equation",
+    subject: "math",
+    node: { node_id: "math.algebra.linear_equation", title: "一元一次方程", unit_tag: "linear-equation" },
+    learner: { learner_id: "REPLACE_WITH_LEARNER_ID", session_id: "REPLACE_WITH_SESSION_ID" },
+    events: [],
+    assessment: blankAssessment(),
+    ui_state: {
+      mode: "demo", hosted: false, pending_mcp_calls: 0,
+      hint_dependency: 0, hint_level: 0, answer_revealed: false, completed: false
+    }
+  };
+
+  var mastery = 0.55;                       /* 本地模拟值 */
+  var HINT_DEP = [0, 0.25, 0.40, 0.60, 0.85];
+  var STAGE_ORDER = ["estimated", "practiced", "demonstrated", "retained", "transferred"];
+  var EVENT_COLOR = {
+    attempt_submitted: "#4C7BD9",
+    hint_used: "#B3861A",
+    answer_revealed: "#7A7F8A",
+    drag_submitted: "#4C7BD9",
+    code_run: "#2E8B84",
+    reflection_recorded: "#4C8B3F",
+    item_completed: "#2E7D5B"
+  };
+
+  /* ══ LEAP_HOST_BRIDGE · 宿主桥接 ══════════════════════════════════
+     本页只负责「呈现 + 采集」，不做任何状态判定：
+       · mastery_probability / evidence_stage / hint_dependency 由 LEAP Runtime
+         计算（LEAP_Framework_V2 §10.2‑1），本页只显示 hydrate() 注入的值；
+       · 学习者的每个动作都会被翻译成一条待执行的 MCP 调用，进入 outbox，
+         由宿主 Agent 通过 LEAP.drainOutbox() 取走后真正执行。
+     未调用 hydrate() 时保持 demo 模式，本地推算值一律标记 provisional。 */
+  var bridge = {
+    mode: "demo",
+    context: null,
+    server: {
+      mastery_probability: mastery,
+      evidence_stage: "estimated",
+      hint_dependency: 0,
+      next_review_at: null,
+      transfer_required: false
+    },
+    outbox: [],
+    seq: 0,
+    hooks: [],
+    last_attempt_call_id: null,
+    last_raw_answer: ""
+  };
+
+  function clamp01(v) { return Math.max(0, Math.min(1, Number(v))); }
+  function isHosted() { return bridge.mode === "hosted"; }
+  function peekOutbox() { return clone(bridge.outbox); }
+  function drainOutbox() { var out = clone(bridge.outbox); bridge.outbox.length = 0; renderAll(); return out; }
+  function onOutboxChange(fn) { if (typeof fn === "function") bridge.hooks.push(fn); }
+
+  function enqueue(tool, args, note) {
+    var call = {
+      call_id: "call_" + (++bridge.seq),
+      tool: tool,
+      args: args || {},
+      status: "pending",
+      created_at: nowSec(),
+      note: note || ""
+    };
+    bridge.outbox.push(call);
+    for (var i = 0; i < bridge.hooks.length; i++) { try { bridge.hooks[i](call, bridge.outbox.length); } catch (e) {} }
+    return call;
+  }
+
+  /* 事件 → MCP 调用映射。hint_used / answer_revealed / item_completed 不单独
+     产生调用：它们的信息通过后续 attempt 的 hint_level 一并提交。 */
+  var EVENT_TO_TOOL = {
+    attempt_submitted: "submit_attempt",
+    drag_submitted: "submit_attempt",
+    code_run: "submit_attempt",
+    reflection_recorded: "record_reflection"
+  };
+
+  function enqueueForEvent(ev) {
+    var tool = EVENT_TO_TOOL[ev.event_type];
+    if (!tool) return null;
+    var raw = ev.answer == null ? "" : String(ev.answer);
+
+    if (tool === "submit_attempt") {
+      bridge.last_raw_answer = raw;
+      var call = enqueue("submit_attempt", {
+        session_id: state.learner.session_id,
+        answer: raw,
+        node_id: state.node.node_id,
+        item_id: ev.item_id || null,
+        hint_level: typeof ev.hint_level === "number" ? ev.hint_level : state.ui_state.hint_level,
+        response_time: typeof ev.response_time === "number" ? ev.response_time : null
+      }, "提交本次作答；返回的 attempt_id 供 commit_assessment 使用");
+      bridge.last_attempt_call_id = call.call_id;
+      return call;
+    }
+    return enqueue("record_reflection", {
+      session_id: state.learner.session_id,
+      reflection: raw,
+      node_id: state.node.node_id
+    }, "保存反思");
+  }
+
+  /* 宿主注入：直接吃 get_teaching_context 的返回值 */
+  function hydrate(ctx) {
+    if (!ctx || typeof ctx !== "object") { throw new TypeError("LEAP.hydrate(context) 需要一个对象参数"); }
+    bridge.context = clone(ctx);
+    bridge.mode = "hosted";
+
+    var sess = ctx.session || {};
+    var node = ctx.current_node || ctx.node || {};
+    var ks = ctx.knowledge_state || {};
+
+    var learnerId = ctx.learner_id || sess.learner_id;
+    var sessionId = ctx.session_id || sess.session_id;
+    if (learnerId) state.learner.learner_id = learnerId;
+    if (sessionId) state.learner.session_id = sessionId;
+    if (node.node_id) state.node.node_id = node.node_id;
+    if (node.title) state.node.title = node.title;
+    if (node.unit_tag) state.node.unit_tag = node.unit_tag;
+
+    if (typeof ks.mastery_probability === "number") {
+      bridge.server.mastery_probability = clamp01(ks.mastery_probability);
+      mastery = bridge.server.mastery_probability;
+    }
+    if (ks.evidence_stage) {
+      bridge.server.evidence_stage = ks.evidence_stage;
+      state.assessment.evidence_stage = ks.evidence_stage;
+    }
+    if (typeof ks.hint_dependency === "number") {
+      bridge.server.hint_dependency = clamp01(ks.hint_dependency);
+      state.ui_state.hint_dependency = bridge.server.hint_dependency;
+    }
+    if (ks.next_review_at) bridge.server.next_review_at = ks.next_review_at;
+    if (typeof ctx.transfer_requirement === "boolean") bridge.server.transfer_required = ctx.transfer_requirement;
+
+    bridge.available_actions = ctx.recommended_actions || [];
+    bridge.recommended_strategy = ctx.recommended_strategy || "";
+    bridge.due_reviews = ctx.due_reviews || [];
+
+    renderAll();
+    return snapshot();
+  }
+
+  function toggleOutboxView() {
+    var pre = document.getElementById("bridgeOutbox");
+    var btn = document.getElementById("bridgeDrain");
+    if (!pre) return;
+    var opening = pre.hidden;
+    pre.hidden = !opening;
+    if (btn) btn.textContent = opening ? "收起调用队列 ▴" : "取出调用队列 ▾";
+    if (opening) {
+      var calls = drainOutbox();
+      pre.textContent = calls.length
+        ? JSON.stringify(calls, null, 2)
+        : "（队列为空：尚无需要提交给 LEAP Runtime 的调用）";
+    }
+  }
+
+  var drainWired = false;
+  function renderBridge() {
+    var modeEl = document.getElementById("bridgeMode");
+    var sumEl = document.getElementById("bridgeSummary");
+    var noteEl = document.getElementById("spineNote");
+    var n = bridge.outbox.length;
+
+    if (modeEl) modeEl.textContent = "BRIDGE · " + (isHosted() ? "已接入宿主" : "演示模式");
+    if (sumEl) {
+      sumEl.textContent = isHosted()
+        ? "已注入 Runtime 上下文（" + state.node.node_id + "）；待执行的 MCP 调用 " + n + " 条。"
+        : "未接入宿主 Agent；学习动作会累积为待执行的 MCP 调用（当前 " + n + " 条）。";
+    }
+    if (noteEl) {
+      noteEl.innerHTML = isHosted()
+        ? "本页状态由 <b>LEAP Runtime</b> 注入（<code>LEAP.hydrate()</code>）；掌握度与证据阶段由服务端 BKT 与 State Guard 计算，本页不自行推算。"
+        : "本页掌握度与证据阶段为<b>本地模拟</b>，用于演示界面如何呈现学习状态；真实系统中二者由 LEAP Runtime 的 BKT 估计器与 State Guard 计算（见 LEAP_Framework_V2 §10.2‑1）。";
+    }
+
+    var btn = document.getElementById("bridgeDrain");
+    if (btn && !drainWired) { drainWired = true; btn.addEventListener("click", toggleOutboxView); }
+    if (btn && !n) { btn.disabled = true; } else if (btn) { btn.disabled = false; }
+  }
+
+  function blankAssessment() {
+    return {
+      item_id: "", correctness: 0, conceptual_understanding: 0, reasoning_quality: 0,
+      application: 0, transfer: 0, hint_dependency: 0, confidence: 0, overall_score: 0,
+      error_type: "none", misconception: "", feedback: "",
+      evidence_stage: "estimated", assessor_type: "rule", provisional: true
+    };
+  }
+  function nowSec() { return Math.floor(Date.now() / 1000); }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  /* overall_score：correctness .4 / conceptual .3 / reasoning .2 / application .1
+     缺失维度自动归一化；transfer 与 hint_dependency 不参与聚合 */
+  function aggregate(d) {
+    var w = { correctness: 0.4, conceptual_understanding: 0.3, reasoning_quality: 0.2, application: 0.1 };
+    var sum = 0, tw = 0, k;
+    for (k in w) {
+      if (typeof d[k] === "number" && isFinite(d[k])) { sum += d[k] * w[k]; tw += w[k]; }
+    }
+    return tw ? Math.round((sum / tw) * 100) / 100 : 0;
+  }
+
+  function pushEvent(event_type, payload) {
+    var ev = { event_type: event_type };
+    if (payload) { for (var k in payload) { if (Object.prototype.hasOwnProperty.call(payload, k)) ev[k] = payload[k]; } }
+    ev.created_at = nowSec();
+    state.events.push(ev);
+    enqueueForEvent(ev);
+    renderAll();
+    return ev;
+  }
+
+  function setHint(level) {
+    if (level > state.ui_state.hint_level) state.ui_state.hint_level = level;
+    if (level === 4) state.ui_state.answer_revealed = true;
+    state.ui_state.hint_dependency = HINT_DEP[Math.min(state.ui_state.hint_level, 4)];
+    renderAll();
+  }
+
+  function commitAssessment(item) {
+    var dep = HINT_DEP[Math.min(state.ui_state.hint_level, 4)];
+    var a = {
+      item_id: item.item_id,
+      correctness: r2(item.correctness),
+      conceptual_understanding: r2(item.conceptual_understanding),
+      reasoning_quality: r2(item.reasoning_quality),
+      application: r2(item.application),
+      transfer: r2(item.transfer || 0),
+      hint_dependency: r2(dep),
+      confidence: 0,
+      overall_score: 0,
+      error_type: item.error_type || "none",
+      misconception: item.misconception || "",
+      feedback: item.feedback || "",
+      evidence_stage: "practiced",
+      assessor_type: item.assessor_type || "rule"
+    };
+    a.overall_score = aggregate(a);
+
+    if (bridge.mode === "demo") {
+      /* 演示模式：本地粗略推进，仅为让界面动起来。
+         接入宿主后（hosted）这两项一律以 Runtime 返回值回填（§10.2‑1）。 */
+      a.evidence_stage = deriveStage(a);
+      if (typeof item.transfer === "number" && item.transfer >= 0.7) a.evidence_stage = "transferred";
+      mastery = Math.max(0, Math.min(0.98, mastery + (a.correctness - 0.5) * 0.14 - dep * 0.04));
+      bridge.server.mastery_probability = mastery;
+      bridge.server.evidence_stage = a.evidence_stage;
+      a.provisional = true;
+    } else {
+      a.evidence_stage = bridge.server.evidence_stage;
+      a.provisional = false;
+    }
+    state.assessment = a;
+    state.ui_state.hint_dependency = a.hint_dependency;
+
+    /* 评估证据必须回传 Runtime：raw_answer 不可丢弃（§22.8）。 */
+    enqueue("commit_assessment", {
+      attempt_id: bridge.last_attempt_call_id
+        ? "{{" + bridge.last_attempt_call_id + ".attempt_id}}" : "{{attempt_id}}",
+      raw_answer: bridge.last_raw_answer,
+      assessor_type: a.assessor_type,
+      correctness: a.correctness,
+      conceptual_understanding: a.conceptual_understanding,
+      reasoning_quality: a.reasoning_quality,
+      application: a.application,
+      transfer: a.transfer,
+      hint_dependency: a.hint_dependency,
+      confidence: a.confidence
+    }, "提交评估证据；attempt_id 由上一条 submit_attempt 的返回值填充，mastery 由 Runtime 计算");
+    renderAll();
+    return a;
+  }
+
+  function deriveStage(a) {
+    if (a.correctness >= 0.8 && a.hint_dependency <= 0.5) return "demonstrated";
+    return "practiced";
+  }
+  function r2(v) { return Math.round((v || 0) * 100) / 100; }
+
+  function setCompleted(itemId, reason) {
+    state.ui_state.completed = true;
+    pushEvent("item_completed", { item_id: itemId, reason: reason || "verified" });
+  }
+
+  /* ── 渲染 ─────────────────────────────────────────────── */
+  var renderHooks = [];
+  function onRender(fn) { renderHooks.push(fn); fn(); }
+  function renderAll() {
+    renderOutput(); renderSpine(); renderRail(); renderBridge();
+    for (var i = 0; i < renderHooks.length; i++) { try { renderHooks[i](); } catch (e) { /* 单个面板失败不影响契约输出 */ } }
+  }
+
+
+
+  function renderOutput() {
+    var el = document.getElementById("leap-interaction-output");
+    if (el) el.textContent = JSON.stringify(snapshot(), null, 2);
+    var sum = document.getElementById("consoleSummary");
+    if (sum) {
+      var last = state.events.length ? state.events[state.events.length - 1].event_type : null;
+      sum.textContent = "AGENT OUTPUT · 已记录 " + state.events.length + " 条事件" +
+        (last ? " · 最近 " + last : "") + (state.ui_state.completed ? " · 本节点已完成" : "");
+    }
+  }
+
+  function renderSpine() {
+    var cur = state.assessment.evidence_stage;
+    var idx = Math.max(0, STAGE_ORDER.indexOf(cur));
+    var segs = document.querySelectorAll("#evTrack .ev-seg");
+    for (var i = 0; i < segs.length; i++) {
+      if (i <= idx) { segs[i].classList.add("is-on"); } else { segs[i].classList.remove("is-on"); }
+    }
+    var nameEl = document.getElementById("evName");
+    if (nameEl) {
+      nameEl.textContent = cur + " · " + STAGE_CN[cur];
+      nameEl.style.color = "var(--ev-" + cur + ")";
+    }
+    var fill = document.getElementById("masFill");
+    if (fill) fill.style.width = Math.round(mastery * 100) + "%";
+    var val = document.getElementById("masVal");
+    if (val) val.textContent = mastery.toFixed(2);
+    var note = document.getElementById("ladderNote");
+    if (note) {
+      note.textContent = "阶梯高度 = 支持强度。已用层级越高，hint_dependency 越高；本节点当前 " +
+        HINT_DEP[Math.min(state.ui_state.hint_level, 4)].toFixed(2) + "。";
+    }
+  }
+
+  var STAGE_CN = {
+    estimated: "仅估计", practiced: "练习过", demonstrated: "独立展示",
+    retained: "延迟保持", transferred: "已迁移"
+  };
+
+  function renderRail() {
+    var host = document.getElementById("railDots");
+    if (!host) return;
+    var n = state.events.length;
+    host.innerHTML = "";
+    if (!n) return;
+    var gap = n === 1 ? 0 : 1120 / (n + 1);
+    /* 使用百分比定位，随容器宽度自适应 */
+    for (var i = 0; i < n; i++) {
+      var d = document.createElement("span");
+      var isLast = (i === n - 1);
+      d.className = "rail-dot" + (isLast ? " rail-dot--last" : "");
+      var pct = n === 1 ? 50 : ((i + 1) / (n + 1)) * 100;
+      d.style.left = pct + "%";
+      d.style.background = EVENT_COLOR[state.events[i].event_type] || "#9AA1AD";
+      d.title = state.events[i].event_type;
+      host.appendChild(d);
+    }
+    var cnt = document.getElementById("railCount");
+    if (cnt) cnt.textContent = "已产生 " + n + " 条事件（只追加，不覆盖）";
+    var last = document.getElementById("railLast");
+    if (last) {
+      var e = state.events[n - 1];
+      last.textContent = "最近：" + e.event_type + (e.item_id ? " · " + e.item_id : "") +
+        " · hint_level " + state.ui_state.hint_level + " · " + fmtTime(e.created_at);
+    }
+  }
+  function fmtTime(t) {
+    var d = new Date(t * 1000);
+    return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2) + ":" + ("0" + d.getSeconds()).slice(-2);
+  }
+
+  /* ── 对外接口 ─────────────────────────────────────────── */
+  function snapshot() {
+    var out = clone(state);
+    out.ui_state.mode = bridge.mode;
+    out.ui_state.hosted = isHosted();
+    out.ui_state.pending_mcp_calls = bridge.outbox.length;
+    out.outbox = clone(bridge.outbox);
+    return out;
+  }
+  function getInteractionResult() { return snapshot(); }
+  function getState() { return state; }
+  function getMastery() { return mastery; }
+
+  return {
+    /* ── 输入：宿主 Agent 注入 Runtime 上下文 ── */
+    hydrate: hydrate,
+    isHosted: isHosted,
+    /* ── 输出：契约对象 ── */
+    getInteractionResult: getInteractionResult,
+    /* ── 输出：待执行的 MCP 调用队列 ── */
+    peekOutbox: peekOutbox,
+    drainOutbox: drainOutbox,
+    onOutboxChange: onOutboxChange,
+    pushEvent: pushEvent,
+    setHint: setHint,
+    commitAssessment: commitAssessment,
+    setCompleted: setCompleted,
+    aggregate: aggregate,
+    getState: getState,
+    getMastery: getMastery,
+    onRender: onRender,
+    refresh: renderAll,
+    HINT_DEP: HINT_DEP,
+    STAGE_CN: STAGE_CN
+  };
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   页面交互
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var S = window.LEAP.getState();
+
+  /* ── 1. 理解检查 ───────────────────────────────────────── */
+  (function checkpoint() {
+    var opts = document.querySelectorAll("#cp .opt");
+    var fb = $("cpFb");
+    var done = false;
+    Array.prototype.forEach.call(opts, function (b) {
+      b.addEventListener("click", function () {
+        Array.prototype.forEach.call(opts, function (x) { x.setAttribute("aria-pressed", "false"); });
+        b.setAttribute("aria-pressed", "true");
+        var ok = b.dataset.v === "ok";
+        fb.innerHTML = (ok ? "<b>正确。</b> " : "<b>再想一想。</b> ") + b.dataset.why;
+        fb.classList.add("is-on");
+        if (!done) {
+          done = true;
+          window.LEAP.pushEvent("attempt_submitted", {
+            item_id: "cp-01", answer: b.textContent.trim(), hint_level: 0,
+            response_time: 0, attempt_index: 1, predicted_performance: null,
+            error_type: ok ? "none" : "misconception"
+          });
+        }
+      });
+    });
+  })();
+
+  /* ── 2. 参数计算器 + 数轴 ─────────────────────────────── */
+  var rngA = $("rngA"), rngB = $("rngB"), rngC = $("rngC");
+  var valA = $("valA"), valB = $("valB"), valC = $("valC");
+  var calcEq = $("calcEq"), calcSteps = $("calcSteps"), nlineEl = $("nline");
+
+  function fmt(v) {
+    var r = Math.round(v * 100) / 100;
+    return (r === 0 ? 0 : r).toString();
+  }
+
+  function drawNumberLine(a, b, c) {
+    var x = (c - b) / a;
+    var lo = Math.floor(Math.min(-2, x)) - 2;
+    var hi = Math.ceil(Math.max(2, x)) + 2;
+    var W = 1000, H = 130, padX = 48, midY = 72;
+    var span = (hi - lo) || 1;
+    function px(v) { return padX + (v - lo) / span * (W - 2 * padX); }
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="数轴，解 x = ' + fmt(x) + '">';
+    s += '<line class="axis" x1="' + padX + '" y1="' + midY + '" x2="' + (W - padX) + '" y2="' + midY + '"/>';
+    for (var v = lo; v <= hi; v++) {
+      var X = px(v);
+      s += '<line class="tick" x1="' + X + '" y1="' + (midY - 6) + '" x2="' + X + '" y2="' + (midY + 6) + '"/>';
+      s += '<text x="' + X + '" y="' + (midY + 22) + '" text-anchor="middle">' + v + '</text>';
+    }
+    var sx = px(x);
+    s += '<line class="tick" x1="' + sx + '" y1="' + (midY - 15) + '" x2="' + sx + '" y2="' + (midY + 15) + '" style="stroke:var(--accent)"/>';
+    s += '<circle class="sol" cx="' + sx + '" cy="' + midY + '" r="6"/>';
+    s += '<circle class="sol-ring" cx="' + sx + '" cy="' + midY + '" r="11"/>';
+    s += '<text class="sol-lab" x="' + sx + '" y="' + (midY - 20) + '" text-anchor="middle">x = ' + fmt(x) + '</text>';
+    s += '</svg>';
+    nlineEl.innerHTML = s;
+  }
+
+  function updateCalc() {
+    var a = parseInt(rngA.value, 10);
+    if (a === 0) { a = parseInt(rngA.value, 10) < 0 ? -1 : 1; rngA.value = a; }
+    var b = parseInt(rngB.value, 10), c = parseInt(rngC.value, 10);
+    valA.textContent = a; valB.textContent = b; valC.textContent = c;
+    var moved = c - b;
+    var x = moved / a;
+
+    calcEq.innerHTML =
+      '<div><span class="sym">a·x + b = c</span>　<span class="dim">' + a + '·x + ' + b + ' = ' + c + '</span></div>';
+    calcSteps.innerHTML =
+      '<div class="calc-step"><span class="tag">移项</span><span><span class="ac">a·x = c − b</span>　<span class="dim">' + a + '·x = ' + moved + '</span></span></div>' +
+      '<div class="calc-step"><span class="tag">同除以 a</span><span><span class="ac">x = (c − b) / a</span>　<span class="dim">x = ' + fmt(x) + '</span></span></div>';
+
+    drawNumberLine(a, b, c);
+  }
+
+  function onCalcChange() {
+    updateCalc();
+    var a = parseInt(rngA.value, 10), b = parseInt(rngB.value, 10), c = parseInt(rngC.value, 10);
+    window.LEAP.pushEvent("attempt_submitted", {
+      item_id: "calc", answer: "a=" + a + " b=" + b + " c=" + c + " -> x=" + fmt((c - b) / a),
+      hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: 1,
+      predicted_performance: null, error_type: "none"
+    });
+  }
+  rngA.addEventListener("input", updateCalc);
+  rngB.addEventListener("input", updateCalc);
+  rngC.addEventListener("input", updateCalc);
+  rngA.addEventListener("change", onCalcChange);
+  rngB.addEventListener("change", onCalcChange);
+  rngC.addEventListener("change", onCalcChange);
+  $("btnResetCalc").addEventListener("click", function () {
+    rngA.value = 3; rngB.value = 5; rngC.value = 20; updateCalc();
+  });
+  updateCalc();
+
+  /* ── 3. 提示阶梯 ───────────────────────────────────────── */
+  var HINTS = {
+    1: { t: "① 引导问题 · 只给方向", h: "先问自己一个问题：要把 <code>x</code> 单独留在等号一边，它现在被哪两样东西「缠住」了？一个是它前面的<b>系数</b>，一个是和它加在一起的<b>常数项</b>。" },
+    2: { t: "② 策略提示 · 给思路", h: "解 <code>3x + 5 = 20</code> 分两步：<br>· 第一步先把「+5」这个常数项从 <code>x</code> 这边搬走 —— 两边同减 5；<br>· 第二步再把 <code>x</code> 前面的系数 3 去掉 —— 两边同除以 3。顺序不能反。" },
+    3: { t: "③ 部分示范 · 给前半段", h: "先写出第一步的结果（这一步我替你验证）：两边同减 5 后，应得到 <code>3x = 15</code>。下一步「两边同除以 3」由你完成。" },
+    4: { t: "④ 完整答案 · 已展示", h: "完整过程（含每一步的理由）：", c: "3x + 5 = 20\n  两边同减 5：3x = 15      ← 移项本质是「两边同减」\n  两边同除以 3：x = 5     ← 系数化为 1，且 3 ≠ 0" }
+  };
+  var ladderNote = $("ladderNote");
+
+  function setLadderState() {
+    var lvl = S.ui_state.hint_level;
+    Array.prototype.forEach.call(document.querySelectorAll("#ladder .ladder-step"), function (b) {
+      var lv = parseInt(b.dataset.lv, 10);
+      b.dataset.state = lv <= lvl ? "used" : (lv === lvl + 1 ? "avail" : "locked");
+      b.disabled = (lv > lvl + 1);
+      b.setAttribute("aria-disabled", String(lv > lvl + 1));
+    });
+    ladderNote.textContent = "阶梯高度 = 支持强度。已用层级越高，hint_dependency 越高；本节点当前 " +
+      window.LEAP.HINT_DEP[Math.min(lvl, 4)].toFixed(2) +
+      (lvl >= 3 ? "（> 0.50，已不足以升级到 demonstrated）" : "（≤ 0.50，仍可升级到 demonstrated）") + "。";
+  }
+
+  function showHint(lv) {
+    var body = $("hintBody");
+    var box = document.createElement("div");
+    box.className = "hint-card";
+    box.dataset.lv = lv;
+    if (lv === 4) {
+      box.innerHTML = '<span class="micro">④ 完整答案</span><p>' + HINTS[4].h + '</p><pre>' + esc(HINTS[4].c) + '</pre>';
+      body.appendChild(box);
+      $("verify").hidden = false;
+      $("verify").scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    box.innerHTML = '<span class="micro">' + HINTS[lv].t + '</span><p>' + HINTS[lv].h + '</p>';
+    body.appendChild(box);
+  }
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  Array.prototype.forEach.call(document.querySelectorAll("#ladder .ladder-step"), function (b) {
+    b.addEventListener("click", function () {
+      var lv = parseInt(b.dataset.lv, 10);
+      if (lv > S.ui_state.hint_level + 1) return;
+      if (lv <= S.ui_state.hint_level) return;
+      if (lv === 4) { renderConfirm(); return; }
+      window.LEAP.setHint(lv);
+      window.LEAP.pushEvent("hint_used", { item_id: "q2", hint_level: lv, answer: "", response_time: 0, attempt_index: 1, predicted_performance: null });
+      showHint(lv);
+      setLadderState();
+    });
+  });
+
+  function renderConfirm() {
+    if ($("confirmBox")) return;
+    var box = document.createElement("div");
+    box.className = "confirm";
+    box.id = "confirmBox";
+    box.innerHTML = '<p>展开完整答案后，本次作答会被记录为 <code>answer_revealed</code>，' +
+      '<b>hint_dependency 升到 0.85</b>，并且你<b>必须完成一题后置验证</b>，本任务才算结束。' +
+      '如果你只想再试一次，建议先点「③ 部分示范」。</p>' +
+      '<div class="btn-row"><button class="btn btn--primary btn--sm" id="btnConfirmReveal" type="button">我确认，展开完整答案</button>' +
+      '<button class="btn btn--ghost btn--sm" id="btnCancelReveal" type="button">先不展开</button></div>';
+    $("hintBody").appendChild(box);
+    $("btnCancelReveal").addEventListener("click", function () { box.remove(); });
+    $("btnConfirmReveal").addEventListener("click", function () {
+      box.remove();
+      window.LEAP.setHint(4);
+      window.LEAP.pushEvent("answer_revealed", { item_id: "q2", hint_level: 4, answer: "", response_time: 0, attempt_index: 1, predicted_performance: null });
+      showHint(4);
+      setLadderState();
+    });
+  }
+  setLadderState();
+
+  /* ── 4. Q1 拖拽排序 ────────────────────────────────────── */
+  var STEPS_ORDER = [
+    { id: "observe", text: "观察方程 a·x + b = c，确认未知数 x 只出现一次、且次数为 1。" },
+    { id: "move", text: "第一步等价变形：两边同减 b（移项），得到 a·x = c − b。" },
+    { id: "divide", text: "第二步等价变形：两边同除以 a（a ≠ 0），得到 x = (c − b)/a。" },
+    { id: "final", text: "化简并写出最终解：x = (c − b)/a，记录 x 的值。" }
+  ];
+  var slotHost = $("slots"), chipHost = $("chips");
+  var selectedChip = null;
+
+  function buildSort() {
+    slotHost.innerHTML = ""; chipHost.innerHTML = "";
+    STEPS_ORDER.forEach(function (s, i) {
+      var d = document.createElement("div");
+      d.className = "slot"; d.dataset.slot = s.id;
+      d.setAttribute("role", "button");
+      d.setAttribute("tabindex", "0");
+      d.setAttribute("aria-label", "第 " + (i + 1) + " 步目标位置");
+      d.innerHTML = '<span class="sort-pos">第 ' + (i + 1) + ' 步</span><span class="slot-label">把对应步骤放到这里</span>';
+      d.addEventListener("dragover", function (e) { e.preventDefault(); d.classList.add("is-over"); });
+      d.addEventListener("dragleave", function () { d.classList.remove("is-over"); });
+      d.addEventListener("drop", function (e) {
+        e.preventDefault(); d.classList.remove("is-over");
+        var id = e.dataTransfer.getData("text/plain");
+        placeChip(id, s.id);
+      });
+      d.addEventListener("click", function () { if (selectedChip) placeChip(selectedChip, s.id); });
+      d.addEventListener("keydown", function (e) {
+        if ((e.key === "Enter" || e.key === " ") && selectedChip) { e.preventDefault(); placeChip(selectedChip, s.id); }
+        else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+          e.preventDefault();
+          var chips = chipHost.querySelectorAll(".chip:not([data-state='ok'])");
+          var idx = Array.prototype.indexOf.call(chips, document.activeElement);
+          if (idx >= 0) { var nxt = e.key === "ArrowDown" ? chips[idx + 1] : chips[idx - 1]; if (nxt) nxt.focus(); }
+        }
+      });
+      slotHost.appendChild(d);
+    });
+    shuffle(STEPS_ORDER.slice()).forEach(function (c) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "chip"; b.draggable = true;
+      b.dataset.chip = c.id; b.textContent = c.text;
+      b.setAttribute("tabindex", "0");
+      b.addEventListener("dragstart", function (e) { e.dataTransfer.setData("text/plain", c.id); b.classList.add("is-drag"); });
+      b.addEventListener("dragend", function () { b.classList.remove("is-drag"); });
+      b.addEventListener("click", function () {
+        if (b.dataset.state === "ok") return;
+        if (selectedChip === c.id) { selectedChip = null; b.classList.remove("is-sel"); return; }
+        Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (x) { x.classList.remove("is-sel"); });
+        selectedChip = c.id; b.classList.add("is-sel");
+      });
+      chipHost.appendChild(b);
+    });
+  }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+  function placeChip(chipId, slotId) {
+    var chip = chipHost.querySelector('.chip[data-chip="' + chipId + '"]');
+    var slot = slotHost.querySelector('.slot[data-slot="' + slotId + '"]');
+    if (!chip || !slot) return;
+    var occupied = slot.querySelector(".chip");
+    if (occupied && occupied !== chip) chipHost.appendChild(occupied);
+    slot.innerHTML = '<span class="sort-pos">' + slotPosLabel(slotId) + '</span>';
+    slot.appendChild(chip);
+    chip.classList.remove("is-sel", "is-drag");
+    chip.dataset.state = "";
+    slot.dataset.state = "";
+    selectedChip = null;
+  }
+  function slotPosLabel(slotId) {
+    var idx = STEPS_ORDER.map(function (s) { return s.id; }).indexOf(slotId);
+    return "第 " + (idx + 1) + " 步";
+  }
+  function clearStates() {
+    Array.prototype.forEach.call(document.querySelectorAll(".slot"), function (s) { s.dataset.state = ""; });
+    Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (c) { c.dataset.state = ""; });
+  }
+  $("btnClearQ1").addEventListener("click", function () {
+    Array.prototype.forEach.call(document.querySelectorAll(".slot .chip"), function (c) { chipHost.appendChild(c); });
+    clearStates(); $("q1Fb").classList.remove("is-on");
+  });
+
+  var q1Tried = 0;
+  $("btnSubmitQ1").addEventListener("click", function () {
+    var placed = 0, firstWrong = null, correct = 0;
+    STEPS_ORDER.forEach(function (s) {
+      var slot = slotHost.querySelector('.slot[data-slot="' + s.id + '"]');
+      var chip = slot.querySelector(".chip");
+      if (!chip) return;
+      placed++;
+      if (chip.dataset.chip === s.id) { correct++; chip.dataset.state = "ok"; slot.dataset.state = "ok"; }
+      else { chip.dataset.state = "bad"; slot.dataset.state = "bad"; if (!firstWrong) firstWrong = { slot: s, chip: chip.dataset.chip }; }
+    });
+    var el = $("q1Fb");
+    if (placed < STEPS_ORDER.length) {
+      el.innerHTML = "还有 " + (STEPS_ORDER.length - placed) + " 个位置是空的。全部放好后再提交。";
+      el.style.color = "var(--warn)"; el.classList.add("is-on"); return;
+    }
+    q1Tried++;
+    var correctness = correct / STEPS_ORDER.length;
+    var ok = correct === STEPS_ORDER.length;
+    var why = "";
+    if (!ok) {
+      var want = STEPS_ORDER.filter(function (x) { return x.id === firstWrong.chip; })[0];
+      var posIdx = STEPS_ORDER.map(function (x) { return x.id; }).indexOf(firstWrong.slot.id) + 1;
+      why = "第 " + posIdx + " 步应该是「" + want.text.slice(0, 18) + "…」——你放进去的是另一段变形。请按「观察 → 移项 → 同除 → 写解」的顺序重排。";
+    }
+    var errType = ok ? "none" : (correct >= 2 ? "answer_error" : "misconception");
+    var misconception = (!ok && correct <= 1) ? "把「移项」与「化简」的先后顺序混淆，或误以为移项可以随便翻符号" : "";
+    var f1 = ok ? "四个步骤全部对上。你已经理清「先移项、再系数归一」的次序了。" :
+      "你放对了 " + correct + "/" + STEPS_ORDER.length + " 个位置。";
+    var f2 = ok ? "没有发现错误。" : why;
+    var f3 = ok ? "下一步：打开 Q2，亲手把 3x + 5 = 20 的分步解写出来。" :
+      "记住口诀：<b>先看清未知数 → 两边同减常数（移项）→ 两边同除以系数 → 写出 x</b>。";
+    el.innerHTML = "<b>" + f1 + "</b>　" + f2;
+    el.style.color = ok ? "var(--ok)" : "var(--ink-2)";
+    el.classList.add("is-on");
+    setFeedback(errType, f1, f2, f3, !ok);
+    window.LEAP.pushEvent("drag_submitted", {
+      item_id: "q1", answer: "correct " + correct + "/" + STEPS_ORDER.length,
+      hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: q1Tried,
+      predicted_performance: null, error_type: errType
+    });
+    window.LEAP.commitAssessment({
+      item_id: "q1", correctness: correctness,
+      conceptual_understanding: ok ? 1 : (correct / STEPS_ORDER.length) * 0.8 + 0.1,
+      reasoning_quality: ok ? 1 : 0.5, application: ok ? 1 : correctness,
+      transfer: 0, error_type: errType, misconception: misconception,
+      feedback: f1 + " " + (why || ""), assessor_type: "rule"
+    });
+    if (ok && !S.ui_state.answer_revealed) window.LEAP.setCompleted("q1", "solved_without_reveal");
+    if (ok) { $("verify").hidden = true; }
+  });
+  buildSort();
+
+  /* ── 5. Q2 分步求解 ────────────────────────────────────── */
+  function normEq(s) {
+    return String(s || "").replace(/[\s　]+/g, "")
+      .replace(/×/g, "*").replace(/·/g, "*").replace(/＝/g, "=")
+      .replace(/（/g, "(").replace(/）/g, ")")
+      .replace(/[^\x00-\x7F]/g, function (ch) { return ch === "－" ? "-" : ch; })
+      .toLowerCase();
+  }
+
+  function judgeStep1(raw) {
+    var v = normEq(raw);
+    if (!v) return null;
+    if (/^3\*?x=15$/.test(v) || /^15=3\*?x$/.test(v)) return { ok: true, kind: "none" };
+    if (/3\*?x-5/.test(v) || /3x-5/.test(v)) return { ok: false, kind: "misconception", why: "你把「移项」当成了「符号随便变」：左边写成 3x − 5，但右边没有同时减 5，等式已经不相等了。移项本质是两边同减 5，右边也要变成 20 − 5。" };
+    var m = v.match(/^3\*?x=(-?\d+(?:\.\d+)?)$/);
+    if (m) return { ok: false, kind: "answer_error", why: "移项方向对了（把 +5 从左边搬走了），但右边算错：20 − 5 = 15，不是 " + m[1] + "。" };
+    if (/^x=/.test(v)) return { ok: false, kind: "reasoning_error", why: "你这一步提前把系数除了——正确顺序是先只做「两边同减 5」，得到 3x = 15 这种「ax = 常数」的形式，下一步才除以 3。" };
+    return { ok: false, kind: "answer_error", why: "这一步应只做「两边同减 5」：左边剩 3x，右边 20 − 5 = 15，写成 3x = 15（或 3*x = 15）。" };
+  }
+  function judgeStep2(raw) {
+    var v = normEq(raw);
+    if (!v) return null;
+    if (/^x=5(\.0+)?$/.test(v) || /^x=15\/3(\.0+)?$/.test(v) || /^5=x$/.test(v)) return { ok: true, kind: "none" };
+    var m = v.match(/^x=(-?\d+(?:\.\d+)?)$/);
+    if (m) return { ok: false, kind: "answer_error", why: "格式对（x 已单独在一边），但 15 ÷ 3 = 5，不是 " + m[1] + "。" };
+    if (/3\*?x=/.test(v) || /^15\/3$/.test(v)) return { ok: false, kind: "reasoning_error", why: "你还没把 x 的系数化为 1：应把 3x = 15 两边同除以 3，让 x 单独留下，得到 x = 5。" };
+    return { ok: false, kind: "answer_error", why: "这一步应写「x = 5」。把 3x = 15 两边同除以 3，得到 x = 15 ÷ 3 = 5。" };
+  }
+
+  function flashStep(el, msg, kind) {
+    if (!msg) { el.classList.remove("is-on"); el.textContent = ""; return; }
+    el.innerHTML = msg;
+    el.style.color = kind === "warn" ? "var(--warn)" : (kind === "err" ? "var(--err)" : (kind === "ok" ? "var(--ok)" : "var(--ink-2)"));
+    el.classList.add("is-on");
+  }
+
+  var step1Done = false, step2Done = false, step1Ok = false, step2Ok = false, stepTries = 0;
+
+  function toggleHint(btnId, hintId) {
+    var h = $(hintId), b = $(btnId);
+    var on = h.classList.toggle("is-on");
+    b.setAttribute("aria-expanded", String(on));
+    b.textContent = on ? "收起提示" : "提示";
+  }
+  $("btnHint1").addEventListener("click", function () { toggleHint("btnHint1", "hint1"); });
+  $("btnHint2").addEventListener("click", function () { toggleHint("btnHint2", "hint2"); });
+
+  $("btnStep1").addEventListener("click", function () {
+    var r = judgeStep1($("step1").value);
+    if (!r) { flashStep($("step1Fb"), "先写出「两边同减 5」后的等式，例如 3x = 15。", "warn"); return; }
+    step1Done = true; step1Ok = r.ok;
+    $("step1").dataset.state = r.ok ? "ok" : "bad";
+    var fb1 = r.ok ? "第一步写对了：3x + 5 − 5 只剩 3x，右边 20 − 5 = 15，得到 3x = 15。" :
+      "第一步的方向" + (r.kind === "misconception" ? "出了概念问题" : "或计算还需要调整") + "。";
+    flashStep($("step1Fb"), (r.ok ? "<b>正确。</b> " : "") + r.why, r.ok ? "ok" : (r.kind === "misconception" ? "err" : "warn"));
+    setFeedback(r.ok ? "none" : r.kind, fb1, r.ok ? "没有发现错误。" : r.why,
+      r.ok ? "继续做第二步：把 3x = 15 两边同除以 3，写出 x。" : "先只改第一步，确认得到 3x = 15 再提交第二步。", !r.ok);
+    window.LEAP.pushEvent("attempt_submitted", {
+      item_id: "q2", answer: "step1: " + $("step1").value.trim(),
+      hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: ++stepTries,
+      predicted_performance: null, error_type: r.ok ? "none" : r.kind
+    });
+  });
+
+  $("btnStep2").addEventListener("click", function () {
+    var r = judgeStep2($("step2").value);
+    if (!r) { flashStep($("step2Fb"), "写出 x 的值，例如 x = 5。", "warn"); return; }
+    step2Done = true; step2Ok = r.ok;
+    $("step2").dataset.state = r.ok ? "ok" : "bad";
+    var fb1 = r.ok ? "第二步也写对了：3x = 15 两边同除以 3，得到 x = 5。" :
+      "第二步" + (r.kind === "misconception" ? "概念有偏差" : "还需修正") + "。";
+    flashStep($("step2Fb"), (r.ok ? "<b>正确。</b> " : "") + r.why, r.ok ? "ok" : (r.kind === "misconception" ? "err" : "warn"));
+
+    var allOk = step1Ok && step2Ok;
+    var correctness = allOk ? 1 : (step1Ok || step2Ok ? 0.5 : 0);
+    var errType = r.ok ? (step1Ok ? "none" : "reasoning_error") : r.kind;
+    setFeedback(errType, fb1,
+      r.ok ? (step1Ok ? "没有发现错误。" : "第一步还不对，先把 3x = 15 写出来。") : r.why,
+      allOk ? "两步都正确，验证：3 × 5 + 5 = 20，成立。" :
+        (step1Ok ? "第二步改对后提交即可。" : "先把第一步改成 3x = 15，再来做这一步。"), !allOk);
+    window.LEAP.pushEvent("attempt_submitted", {
+      item_id: "q2", answer: "step2: " + $("step2").value.trim(),
+      hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: ++stepTries,
+      predicted_performance: null, error_type: r.ok ? "none" : r.kind
+    });
+    window.LEAP.commitAssessment({
+      item_id: "q2", correctness: correctness,
+      conceptual_understanding: allOk ? 1 : 0.5,
+      reasoning_quality: allOk ? 1 : 0.5, application: allOk ? 1 : 0.5,
+      transfer: 0, error_type: errType, misconception: "",
+      feedback: fb1 + (r.ok ? "" : " " + r.why), assessor_type: "rule"
+    });
+    if (allOk && !S.ui_state.answer_revealed) window.LEAP.setCompleted("q2", "solved_without_reveal");
+    if (allOk) { $("verify").hidden = true; }
+  });
+
+  /* ── 6. 反馈面板 + 评分面板 ────────────────────────────── */
+  function setFeedback(errType, f1, f2, f3, isBad) {
+    var t = errType === "none" ? "ok" : (errType === "misconception" ? "err" : "warn");
+    var badge = $("fbBadge");
+    badge.textContent = errType === "none" ? "no_error" : errType;
+    badge.dataset.t = t;
+    $("fbBar").style.background = t === "ok" ? "var(--ok)" : (t === "err" ? "var(--err)" : "var(--warn)");
+    $("fbS1").innerHTML = f1;
+    $("fbS2").innerHTML = f2;
+    $("fbS3").innerHTML = f3;
+  }
+  function renderScore() {
+    var a = S.assessment;
+    var rows = [
+      { k: "correctness", v: a.correctness, c: "var(--ok)" },
+      { k: "reasoning_quality", v: a.reasoning_quality, c: "var(--warn)" },
+      { k: "hint_dependency", v: a.hint_dependency, c: "var(--accent)" },
+      { k: "overall_score", v: a.overall_score, c: "var(--accent)", strong: true }
+    ];
+    var host = $("scoreRows");
+    host.innerHTML = "";
+    rows.forEach(function (r) {
+      var d = document.createElement("div");
+      d.className = "score-row";
+      d.innerHTML = '<span class="score-key">' + r.k + '<b style="color:' + r.c + '">' + r.v.toFixed(2) + '</b></span>' +
+        '<span class="score-track"><span class="score-fill" data-k="' + r.k + '" style="width:' + (r.v * 100) + '%"></span></span>';
+      host.appendChild(d);
+    });
+  }
+  renderScore();
+  window.LEAP.onRender(renderScore);
+
+  /* ── 7. 后置验证 ───────────────────────────────────────── */
+  $("btnVerify").addEventListener("click", function () {
+    var v = $("verifyInput").value.trim();
+    var fb = $("verifyFb");
+    if (v.length < 6) {
+      fb.innerHTML = "再写具体一点：至少说清「为什么」以及「举什么例子会出错」。";
+      fb.style.color = "var(--warn)"; fb.classList.add("is-on"); return;
+    }
+    var hitWhy = /(同加|同减|同乘|同除|等式|等价|两边|性质)/.test(v) && /(变号|符号|搬|移项|移项)/.test(v);
+    var hitEx = /(出错|错|不成立|不等|翻|随便)/.test(v);
+    var transfer = (hitWhy ? 0.5 : 0.2) + (hitEx ? 0.4 : 0.1);
+    transfer = Math.min(1, transfer);
+    var ok = transfer >= 0.7;
+    fb.innerHTML = ok
+      ? "<b>就对了。</b> 「移项变号」之所以成立，是因为它背后是「等号两边同加 / 同减同一个数」；只把符号翻过来、却不在另一边做对应运算，等式就被改写了。这说明你抓住的是<b>等式性质</b>这个原理。"
+      : "<b>方向还差一点。</b> 关键在「来源」：移项不是符号魔法，而是「两边同减」的简写。试着举一个反例——只把 +5 翻成 −5 留在左边、右边不减，等式还会成立吗？";
+    fb.style.color = ok ? "var(--ok)" : "var(--ink-2)";
+    fb.classList.add("is-on");
+    window.LEAP.pushEvent("reflection_recorded", {
+      item_id: "q2-verify", answer: v, hint_level: S.ui_state.hint_level,
+      response_time: 0, attempt_index: 1, predicted_performance: null,
+      error_type: ok ? "none" : "reasoning_error"
+    });
+    window.LEAP.commitAssessment({
+      item_id: "q2-verify", correctness: transfer, conceptual_understanding: transfer,
+      reasoning_quality: transfer, application: 0.8, transfer: transfer,
+      error_type: ok ? "none" : "reasoning_error", misconception: "",
+      feedback: ok ? "后置验证通过。" : "后置验证未通过。", assessor_type: "hybrid"
+    });
+    if (ok) window.LEAP.setCompleted("q2", "post_verification_passed");
+  });
+
+  /* ── 8. 输出控制台折叠 ─────────────────────────────────── */
+  $("consoleBar").addEventListener("click", function () {
+    var on = $("consoleJson").classList.toggle("is-on");
+    $("consoleBar").setAttribute("aria-expanded", String(on));
+    $("consoleAction").textContent = on ? "收起 JSON ▴" : "展开 JSON ▾";
+  });
+
+  /* ── 初始渲染 ──────────────────────────────────────────── */
+  renderScore();
+  setFeedback("none",
+    "还没有提交任何作答。先看参数计算器，再去做 Q1 排序。",
+    "答错也没关系——反馈会区分「算错」「变形步骤用错」「把移项当符号随便变」，三种处理方式不同。",
+    "建议路径：玩一下计算器 → 做 Q1 排序 → 做 Q2 分步求解 → 需要时再点提示阶梯。");
+  window.LEAP.refresh();
+})();
+</script>
+</body>
+</html>

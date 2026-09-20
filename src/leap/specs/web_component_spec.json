@@ -1,0 +1,93 @@
+{
+  "spec_id": "leap.web.component",
+  "version": "2.0",
+  "description": "Specification for interactive teaching pages that the host agent generates. The MCP server only returns this specification and never writes front-end code itself.",
+  "delivery": {
+    "produced_by": "host_agent",
+    "format": "single self-contained .html file",
+    "not_delivered_by_mcp": ["HTML files", "Obsidian vault files", "any front-end source code"]
+  },
+  "constraints": {
+    "no_cdn": "Every page must run offline. Do not rely on network fetches at runtime.",
+    "no_tailwind_cdn": "Use hand-written inline CSS with the design tokens below.",
+    "no_katex_or_mathjax": "Render formulas with native MathML or inline SVG.",
+    "no_pyodide": "Simulate code execution with a pure-JS controlled engine scoped to the exercise type, and state that scope in the UI."
+  },
+  "design_tokens": {
+    "color": {
+      "background": "#ffffff",
+      "surface": "#f6f7f9",
+      "border": "#e2e5ea",
+      "text": "#1f2328",
+      "text_muted": "#5b6470",
+      "accent": "#2f6feb",
+      "success": "#1a7f37",
+      "warning": "#9a6700",
+      "danger": "#b3261e"
+    },
+    "radius": { "sm": "4px", "md": "8px", "lg": "12px" },
+    "spacing_scale": [4, 8, 12, 16, 24, 32],
+    "typography": {
+      "font_family": "system-ui, -apple-system, 'Segoe UI', 'Noto Sans SC', sans-serif",
+      "mono_family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+      "scale": { "body": "15px", "h3": "17px", "h2": "20px", "h1": "26px", "line_height": "1.65" }
+    }
+  },
+  "required_components": [
+    {
+      "id": "progressive_hints",
+      "description": "Three-level progressive disclosure aligned with section 12.",
+      "levels": 3,
+      "rules": [
+        "Level 1 is a guiding question, not the answer.",
+        "Level 2 is a strategy hint.",
+        "Level 3 is a partial derivation or worked example.",
+        "Every reveal is logged with its hint_level."
+      ]
+    },
+    {
+      "id": "answer_input",
+      "description": "Free-form answer capture.",
+      "rules": [
+        "Always submit the raw answer text.",
+        "Report the hint level that was in effect when the answer was produced."
+      ]
+    },
+    {
+      "id": "confidence_probe",
+      "description": "Optional 0-100 self-rating before assessment (P1 collection).",
+      "rules": ["May be omitted entirely in P0; if present, store as predicted_performance."]
+    },
+    {
+      "id": "transfer_task",
+      "description": "A variation task that changes wording, parameters or scenario."
+    }
+  ],
+  "output_contract": {
+    "global_object": "window.LEAP",
+    "accessor": "window.LEAP.getInteractionResult()",
+    "schema_id": "leap-interaction-output",
+    "fields": {
+      "session_id": "string",
+      "node_id": "string",
+      "item_id": "string",
+      "raw_answer": "string - required, never omitted",
+      "hint_level": "integer 0-4",
+      "hint_levels_used": "integer[]",
+      "response_time": "number - seconds",
+      "predicted_performance": "number | null - 0..1",
+      "event_type": "attempt_submitted | hint_revealed | answer_revealed | reflection_recorded",
+      "error_type": "answer_error | reasoning_error | misconception | null",
+      "timestamp": "integer - Unix seconds"
+    }
+  },
+  "accessibility": [
+    "All interactive controls reachable by keyboard.",
+    "Visible focus states.",
+    "Colour is never the only signal of correctness."
+  ],
+  "file_naming": {
+    "pattern": "leap-<nn>-<topic-slug>.html",
+    "example": "leap-01-python-recursion.html"
+  }
+}

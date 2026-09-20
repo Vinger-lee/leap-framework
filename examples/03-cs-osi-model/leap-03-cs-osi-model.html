@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OSI 七层模型 —— 分层结构、各层职责与数据封装</title>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   LEAP 视觉设计系统 v1.0 · 令牌层
+   规范来源：LEAP_视觉设计理念_给Gemini.md §4
+   ══════════════════════════════════════════════════════════════ */
+:root{
+  --paper:#FAF9F6; --surface:#FFFFFF; --surface-sunk:#F3F1EC; --surface-mute:#EDEAE3;
+  --ink:#191B20; --ink-2:#565E6B; --ink-3:#8A909C;
+  --hairline:#E8E4DC; --rule:#D8D3C9;
+  --accent:#2B4AC4; --accent-deep:#1E3699; --accent-wash:#EDF0FD;
+  --ok:#2E7D5B; --ok-wash:#EAF4EF;
+  --warn:#B3861A; --warn-wash:#FBF3E0;
+  --err:#B4432F; --err-wash:#FBEDEA;
+  --hint-1:#E4C77C; --hint-2:#D4A43C; --hint-3:#B3861A; --hint-4:#7A7F8A;
+  --ev-estimated:#9AA1AD; --ev-practiced:#4C7BD9; --ev-demonstrated:#2E8B84;
+  --ev-retained:#4C8B3F; --ev-transferred:#B3861A;
+
+  --font-display:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",Georgia,serif;
+  --font-sans:"Noto Sans SC","PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+
+  --fs-display:32px; --fs-h2:22px; --fs-h3:17px; --fs-body:15.5px;
+  --fs-small:13px; --fs-micro:11.5px; --fs-mono:12px;
+
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px;
+  --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px; --s-16:64px; --s-20:80px;
+  --r-xs:3px; --r-sm:6px; --r-md:8px; --r-lg:10px; --r-xl:12px; --r-2xl:16px; --r-pill:999px;
+
+  --sh-1:0 1px 2px rgba(25,27,32,.05);
+  --sh-2:0 2px 8px -2px rgba(25,27,32,.10);
+  --sh-3:0 16px 40px -24px rgba(25,27,32,.28);
+
+  --t-1:120ms; --t-2:200ms; --t-3:320ms; --t-4:520ms;
+  --ease-out:cubic-bezier(.16,.84,.32,1); --ease-inout:cubic-bezier(.4,0,.2,1);
+
+  --page-max:1280px; --page-pad:80px;
+  --read-col:680px; --side-col:380px; --col-gap:60px; --zone-gap:64px;
+}
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-sans);font-size:var(--fs-body);line-height:1.78;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3{margin:0;font-family:var(--font-display);font-weight:600;line-height:1.35}
+p{margin:0}
+code,kbd,pre{font-family:var(--font-mono)}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--r-xs)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:absolute;left:-9999px;top:0;z-index:50;background:var(--accent);color:#fff;padding:10px 16px;border-radius:0 0 var(--r-md) 0}
+.skip:focus{left:0}
+
+.wrap{max-width:var(--page-max);margin:0 auto;padding:0 var(--page-pad)}
+.micro{font-family:var(--font-mono);font-size:var(--fs-micro);font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);line-height:1.4}
+.micro--accent{color:var(--accent)}
+
+/* ── 进度脊柱 ───────────────────────────────────────────── */
+.spine{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--hairline)}
+.spine-in{max-width:var(--page-max);margin:0 auto;padding:14px var(--page-pad);display:flex;align-items:center;gap:var(--s-8);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.brand-mark{width:12px;height:12px;border-radius:var(--r-xs);background:var(--accent);flex:0 0 auto}
+.brand-name{font-family:var(--font-mono);font-weight:700;font-size:15px;letter-spacing:.06em}
+.brand-node{font-size:var(--fs-small);color:var(--ink-2);font-weight:500}
+.spine-ev{flex:0 0 auto}
+.ev-track{display:flex;gap:6px;margin-top:6px}
+.ev-seg{width:34px;height:10px;border-radius:5px;background:var(--hairline);transition:background var(--t-4) var(--ease-out)}
+.ev-seg.is-on[data-stage="estimated"]{background:var(--ev-estimated)}
+.ev-seg.is-on[data-stage="practiced"]{background:var(--ev-practiced)}
+.ev-seg.is-on[data-stage="demonstrated"]{background:var(--ev-demonstrated)}
+.ev-seg.is-on[data-stage="retained"]{background:var(--ev-retained)}
+.ev-seg.is-on[data-stage="transferred"]{background:var(--ev-transferred)}
+.spine-hop{display:flex;align-items:baseline;gap:10px;flex:0 0 auto}
+.spine-name{font-size:13px;font-weight:500;color:var(--ev-practiced);transition:color var(--t-2) var(--ease-inout)}
+.spine-mas{flex:0 0 auto}
+.mas-row{display:flex;align-items:center;gap:10px;margin-top:6px}
+.mas-track{width:110px;height:8px;border-radius:4px;background:var(--hairline);overflow:hidden}
+.mas-fill{height:100%;width:62%;background:var(--accent);border-radius:4px;transition:width var(--t-4) var(--ease-out)}
+.mas-val{font-family:var(--font-mono);font-size:13px;font-weight:500}
+.spine-rev{flex:0 0 auto;margin-left:auto}
+.spine-rev .val{display:block;margin-top:4px;font-size:12.5px;font-weight:500;color:var(--warn)}
+.spine-note{max-width:var(--page-max);margin:0 auto;padding:0 var(--page-pad) 8px;font-size:11px;color:var(--ink-3)}
+
+/* ── Zone 骨架 ──────────────────────────────────────────── */
+.zone{padding-top:var(--s-16)}
+.zone + .zone{padding-top:var(--s-16)}
+.zone-head{display:block;padding-bottom:var(--s-3)}
+.zone-title{font-size:var(--fs-display);font-weight:700;line-height:1.3;letter-spacing:-.01em;margin-top:var(--s-3)}
+.zone-goal{margin-top:var(--s-3);font-size:14.5px;color:var(--ink-2);max-width:760px}
+.zone-meta{margin-top:var(--s-2);font-size:12.5px;font-weight:500;color:var(--ink-3)}
+.zone-rule{height:1px;background:var(--hairline);margin-top:var(--s-4)}
+.zone-body{padding-top:var(--s-8)}
+
+.cols{display:grid;grid-template-columns:minmax(0,var(--read-col)) var(--side-col);gap:var(--col-gap);align-items:start}
+.col-main > * + *{margin-top:var(--s-6)}
+.side{display:grid;gap:var(--s-10)}
+
+/* ── 阅读列 ─────────────────────────────────────────────── */
+.quote{background:var(--surface-sunk);border-left:3px solid var(--accent);padding:14px 16px;border-radius:0 var(--r-md) var(--r-md) 0;font-size:14.5px;line-height:1.7}
+.terms{list-style:none;padding:0;margin:0;display:grid;gap:var(--s-3)}
+.terms li{font-size:14.5px;color:var(--ink-2);line-height:1.7}
+.terms b{color:var(--ink);font-weight:600}
+
+/* ── 侧栏卡 ─────────────────────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.card--err{background:var(--err-wash);border-left:3px solid var(--err)}
+.card--sunk{background:var(--surface-sunk);border:none}
+.card > .micro{display:block;margin-bottom:var(--s-4)}
+.card--err > .micro{color:var(--err)}
+.card-body{font-size:13px;line-height:1.7}
+.formula{font-family:var(--font-mono);font-size:15px;font-weight:500;line-height:1.9;display:block}
+.formula--base{color:var(--ok)}
+.card-foot{margin-top:var(--s-3);font-size:var(--fs-micro);color:var(--ink-3);line-height:1.6}
+.reqs{list-style:none;padding:0;margin:0;display:grid;gap:var(--s-3)}
+.reqs li{position:relative;padding-left:18px;font-size:12.5px;color:var(--ink-2);line-height:1.6}
+.reqs li::before{content:"";position:absolute;left:0;top:.42em;width:6px;height:6px;border-radius:2px;background:var(--accent)}
+.reqs li[data-kind="transfer"]::before{background:var(--warn)}
+
+/* ── 理解检查 ───────────────────────────────────────────── */
+.cp{margin-top:var(--s-6);background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.cp-q{margin-top:var(--s-4);font-size:15px;font-weight:600;line-height:1.6}
+.cp-opts{display:grid;gap:var(--s-2);margin-top:var(--s-4)}
+.opt{display:block;width:100%;text-align:left;padding:9px 16px;min-height:38px;background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-md);cursor:pointer;font-size:14px;color:var(--ink-2);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout)}
+.opt:hover{border-color:var(--rule);background:#fff}
+.opt[aria-pressed="true"][data-v="ok"]{background:var(--ok-wash);border:1.5px solid var(--ok);color:var(--ok);font-weight:600}
+.opt[aria-pressed="true"][data-v="bad"]{background:var(--err-wash);border:1.5px solid var(--err);color:var(--err);font-weight:600}
+.cp-rule{height:1px;background:var(--hairline);margin-top:var(--s-5)}
+.cp-fb{margin-top:var(--s-4);font-size:12.5px;line-height:1.65;color:var(--ink-2);display:none}
+.cp-fb.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+.cp-fb b{color:var(--ok)}
+
+/* ── Stage ──────────────────────────────────────────────── */
+.stage{background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-2xl);padding:var(--s-5) var(--s-6) var(--s-6)}
+.stage-title{margin-top:6px;font-size:14px;font-weight:600}
+.stage-grid{display:grid;grid-template-columns:252px minmax(0,1fr);gap:var(--s-5);margin-top:var(--s-4)}
+.tube-label{font-family:var(--font-mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;color:var(--ink-3)}
+.tube-wrap{display:flex;flex-direction:column;gap:6px}
+.tube{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);height:232px;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;overflow:hidden}
+.tf{display:flex;align-items:center;height:40px;padding:0 12px;border-radius:var(--r-sm);font-family:var(--font-mono);font-size:12px;font-weight:500;border:1px solid transparent;transition:background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout),border-color var(--t-2) var(--ease-inout),transform var(--t-2) var(--ease-out);animation:push var(--t-3) var(--ease-out) both}
+.tf[data-s="active"]{background:var(--accent);color:#fff}
+.tf[data-s="waiting"]{background:var(--accent-wash);color:var(--ink-2)}
+.tf[data-s="base"]{background:var(--ok-wash);color:var(--ok);border:1.5px solid var(--ok)}
+.tf[data-s="done"]{background:var(--surface-sunk);color:var(--ink-3)}
+@keyframes push{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.stage-side{display:grid;gap:var(--s-3);align-content:start}
+.step-panel{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s-5)}
+.step-text{margin-top:var(--s-3);font-size:13px;line-height:1.7;min-height:66px}
+.step-count{margin-top:var(--s-3);font-family:var(--font-mono);font-size:11.5px;font-weight:500;color:var(--ink-3)}
+.legend{font-size:11.5px;color:var(--ink-3)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:1px}
+.stage-ctrl{display:flex;align-items:center;gap:var(--s-3);flex-wrap:wrap;margin-top:var(--s-4)}
+.kbd-hint{margin-left:auto;font-size:var(--fs-micro);color:var(--ink-3)}
+
+/* ── 按钮 ───────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 18px;border-radius:var(--r-md);border:1px solid transparent;background:var(--surface);cursor:pointer;font-size:13.5px;font-weight:500;color:var(--ink-2);transition:background var(--t-1) var(--ease-inout),border-color var(--t-1) var(--ease-inout),color var(--t-1) var(--ease-inout),transform var(--t-1) var(--ease-out)}
+.btn:hover{background:var(--surface-sunk)}
+.btn:active{transform:translateY(1px)}
+.btn--primary{background:var(--accent);color:#fff;font-weight:600}
+.btn--primary:hover{background:var(--accent-deep)}
+.btn--outline{border-color:var(--rule)}
+.btn--outline:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-wash)}
+.btn--ghost{color:var(--ink-3);background:transparent}
+.btn--ghost:hover{background:var(--surface-sunk);color:var(--ink-2)}
+.btn--sm{height:32px;padding:0 14px;font-size:12.5px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn-row{display:flex;gap:var(--s-3);flex-wrap:wrap;align-items:center}
+
+/* ── 任务块 ─────────────────────────────────────────────── */
+.task{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-2xl);padding:var(--s-6)}
+.task-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.task-title{font-size:var(--fs-h3);font-weight:600}
+.task-id{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.08em}
+.task-lead{margin-top:var(--s-3);font-size:13.5px;color:var(--ink-2);line-height:1.7}
+.task-lead + .task-lead{margin-top:var(--s-2)}
+.note{margin-top:var(--s-4);padding:12px 14px;border-radius:var(--r-md);background:var(--surface-sunk);font-size:12px;color:var(--ink-3);line-height:1.65}
+.note--warn{background:var(--warn-wash);color:#8A6A2A}
+
+/* 代码填空 */
+.code{position:relative;margin-top:var(--s-4);background:var(--surface-mute);border-radius:var(--r-lg);padding:var(--s-5);font-family:var(--font-mono);font-size:13px;line-height:2.1;overflow-x:auto}
+.code-line{white-space:pre;display:flex;align-items:center;gap:0;flex-wrap:nowrap}
+.tok-kw{color:var(--accent)}
+.tok-fn{color:#7A4BB8}
+.tok-num{color:var(--ok)}
+.tok-cmt{color:var(--ink-3)}
+.blank{font-family:var(--font-mono);font-size:12.5px;background:#fff;border:1px solid var(--rule);border-bottom-width:2px;border-radius:var(--r-sm);padding:2px 10px;min-width:170px;color:var(--ink);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.blank:focus{outline:none;border-color:var(--accent);background:var(--accent-wash)}
+.blank[data-state="ok"]{border-color:var(--ok);background:var(--ok-wash);color:var(--ok)}
+.blank[data-state="bad"]{border-color:var(--err);background:var(--err-wash);color:var(--err)}
+.blank[data-state="hint"]{border-color:var(--warn);background:var(--warn-wash)}
+
+/* 代码运行器 */
+.runner{margin-top:var(--s-4);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s-4)}
+.editor{display:block;width:100%;min-height:150px;background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:var(--s-4);font-family:var(--font-mono);font-size:12.5px;line-height:1.75;resize:vertical;tab-size:4}
+.editor:focus{outline:none;border-color:var(--accent)}
+.term{background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:var(--s-4);font-family:var(--font-mono);font-size:12px;line-height:1.7;height:150px;overflow:auto;white-space:pre-wrap;color:var(--ink-2)}
+.term .ok{color:var(--ok)}
+.term .err{color:var(--err);font-weight:600}
+.term .dim{color:var(--ink-3)}
+.run-ctrl{display:flex;gap:var(--s-3);align-items:center;margin-top:var(--s-4);flex-wrap:wrap}
+.num-in{width:64px;height:34px;padding:0 10px;background:#fff;border:1px solid var(--rule);border-radius:var(--r-md);font-family:var(--font-mono);font-size:12.5px}
+
+/* 拖拽匹配 */
+.match{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s-6);margin-top:var(--s-4)}
+.match-col-h{margin-bottom:var(--s-3)}
+.stage-slots{display:grid;gap:var(--s-3)}
+.slot{min-height:56px;border:1px dashed var(--rule);border-radius:var(--r-md);padding:8px 10px;background:var(--surface);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.slot.is-over{border:1.5px solid var(--accent);background:var(--accent-wash)}
+.slot[data-state="ok"]{border:1.5px solid var(--ok);background:var(--ok-wash)}
+.slot[data-state="bad"]{border:1.5px solid var(--err);background:var(--err-wash)}
+.slot-label{font-size:12.5px;font-weight:600;color:var(--ink)}
+.chips{display:grid;gap:var(--s-3);align-content:start}
+.chip{display:block;width:100%;text-align:left;min-height:36px;padding:8px 14px;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);font-size:12.5px;line-height:1.5;cursor:grab;transition:transform var(--t-1) var(--ease-out),box-shadow var(--t-1) var(--ease-out),border-color var(--t-1) var(--ease-inout)}
+.chip:hover{border-color:var(--rule)}
+.chip.is-sel{border-color:var(--accent);background:var(--accent-wash);box-shadow:var(--sh-2)}
+.chip.is-drag{transform:scale(1.02);box-shadow:var(--sh-2)}
+.chip[data-state="ok"]{border-color:var(--ok);background:var(--ok-wash)}
+.chip[data-state="bad"]{border-color:var(--err);background:var(--err-wash)}
+.slot .chip{margin:0}
+.match-fb{margin-top:var(--s-4);font-size:12.5px;line-height:1.7;display:none}
+.match-fb.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+
+/* ── 提示阶梯 ───────────────────────────────────────────── */
+.ladder{margin-top:var(--s-8)}
+.ladder-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.ladder-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s-6);align-items:end;margin-top:var(--s-5);border-bottom:1px solid var(--rule);padding-bottom:0}
+.ladder-step{display:flex;flex-direction:column;justify-content:space-between;gap:var(--s-3);padding:14px 16px;border-radius:var(--r-lg);border:1px solid transparent;cursor:pointer;text-align:left;transition:transform var(--t-2) var(--ease-out),border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.ladder-step[data-h="1"]{height:60px}
+.ladder-step[data-h="2"]{height:76px}
+.ladder-step[data-h="3"]{height:96px}
+.ladder-step[data-h="4"]{height:112px}
+.ladder-step .ls-t{font-size:13.5px;font-weight:600;line-height:1.4}
+.ladder-step .ls-s{font-size:11px;line-height:1.4}
+.ladder-step[data-state="used"][data-h="1"]{background:var(--hint-1)}
+.ladder-step[data-state="used"][data-h="2"]{background:var(--hint-2)}
+.ladder-step[data-state="used"] .ls-t{color:var(--ink)}
+.ladder-step[data-state="used"] .ls-s{color:#3F3210}
+.ladder-step[data-state="avail"]{background:var(--warn-wash);border:1.5px solid var(--warn)}
+.ladder-step[data-state="avail"] .ls-t{color:var(--warn)}
+.ladder-step[data-state="avail"] .ls-s{color:#8A6A2A}
+.ladder-step[data-state="locked"]{background:var(--surface-sunk);border:1px solid var(--hairline)}
+.ladder-step[data-state="locked"] .ls-t{color:var(--ink-2)}
+.ladder-step[data-state="locked"] .ls-s{color:var(--ink-3)}
+.ladder-step:hover{transform:translateY(-2px)}
+.ladder-note{margin-top:var(--s-3);font-size:12px;color:var(--ink-3)}
+.hint-body{margin-top:var(--s-4);display:grid;gap:var(--s-4)}
+.hint-card{background:var(--surface);border:1px solid var(--hairline);border-left:3px solid var(--hint-1);border-radius:0 var(--r-lg) var(--r-lg) 0;padding:var(--s-5)}
+.hint-card[data-lv="2"]{border-left-color:var(--hint-2)}
+.hint-card[data-lv="3"]{border-left-color:var(--hint-3)}
+.hint-card[data-lv="4"]{border-left-color:var(--hint-4)}
+.hint-card .micro{display:block;margin-bottom:var(--s-3)}
+.hint-card p{font-size:13.5px;line-height:1.75;color:var(--ink-2)}
+.hint-card pre{margin:var(--s-3) 0 0;background:var(--surface-mute);border-radius:var(--r-md);padding:var(--s-4);font-size:12.5px;line-height:1.8;overflow-x:auto}
+.confirm{margin-top:var(--s-3);padding:var(--s-5);border-radius:var(--r-lg);background:var(--warn-wash);border:1.5px solid var(--warn)}
+.confirm p{font-size:13px;line-height:1.7;color:#8A6A2A;margin-bottom:var(--s-4)}
+.verify{margin-top:var(--s-6);background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.verify textarea{display:block;width:100%;min-height:72px;margin-top:var(--s-4);background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s-4);font-size:13px;line-height:1.7;resize:vertical}
+.verify textarea:focus{outline:none;border-color:var(--accent)}
+
+/* ── 反馈面板 ───────────────────────────────────────────── */
+.result{display:grid;grid-template-columns:minmax(0,1fr) var(--side-col);gap:var(--col-gap);margin-top:var(--s-16);align-items:start}
+.fb{position:relative;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6);overflow:hidden}
+.fb-bar{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);transition:background var(--t-2) var(--ease-inout)}
+.fb-badge{display:inline-block;padding:3px 12px;border-radius:var(--r-pill);background:var(--surface-sunk);font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--ink-3);transition:background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout)}
+.fb-badge[data-t="ok"]{background:var(--ok-wash);color:var(--ok)}
+.fb-badge[data-t="warn"]{background:var(--warn-wash);color:var(--warn)}
+.fb-badge[data-t="err"]{background:var(--err-wash);color:var(--err)}
+.fb-sec{margin-top:var(--s-5)}
+.fb-sec h4{margin:0 0 4px;font-family:var(--font-sans);font-size:12.5px;font-weight:600}
+.fb-sec p{font-size:13px;line-height:1.65;color:var(--ink-2)}
+.fb-s1 h4{color:var(--ok)} .fb-s2 h4{color:var(--warn)} .fb-s3 h4{color:var(--accent)}
+.score{background:var(--surface-sunk);border-radius:var(--r-xl);padding:var(--s-6)}
+.score-rows{margin-top:var(--s-5);display:grid;gap:var(--s-4)}
+.score-row{display:grid;grid-template-columns:minmax(0,1fr) 136px;gap:var(--s-4);align-items:center}
+.score-key{font-size:11.5px;font-weight:500;color:var(--ink-2)}
+.score-key b{font-family:var(--font-mono);font-weight:600;margin-left:6px}
+.score-track{height:7px;border-radius:4px;background:var(--hairline);overflow:hidden}
+.score-fill{height:100%;width:0;border-radius:4px;background:var(--accent);transition:width var(--t-4) var(--ease-out)}
+.score-fill[data-k="correctness"]{background:var(--ok)}
+.score-fill[data-k="reasoning_quality"]{background:var(--warn)}
+
+/* ── 证据轨 ─────────────────────────────────────────────── */
+.rail{margin-top:var(--s-16)}
+.rail-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.rail-track{position:relative;height:2px;background:var(--hairline);margin-top:var(--s-5)}
+.rail-dots{position:absolute;inset:0}
+.rail-dot{position:absolute;top:-3px;width:8px;height:8px;border-radius:4px;transition:transform var(--t-3) var(--ease-out);animation:pop var(--t-3) var(--ease-out) both}
+.rail-dot--last{width:12px;height:12px;top:-5px;border-radius:6px;box-shadow:0 0 0 3px var(--paper),0 0 0 4px var(--accent-wash)}
+@keyframes pop{from{transform:scale(.4)}to{transform:scale(1)}}
+.rail-foot{display:flex;justify-content:space-between;gap:var(--s-4);margin-top:var(--s-4);font-size:11.5px;color:var(--ink-3);flex-wrap:wrap}
+
+/* ── 输出控制台 ─────────────────────────────────────────── */
+.console{margin-top:var(--s-8)}
+.console-bar{display:flex;align-items:center;gap:var(--s-4);width:100%;min-height:46px;padding:0 var(--s-5);background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-lg);cursor:pointer;text-align:left;transition:background var(--t-1) var(--ease-inout)}
+.console-bar:hover{background:var(--surface-mute)}
+.console-bar .cb-t{font-size:12.5px;font-weight:500;color:var(--ink-2)}
+.console-bar .cb-a{margin-left:auto;font-size:12px;font-weight:500;color:var(--accent);white-space:nowrap}
+.console-json{display:none;margin-top:var(--s-3);background:var(--surface-mute);border-radius:var(--r-lg);padding:var(--s-5);max-height:420px;overflow:auto}
+.console-json.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+#leap-interaction-output{margin:0;font-size:11.5px;line-height:1.65;color:var(--ink-2);white-space:pre}
+.foot{margin-top:var(--s-16);padding:var(--s-8) 0 var(--s-16);border-top:1px solid var(--hairline);font-size:11.5px;color:var(--ink-3);line-height:1.8}
+
+/* ── 响应式 ─────────────────────────────────────────────── */
+@media (max-width:1199px){
+  :root{--page-pad:48px;--page-max:776px}
+  .cols{grid-template-columns:minmax(0,1fr)}
+  .side{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .result{grid-template-columns:minmax(0,1fr)}
+  .stage-grid{grid-template-columns:minmax(0,1fr)}
+  .runner{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:899px){
+  :root{--page-pad:32px;--page-gap:40px;--col-gap:40px}
+  .spine-rev{margin-left:0}
+  .match{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:600px){
+  :root{--page-pad:20px;--fs-display:23px;--fs-h2:19px;--fs-h3:16px;--fs-body:15px;--zone-gap:48px}
+  .spine-in{gap:var(--s-5);padding:12px 20px}
+  .brand-node{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mas-track{width:80px}
+  .ev-seg{width:18px;height:7px}
+  .ladder-steps{grid-template-columns:minmax(0,1fr);gap:var(--s-3);border-bottom:none}
+  .ladder-step{height:auto!important;min-height:48px;flex-direction:row;align-items:center;justify-content:flex-start;gap:var(--s-4)}
+  .btn{height:36px;padding:0 14px}
+  .code{font-size:11.5px}
+  .blank{min-width:120px;font-size:11.5px}
+}
+
+/* ── OSI 学科图形（新增，不改动既有类数值） ─────────────── */
+.osi-fig{display:block;width:100%;max-width:300px;margin:0 auto}
+.osi-layer{cursor:pointer}
+.osi-layer rect{fill:var(--surface);stroke:var(--hairline);transition:fill var(--t-2) var(--ease-inout),stroke var(--t-2) var(--ease-inout)}
+.osi-layer:hover rect{stroke:var(--accent)}
+.osi-layer:focus-visible{outline:none}
+.osi-layer:focus-visible rect{stroke:var(--accent);stroke-width:2}
+.osi-layer[data-on="1"] rect{fill:var(--accent);stroke:var(--accent)}
+.osi-layer text{fill:var(--ink);font-family:var(--font-sans)}
+.osi-layer[data-on="1"] text{fill:#fff}
+.osi-num{font-family:var(--font-mono);font-weight:600;font-size:12px}
+.osi-name{font-weight:600;font-size:13px}
+.osi-info{margin-top:var(--s-4);border-left:3px solid var(--accent);background:var(--surface-sunk);padding:12px 16px;border-radius:0 var(--r-md) var(--r-md) 0;font-size:14px;line-height:1.7;min-height:60px}
+.osi-info .micro{display:block;margin-bottom:6px}
+.osi-info b{color:var(--ink)}
+.osi-stage-side{display:grid;gap:var(--s-3);align-content:start}
+.enc-rows{display:flex;flex-direction:column;gap:5px}
+.enc-row{display:flex;align-items:center;justify-content:space-between;height:30px;padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--hairline);background:var(--surface);font-size:12px;font-weight:500;color:var(--ink-2);transition:background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout),border-color var(--t-2) var(--ease-inout)}
+.enc-row[data-s="active"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.enc-row[data-s="done"]{background:var(--surface-sunk);color:var(--ink-3)}
+.enc-legend{margin-top:var(--s-3)}
+.pkt{display:flex;flex-direction:column;gap:5px;margin-top:var(--s-3)}
+.pkt-blk{border-radius:var(--r-sm);padding:7px 12px;font-family:var(--font-mono);font-size:11.5px;line-height:1.5;border:1px solid var(--hairline);background:var(--surface);color:var(--ink-2)}
+.pkt-blk[data-k="data"]{background:var(--accent-wash);border-color:var(--accent);color:var(--accent-deep);font-weight:600}
+.pkt-blk[data-k="tcp"]{background:var(--ok-wash);border-color:var(--ok);color:var(--ok)}
+.pkt-blk[data-k="ip"]{background:var(--warn-wash);border-color:var(--warn);color:#8A6A2A}
+.pkt-blk[data-k="dl"]{background:var(--surface-mute);border-color:var(--rule);color:var(--ink-2)}
+.pkt-blk[data-k="phy"]{background:var(--accent-wash);border-color:var(--accent);color:var(--accent-deep)}
+.mcq{margin-top:var(--s-6);background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-2xl);padding:var(--s-6)}
+.mcq + .mcq{margin-top:var(--s-6)}
+.mcq-q{font-size:15px;font-weight:600;line-height:1.6}
+  /* ── 宿主桥接条（LEAP_HOST_BRIDGE）──────────────────── */
+  .bridge-strip{display:flex;align-items:center;justify-content:space-between;gap:var(--s-4);
+    min-height:46px;padding:var(--s-3) var(--s-5);margin-bottom:var(--s-3);
+    background:var(--accent-wash);border:1px solid var(--hairline);border-radius:var(--r-lg)}
+  .bs-l{display:flex;flex-direction:column;gap:var(--s-1);min-width:0}
+  .bs-t{font-size:var(--fs-small);color:var(--ink-2)}
+  .bs-btn{flex:0 0 auto;height:32px;padding:0 var(--s-4);border:1px solid var(--rule);
+    border-radius:var(--r-md);background:var(--surface);color:var(--accent);
+    font:500 12.5px/1 var(--font-sans);cursor:pointer;transition:background var(--t-2) var(--ease-out)}
+  .bs-btn:hover{background:var(--accent-wash)}
+  .bs-btn:disabled{color:var(--ink-3);background:var(--surface-sunk);cursor:default}
+  .bridge-out{margin:0 0 var(--s-3);padding:var(--s-5);background:var(--surface-mute);
+    border:1px solid var(--hairline);border-radius:var(--r-lg);
+    font:400 var(--fs-mono)/1.6 var(--font-mono);color:var(--ink-2);
+    white-space:pre-wrap;word-break:break-all;max-height:320px;overflow:auto}
+
+</style>
+</head>
+<body>
+<a class="skip" href="#teaching">跳到教学内容</a>
+
+<!-- ═══ 进度脊柱 ═════════════════════════════════════════════ -->
+<header class="spine">
+  <div class="spine-in">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">LEAP</span>
+      <span class="brand-node">计算机基础 · 网络 · OSI 七层模型</span>
+    </div>
+
+    <div class="spine-ev">
+      <div class="micro" id="evLabel">EVIDENCE STAGE · 证据阶段</div>
+      <div class="ev-track" id="evTrack" role="img" aria-label="证据阶段轨道，当前为 estimated 仅估计">
+        <span class="ev-seg" data-stage="estimated"></span>
+        <span class="ev-seg" data-stage="practiced"></span>
+        <span class="ev-seg" data-stage="demonstrated"></span>
+        <span class="ev-seg" data-stage="retained"></span>
+        <span class="ev-seg" data-stage="transferred"></span>
+      </div>
+    </div>
+    <div class="spine-hop"><span class="spine-name" id="evName">estimated · 仅估计</span></div>
+
+    <div class="spine-mas">
+      <div class="micro">MASTERY · 掌握度</div>
+      <div class="mas-row">
+        <div class="mas-track"><div class="mas-fill" id="masFill"></div></div>
+        <span class="mas-val" id="masVal">0.48</span>
+      </div>
+    </div>
+
+    <div class="spine-rev">
+      <div class="micro">NEXT REVIEW</div>
+      <span class="val">3 天后 · 09/22</span>
+    </div>
+  </div>
+  <p class="spine-note">本页掌握度与证据阶段为<b>本地模拟</b>，用于演示界面如何呈现学习状态；真实系统中二者由 LEAP Runtime 的 BKT 估计器与 State Guard 计算（见 LEAP_Framework_V2 §10.2‑1）。</p>
+  <p class="spine-note" id="spineNote">本页掌握度与证据阶段为<b>本地模拟</b>，用于演示界面如何呈现学习状态；真实系统中二者由 LEAP Runtime 的 BKT 估计器与 State Guard 计算（见 LEAP_Framework_V2 §10.2‑1）。</p>
+</header>
+
+<main class="wrap">
+
+  <!-- ═══ Zone 01 · 教学内容 ═══════════════════════════════ -->
+  <section class="zone" id="teaching" aria-labelledby="z1t">
+    <div class="zone-head">
+      <div class="micro micro--accent">01 · TEACHING · 教学内容</div>
+      <h1 class="zone-title" id="z1t">OSI 七层模型：分层结构、各层职责与数据封装</h1>
+      <p class="zone-goal">学完这一节，你能自上而下说出七层的名称与职责，把常见协议和设备归到正确层级，并讲清「封装」与「解封装」是怎么发生的。</p>
+      <p class="zone-meta">预计 14 分钟　·　难度 2/5　·　先修：网络通信的基本直觉</p>
+      <div class="zone-rule"></div>
+    </div>
+
+    <div class="zone-body">
+      <div class="cols">
+        <div class="col-main">
+          <p>网络世界里，任何一次通信都涉及「怎么表达、怎么送达、怎么在介质上传输」等一连串问题。OSI 参考模型把这些职责<b>纵向切成七层</b>，每层只做好一件事，并只与<b>相邻层</b>打交道。上层不必知道下层用的是光纤还是 Wi‑Fi，下层也不必知道上层在传网页还是邮件。</p>
+
+          <div class="quote">分层的核心价值：把「一个庞大的问题」拆成「七个各自独立、可替换、可单独排错的小问题」。<br>上下层之间靠<b>标准接口</b>协作，某一层技术换代（如以太网换 Wi‑Fi），对相邻层几乎无感。</div>
+
+          <h2 style="font-size:var(--fs-h3)">七层结构（自下而上）</h2>
+          <p>下面这张图是七层的标准堆叠。点任意一层（或用键盘聚焦后按 Enter），右侧会展开它的职责与典型协议。</p>
+
+          <svg class="osi-fig" id="osiTeach" role="group" aria-label="OSI 七层结构示意，点击任一层查看职责"></svg>
+          <div class="osi-info" id="osiTeachInfo" aria-live="polite">
+            <span class="micro micro--accent">点击任意一层</span>
+            <p style="margin-top:6px">七层自下而上依次是：物理层、数据链路层、网络层、传输层、会话层、表示层、应用层。点一下，看每层到底负责什么、认哪些协议。</p>
+          </div>
+
+          <h2 style="font-size:var(--fs-h3);margin-top:var(--s-8)">术语与职责速记</h2>
+          <ul class="terms">
+            <li>①　<b>物理层 / 数据链路层 / 网络层</b> —— 解决「比特怎么在介质上跑、一段链路怎么传、跨网络怎么路由」。</li>
+            <li>②　<b>传输层</b> —— 解决「端到端」：把数据可靠（TCP）或快速地（UDP）送到对端进程。</li>
+            <li>③　<b>会话层 / 表示层 / 应用层</b> —— 解决「连接怎么管、数据怎么编码加密、应用能直接用什么服务」。</li>
+            <li>④　<b>封装</b> —— 发送时每一层都给来自上层的数据<b>加上本层的控制信息（头 / 尾）</b>，对端再逐层剥除。</li>
+          </ul>
+
+          <!-- 理解检查 -->
+          <div class="cp" id="cp">
+            <div class="micro micro--accent">CHECKPOINT · 理解检查</div>
+            <p class="cp-q">为什么要把网络功能分成七层，而不是直接用一整块程序处理所有通信？</p>
+            <div class="cp-opts" role="group" aria-label="理解检查选项">
+              <button class="opt" type="button" data-v="ok" data-why="正确。分层让每层只解决一个局部问题，层间用标准接口协作；某一层技术演进（例如介质从双绞线换成光纤）不会影响其他层，排错时也能逐层定位。" aria-pressed="false">A. 分层让每层职责单一、彼此通过接口解耦，便于替换、排错与独立演进</button>
+              <button class="opt" type="button" data-v="bad" data-why="层数本身不带来速度，也不等于更专业。七层是一种职责切分，真正的收益是解耦与可替换，而不是「层数越多越快」。" aria-pressed="false">B. 分层主要是为了显得专业，层数越多网络传输就越快</button>
+            </div>
+            <div class="cp-rule"></div>
+            <p class="cp-fb" id="cpFb" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <aside class="side" aria-label="辅助卡片">
+          <div class="card">
+            <span class="micro">KEY FORM · 关键式子</span>
+            <span class="formula">封装 = 每层给上层数据 + 本层控制信息</span>
+            <span class="formula formula--base">发送向下加头 · 接收向上去头</span>
+            <p class="card-foot">墨色 = 数据本体，绿色 = 方向规律（下加上去下）。</p>
+          </div>
+
+          <div class="card card--err">
+            <span class="micro">MISCONCEPTION · 常见误解</span>
+            <p class="card-body">「交换机工作在网络层（第三层）」是最常见的误解。交换机依据 <b>MAC 地址</b>在一段链路内转发，工作在<b>数据链路层（第二层）</b>；真正在网络层工作、依据 IP 地址跨网转发的是<b>路由器</b>。</p>
+          </div>
+
+          <div class="card card--sunk">
+            <span class="micro">REQUIRED EVIDENCE · 达标要求</span>
+            <ul class="reqs">
+              <li>掌握度 mastery ≥ 0.80</li>
+              <li>提示依赖 hint_dependency ≤ 0.50</li>
+              <li>至少 1 次在无提示条件下独立完成匹配</li>
+              <li data-kind="transfer">迁移验证：给一个设备说出它工作在第几层</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Zone 02 · 交互练习 ═════════════════════════════════ -->
+  <section class="zone" id="practice" aria-labelledby="z2t">
+    <div class="zone-head">
+      <div class="micro micro--accent">02 · PRACTICE · 交互练习</div>
+      <h2 class="zone-title" id="z2t">七层可视化、协议归位与数据封装</h2>
+      <p class="zone-goal">先看七层结构、再动手把协议与设备拖到正确层、最后用动画看清封装与解封装的全过程。</p>
+      <p class="zone-meta">4 个交互环节　·　即时反馈　·　全部结果写入下方 Agent 输出区</p>
+      <div class="zone-rule"></div>
+    </div>
+
+    <div class="zone-body">
+
+      <!-- Stage：七层结构可视化 -->
+      <div class="stage">
+        <div class="micro">STAGE · OSI LAYER EXPLORER</div>
+        <p class="stage-title">七层结构：点击任一层查看职责</p>
+
+        <div class="stage-grid">
+          <svg class="osi-fig" id="osiStage" role="group" aria-label="OSI 七层堆叠，点击任一层在右侧查看职责"></svg>
+
+          <div class="osi-stage-side">
+            <div class="step-panel">
+              <div class="micro">LAYER DETAIL · 层职责</div>
+              <p class="step-text" id="osiStageInfo">点击左侧任一层（或键盘聚焦后按 Enter），这里显示它的职责范围与典型协议 / 设备。</p>
+            </div>
+            <p class="legend">
+              <i style="background:var(--accent)"></i>当前选中　
+              <i style="background:var(--surface);border:1px solid var(--hairline)"></i>未选
+            </p>
+          </div>
+        </div>
+
+        <div class="stage-ctrl">
+          <span class="kbd-hint">点击图层查看职责　·　键盘 Enter 展开</span>
+        </div>
+      </div>
+
+      <!-- 任务 1：拖拽匹配 -->
+      <div class="task" style="margin-top:var(--s-16)">
+        <div class="task-head">
+          <span class="task-id">Q1</span>
+          <h3 class="task-title">把协议与设备拖到对应的 OSI 层级</h3>
+        </div>
+        <p class="task-lead">可以拖拽，也可以先点卡片、再点目标层（键盘用户请用后一种方式）。一个层级可以放多张卡片。全部放好后点「提交匹配」。</p>
+
+        <div class="match">
+          <div>
+            <div class="micro match-col-h">TARGET · OSI 层级（可放置多张）</div>
+            <div class="stage-slots" id="slots"></div>
+          </div>
+          <div>
+            <div class="micro match-col-h">SOURCE · 协议与设备（可拖拽）</div>
+            <div class="chips" id="chips"></div>
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top:var(--s-5)">
+          <button class="btn btn--primary" id="btnSubmitQ1" type="button">提交匹配</button>
+          <button class="btn btn--ghost btn--sm" id="btnClearQ1" type="button">全部取回</button>
+        </div>
+        <div class="match-fb" id="q1Fb" role="status" aria-live="polite"></div>
+      </div>
+
+      <!-- 任务 2：封装 / 解封装动画 -->
+      <div class="task" style="margin-top:var(--s-16)">
+        <div class="task-head">
+          <span class="task-id">Q2</span>
+          <h3 class="task-title">数据封装与解封装动画</h3>
+        </div>
+        <p class="task-lead">发送端自上而下逐层「加头」，到达对端后自下而上逐层「去头」。用播放 / 暂停 / 重置观察，也可用键盘控制。</p>
+
+        <div class="stage" style="background:var(--surface-sunk)">
+          <div class="micro">STAGE · ENCAPSULATION / DECAPSULATION</div>
+          <p class="stage-title">封装：向下逐层加头　·　解封装：向上逐层去头</p>
+
+          <div class="stage-grid">
+            <div class="enc-rows" id="encRows" role="img" aria-label="七层路径，高亮表示当前所在层"></div>
+            <div class="osi-stage-side">
+              <div class="step-panel">
+                <div class="micro">CURRENT STEP · 当前步骤</div>
+                <p class="step-text" id="encStep">点击「单步」或「播放」，观察数据单元如何自上而下加头、再自下而上去头。</p>
+                <div class="step-count" id="encCount">步骤 0 / 9　·　状态：待开始</div>
+              </div>
+              <div class="pkt" id="encPkt" aria-label="当前数据单元（含各层头部）"></div>
+              <p class="enc-legend">
+                <i style="background:var(--accent)"></i>当前层　
+                <i style="background:var(--ok-wash);border:1px solid var(--ok)"></i>已封装　
+                <i style="background:var(--surface-sunk);border:1px solid var(--hairline)"></i>待处理
+              </p>
+            </div>
+          </div>
+
+          <div class="stage-ctrl">
+            <button class="btn btn--primary" id="btnEncPlay" type="button">播放</button>
+            <button class="btn btn--outline" id="btnEncStep" type="button">单步</button>
+            <button class="btn btn--outline" id="btnEncReset" type="button">重置</button>
+            <span class="kbd-hint">← → 单步　·　空格 播放 / 暂停</span>
+          </div>
+        </div>
+
+        <div class="note">本动画为<b>受控语义演示</b>：它真实反映「每层加 / 去本层头部」的顺序（数据 → 段 → 包 → 帧 → 比特流），但不模拟具体字节与校验计算。会话层与表示层在本例中透传，故未单独出现。</div>
+      </div>
+
+      <!-- 任务 3：选择题 -->
+      <div class="task" style="margin-top:var(--s-16)">
+        <div class="task-head">
+          <span class="task-id">Q3</span>
+          <h3 class="task-title">三层选择题：分清「记错层」与「混淆职责」</h3>
+        </div>
+        <p class="task-lead">每题作答后都会给一行解释，并区分你是「记错层级（answer_error）」还是「混淆了层的职责（misconception）」。</p>
+
+        <div class="mcq" data-q="q3a">
+          <p class="mcq-q">在 OSI 七层中，路由器（Router）主要工作在哪一层？</p>
+          <div class="cp-opts" role="group" aria-label="Q3a 选项">
+            <button class="opt" type="button" data-v="bad" data-err="answer_error" data-why="记错层级了。物理层只负责把比特送上介质，不认识地址、不做转发决策。" aria-pressed="false">A. 物理层（第 1 层）</button>
+            <button class="opt" type="button" data-v="bad" data-err="misconception" data-why="这是典型混淆：交换机才工作在数据链路层、按 MAC 地址转发；路由器按 IP 地址在不同网络间路由，属网络层。" aria-pressed="false">B. 数据链路层（第 2 层）</button>
+            <button class="opt" type="button" data-v="ok" data-why="正确。路由器依据 IP 地址进行逻辑寻址与跨网转发，这正是网络层（第 3 层）的核心职责。" aria-pressed="false">C. 网络层（第 3 层）</button>
+            <button class="opt" type="button" data-v="bad" data-err="answer_error" data-why="记错层级了。传输层负责端到端的可靠 / 不可靠传输，不做网络间的路由。" aria-pressed="false">D. 传输层（第 4 层）</button>
+          </div>
+          <div class="cp-rule"></div>
+          <p class="cp-fb" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="mcq" data-q="q3b">
+          <p class="mcq-q">「可靠传输、流量控制、端口复用」主要是哪一层的职责？</p>
+          <div class="cp-opts" role="group" aria-label="Q3b 选项">
+            <button class="opt" type="button" data-v="bad" data-err="answer_error" data-why="记错层级了。应用层直接使用这些能力，但「可靠传输」本身不是它提供的。" aria-pressed="false">A. 应用层（第 7 层）</button>
+            <button class="opt" type="button" data-v="ok" data-why="正确。传输层（第 4 层）通过 TCP 提供端到端的可靠传输、流量控制与端口复用；UDP 则提供低延迟的不可靠传输。" aria-pressed="false">B. 传输层（第 4 层）</button>
+            <button class="opt" type="button" data-v="bad" data-err="misconception" data-why="混淆了两种职责：网络层负责「路由寻址」，端到端「可靠传输」是传输层的事，二者不要混为一谈。" aria-pressed="false">C. 网络层（第 3 层）</button>
+            <button class="opt" type="button" data-v="bad" data-err="answer_error" data-why="记错层级了。数据链路层只负责一段链路内的帧传输（MAC），不管端到端可靠性。" aria-pressed="false">D. 数据链路层（第 2 层）</button>
+          </div>
+          <div class="cp-rule"></div>
+          <p class="cp-fb" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="mcq" data-q="q3c">
+          <p class="mcq-q">关于「封装」，下面哪一句话是正确的？</p>
+          <div class="cp-opts" role="group" aria-label="Q3c 选项">
+            <button class="opt" type="button" data-v="bad" data-err="misconception" data-why="混淆了方向：发送端是「逐层加头」，解封装才是「逐层去头」，二者方向相反。" aria-pressed="false">A. 封装只在发送端做一次，之后不再变化</button>
+            <button class="opt" type="button" data-v="ok" data-why="正确。封装的本质就是：每一层都对「来自上层的数据」加上本层的控制信息（头部 / 尾部），对端再逐层剥除。" aria-pressed="false">B. 每一层都对来自上层的数据加上本层的控制信息</button>
+            <button class="opt" type="button" data-v="bad" data-err="misconception" data-why="方向说反了：解封装是「从物理层向应用层」逐层去头，而不是「加头」。" aria-pressed="false">C. 解封装是从应用层向物理层逐层加头</button>
+            <button class="opt" type="button" data-v="bad" data-err="answer_error" data-why="记错层级了。IP 头由网络层（第 3 层）添加，物理层只负责把帧变成比特流。" aria-pressed="false">D. 物理层负责加上 IP 头</button>
+          </div>
+          <div class="cp-rule"></div>
+          <p class="cp-fb" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <!-- 提示阶梯 -->
+      <div class="ladder">
+        <div class="ladder-head">
+          <div class="micro micro--accent">PROGRESSIVE DISCLOSURE · 提示阶梯</div>
+          <span style="font-size:12px;color:var(--ink-3)">每一级都必须由你主动点击——它会被记为你的提示依赖</span>
+        </div>
+
+        <div class="ladder-steps" id="ladder" role="group" aria-label="分级提示">
+          <button class="ladder-step" type="button" data-lv="1" data-h="1" data-state="avail">
+            <span class="ls-t">① 引导问题</span><span class="ls-s">只给方向</span>
+          </button>
+          <button class="ladder-step" type="button" data-lv="2" data-h="2" data-state="locked" disabled>
+            <span class="ls-t">② 策略提示</span><span class="ls-s">给思路</span>
+          </button>
+          <button class="ladder-step" type="button" data-lv="3" data-h="3" data-state="locked" disabled>
+            <span class="ls-t">③ 部分示范</span><span class="ls-s">给前半段</span>
+          </button>
+          <button class="ladder-step" type="button" data-lv="4" data-h="4" data-state="locked" disabled>
+            <span class="ls-t">④ 完整答案</span><span class="ls-s">需二次确认</span>
+          </button>
+        </div>
+        <p class="ladder-note" id="ladderNote">阶梯高度 = 支持强度。已用层级越高，hint_dependency 越高；本节点当前 0.00。</p>
+
+        <div class="hint-body" id="hintBody"></div>
+      </div>
+
+      <!-- 反馈 + 评分 -->
+      <div class="result">
+        <div class="fb" id="fb">
+          <div class="fb-bar" id="fbBar"></div>
+          <span class="fb-badge" id="fbBadge">等待作答</span>
+          <div class="fb-sec fb-s1">
+            <h4>你做对的部分</h4>
+            <p id="fbS1">提交任意一题后，这里会先指出你判断正确的部分。</p>
+          </div>
+          <div class="fb-sec fb-s2">
+            <h4>卡在哪里</h4>
+            <p id="fbS2">如果答错，这里会定位到具体的错误点，并说明缺失的是哪个概念。</p>
+          </div>
+          <div class="fb-sec fb-s3">
+            <h4>下一步</h4>
+            <p id="fbS3">这里会给一个你现在就能执行的动作。</p>
+          </div>
+        </div>
+
+        <div class="score">
+          <div class="micro">ASSESSMENT · 多维评分</div>
+          <div class="score-rows" id="scoreRows"></div>
+          <p class="card-foot">transfer 与 hint_dependency 不参与 overall_score 聚合，仅作为 Policy 输入。</p>
+        </div>
+      </div>
+
+      <!-- 后置验证 -->
+      <div class="verify" id="verify" hidden>
+        <div class="micro micro--accent">POST-VERIFICATION · 后置验证（完整答案后必做）</div>
+        <p class="task-lead" style="margin-top:var(--s-4)">你已经看过完整答案。要证明你理解的是<b>原理</b>而不是这一段文字，请回答下面这个问题——这是本次任务结束的唯一条件。</p>
+        <p style="margin-top:var(--s-4);font-size:13.5px;font-weight:600">如果一台设备只认识 MAC 地址、完全不认识 IP 地址，它最可能工作在 OSI 的哪一层？为什么？</p>
+        <textarea id="verifyInput" aria-label="后置验证作答" placeholder="用一两句话说清「哪一层」以及「为什么」即可。"></textarea>
+        <div class="btn-row" style="margin-top:var(--s-4)">
+          <button class="btn btn--primary" id="btnVerify" type="button">提交自我解释</button>
+        </div>
+        <div class="match-fb" id="verifyFb" role="status" aria-live="polite"></div>
+      </div>
+
+      <!-- 证据轨 -->
+      <div class="rail">
+        <div class="rail-head">
+          <div class="micro">EVIDENCE TRAIL · 本次会话事件</div>
+          <span style="font-size:12px;color:var(--ink-3)" id="railCount">已产生 0 条事件（只追加，不覆盖）</span>
+        </div>
+        <div class="rail-track">
+          <div class="rail-dots" id="railDots"></div>
+        </div>
+        <div class="rail-foot">
+          <span id="railLast">尚无事件</span>
+          <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--ev-practiced);margin-right:5px"></i>作答　<i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--warn);margin-right:5px;margin-left:10px"></i>提示　<i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--ev-demonstrated);margin-right:5px;margin-left:10px"></i>运行　<i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--ok);margin-right:5px;margin-left:10px"></i>完成</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Zone 03 · Agent 数据输出 ═════════════════════════ -->
+  <section class="zone" id="output" aria-labelledby="z3t">
+    <div class="zone-head">
+      <div class="micro micro--accent">03 · AGENT OUTPUT · 数据输出</div>
+      <h2 class="zone-title" id="z3t">交给宿主 Agent 的交互结果</h2>
+      <p class="zone-goal">这一区不是调试信息，而是学习者本次会话的完整档案。宿主 Agent 通过它驱动下一轮教学决策。</p>
+      <div class="zone-rule"></div>
+    </div>
+
+    <div class="zone-body">
+      <div class="bridge-strip" id="bridgeStrip">
+        <div class="bs-l">
+          <span class="micro micro--accent" id="bridgeMode">BRIDGE · 演示模式</span>
+          <span class="bs-t" id="bridgeSummary">未接入宿主 Agent；学习动作会累积为待执行的 MCP 调用。</span>
+        </div>
+        <button class="bs-btn" id="bridgeDrain" type="button">取出调用队列 ▾</button>
+      </div>
+      <pre class="bridge-out" id="bridgeOutbox" hidden></pre>
+      <div class="console">
+        <button class="console-bar" id="consoleBar" type="button" aria-expanded="false" aria-controls="consoleJson">
+          <span class="cb-t" id="consoleSummary">AGENT OUTPUT · 已记录 0 条事件</span>
+          <span class="cb-a" id="consoleAction">展开 JSON ▾</span>
+        </button>
+        <div class="console-json" id="consoleJson">
+          <pre id="leap-interaction-output"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot">
+    LEAP‑V2 分学科前端示例 · 示例 3（计算机基础 / OSI 七层模型）　·　node_id <code>cs.network.osi_model</code>　·　unit_tag <code>osi-model</code><br>
+    单文件零依赖 · 零 CDN · 零外部图片 · 全部图形为内联 SVG / DOM 绘制　·　结构规范见 <code>examples/_shared/leap-web-spec.md</code>，视觉规范见 <code>LEAP_视觉设计理念_给Gemini.md</code>
+  </p>
+</main>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   LEAP Runtime 交互结果内核（JSON 契约 · 证据轨 · 评分聚合）
+   契约来源：examples/_shared/interaction-output.schema.json
+   ══════════════════════════════════════════════════════════════ */
+window.LEAP = (function () {
+  "use strict";
+
+  var state = {
+    leap_version: "2.0",
+    example_id: "osi-model",
+    subject: "computer-science",
+    node: { node_id: "cs.network.osi_model", title: "OSI 七层模型", unit_tag: "osi-model" },
+    learner: { learner_id: "REPLACE_WITH_LEARNER_ID", session_id: "REPLACE_WITH_SESSION_ID" },
+    events: [],
+    assessment: blankAssessment(),
+    ui_state: {
+      mode: "demo", hosted: false, pending_mcp_calls: 0,
+      hint_dependency: 0, hint_level: 0, answer_revealed: false, completed: false
+    }
+  };
+
+  var mastery = 0.48;                       /* 本地模拟值 */
+  var HINT_DEP = [0, 0.25, 0.40, 0.60, 0.85];
+  var STAGE_ORDER = ["estimated", "practiced", "demonstrated", "retained", "transferred"];
+  var EVENT_COLOR = {
+    attempt_submitted: "#4C7BD9",
+    hint_used: "#B3861A",
+    answer_revealed: "#7A7F8A",
+    drag_submitted: "#4C7BD9",
+    code_run: "#2E8B84",
+    reflection_recorded: "#4C8B3F",
+    item_completed: "#2E7D5B"
+  };
+
+  /* ══ LEAP_HOST_BRIDGE · 宿主桥接 ══════════════════════════════════
+     本页只负责「呈现 + 采集」，不做任何状态判定：
+       · mastery_probability / evidence_stage / hint_dependency 由 LEAP Runtime
+         计算（LEAP_Framework_V2 §10.2‑1），本页只显示 hydrate() 注入的值；
+       · 学习者的每个动作都会被翻译成一条待执行的 MCP 调用，进入 outbox，
+         由宿主 Agent 通过 LEAP.drainOutbox() 取走后真正执行。
+     未调用 hydrate() 时保持 demo 模式，本地推算值一律标记 provisional。 */
+  var bridge = {
+    mode: "demo",
+    context: null,
+    server: {
+      mastery_probability: mastery,
+      evidence_stage: "estimated",
+      hint_dependency: 0,
+      next_review_at: null,
+      transfer_required: false
+    },
+    outbox: [],
+    seq: 0,
+    hooks: [],
+    last_attempt_call_id: null,
+    last_raw_answer: ""
+  };
+
+  function clamp01(v) { return Math.max(0, Math.min(1, Number(v))); }
+  function isHosted() { return bridge.mode === "hosted"; }
+  function peekOutbox() { return clone(bridge.outbox); }
+  function drainOutbox() { var out = clone(bridge.outbox); bridge.outbox.length = 0; renderAll(); return out; }
+  function onOutboxChange(fn) { if (typeof fn === "function") bridge.hooks.push(fn); }
+
+  function enqueue(tool, args, note) {
+    var call = {
+      call_id: "call_" + (++bridge.seq),
+      tool: tool,
+      args: args || {},
+      status: "pending",
+      created_at: nowSec(),
+      note: note || ""
+    };
+    bridge.outbox.push(call);
+    for (var i = 0; i < bridge.hooks.length; i++) { try { bridge.hooks[i](call, bridge.outbox.length); } catch (e) {} }
+    return call;
+  }
+
+  /* 事件 → MCP 调用映射。hint_used / answer_revealed / item_completed 不单独
+     产生调用：它们的信息通过后续 attempt 的 hint_level 一并提交。 */
+  var EVENT_TO_TOOL = {
+    attempt_submitted: "submit_attempt",
+    drag_submitted: "submit_attempt",
+    code_run: "submit_attempt",
+    reflection_recorded: "record_reflection"
+  };
+
+  function enqueueForEvent(ev) {
+    var tool = EVENT_TO_TOOL[ev.event_type];
+    if (!tool) return null;
+    var raw = ev.answer == null ? "" : String(ev.answer);
+
+    if (tool === "submit_attempt") {
+      bridge.last_raw_answer = raw;
+      var call = enqueue("submit_attempt", {
+        session_id: state.learner.session_id,
+        answer: raw,
+        node_id: state.node.node_id,
+        item_id: ev.item_id || null,
+        hint_level: typeof ev.hint_level === "number" ? ev.hint_level : state.ui_state.hint_level,
+        response_time: typeof ev.response_time === "number" ? ev.response_time : null
+      }, "提交本次作答；返回的 attempt_id 供 commit_assessment 使用");
+      bridge.last_attempt_call_id = call.call_id;
+      return call;
+    }
+    return enqueue("record_reflection", {
+      session_id: state.learner.session_id,
+      reflection: raw,
+      node_id: state.node.node_id
+    }, "保存反思");
+  }
+
+  /* 宿主注入：直接吃 get_teaching_context 的返回值 */
+  function hydrate(ctx) {
+    if (!ctx || typeof ctx !== "object") { throw new TypeError("LEAP.hydrate(context) 需要一个对象参数"); }
+    bridge.context = clone(ctx);
+    bridge.mode = "hosted";
+
+    var sess = ctx.session || {};
+    var node = ctx.current_node || ctx.node || {};
+    var ks = ctx.knowledge_state || {};
+
+    var learnerId = ctx.learner_id || sess.learner_id;
+    var sessionId = ctx.session_id || sess.session_id;
+    if (learnerId) state.learner.learner_id = learnerId;
+    if (sessionId) state.learner.session_id = sessionId;
+    if (node.node_id) state.node.node_id = node.node_id;
+    if (node.title) state.node.title = node.title;
+    if (node.unit_tag) state.node.unit_tag = node.unit_tag;
+
+    if (typeof ks.mastery_probability === "number") {
+      bridge.server.mastery_probability = clamp01(ks.mastery_probability);
+      mastery = bridge.server.mastery_probability;
+    }
+    if (ks.evidence_stage) {
+      bridge.server.evidence_stage = ks.evidence_stage;
+      state.assessment.evidence_stage = ks.evidence_stage;
+    }
+    if (typeof ks.hint_dependency === "number") {
+      bridge.server.hint_dependency = clamp01(ks.hint_dependency);
+      state.ui_state.hint_dependency = bridge.server.hint_dependency;
+    }
+    if (ks.next_review_at) bridge.server.next_review_at = ks.next_review_at;
+    if (typeof ctx.transfer_requirement === "boolean") bridge.server.transfer_required = ctx.transfer_requirement;
+
+    bridge.available_actions = ctx.recommended_actions || [];
+    bridge.recommended_strategy = ctx.recommended_strategy || "";
+    bridge.due_reviews = ctx.due_reviews || [];
+
+    renderAll();
+    return snapshot();
+  }
+
+  function toggleOutboxView() {
+    var pre = document.getElementById("bridgeOutbox");
+    var btn = document.getElementById("bridgeDrain");
+    if (!pre) return;
+    var opening = pre.hidden;
+    pre.hidden = !opening;
+    if (btn) btn.textContent = opening ? "收起调用队列 ▴" : "取出调用队列 ▾";
+    if (opening) {
+      var calls = drainOutbox();
+      pre.textContent = calls.length
+        ? JSON.stringify(calls, null, 2)
+        : "（队列为空：尚无需要提交给 LEAP Runtime 的调用）";
+    }
+  }
+
+  var drainWired = false;
+  function renderBridge() {
+    var modeEl = document.getElementById("bridgeMode");
+    var sumEl = document.getElementById("bridgeSummary");
+    var noteEl = document.getElementById("spineNote");
+    var n = bridge.outbox.length;
+
+    if (modeEl) modeEl.textContent = "BRIDGE · " + (isHosted() ? "已接入宿主" : "演示模式");
+    if (sumEl) {
+      sumEl.textContent = isHosted()
+        ? "已注入 Runtime 上下文（" + state.node.node_id + "）；待执行的 MCP 调用 " + n + " 条。"
+        : "未接入宿主 Agent；学习动作会累积为待执行的 MCP 调用（当前 " + n + " 条）。";
+    }
+    if (noteEl) {
+      noteEl.innerHTML = isHosted()
+        ? "本页状态由 <b>LEAP Runtime</b> 注入（<code>LEAP.hydrate()</code>）；掌握度与证据阶段由服务端 BKT 与 State Guard 计算，本页不自行推算。"
+        : "本页掌握度与证据阶段为<b>本地模拟</b>，用于演示界面如何呈现学习状态；真实系统中二者由 LEAP Runtime 的 BKT 估计器与 State Guard 计算（见 LEAP_Framework_V2 §10.2‑1）。";
+    }
+
+    var btn = document.getElementById("bridgeDrain");
+    if (btn && !drainWired) { drainWired = true; btn.addEventListener("click", toggleOutboxView); }
+    if (btn && !n) { btn.disabled = true; } else if (btn) { btn.disabled = false; }
+  }
+
+  function blankAssessment() {
+    return {
+      item_id: "", correctness: 0, conceptual_understanding: 0, reasoning_quality: 0,
+      application: 0, transfer: 0, hint_dependency: 0, confidence: 0, overall_score: 0,
+      error_type: "none", misconception: "", feedback: "",
+      evidence_stage: "estimated", assessor_type: "rule", provisional: true
+    };
+  }
+  function nowSec() { return Math.floor(Date.now() / 1000); }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  /* overall_score：correctness .4 / conceptual .3 / reasoning .2 / application .1
+     缺失维度自动归一化；transfer 与 hint_dependency 不参与聚合 */
+  function aggregate(d) {
+    var w = { correctness: 0.4, conceptual_understanding: 0.3, reasoning_quality: 0.2, application: 0.1 };
+    var sum = 0, tw = 0, k;
+    for (k in w) {
+      if (typeof d[k] === "number" && isFinite(d[k])) { sum += d[k] * w[k]; tw += w[k]; }
+    }
+    return tw ? Math.round((sum / tw) * 100) / 100 : 0;
+  }
+
+  function pushEvent(event_type, payload) {
+    var ev = { event_type: event_type };
+    if (payload) { for (var k in payload) { if (Object.prototype.hasOwnProperty.call(payload, k)) ev[k] = payload[k]; } }
+    ev.created_at = nowSec();
+    state.events.push(ev);
+    enqueueForEvent(ev);
+    renderAll();
+    return ev;
+  }
+
+  function setHint(level) {
+    if (level > state.ui_state.hint_level) state.ui_state.hint_level = level;
+    if (level === 4) state.ui_state.answer_revealed = true;
+    state.ui_state.hint_dependency = HINT_DEP[Math.min(state.ui_state.hint_level, 4)];
+    renderAll();
+  }
+
+  function commitAssessment(item) {
+    var dep = HINT_DEP[Math.min(state.ui_state.hint_level, 4)];
+    var a = {
+      item_id: item.item_id,
+      correctness: r2(item.correctness),
+      conceptual_understanding: r2(item.conceptual_understanding),
+      reasoning_quality: r2(item.reasoning_quality),
+      application: r2(item.application),
+      transfer: r2(item.transfer || 0),
+      hint_dependency: r2(dep),
+      confidence: 0,
+      overall_score: 0,
+      error_type: item.error_type || "none",
+      misconception: item.misconception || "",
+      feedback: item.feedback || "",
+      evidence_stage: "practiced",
+      assessor_type: item.assessor_type || "rule"
+    };
+    a.overall_score = aggregate(a);
+
+    if (bridge.mode === "demo") {
+      /* 演示模式：本地粗略推进，仅为让界面动起来。
+         接入宿主后（hosted）这两项一律以 Runtime 返回值回填（§10.2‑1）。 */
+      a.evidence_stage = deriveStage(a);
+      if (typeof item.transfer === "number" && item.transfer >= 0.7) a.evidence_stage = "transferred";
+      mastery = Math.max(0, Math.min(0.98, mastery + (a.correctness - 0.5) * 0.14 - dep * 0.04));
+      bridge.server.mastery_probability = mastery;
+      bridge.server.evidence_stage = a.evidence_stage;
+      a.provisional = true;
+    } else {
+      a.evidence_stage = bridge.server.evidence_stage;
+      a.provisional = false;
+    }
+    state.assessment = a;
+    state.ui_state.hint_dependency = a.hint_dependency;
+
+    /* 评估证据必须回传 Runtime：raw_answer 不可丢弃（§22.8）。 */
+    enqueue("commit_assessment", {
+      attempt_id: bridge.last_attempt_call_id
+        ? "{{" + bridge.last_attempt_call_id + ".attempt_id}}" : "{{attempt_id}}",
+      raw_answer: bridge.last_raw_answer,
+      assessor_type: a.assessor_type,
+      correctness: a.correctness,
+      conceptual_understanding: a.conceptual_understanding,
+      reasoning_quality: a.reasoning_quality,
+      application: a.application,
+      transfer: a.transfer,
+      hint_dependency: a.hint_dependency,
+      confidence: a.confidence
+    }, "提交评估证据；attempt_id 由上一条 submit_attempt 的返回值填充，mastery 由 Runtime 计算");
+    renderAll();
+    return a;
+  }
+
+  function deriveStage(a) {
+    if (a.correctness >= 0.8 && a.hint_dependency <= 0.5) return "demonstrated";
+    return "practiced";
+  }
+  function r2(v) { return Math.round((v || 0) * 100) / 100; }
+
+  function setCompleted(itemId, reason) {
+    state.ui_state.completed = true;
+    pushEvent("item_completed", { item_id: itemId, reason: reason || "verified" });
+  }
+
+  /* ── 渲染 ─────────────────────────────────────────────── */
+  var renderHooks = [];
+  function onRender(fn) { renderHooks.push(fn); fn(); }
+  function renderAll() {
+    renderOutput(); renderSpine(); renderRail(); renderBridge();
+    for (var i = 0; i < renderHooks.length; i++) { try { renderHooks[i](); } catch (e) { /* 单个面板失败不影响契约输出 */ } }
+  }
+
+
+
+  function renderOutput() {
+    var el = document.getElementById("leap-interaction-output");
+    if (el) el.textContent = JSON.stringify(snapshot(), null, 2);
+    var sum = document.getElementById("consoleSummary");
+    if (sum) {
+      var last = state.events.length ? state.events[state.events.length - 1].event_type : null;
+      sum.textContent = "AGENT OUTPUT · 已记录 " + state.events.length + " 条事件" +
+        (last ? " · 最近 " + last : "") + (state.ui_state.completed ? " · 本节点已完成" : "");
+    }
+  }
+
+  function renderSpine() {
+    var cur = state.assessment.evidence_stage;
+    var idx = Math.max(0, STAGE_ORDER.indexOf(cur));
+    var segs = document.querySelectorAll("#evTrack .ev-seg");
+    for (var i = 0; i < segs.length; i++) {
+      if (i <= idx) { segs[i].classList.add("is-on"); } else { segs[i].classList.remove("is-on"); }
+    }
+    var nameEl = document.getElementById("evName");
+    if (nameEl) {
+      nameEl.textContent = cur + " · " + STAGE_CN[cur];
+      nameEl.style.color = "var(--ev-" + cur + ")";
+    }
+    var fill = document.getElementById("masFill");
+    if (fill) fill.style.width = Math.round(mastery * 100) + "%";
+    var val = document.getElementById("masVal");
+    if (val) val.textContent = mastery.toFixed(2);
+    var note = document.getElementById("ladderNote");
+    if (note) {
+      note.textContent = "阶梯高度 = 支持强度。已用层级越高，hint_dependency 越高；本节点当前 " +
+        HINT_DEP[Math.min(state.ui_state.hint_level, 4)].toFixed(2) + "。";
+    }
+  }
+
+  var STAGE_CN = {
+    estimated: "仅估计", practiced: "练习过", demonstrated: "独立展示",
+    retained: "延迟保持", transferred: "已迁移"
+  };
+
+  function renderRail() {
+    var host = document.getElementById("railDots");
+    if (!host) return;
+    var n = state.events.length;
+    host.innerHTML = "";
+    if (!n) return;
+    var gap = n === 1 ? 0 : 1120 / (n + 1);
+    /* 使用百分比定位，随容器宽度自适应 */
+    for (var i = 0; i < n; i++) {
+      var d = document.createElement("span");
+      var isLast = (i === n - 1);
+      d.className = "rail-dot" + (isLast ? " rail-dot--last" : "");
+      var pct = n === 1 ? 50 : ((i + 1) / (n + 1)) * 100;
+      d.style.left = pct + "%";
+      d.style.background = EVENT_COLOR[state.events[i].event_type] || "#9AA1AD";
+      d.title = state.events[i].event_type;
+      host.appendChild(d);
+    }
+    var cnt = document.getElementById("railCount");
+    if (cnt) cnt.textContent = "已产生 " + n + " 条事件（只追加，不覆盖）";
+    var last = document.getElementById("railLast");
+    if (last) {
+      var e = state.events[n - 1];
+      last.textContent = "最近：" + e.event_type + (e.item_id ? " · " + e.item_id : "") +
+        " · hint_level " + state.ui_state.hint_level + " · " + fmtTime(e.created_at);
+    }
+  }
+  function fmtTime(t) {
+    var d = new Date(t * 1000);
+    return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2) + ":" + ("0" + d.getSeconds()).slice(-2);
+  }
+
+  /* ── 对外接口 ─────────────────────────────────────────── */
+  function snapshot() {
+    var out = clone(state);
+    out.ui_state.mode = bridge.mode;
+    out.ui_state.hosted = isHosted();
+    out.ui_state.pending_mcp_calls = bridge.outbox.length;
+    out.outbox = clone(bridge.outbox);
+    return out;
+  }
+  function getInteractionResult() { return snapshot(); }
+  function getState() { return state; }
+  function getMastery() { return mastery; }
+
+  return {
+    /* ── 输入：宿主 Agent 注入 Runtime 上下文 ── */
+    hydrate: hydrate,
+    isHosted: isHosted,
+    /* ── 输出：契约对象 ── */
+    getInteractionResult: getInteractionResult,
+    /* ── 输出：待执行的 MCP 调用队列 ── */
+    peekOutbox: peekOutbox,
+    drainOutbox: drainOutbox,
+    onOutboxChange: onOutboxChange,
+    pushEvent: pushEvent,
+    setHint: setHint,
+    commitAssessment: commitAssessment,
+    setCompleted: setCompleted,
+    aggregate: aggregate,
+    getState: getState,
+    getMastery: getMastery,
+    onRender: onRender,
+    refresh: renderAll,
+    HINT_DEP: HINT_DEP,
+    STAGE_CN: STAGE_CN
+  };
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   页面交互
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var S = window.LEAP.getState();
+  var NS = "http://www.w3.org/2000/svg";
+
+  /* ── 七层数据 ─────────────────────────────────────────── */
+  var LAYERS = [
+    { n: 7, name: "应用层", en: "Application", desc: "为应用程序提供网络服务接口（如浏览器用 HTTP 取网页）。它不关心数据如何送达，只定义「能做什么」。" },
+    { n: 6, name: "表示层", en: "Presentation", desc: "负责数据格式转换、加密解密、压缩。让应用层不必操心对端用什么编码。" },
+    { n: 5, name: "会话层", en: "Session", desc: "建立、管理和终止会话（如一次登录后的持续连接）。现代实现中常并入应用层。" },
+    { n: 4, name: "传输层", en: "Transport", desc: "提供端到端通信：TCP 负责可靠传输、流量控制、端口复用；UDP 负责低延迟的不可靠传输。" },
+    { n: 3, name: "网络层", en: "Network", desc: "负责逻辑寻址与路由，把包从源主机送到目的主机。IP 给出逻辑地址，路由器据此在不同网络间转发。" },
+    { n: 2, name: "数据链路层", en: "Data Link", desc: "把 IP 包封装成帧，用 MAC 地址在一段链路（同一广播域）内点对点传输。交换机工作在此层。" },
+    { n: 1, name: "物理层", en: "Physical", desc: "定义电气、机械、时序规范，把帧变成 0/1 比特流在介质上传输。网卡、双绞线、光纤在此层。" }
+  ];
+  var LAYER_NAME = { 7: "应用层", 6: "表示层", 5: "会话层", 4: "传输层", 3: "网络层", 2: "数据链路层", 1: "物理层" };
+
+  /* ── 通用：构建七层 SVG ───────────────────────────────── */
+  function buildOsiSvg(svg, opts) {
+    var W = 180, h = 30, gap = 6, x = 10;
+    var total = LAYERS.length * (h + gap);
+    svg.setAttribute("viewBox", "0 0 " + (W + 20) + " " + total);
+    LAYERS.forEach(function (L, i) {
+      var y = i * (h + gap);
+      var g = document.createElementNS(NS, "g");
+      g.setAttribute("class", "osi-layer");
+      g.setAttribute("data-n", L.n);
+      g.setAttribute("tabindex", "0");
+      g.setAttribute("role", "button");
+      g.setAttribute("aria-expanded", "false");
+      g.setAttribute("aria-label", "第 " + L.n + " 层 " + L.name + "，点击展开职责");
+      var rect = document.createElementNS(NS, "rect");
+      rect.setAttribute("x", x); rect.setAttribute("y", y);
+      rect.setAttribute("width", W); rect.setAttribute("height", h);
+      rect.setAttribute("rx", "6");
+      g.appendChild(rect);
+      var num = document.createElementNS(NS, "text");
+      num.setAttribute("x", x + 12); num.setAttribute("y", y + h / 2 + 4);
+      num.setAttribute("class", "osi-num"); num.textContent = "L" + L.n;
+      g.appendChild(num);
+      var name = document.createElementNS(NS, "text");
+      name.setAttribute("x", x + 40); name.setAttribute("y", y + h / 2 + 4);
+      name.setAttribute("class", "osi-name"); name.textContent = L.name;
+      g.appendChild(name);
+      g.addEventListener("click", function () { opts.onPick(L, g); });
+      g.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); opts.onPick(L, g); }
+      });
+      svg.appendChild(g);
+    });
+  }
+  function clearOsiOn(svg) {
+    Array.prototype.forEach.call(svg.querySelectorAll(".osi-layer"), function (g) {
+      g.setAttribute("data-on", "0"); g.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  /* ── 1. Zone 01 教学图 ────────────────────────────────── */
+  (function teachFig() {
+    var svg = $("osiTeach"), info = $("osiTeachInfo");
+    buildOsiSvg(svg, {
+      onPick: function (L, g) {
+        clearOsiOn(svg);
+        g.setAttribute("data-on", "1"); g.setAttribute("aria-expanded", "true");
+        info.innerHTML = '<span class="micro micro--accent">第 ' + L.n + ' 层 · ' + L.name +
+          '（' + L.en + '）</span><p style="margin-top:6px">' + L.desc + '</p>';
+      }
+    });
+  })();
+
+  /* ── 2. Stage 七层可视化 ──────────────────────────────── */
+  (function stageFig() {
+    var svg = $("osiStage"), info = $("osiStageInfo");
+    buildOsiSvg(svg, {
+      onPick: function (L, g) {
+        clearOsiOn(svg);
+        g.setAttribute("data-on", "1"); g.setAttribute("aria-expanded", "true");
+        info.innerHTML = '<b>第 ' + L.n + ' 层 · ' + L.name + '</b><br>' + L.desc;
+      }
+    });
+  })();
+
+  /* ── 3. 理解检查 ──────────────────────────────────────── */
+  (function checkpoint() {
+    var opts = document.querySelectorAll("#cp .opt");
+    var fb = $("cpFb");
+    var done = false;
+    Array.prototype.forEach.call(opts, function (b) {
+      b.addEventListener("click", function () {
+        Array.prototype.forEach.call(opts, function (x) { x.setAttribute("aria-pressed", "false"); });
+        b.setAttribute("aria-pressed", "true");
+        var ok = b.dataset.v === "ok";
+        fb.innerHTML = (ok ? "<b>正确。</b> " : "<b>再想一想。</b> ") + b.dataset.why;
+        fb.classList.add("is-on");
+        if (!done) {
+          done = true;
+          window.LEAP.pushEvent("attempt_submitted", {
+            item_id: "cp-01", answer: b.textContent.trim(), hint_level: 0,
+            response_time: 0, attempt_index: 1, predicted_performance: null,
+            error_type: ok ? "none" : "misconception"
+          });
+        }
+      });
+    });
+  })();
+
+  /* ── 4. Q1 拖拽匹配 ───────────────────────────────────── */
+  var MATCH_CHIPS = [
+    { id: "http", name: "HTTP", layer: 7, extra: "它定义 Web 请求语义，不负责可靠传输。" },
+    { id: "dns", name: "DNS", layer: 7, extra: "把域名解析为 IP，属于应用层服务。" },
+    { id: "tcp", name: "TCP", layer: 4, extra: "负责端到端可靠传输与端口复用。" },
+    { id: "ip", name: "IP", layer: 3, extra: "负责逻辑寻址与路由。" },
+    { id: "router", name: "路由器", layer: 3, extra: "依据 IP 地址在不同网络间转发。" },
+    { id: "eth", name: "以太网", layer: 2, extra: "定义局域网帧格式与 MAC 寻址。" },
+    { id: "switch", name: "交换机", layer: 2, extra: "基于 MAC 地址在二层转发帧。" },
+    { id: "nic", name: "网卡", layer: 1, extra: "把帧变成比特流送上介质。" }
+  ];
+  var slotHost = $("slots"), chipHost = $("chips");
+  var selectedChip = null;
+
+  function buildMatch() {
+    slotHost.innerHTML = ""; chipHost.innerHTML = "";
+    LAYERS.slice().reverse().forEach(function (L) {
+      var d = document.createElement("div");
+      d.className = "slot"; d.dataset.layer = L.n;
+      d.setAttribute("role", "button");
+      d.setAttribute("tabindex", "0");
+      d.setAttribute("aria-label", "目标层：第 " + L.n + " 层 " + L.name);
+      d.innerHTML = '<span class="slot-label">第 ' + L.n + ' 层 · ' + L.name + '</span>';
+      d.addEventListener("dragover", function (e) { e.preventDefault(); d.classList.add("is-over"); });
+      d.addEventListener("dragleave", function () { d.classList.remove("is-over"); });
+      d.addEventListener("drop", function (e) {
+        e.preventDefault(); d.classList.remove("is-over");
+        var id = e.dataTransfer.getData("text/plain");
+        placeChip(id, L.n);
+      });
+      d.addEventListener("click", function () { if (selectedChip) placeChip(selectedChip, L.n); });
+      d.addEventListener("keydown", function (e) {
+        if ((e.key === "Enter" || e.key === " ") && selectedChip) { e.preventDefault(); placeChip(selectedChip, L.n); }
+      });
+      slotHost.appendChild(d);
+    });
+    shuffle(MATCH_CHIPS.slice()).forEach(function (c) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "chip"; b.draggable = true;
+      b.dataset.chip = c.id; b.dataset.layer = c.layer; b.textContent = c.name;
+      b.setAttribute("aria-label", "可拖拽：" + c.name + "（归第 " + c.layer + " 层）");
+      b.addEventListener("dragstart", function (e) { e.dataTransfer.setData("text/plain", c.id); b.classList.add("is-drag"); });
+      b.addEventListener("dragend", function () { b.classList.remove("is-drag"); });
+      b.addEventListener("click", function () {
+        if (b.dataset.state === "ok") return;
+        if (selectedChip === c.id) { selectedChip = null; b.classList.remove("is-sel"); return; }
+        Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (x) { x.classList.remove("is-sel"); });
+        selectedChip = c.id; b.classList.add("is-sel");
+      });
+      chipHost.appendChild(b);
+    });
+  }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+  function placeChip(chipId, layer) {
+    var chip = chipHost.querySelector('.chip[data-chip="' + chipId + '"]');
+    var slot = slotHost.querySelector('.slot[data-layer="' + layer + '"]');
+    if (!chip || !slot) return;
+    slot.appendChild(chip);
+    chip.classList.remove("is-sel", "is-drag");
+    chip.dataset.state = "";
+    slot.dataset.state = "";
+    selectedChip = null;
+  }
+  function clearStates() {
+    Array.prototype.forEach.call(document.querySelectorAll(".slot"), function (s) { s.dataset.state = ""; });
+    Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (c) { c.dataset.state = ""; });
+  }
+  $("btnClearQ1").addEventListener("click", function () {
+    Array.prototype.forEach.call(document.querySelectorAll(".slot .chip"), function (c) { chipHost.appendChild(c); });
+    clearStates(); $("q1Fb").classList.remove("is-on");
+  });
+
+  var q1Tried = 0;
+  $("btnSubmitQ1").addEventListener("click", function () {
+    var total = MATCH_CHIPS.length, placed = 0, correct = 0, firstWrong = null;
+    Array.prototype.forEach.call(slotHost.querySelectorAll(".slot"), function (slot) {
+      var ln = parseInt(slot.dataset.layer, 10);
+      Array.prototype.forEach.call(slot.querySelectorAll(".chip"), function (chip) {
+        placed++;
+        if (parseInt(chip.dataset.layer, 10) === ln) {
+          correct++; chip.dataset.state = "ok"; slot.dataset.state = "ok";
+        } else {
+          chip.dataset.state = "bad"; slot.dataset.state = "bad";
+          if (!firstWrong) firstWrong = { chip: chip.dataset.chip, got: ln };
+        }
+      });
+    });
+    var el = $("q1Fb");
+    if (placed < total) {
+      el.innerHTML = "还有 " + (total - placed) + " 张卡片没放进去。全部放好后再提交。";
+      el.style.color = "var(--warn)"; el.classList.add("is-on"); return;
+    }
+    q1Tried++;
+    var correctness = correct / total;
+    var ok = correct === total;
+    var why = "";
+    if (!ok && firstWrong) {
+      var chipDef = MATCH_CHIPS.filter(function (c) { return c.id === firstWrong.chip; })[0];
+      var realLayer = chipDef.layer, realName = LAYER_NAME[realLayer];
+      var gotName = LAYER_NAME[firstWrong.got];
+      why = "第一处错误：" + chipDef.name + " 属于第 " + realLayer + " 层" + realName +
+        "，不是第 " + firstWrong.got + " 层" + gotName + "；" + chipDef.extra;
+    }
+    var errType = ok ? "none" : (correct >= total - 2 ? "answer_error" : "misconception");
+    var misconception = (!ok && correct <= 2) ? "把「交换机 / 路由器」的层级混淆，或误以为协议可随意归层" : "";
+    var f1 = ok ? "八张卡片全部归位正确。" : "你放对了 " + correct + "/" + total + " 张。";
+    var f2 = ok ? "没有发现错误。" : why;
+    var f3 = ok ? "下一步：打开 Q2，看数据在这些层之间是如何被一层层「打包」与「拆包」的。"
+      : "重排口诀：<b>上三层管应用（HTTP/DNS）→ 传输层管端到端（TCP）→ 网络层管路由（IP/路由器）→ 下两层管介质（以太网/交换机/网卡）</b>。";
+    el.innerHTML = "<b>" + f1 + "</b>　" + f2;
+    el.style.color = ok ? "var(--ok)" : "var(--ink-2)";
+    el.classList.add("is-on");
+    setFeedback(errType, f1, f2, f3, !ok);
+    window.LEAP.pushEvent("drag_submitted", {
+      item_id: "q1", answer: "correct " + correct + "/" + total,
+      hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: q1Tried,
+      predicted_performance: null, error_type: errType
+    });
+    window.LEAP.commitAssessment({
+      item_id: "q1", correctness: correctness,
+      conceptual_understanding: ok ? 1 : (correct / total) * 0.8 + 0.1,
+      reasoning_quality: ok ? 1 : 0.5, application: ok ? 1 : correctness,
+      transfer: 0, error_type: errType, misconception: misconception,
+      feedback: f1 + " " + (why || ""), assessor_type: "rule"
+    });
+    if (ok && !S.ui_state.answer_revealed) window.LEAP.setCompleted("q1", "matched_without_reveal");
+  });
+  buildMatch();
+
+  /* ── 5. Q2 封装 / 解封装动画 ──────────────────────────── */
+  var ENC_ROWS = [7, 6, 5, 4, 3, 2, 1];
+  (function buildEncRows() {
+    var host = $("encRows");
+    ENC_ROWS.forEach(function (n) {
+      var r = document.createElement("div");
+      r.className = "enc-row"; r.dataset.n = n;
+      r.innerHTML = '<span>L' + n + ' · ' + LAYER_NAME[n] + '</span><span style="font-family:var(--font-mono);font-size:10.5px;color:var(--ink-3)"></span>';
+      host.appendChild(r);
+    });
+  })();
+
+  var ENC_STEPS = [
+    { dir: "down", n: 7, txt: "应用层把用户的「数据」交给传输层，此时还没有任何网络层头部。", hdr: { k: "data", label: "数据（应用层数据）" } },
+    { dir: "down", n: 4, txt: "传输层在前面加上「H4 TCP 头」（端口号、序号、校验），形成「段 segment」。", hdr: { k: "tcp", label: "H4 · TCP 头（端口 · 序号）" } },
+    { dir: "down", n: 3, txt: "网络层再加「H3 IP 头」（源 / 目的 IP），形成「包 packet」。", hdr: { k: "ip", label: "H3 · IP 头（源/目的 IP）" } },
+    { dir: "down", n: 2, txt: "数据链路层加「H2 帧头/帧尾」（MAC 地址），形成「帧 frame」。", hdr: { k: "dl", label: "H2 · 帧头/帧尾（MAC）" } },
+    { dir: "down", n: 1, txt: "物理层把帧变成 0/1「比特流」，送上传输介质。", hdr: { k: "phy", label: "H1 · 比特流（0/1）" } },
+    { dir: "up", n: 2, txt: "对端数据链路层校验帧头帧尾并剥除，把「包」上交网络层。", pop: true },
+    { dir: "up", n: 3, txt: "网络层剥除「H3 IP 头」，把「段」上交传输层。", pop: true },
+    { dir: "up", n: 4, txt: "传输层按序号重组、剥除「H4 TCP 头」，把数据上交应用层。", pop: true },
+    { dir: "up", n: 7, txt: "应用层拿到原始「数据」，封装与解封装全部完成。", pop: true }
+  ];
+  var encCur = 0, encTimer = null, encPkt = [];
+
+  function encDraw() {
+    var rows = $("encRows").querySelectorAll(".enc-row");
+    Array.prototype.forEach.call(rows, function (r) { r.dataset.s = ""; });
+    if (encCur > 0) {
+      var curN = ENC_STEPS[encCur - 1].n;
+      Array.prototype.forEach.call(rows, function (r) {
+        if (parseInt(r.dataset.n, 10) === curN) r.dataset.s = "active";
+      });
+    }
+    var pkt = $("encPkt");
+    pkt.innerHTML = "";
+    if (!encPkt.length) {
+      var e = document.createElement("div");
+      e.className = "pkt-blk"; e.style.cssText = "background:var(--surface-sunk);color:var(--ink-3);text-align:center";
+      e.textContent = "（空 · 尚未开始）";
+      pkt.appendChild(e);
+    } else {
+      encPkt.forEach(function (b) {
+        var d = document.createElement("div");
+        d.className = "pkt-blk"; d.dataset.k = b.k; d.textContent = b.label;
+        pkt.appendChild(d);
+      });
+    }
+    $("encStep").textContent = encCur === 0
+      ? "点击「单步」或「播放」，观察数据单元如何自上而下加头、再自下而上去头。"
+      : ENC_STEPS[encCur - 1].txt;
+    $("encCount").textContent = "步骤 " + encCur + " / " + ENC_STEPS.length + "　·　状态：" +
+      (encCur === 0 ? "待开始" : (ENC_STEPS[encCur - 1].dir === "down" ? "封装中（向下加头）" : "解封装中（向上去头）"));
+  }
+  function encStepFwd() {
+    if (encCur < ENC_STEPS.length) {
+      var st = ENC_STEPS[encCur];
+      if (st.pop) encPkt.pop(); else if (st.hdr) encPkt.push(st.hdr);
+      encCur++; encDraw();
+    } else encStop();
+  }
+  function encStepBack() {
+    if (encCur > 0) {
+      var st = ENC_STEPS[encCur - 1];
+      if (st.pop) encPkt.push(st.hdr); else if (st.hdr) encPkt.pop();
+      encCur--; encDraw();
+    }
+  }
+  function encStop() {
+    if (encTimer) { clearInterval(encTimer); encTimer = null; }
+    $("btnEncPlay").textContent = "播放";
+  }
+  function encToggle() {
+    if (encTimer) { encStop(); return; }
+    if (encCur >= ENC_STEPS.length) { encCur = 0; encPkt = []; }
+    $("btnEncPlay").textContent = "暂停";
+    encTimer = setInterval(function () {
+      if (encCur >= ENC_STEPS.length) { encStop(); return; }
+      encStepFwd();
+    }, 1100);
+    encDraw();
+  }
+  $("btnEncPlay").addEventListener("click", encToggle);
+  $("btnEncStep").addEventListener("click", function () { encStop(); encStepFwd(); });
+  $("btnEncReset").addEventListener("click", function () { encStop(); encCur = 0; encPkt = []; encDraw(); });
+  document.addEventListener("keydown", function (e) {
+    var t = e.target.tagName;
+    if (t === "INPUT" || t === "TEXTAREA") return;
+    if (e.key === "ArrowRight") { encStop(); encStepFwd(); e.preventDefault(); }
+    else if (e.key === "ArrowLeft") { encStop(); encStepBack(); e.preventDefault(); }
+    else if (e.key === " " || e.code === "Space") { encToggle(); e.preventDefault(); }
+  });
+  encDraw();
+
+  /* ── 6. Q3 选择题 ─────────────────────────────────────── */
+  Array.prototype.forEach.call(document.querySelectorAll(".mcq"), function (box) {
+    var opts = box.querySelectorAll(".opt");
+    var fb = box.querySelector(".cp-fb");
+    var done = false;
+    var qid = box.dataset.q;
+    Array.prototype.forEach.call(opts, function (b) {
+      b.addEventListener("click", function () {
+        Array.prototype.forEach.call(opts, function (x) { x.setAttribute("aria-pressed", "false"); });
+        b.setAttribute("aria-pressed", "true");
+        var ok = b.dataset.v === "ok";
+        var errType = b.dataset.err || "answer_error";
+        fb.innerHTML = (ok ? "<b>正确。</b> " : "<b>再想想。</b> ") + b.dataset.why;
+        fb.classList.add("is-on");
+        if (!done) {
+          done = true;
+          window.LEAP.pushEvent("attempt_submitted", {
+            item_id: qid, answer: b.textContent.trim(), hint_level: S.ui_state.hint_level,
+            response_time: 0, attempt_index: 1, predicted_performance: null, error_type: ok ? "none" : errType
+          });
+          window.LEAP.commitAssessment({
+            item_id: qid, correctness: ok ? 1 : 0,
+            conceptual_understanding: ok ? 1 : 0.4, reasoning_quality: ok ? 1 : 0.5,
+            application: ok ? 1 : 0.5, transfer: 0,
+            error_type: ok ? "none" : errType,
+            misconception: (!ok && errType === "misconception") ? "混淆了相邻层的职责边界" : "",
+            feedback: b.dataset.why, assessor_type: "rule"
+          });
+        }
+      });
+    });
+  });
+
+  /* ── 7. 提示阶梯 ──────────────────────────────────────── */
+  var HINTS = {
+    1: { t: "① 引导问题 · 只给方向", h: "先问自己：七层里哪些层负责「<b>端到端</b>」通信，哪些层只负责「<b>一段链路</b>」的传输？把这两类分开，归位就简单了。" },
+    2: { t: "② 策略提示 · 给思路", h: "记住一句口诀：<b>上三层管应用（HTTP/DNS）→ 传输层管端到端（TCP）→ 网络层管路由（IP/路由器）→ 下两层管介质（以太网/交换机/网卡）</b>。按这句把每张卡片归位。" },
+    3: { t: "③ 部分示范 · 给前半段", h: "先写出应用层与传输层分别「装」什么：应用层数据是「<b>数据</b>」本身；传输层在它外面加「<b>H4 TCP 头</b>」，成为「段」。剩下网络层与数据链路层该加什么头，留给你补全。" },
+    4: { t: "④ 完整答案 · 已展示", h: "完整归位表：", c:
+      "第 7 层 应用层    → HTTP · DNS\n" +
+      "第 4 层 传输层    → TCP\n" +
+      "第 3 层 网络层    → IP · 路由器\n" +
+      "第 2 层 数据链路层 → 以太网 · 交换机\n" +
+      "第 1 层 物理层    → 网卡\n" +
+      "（会话层 / 表示层 本例无对应卡片）" }
+  };
+
+  function setLadderState() {
+    var lvl = S.ui_state.hint_level;
+    Array.prototype.forEach.call(document.querySelectorAll("#ladder .ladder-step"), function (b) {
+      var lv = parseInt(b.dataset.lv, 10);
+      b.dataset.state = lv <= lvl ? "used" : (lv === lvl + 1 ? "avail" : "locked");
+      b.disabled = (lv > lvl + 1);
+      b.setAttribute("aria-disabled", String(lv > lvl + 1));
+    });
+    $("ladderNote").textContent = "阶梯高度 = 支持强度。已用层级越高，hint_dependency 越高；本节点当前 " +
+      window.LEAP.HINT_DEP[Math.min(lvl, 4)].toFixed(2) +
+      (lvl >= 3 ? "（> 0.50，已不足以升级到 demonstrated）" : "（≤ 0.50，仍可升级到 demonstrated）") + "。";
+  }
+  function showHint(lv) {
+    var body = $("hintBody");
+    var box = document.createElement("div");
+    box.className = "hint-card";
+    box.dataset.lv = lv;
+    if (lv === 4) {
+      box.innerHTML = '<span class="micro">④ 完整答案</span><p>' + HINTS[4].h + '</p><pre>' + esc(HINTS[4].c) + '</pre>';
+      body.appendChild(box);
+      $("verify").hidden = false;
+      $("verify").scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    box.innerHTML = '<span class="micro">' + HINTS[lv].t + '</span><p>' + HINTS[lv].h + '</p>' +
+      (HINTS[lv].c ? '<pre>' + esc(HINTS[lv].c) + '</pre>' : '');
+    body.appendChild(box);
+  }
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  Array.prototype.forEach.call(document.querySelectorAll("#ladder .ladder-step"), function (b) {
+    b.addEventListener("click", function () {
+      var lv = parseInt(b.dataset.lv, 10);
+      if (lv > S.ui_state.hint_level + 1) return;
+      if (lv <= S.ui_state.hint_level) return;
+      if (lv === 4) { renderConfirm(); return; }
+      window.LEAP.setHint(lv);
+      window.LEAP.pushEvent("hint_used", { item_id: "q1", hint_level: lv, answer: "", response_time: 0, attempt_index: 1, predicted_performance: null });
+      showHint(lv);
+      setLadderState();
+    });
+  });
+
+  function renderConfirm() {
+    if ($("confirmBox")) return;
+    var box = document.createElement("div");
+    box.className = "confirm";
+    box.id = "confirmBox";
+    box.innerHTML = '<p>展开完整答案后，本次作答会被记录为 <code>answer_revealed</code>，' +
+      '<b>hint_dependency 升到 0.85</b>，并且你<b>必须完成一题后置验证</b>，本任务才算结束。' +
+      '如果你只想再试一次，建议先点「③ 部分示范」。</p>' +
+      '<div class="btn-row"><button class="btn btn--primary btn--sm" id="btnConfirmReveal" type="button">我确认，展开完整答案</button>' +
+      '<button class="btn btn--ghost btn--sm" id="btnCancelReveal" type="button">先不展开</button></div>';
+    $("hintBody").appendChild(box);
+    $("btnCancelReveal").addEventListener("click", function () { box.remove(); });
+    $("btnConfirmReveal").addEventListener("click", function () {
+      box.remove();
+      window.LEAP.setHint(4);
+      window.LEAP.pushEvent("answer_revealed", { item_id: "q1", hint_level: 4, answer: "", response_time: 0, attempt_index: 1, predicted_performance: null });
+      showHint(4);
+      setLadderState();
+    });
+  }
+  setLadderState();
+
+  /* ── 8. 反馈面板 + 评分面板 ───────────────────────────── */
+  function setFeedback(errType, f1, f2, f3, isBad) {
+    var t = errType === "none" ? "ok" : (errType === "misconception" ? "err" : "warn");
+    var badge = $("fbBadge");
+    badge.textContent = errType === "none" ? "no_error" : errType;
+    badge.dataset.t = t;
+    $("fbBar").style.background = t === "ok" ? "var(--ok)" : (t === "err" ? "var(--err)" : "var(--warn)");
+    $("fbS1").innerHTML = f1;
+    $("fbS2").innerHTML = f2;
+    $("fbS3").innerHTML = f3;
+  }
+  function renderScore() {
+    var a = S.assessment;
+    var rows = [
+      { k: "correctness", v: a.correctness, c: "var(--ok)" },
+      { k: "reasoning_quality", v: a.reasoning_quality, c: "var(--warn)" },
+      { k: "hint_dependency", v: a.hint_dependency, c: "var(--accent)" },
+      { k: "overall_score", v: a.overall_score, c: "var(--accent)", strong: true }
+    ];
+    var host = $("scoreRows");
+    host.innerHTML = "";
+    rows.forEach(function (r) {
+      var d = document.createElement("div");
+      d.className = "score-row";
+      d.innerHTML = '<span class="score-key">' + r.k + '<b style="color:' + r.c + '">' + r.v.toFixed(2) + '</b></span>' +
+        '<span class="score-track"><span class="score-fill" data-k="' + r.k + '" style="width:' + (r.v * 100) + '%"></span></span>';
+      host.appendChild(d);
+    });
+  }
+  renderScore();
+  window.LEAP.onRender(renderScore);
+
+  /* ── 9. 后置验证 ──────────────────────────────────────── */
+  $("btnVerify").addEventListener("click", function () {
+    var v = $("verifyInput").value.trim();
+    var fb = $("verifyFb");
+    if (v.length < 6) {
+      fb.innerHTML = "再写具体一点：至少说清「哪一层」以及「为什么」。";
+      fb.style.color = "var(--warn)"; fb.classList.add("is-on"); return;
+    }
+    var hitLayer = /(二层|数据链路|2 ?层|第二层|链路层|mac)/i.test(v);
+    var hitWhy = /(mac|帧|地址|介质|交换机)/i.test(v);
+    var transfer = (hitLayer ? 0.5 : 0.2) + (hitWhy ? 0.4 : 0.1);
+    transfer = Math.min(1, transfer);
+    var ok = transfer >= 0.7;
+    fb.innerHTML = ok
+      ? "<b>就对了。</b> 只认 MAC 地址、不认 IP 地址的设备工作在<b>数据链路层（第二层）</b>：它只负责一段链路内的帧转发，跨网络的路由交给网络层的路由器。"
+      : "<b>方向还差一点。</b> 关键在「认什么地址」：认 MAC 地址、做帧转发的设备是<b>数据链路层（第二层）</b>；认 IP 地址、做跨网路由的才是网络层的路由器。";
+    fb.style.color = ok ? "var(--ok)" : "var(--ink-2)";
+    fb.classList.add("is-on");
+    window.LEAP.pushEvent("reflection_recorded", {
+      item_id: "q1-verify", answer: v, hint_level: S.ui_state.hint_level,
+      response_time: 0, attempt_index: 1, predicted_performance: null,
+      error_type: ok ? "none" : "reasoning_error"
+    });
+    window.LEAP.commitAssessment({
+      item_id: "q1-verify", correctness: transfer, conceptual_understanding: transfer,
+      reasoning_quality: transfer, application: 0.8, transfer: transfer,
+      error_type: ok ? "none" : "reasoning_error", misconception: "",
+      feedback: ok ? "后置验证通过。" : "后置验证未通过。", assessor_type: "hybrid"
+    });
+    if (ok) window.LEAP.setCompleted("q1", "post_verification_passed");
+  });
+
+  /* ── 10. 输出控制台折叠 ───────────────────────────────── */
+  $("consoleBar").addEventListener("click", function () {
+    var on = $("consoleJson").classList.toggle("is-on");
+    $("consoleBar").setAttribute("aria-expanded", String(on));
+    $("consoleAction").textContent = on ? "收起 JSON ▴" : "展开 JSON ▾";
+  });
+
+  /* ── 初始渲染 ──────────────────────────────────────────── */
+  renderScore();
+  setFeedback("none",
+    "还没有提交任何作答。先看七层结构，再去做 Q1 拖拽匹配。",
+    "答错也没关系——反馈会区分「记错层级」与「混淆职责」，两种的处理方式完全不同。",
+    "建议路径：看完 Stage 七层图 → 做 Q1 匹配 → 点开 Q2 看封装动画 → 再做 Q3 选择题。");
+  window.LEAP.refresh();
+})();
+</script>
+</body>
+</html>

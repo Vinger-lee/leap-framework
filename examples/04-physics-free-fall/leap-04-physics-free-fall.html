@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LEAP-V2 · 物理｜自由落体运动 —— h = ½gt² 与位移模拟</title>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   LEAP 视觉设计系统 v1.0 · 令牌层
+   规范来源：LEAP_视觉设计理念_给Gemini.md §4
+   ══════════════════════════════════════════════════════════════ */
+:root{
+  /* ── 4.1 色彩 ───────────────────────────────── */
+  --paper:#FAF9F6;          /* 页面底：暖纸 */
+  --surface:#FFFFFF;        /* 卡面 */
+  --surface-sunk:#F3F1EC;   /* 凹陷面：Stage / 侧栏底 */
+  --surface-mute:#EDEAE3;   /* 更弱面：代码块底 */
+  --ink:#191B20;            /* 正文 */
+  --ink-2:#565E6B;          /* 次要文字 */
+  --ink-3:#8A909C;          /* 弱文字 / 占位 */
+  --hairline:#E8E4DC;       /* 1px 分隔 */
+  --rule:#D8D3C9;           /* 强边框 */
+
+  --accent:#2B4AC4;         /* 主色：交互 / 进度 / 当前态 */
+  --accent-deep:#1E3699;    /* hover / 按下 */
+  --accent-wash:#EDF0FD;    /* 主色浅底 */
+
+  --ok:#2E7D5B;   --ok-wash:#EAF4EF;    /* 正确 / 达成 / 基线命中 */
+  --warn:#B3861A; --warn-wash:#FBF3E0;  /* 提醒 / 待复习 / 推理错误 */
+  --err:#B4432F;  --err-wash:#FBEDEA;   /* 概念误解 / 错误 */
+
+  /* 提示阶梯（强度递增） */
+  --hint-1:#E4C77C; --hint-2:#D4A43C; --hint-3:#B3861A; --hint-4:#7A7F8A;
+
+  /* 证据阶段（感知强度单调递增：灰→蓝→青→绿→金） */
+  --ev-estimated:#9AA1AD;
+  --ev-practiced:#4C7BD9;
+  --ev-demonstrated:#2E8B84;
+  --ev-retained:#4C8B3F;
+  --ev-transferred:#B3861A;
+
+  /* ── 4.2 字阶（四档，禁止新增） ─────────────── */
+  --font-display:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",Georgia,serif;
+  --font-sans:"Noto Sans SC","PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",-apple-system,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+
+  --fs-display:32px;   /* 页面主标题：--font-display / 700 / lh 1.3 / 字距 -.01em */
+  --fs-h2:22px;        /* 区块标题：  --font-display / 600 / lh 1.4 */
+  --fs-h3:17px;        /* 小节标题：  --font-display / 600 / lh 1.5 */
+  --fs-body:15.5px;    /* 正文：      --font-sans    / 400 / lh 1.78 */
+  --fs-small:13px;     /* 辅助说明：  --font-sans    / 400 / lh 1.65 */
+  --fs-micro:11.5px;   /* 拉丁微标签：Inter 600 / lh 1.4 / 字距 .12em / 全大写 */
+  --fs-mono:12px;      /* 代码 / JSON：--font-mono   / lh 1.6 */
+
+  /* ── 4.3 间距（4pt 栅格，禁止用表外值） ─────── */
+  --s-1:4px;  --s-2:8px;  --s-3:12px; --s-4:16px; --s-5:20px;
+  --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px; --s-16:64px; --s-20:80px;
+
+  /* ── 4.4 圆角 ───────────────────────────────── */
+  --r-xs:3px; --r-sm:6px; --r-md:8px; --r-lg:10px; --r-xl:12px; --r-2xl:16px; --r-pill:999px;
+
+  /* ── 4.5 阴影（默认不用；仅浮层 / 拖拽） ────── */
+  --sh-1:0 1px 2px rgba(25,27,32,.05);
+  --sh-2:0 2px 8px -2px rgba(25,27,32,.10);
+  --sh-3:0 16px 40px -24px rgba(25,27,32,.28);
+
+  /* ── 4.6 动效 ───────────────────────────────── */
+  --t-1:120ms; --t-2:200ms; --t-3:320ms; --t-4:520ms;
+  --ease-out:cubic-bezier(.16,.84,.32,1);
+  --ease-inout:cubic-bezier(.4,0,.2,1);
+
+  /* ── 4.7 版式常量 ───────────────────────────── */
+  --page-max:1120px;  --page-pad:80px;
+  --read-col:680px;   --side-col:380px;  --col-gap:60px;
+  --zone-gap:64px;
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-sans);font-size:var(--fs-body);line-height:1.78;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3{margin:0;font-family:var(--font-display);font-weight:600;line-height:1.35}
+p{margin:0}
+code,kbd,pre{font-family:var(--font-mono)}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--r-xs)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:absolute;left:-9999px;top:0;z-index:50;background:var(--accent);color:#fff;padding:10px 16px;border-radius:0 0 var(--r-md) 0}
+.skip:focus{left:0}
+
+.wrap{max-width:var(--page-max);margin:0 auto;padding:0 var(--page-pad)}
+.micro{font-family:var(--font-mono);font-size:var(--fs-micro);font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);line-height:1.4}
+.micro--accent{color:var(--accent)}
+
+/* ── 进度脊柱 ───────────────────────────────────────────── */
+.spine{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--hairline)}
+.spine-in{max-width:var(--page-max);margin:0 auto;padding:14px var(--page-pad);display:flex;align-items:center;gap:var(--s-8);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.brand-mark{width:12px;height:12px;border-radius:var(--r-xs);background:var(--accent);flex:0 0 auto}
+.brand-name{font-family:var(--font-mono);font-weight:700;font-size:15px;letter-spacing:.06em}
+.brand-node{font-size:var(--fs-small);color:var(--ink-2);font-weight:500}
+.spine-ev{flex:0 0 auto}
+.ev-track{display:flex;gap:6px;margin-top:6px}
+.ev-seg{width:34px;height:10px;border-radius:5px;background:var(--hairline);transition:background var(--t-4) var(--ease-out)}
+.ev-seg.is-on[data-stage="estimated"]{background:var(--ev-estimated)}
+.ev-seg.is-on[data-stage="practiced"]{background:var(--ev-practiced)}
+.ev-seg.is-on[data-stage="demonstrated"]{background:var(--ev-demonstrated)}
+.ev-seg.is-on[data-stage="retained"]{background:var(--ev-retained)}
+.ev-seg.is-on[data-stage="transferred"]{background:var(--ev-transferred)}
+.spine-hop{display:flex;align-items:baseline;gap:10px;flex:0 0 auto}
+.spine-name{font-size:13px;font-weight:500;color:var(--ev-practiced);transition:color var(--t-2) var(--ease-inout)}
+.spine-mas{flex:0 0 auto}
+.mas-row{display:flex;align-items:center;gap:10px;margin-top:6px}
+.mas-track{width:110px;height:8px;border-radius:4px;background:var(--hairline);overflow:hidden}
+.mas-fill{height:100%;width:62%;background:var(--accent);border-radius:4px;transition:width var(--t-4) var(--ease-out)}
+.mas-val{font-family:var(--font-mono);font-size:13px;font-weight:500}
+.spine-rev{flex:0 0 auto;margin-left:auto}
+.spine-rev .val{display:block;margin-top:4px;font-size:12.5px;font-weight:500;color:var(--warn)}
+.spine-note{max-width:var(--page-max);margin:0 auto;padding:0 var(--page-pad) 8px;font-size:11px;color:var(--ink-3)}
+
+/* ── Zone 骨架 ──────────────────────────────────────────── */
+.zone{padding-top:var(--s-16)}
+.zone + .zone{padding-top:var(--s-16)}
+.zone-head{display:block;padding-bottom:var(--s-3)}
+.zone-title{font-size:var(--fs-display);font-weight:700;line-height:1.3;letter-spacing:-.01em;margin-top:var(--s-3)}
+.zone-goal{margin-top:var(--s-3);font-size:14.5px;color:var(--ink-2);max-width:760px}
+.zone-meta{margin-top:var(--s-2);font-size:12.5px;font-weight:500;color:var(--ink-3)}
+.zone-rule{height:1px;background:var(--hairline);margin-top:var(--s-4)}
+.zone-body{padding-top:var(--s-8)}
+
+.cols{display:grid;grid-template-columns:minmax(0,var(--read-col)) var(--side-col);gap:var(--col-gap);align-items:start}
+.col-main > * + *{margin-top:var(--s-6)}
+.side{display:grid;gap:var(--s-10)}
+
+/* ── 阅读列 ─────────────────────────────────────────────── */
+.quote{background:var(--surface-sunk);border-left:3px solid var(--accent);padding:14px 16px;border-radius:0 var(--r-md) var(--r-md) 0;font-size:14.5px;line-height:1.7}
+.terms{list-style:none;padding:0;margin:0;display:grid;gap:var(--s-3)}
+.terms li{font-size:14.5px;color:var(--ink-2);line-height:1.7}
+.terms b{color:var(--ink);font-weight:600}
+
+/* ── 侧栏卡 ─────────────────────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.card--err{background:var(--err-wash);border-left:3px solid var(--err)}
+.card--sunk{background:var(--surface-sunk);border:none}
+.card > .micro{display:block;margin-bottom:var(--s-4)}
+.card--err > .micro{color:var(--err)}
+.card-body{font-size:13px;line-height:1.7}
+.formula{font-family:var(--font-mono);font-size:15px;font-weight:500;line-height:1.9;display:block}
+.formula--base{color:var(--ok)}
+.card-foot{margin-top:var(--s-3);font-size:var(--fs-micro);color:var(--ink-3);line-height:1.6}
+.reqs{list-style:none;padding:0;margin:0;display:grid;gap:var(--s-3)}
+.reqs li{position:relative;padding-left:18px;font-size:12.5px;color:var(--ink-2);line-height:1.6}
+.reqs li::before{content:"";position:absolute;left:0;top:.42em;width:6px;height:6px;border-radius:2px;background:var(--accent)}
+.reqs li[data-kind="transfer"]::before{background:var(--warn)}
+
+/* ── 理解检查 ───────────────────────────────────────────── */
+.cp{margin-top:var(--s-6);background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.cp-q{margin-top:var(--s-4);font-size:15px;font-weight:600;line-height:1.6}
+.cp-opts{display:grid;gap:var(--s-2);margin-top:var(--s-4)}
+.opt{display:block;width:100%;text-align:left;padding:9px 16px;min-height:38px;background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-md);cursor:pointer;font-size:14px;color:var(--ink-2);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout)}
+.opt:hover{border-color:var(--rule);background:#fff}
+.opt[aria-pressed="true"][data-v="ok"]{background:var(--ok-wash);border:1.5px solid var(--ok);color:var(--ok);font-weight:600}
+.opt[aria-pressed="true"][data-v="bad"]{background:var(--err-wash);border:1.5px solid var(--err);color:var(--err);font-weight:600}
+.cp-rule{height:1px;background:var(--hairline);margin-top:var(--s-5)}
+.cp-fb{margin-top:var(--s-4);font-size:12.5px;line-height:1.65;color:var(--ink-2);display:none}
+.cp-fb.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+.cp-fb b{color:var(--ok)}
+
+/* ── Stage ──────────────────────────────────────────────── */
+.stage{background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-2xl);padding:var(--s-5) var(--s-6) var(--s-6)}
+.stage-title{margin-top:6px;font-size:14px;font-weight:600}
+.stage-grid{display:grid;grid-template-columns:252px minmax(0,1fr);gap:var(--s-5);margin-top:var(--s-4)}
+.tube-label{font-family:var(--font-mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;color:var(--ink-3)}
+.tube-wrap{display:flex;flex-direction:column;gap:6px}
+.tube{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);height:232px;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;overflow:hidden}
+.tf{display:flex;align-items:center;height:40px;padding:0 12px;border-radius:var(--r-sm);font-family:var(--font-mono);font-size:12px;font-weight:500;border:1px solid transparent;transition:background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout),border-color var(--t-2) var(--ease-inout),transform var(--t-2) var(--ease-out);animation:push var(--t-3) var(--ease-out) both}
+.tf[data-s="active"]{background:var(--accent);color:#fff}
+.tf[data-s="waiting"]{background:var(--accent-wash);color:var(--ink-2)}
+.tf[data-s="base"]{background:var(--ok-wash);color:var(--ok);border:1.5px solid var(--ok)}
+.tf[data-s="done"]{background:var(--surface-sunk);color:var(--ink-3)}
+@keyframes push{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.stage-side{display:grid;gap:var(--s-3);align-content:start}
+.step-panel{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s-5)}
+.step-text{margin-top:var(--s-3);font-size:13px;line-height:1.7;min-height:66px}
+.step-count{margin-top:var(--s-3);font-family:var(--font-mono);font-size:11.5px;font-weight:500;color:var(--ink-3)}
+.legend{font-size:11.5px;color:var(--ink-3)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:1px}
+.stage-ctrl{display:flex;align-items:center;gap:var(--s-3);flex-wrap:wrap;margin-top:var(--s-4)}
+.kbd-hint{margin-left:auto;font-size:var(--fs-micro);color:var(--ink-3)}
+
+/* ── 按钮 ───────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 18px;border-radius:var(--r-md);border:1px solid transparent;background:var(--surface);cursor:pointer;font-size:13.5px;font-weight:500;color:var(--ink-2);transition:background var(--t-1) var(--ease-inout),border-color var(--t-1) var(--ease-inout),color var(--t-1) var(--ease-inout),transform var(--t-1) var(--ease-out)}
+.btn:hover{background:var(--surface-sunk)}
+.btn:active{transform:translateY(1px)}
+.btn--primary{background:var(--accent);color:#fff;font-weight:600}
+.btn--primary:hover{background:var(--accent-deep)}
+.btn--outline{border-color:var(--rule)}
+.btn--outline:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-wash)}
+.btn--ghost{color:var(--ink-3);background:transparent}
+.btn--ghost:hover{background:var(--surface-sunk);color:var(--ink-2)}
+.btn--sm{height:32px;padding:0 14px;font-size:12.5px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn-row{display:flex;gap:var(--s-3);flex-wrap:wrap;align-items:center}
+
+/* ── 任务块 ─────────────────────────────────────────────── */
+.task{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-2xl);padding:var(--s-6)}
+.task-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.task-title{font-size:var(--fs-h3);font-weight:600}
+.task-id{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.08em}
+.task-lead{margin-top:var(--s-3);font-size:13.5px;color:var(--ink-2);line-height:1.7}
+.task-lead + .task-lead{margin-top:var(--s-2)}
+.note{margin-top:var(--s-4);padding:12px 14px;border-radius:var(--r-md);background:var(--surface-sunk);font-size:12px;color:var(--ink-3);line-height:1.65}
+.note--warn{background:var(--warn-wash);color:#8A6A2A}
+
+/* 代码填空 */
+.code{position:relative;margin-top:var(--s-4);background:var(--surface-mute);border-radius:var(--r-lg);padding:var(--s-5);font-family:var(--font-mono);font-size:13px;line-height:2.1;overflow-x:auto}
+.code-line{white-space:pre;display:flex;align-items:center;gap:0;flex-wrap:nowrap}
+.tok-kw{color:var(--accent)}
+.tok-fn{color:#7A4BB8}
+.tok-num{color:var(--ok)}
+.tok-cmt{color:var(--ink-3)}
+.blank{font-family:var(--font-mono);font-size:12.5px;background:#fff;border:1px solid var(--rule);border-bottom-width:2px;border-radius:var(--r-sm);padding:2px 10px;min-width:170px;color:var(--ink);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.blank:focus{outline:none;border-color:var(--accent);background:var(--accent-wash)}
+.blank[data-state="ok"]{border-color:var(--ok);background:var(--ok-wash);color:var(--ok)}
+.blank[data-state="bad"]{border-color:var(--err);background:var(--err-wash);color:var(--err)}
+.blank[data-state="hint"]{border-color:var(--warn);background:var(--warn-wash)}
+
+/* 代码运行器 */
+.runner{margin-top:var(--s-4);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s-4)}
+.editor{display:block;width:100%;min-height:150px;background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:var(--s-4);font-family:var(--font-mono);font-size:12.5px;line-height:1.75;resize:vertical;tab-size:4}
+.editor:focus{outline:none;border-color:var(--accent)}
+.term{background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:var(--s-4);font-family:var(--font-mono);font-size:12px;line-height:1.7;height:150px;overflow:auto;white-space:pre-wrap;color:var(--ink-2)}
+.term .ok{color:var(--ok)}
+.term .err{color:var(--err);font-weight:600}
+.term .dim{color:var(--ink-3)}
+.run-ctrl{display:flex;gap:var(--s-3);align-items:center;margin-top:var(--s-4);flex-wrap:wrap}
+.num-in{width:64px;height:34px;padding:0 10px;background:#fff;border:1px solid var(--rule);border-radius:var(--r-md);font-family:var(--font-mono);font-size:12.5px}
+
+/* 拖拽匹配 */
+.match{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s-6);margin-top:var(--s-4)}
+.match-col-h{margin-bottom:var(--s-3)}
+.stage-slots{display:grid;gap:var(--s-3)}
+.slot{min-height:56px;border:1px dashed var(--rule);border-radius:var(--r-md);padding:8px 10px;background:var(--surface);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.slot.is-over{border:1.5px solid var(--accent);background:var(--accent-wash)}
+.slot[data-state="ok"]{border:1.5px solid var(--ok);background:var(--ok-wash)}
+.slot[data-state="bad"]{border:1.5px solid var(--err);background:var(--err-wash)}
+.slot-label{font-size:12.5px;font-weight:600;color:var(--ink)}
+.chips{display:grid;gap:var(--s-3);align-content:start}
+.chip{display:block;width:100%;text-align:left;min-height:36px;padding:8px 14px;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);font-size:12.5px;line-height:1.5;cursor:grab;transition:transform var(--t-1) var(--ease-out),box-shadow var(--t-1) var(--ease-out),border-color var(--t-1) var(--ease-inout)}
+.chip:hover{border-color:var(--rule)}
+.chip.is-sel{border-color:var(--accent);background:var(--accent-wash);box-shadow:var(--sh-2)}
+.chip.is-drag{transform:scale(1.02);box-shadow:var(--sh-2)}
+.chip[data-state="ok"]{border-color:var(--ok);background:var(--ok-wash)}
+.chip[data-state="bad"]{border-color:var(--err);background:var(--err-wash)}
+.slot .chip{margin:0}
+.match-fb{margin-top:var(--s-4);font-size:12.5px;line-height:1.7;display:none}
+.match-fb.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+
+/* ── 提示阶梯 ───────────────────────────────────────────── */
+.ladder{margin-top:var(--s-8)}
+.ladder-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.ladder-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s-6);align-items:end;margin-top:var(--s-5);border-bottom:1px solid var(--rule);padding-bottom:0}
+.ladder-step{display:flex;flex-direction:column;justify-content:space-between;gap:var(--s-3);padding:14px 16px;border-radius:var(--r-lg);border:1px solid transparent;cursor:pointer;text-align:left;transition:transform var(--t-2) var(--ease-out),border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.ladder-step[data-h="1"]{height:60px}
+.ladder-step[data-h="2"]{height:76px}
+.ladder-step[data-h="3"]{height:96px}
+.ladder-step[data-h="4"]{height:112px}
+.ladder-step .ls-t{font-size:13.5px;font-weight:600;line-height:1.4}
+.ladder-step .ls-s{font-size:11px;line-height:1.4}
+.ladder-step[data-state="used"][data-h="1"]{background:var(--hint-1)}
+.ladder-step[data-state="used"][data-h="2"]{background:var(--hint-2)}
+.ladder-step[data-state="used"] .ls-t{color:var(--ink)}
+.ladder-step[data-state="used"] .ls-s{color:#3F3210}
+.ladder-step[data-state="avail"]{background:var(--warn-wash);border:1.5px solid var(--warn)}
+.ladder-step[data-state="avail"] .ls-t{color:var(--warn)}
+.ladder-step[data-state="avail"] .ls-s{color:#8A6A2A}
+.ladder-step[data-state="locked"]{background:var(--surface-sunk);border:1px solid var(--hairline)}
+.ladder-step[data-state="locked"] .ls-t{color:var(--ink-2)}
+.ladder-step[data-state="locked"] .ls-s{color:var(--ink-3)}
+.ladder-step:hover{transform:translateY(-2px)}
+.ladder-note{margin-top:var(--s-3);font-size:12px;color:var(--ink-3)}
+.hint-body{margin-top:var(--s-4);display:grid;gap:var(--s-4)}
+.hint-card{background:var(--surface);border:1px solid var(--hairline);border-left:3px solid var(--hint-1);border-radius:0 var(--r-lg) var(--r-lg) 0;padding:var(--s-5)}
+.hint-card[data-lv="2"]{border-left-color:var(--hint-2)}
+.hint-card[data-lv="3"]{border-left-color:var(--hint-3)}
+.hint-card[data-lv="4"]{border-left-color:var(--hint-4)}
+.hint-card .micro{display:block;margin-bottom:var(--s-3)}
+.hint-card p{font-size:13.5px;line-height:1.75;color:var(--ink-2)}
+.hint-card pre{margin:var(--s-3) 0 0;background:var(--surface-mute);border-radius:var(--r-md);padding:var(--s-4);font-size:12.5px;line-height:1.8;overflow-x:auto}
+.confirm{margin-top:var(--s-3);padding:var(--s-5);border-radius:var(--r-lg);background:var(--warn-wash);border:1.5px solid var(--warn)}
+.confirm p{font-size:13px;line-height:1.7;color:#8A6A2A;margin-bottom:var(--s-4)}
+.verify{margin-top:var(--s-6);background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.verify textarea{display:block;width:100%;min-height:72px;margin-top:var(--s-4);background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s-4);font-size:13px;line-height:1.7;resize:vertical}
+.verify textarea:focus{outline:none;border-color:var(--accent)}
+
+/* ── 反馈面板 ───────────────────────────────────────────── */
+.result{display:grid;grid-template-columns:minmax(0,1fr) var(--side-col);gap:var(--col-gap);margin-top:var(--s-16);align-items:start}
+.fb{position:relative;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6);overflow:hidden}
+.fb-bar{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);transition:background var(--t-2) var(--ease-inout)}
+.fb-badge{display:inline-block;padding:3px 12px;border-radius:var(--r-pill);background:var(--surface-sunk);font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--ink-3);transition:background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout)}
+.fb-badge[data-t="ok"]{background:var(--ok-wash);color:var(--ok)}
+.fb-badge[data-t="warn"]{background:var(--warn-wash);color:var(--warn)}
+.fb-badge[data-t="err"]{background:var(--err-wash);color:var(--err)}
+.fb-sec{margin-top:var(--s-5)}
+.fb-sec h4{margin:0 0 4px;font-family:var(--font-sans);font-size:12.5px;font-weight:600}
+.fb-sec p{font-size:13px;line-height:1.65;color:var(--ink-2)}
+.fb-s1 h4{color:var(--ok)} .fb-s2 h4{color:var(--warn)} .fb-s3 h4{color:var(--accent)}
+.score{background:var(--surface-sunk);border-radius:var(--r-xl);padding:var(--s-6)}
+.score-rows{margin-top:var(--s-5);display:grid;gap:var(--s-4)}
+.score-row{display:grid;grid-template-columns:minmax(0,1fr) 136px;gap:var(--s-4);align-items:center}
+.score-key{font-size:11.5px;font-weight:500;color:var(--ink-2)}
+.score-key b{font-family:var(--font-mono);font-weight:600;margin-left:6px}
+.score-track{height:7px;border-radius:4px;background:var(--hairline);overflow:hidden}
+.score-fill{height:100%;width:0;border-radius:4px;background:var(--accent);transition:width var(--t-4) var(--ease-out)}
+.score-fill[data-k="correctness"]{background:var(--ok)}
+.score-fill[data-k="reasoning_quality"]{background:var(--warn)}
+
+/* ── 证据轨 ─────────────────────────────────────────────── */
+.rail{margin-top:var(--s-16)}
+.rail-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.rail-track{position:relative;height:2px;background:var(--hairline);margin-top:var(--s-5)}
+.rail-dots{position:absolute;inset:0}
+.rail-dot{position:absolute;top:-3px;width:8px;height:8px;border-radius:4px;transition:transform var(--t-3) var(--ease-out);animation:pop var(--t-3) var(--ease-out) both}
+.rail-dot--last{width:12px;height:12px;top:-5px;border-radius:6px;box-shadow:0 0 0 3px var(--paper),0 0 0 4px var(--accent-wash)}
+@keyframes pop{from{transform:scale(.4)}to{transform:scale(1)}}
+.rail-foot{display:flex;justify-content:space-between;gap:var(--s-4);margin-top:var(--s-4);font-size:11.5px;color:var(--ink-3);flex-wrap:wrap}
+
+/* ── 输出控制台 ─────────────────────────────────────────── */
+.console{margin-top:var(--s-8)}
+.console-bar{display:flex;align-items:center;gap:var(--s-4);width:100%;min-height:46px;padding:0 var(--s-5);background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-lg);cursor:pointer;text-align:left;transition:background var(--t-1) var(--ease-inout)}
+.console-bar:hover{background:var(--surface-mute)}
+.console-bar .cb-t{font-size:12.5px;font-weight:500;color:var(--ink-2)}
+.console-bar .cb-a{margin-left:auto;font-size:12px;font-weight:500;color:var(--accent);white-space:nowrap}
+.console-json{display:none;margin-top:var(--s-3);background:var(--surface-mute);border-radius:var(--r-lg);padding:var(--s-5);max-height:420px;overflow:auto}
+.console-json.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+#leap-interaction-output{margin:0;font-size:11.5px;line-height:1.65;color:var(--ink-2);white-space:pre}
+.foot{margin-top:var(--s-16);padding:var(--s-8) 0 var(--s-16);border-top:1px solid var(--hairline);font-size:11.5px;color:var(--ink-3);line-height:1.8}
+
+/* ── 响应式 ─────────────────────────────────────────────── */
+@media (max-width:1199px){
+  :root{--page-pad:48px;--page-max:776px}
+  .cols{grid-template-columns:minmax(0,1fr)}
+  .side{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .result{grid-template-columns:minmax(0,1fr)}
+  .stage-grid{grid-template-columns:minmax(0,1fr)}
+  .runner{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:899px){
+  :root{--page-pad:32px;--page-gap:40px;--col-gap:40px}
+  .spine-rev{margin-left:0}
+  .match{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:600px){
+  :root{--page-pad:20px;--fs-display:23px;--fs-h2:19px;--fs-h3:16px;--fs-body:15px;--zone-gap:48px}
+  .spine-in{gap:var(--s-5);padding:12px 20px}
+  .brand-node{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mas-track{width:80px}
+  .ev-seg{width:18px;height:7px}
+  .ladder-steps{grid-template-columns:minmax(0,1fr);gap:var(--s-3);border-bottom:none}
+  .ladder-step{height:auto!important;min-height:48px;flex-direction:row;align-items:center;justify-content:flex-start;gap:var(--s-4)}
+  .btn{height:36px;padding:0 14px}
+  .code{font-size:11.5px}
+  .blank{min-width:120px;font-size:11.5px}
+}
+  /* ── 宿主桥接条（LEAP_HOST_BRIDGE）──────────────────── */
+  .bridge-strip{display:flex;align-items:center;justify-content:space-between;gap:var(--s-4);
+    min-height:46px;padding:var(--s-3) var(--s-5);margin-bottom:var(--s-3);
+    background:var(--accent-wash);border:1px solid var(--hairline);border-radius:var(--r-lg)}
+  .bs-l{display:flex;flex-direction:column;gap:var(--s-1);min-width:0}
+  .bs-t{font-size:var(--fs-small);color:var(--ink-2)}
+  .bs-btn{flex:0 0 auto;height:32px;padding:0 var(--s-4);border:1px solid var(--rule);
+    border-radius:var(--r-md);background:var(--surface);color:var(--accent);
+    font:500 12.5px/1 var(--font-sans);cursor:pointer;transition:background var(--t-2) var(--ease-out)}
+  .bs-btn:hover{background:var(--accent-wash)}
+  .bs-btn:disabled{color:var(--ink-3);background:var(--surface-sunk);cursor:default}
+  .bridge-out{margin:0 0 var(--s-3);padding:var(--s-5);background:var(--surface-mute);
+    border:1px solid var(--hairline);border-radius:var(--r-lg);
+    font:400 var(--fs-mono)/1.6 var(--font-mono);color:var(--ink-2);
+    white-space:pre-wrap;word-break:break-all;max-height:320px;overflow:auto}
+
+/* ══════════════════════════════════════════════════════════════
+   新增 CSS · 物理学科图形（Canvas 舞台 / 滑块 / 读数 / 原生 MathML 公式）
+   仅新增，未改动上述任何既有类数值
+   ══════════════════════════════════════════════════════════════ */
+.math-block{margin-top:var(--s-5);display:grid;gap:var(--s-4);background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:var(--s-6)}
+.math-row{display:flex;align-items:center;justify-content:center;gap:var(--s-8);flex-wrap:wrap}
+.math-row math{font-size:26px}
+.math-cap{font-size:var(--fs-small);color:var(--ink-3);text-align:center;margin-top:var(--s-2)}
+
+.sim-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s-5);margin-top:var(--s-4)}
+.sim-panel{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s-4)}
+.sim-panel .micro{display:block;margin-bottom:var(--s-2)}
+.sim-canvas{display:block;width:100%;height:auto;border-radius:var(--r-sm)}
+
+.sim-readouts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-4);margin-top:var(--s-5)}
+.readout{background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s-4);text-align:center}
+.readout .ro-k{font-size:var(--fs-micro);color:var(--ink-3);letter-spacing:.1em}
+.readout .ro-v{margin-top:var(--s-2);font-family:var(--font-mono);font-size:20px;font-weight:600;color:var(--accent)}
+.readout .ro-u{font-size:var(--fs-small);color:var(--ink-2);margin-left:2px}
+
+.sim-controls{margin-top:var(--s-5);display:grid;gap:var(--s-5)}
+.slider-row{display:grid;gap:var(--s-2)}
+.slider-row .sr-top{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s-3)}
+.slider-row .sr-label{font-size:13.5px;font-weight:600;color:var(--ink)}
+.slider-row .sr-val{font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--accent)}
+.slider-row input[type=range]{width:100%;accent-color:var(--accent);height:24px}
+.preset-row{display:flex;gap:var(--s-2);flex-wrap:wrap;margin-top:var(--s-2)}
+.preset{height:30px;padding:0 12px;border-radius:var(--r-md);border:1px solid var(--rule);background:var(--surface);font-size:12px;color:var(--ink-2);cursor:pointer;transition:border-color var(--t-1) var(--ease-inout),color var(--t-1) var(--ease-inout),background var(--t-1) var(--ease-inout)}
+.preset:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-wash)}
+
+.calc{margin-top:var(--s-4);background:var(--surface-mute);border-radius:var(--r-lg);padding:var(--s-5)}
+.calc-line{display:flex;align-items:center;gap:var(--s-3);flex-wrap:wrap;font-family:var(--font-mono);font-size:13px;line-height:2.1}
+.calc-line + .calc-line{margin-top:var(--s-3)}
+.calc .blank{font-family:var(--font-mono)}
+
+@media (max-width:899px){
+  .sim-grid{grid-template-columns:minmax(0,1fr)}
+  .math-row{gap:var(--s-5)}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#teaching">跳到教学内容</a>
+
+<!-- ═══ 进度脊柱 ═════════════════════════════════════════════ -->
+<header class="spine">
+  <div class="spine-in">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">LEAP</span>
+      <span class="brand-node">物理 · 力学 · 自由落体 h = ½gt²</span>
+    </div>
+
+    <div class="spine-ev">
+      <div class="micro" id="evLabel">EVIDENCE STAGE · 证据阶段</div>
+      <div class="ev-track" id="evTrack" role="img" aria-label="证据阶段轨道，当前为 estimated 仅估计">
+        <span class="ev-seg" data-stage="estimated"></span>
+        <span class="ev-seg" data-stage="practiced"></span>
+        <span class="ev-seg" data-stage="demonstrated"></span>
+        <span class="ev-seg" data-stage="retained"></span>
+        <span class="ev-seg" data-stage="transferred"></span>
+      </div>
+    </div>
+    <div class="spine-hop"><span class="spine-name" id="evName">estimated · 仅估计</span></div>
+
+    <div class="spine-mas">
+      <div class="micro">MASTERY · 掌握度</div>
+      <div class="mas-row">
+        <div class="mas-track"><div class="mas-fill" id="masFill" style="width:70%"></div></div>
+        <span class="mas-val" id="masVal">0.70</span>
+      </div>
+    </div>
+
+    <div class="spine-rev">
+      <div class="micro">NEXT REVIEW</div>
+      <span class="val">1 天后 · 09/20</span>
+    </div>
+  </div>
+  <p class="spine-note" id="spineNote">本页掌握度与证据阶段为<b>本地模拟</b>，用于演示界面如何呈现学习状态；真实系统中二者由 LEAP Runtime 的 BKT 估计器与 State Guard 计算（见 LEAP_Framework_V2 §10.2‑1）。</p>
+</header>
+
+<main class="wrap">
+
+  <!-- ═══ Zone 01 · 教学内容 ═══════════════════════════════ -->
+  <section class="zone" id="teaching" aria-labelledby="z1t">
+    <div class="zone-head">
+      <div class="micro micro--accent">01 · TEACHING · 教学内容</div>
+      <h1 class="zone-title" id="z1t">自由落体运动 —— h = ½gt² 与位移模拟</h1>
+      <p class="zone-goal">学完这一节，你能用 h = ½gt² 计算任意高度、任意引力下的落地时间与落地速度，并解释「为什么重的物体不会落得更快」。</p>
+      <p class="zone-meta">预计 12 分钟　·　难度 2/5　·　先修：匀加速直线运动、初速度与加速度</p>
+      <div class="zone-rule"></div>
+    </div>
+
+    <div class="zone-body">
+      <div class="cols">
+        <div class="col-main">
+          <p>自由落体是指物体<b>只在重力作用下、初速度为零</b>从静止开始下落的运动。在忽略空气阻力时，它是一种匀加速直线运动：加速度大小等于当地的<b>重力加速度 g</b>，方向竖直向下。</p>
+
+          <div class="quote">因为加速度 g 与物体质量无关，所以在真空中，无论羽毛还是铁球，从同一高度释放都会<b>同时落地</b>。差异只来自空气阻力，而不是重力本身。</div>
+
+          <h2 style="font-size:var(--fs-h3)">三个核心公式（原生 MathML 渲染）</h2>
+          <div class="math-block" role="group" aria-label="自由落体三个核心公式">
+            <div class="math-row">
+              <math><mi>h</mi><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>g</mi><msup><mi>t</mi><mn>2</mn></msup></math>
+              <math><mi>v</mi><mo>=</mo><mi>g</mi><mi>t</mi></math>
+              <math><mi>v</mi><mo>=</mo><msqrt><mn>2</mn><mi>g</mi><mi>h</mi></msqrt></math>
+            </div>
+            <p class="math-cap">下落位移 h（米）· 落地速度 v（米／秒）· 时间 t（秒）· g 为重力加速度（米／秒²）</p>
+          </div>
+
+          <ul class="terms">
+            <li>①　<b>自由落体</b> —— 初速度为零、只受重力的下落运动，加速度恒为 g。</li>
+            <li>②　<b>重力加速度 g</b> —— 地球表面约 9.8 m/s²；月球约 1.6，木星约 24，由天体质量与半径决定。</li>
+            <li>③　<b>落地时间 t</b> —— 由 h = ½gt² 反解：t = √(2h/g)；落地速度 v = g·t = √(2gh)。</li>
+          </ul>
+
+          <!-- 理解检查 -->
+          <div class="cp" id="cp">
+            <div class="micro micro--accent">CHECKPOINT · 理解检查</div>
+            <p class="cp-q">在真空中，从同一高度同时释放一个铁球和一个羽毛（初速度都为零），会发生什么？</p>
+            <div class="cp-opts" role="group" aria-label="理解检查选项">
+              <button class="opt" type="button" data-v="bad" data-why="铁球确实更重，但重力给它的更大拉力，恰好被它更大的惯性（质量）抵消——加速度仍由 g 决定，与质量无关。" aria-pressed="false">A. 铁球先落地，因为它受到更大的重力</button>
+              <button class="opt" type="button" data-v="ok" data-why="正确。真空中没有空气阻力，二者加速度都是 g，从同一高度、同一初速度开始，必同时落地。1971 年阿波罗 15 号在月球上用锤子和羽毛做过这个实验。" aria-pressed="false">B. 同时落地，因为加速度 g 与质量无关</button>
+            </div>
+            <div class="cp-rule"></div>
+            <p class="cp-fb" id="cpFb" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <aside class="side" aria-label="辅助卡片">
+          <div class="card">
+            <span class="micro">KEY FORM · 关键式子</span>
+            <span class="formula">h = ½ g t²</span>
+            <span class="formula formula--base">v = g t = √(2 g h)</span>
+            <p class="card-foot">墨色 = 位移公式，绿色 = 速度公式（两式等价）。</p>
+          </div>
+
+          <div class="card card--err">
+            <span class="micro">MISCONCEPTION · 常见误解</span>
+            <p class="card-body">「重的物体下落更快」——这是亚里士多德的错误直觉。在<b>真实空气</b>里羽毛确实慢，但那是因为空气阻力，不是因为重力偏爱轻的东西。抽掉空气（真空），二者同步落地。</p>
+          </div>
+
+          <div class="card card--sunk">
+            <span class="micro">REQUIRED EVIDENCE · 达标要求</span>
+            <ul class="reqs">
+              <li>掌握度 mastery ≥ 0.80</li>
+              <li>提示依赖 hint_dependency ≤ 0.50</li>
+              <li>至少 1 次在无提示条件下独立完成计算</li>
+              <li data-kind="transfer">迁移验证：换一组 h 与 g 算出 t 与 v</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Zone 02 · 交互练习 ═════════════════════════════════ -->
+  <section class="zone" id="practice" aria-labelledby="z2t">
+    <div class="zone-head">
+      <div class="micro micro--accent">02 · PRACTICE · 交互练习</div>
+      <h2 class="zone-title" id="z2t">自由落体模拟：拖动滑块看小球下落与 h–t 曲线</h2>
+      <p class="zone-goal">先调参数、看动画与曲线如何联动，再亲手算一次落地时间与速度。</p>
+      <p class="zone-meta">1 个物理模拟 + 1 道计算填空　·　即时反馈　·　全部结果写入下方 Agent 输出区</p>
+      <div class="zone-rule"></div>
+    </div>
+
+    <div class="zone-body">
+
+      <!-- Stage：自由落体模拟 -->
+      <div class="stage">
+        <div class="micro">STAGE · FREE FALL SIMULATION</div>
+        <p class="stage-title">小球下落动画 与 下落位移—时间曲线（共用同一条时间轴）</p>
+
+        <div class="sim-grid">
+          <div class="sim-panel">
+            <span class="micro">DROP · 下落动画</span>
+            <canvas class="sim-canvas" id="dropCanvas" width="480" height="300" role="img" aria-label="小球下落动画，含地面与带刻度的高度标尺"></canvas>
+          </div>
+          <div class="sim-panel">
+            <span class="micro">h–t CURVE · 下落位移曲线</span>
+            <canvas class="sim-canvas" id="curveCanvas" width="480" height="300" role="img" aria-label="下落位移随时间变化的抛物线曲线，标注当前时刻位置点"></canvas>
+          </div>
+        </div>
+
+        <div class="sim-readouts">
+          <div class="readout"><div class="ro-k">当前高度</div><div class="ro-v"><span id="roH">0.0</span><span class="ro-u">m</span></div></div>
+          <div class="readout"><div class="ro-k">当前速度</div><div class="ro-v"><span id="roV">0.0</span><span class="ro-u">m/s</span></div></div>
+          <div class="readout"><div class="ro-k">已用时间</div><div class="ro-v"><span id="roT">0.00</span><span class="ro-u">s</span></div></div>
+        </div>
+
+        <div class="sim-controls">
+          <div class="slider-row">
+            <div class="sr-top"><span class="sr-label">初始高度 h</span><span class="sr-val"><span id="hVal">50</span> m</span></div>
+            <input type="range" id="hSlider" min="10" max="100" step="1" value="50" aria-label="初始高度 h，单位米，范围 10 到 100">
+          </div>
+          <div class="slider-row">
+            <div class="sr-top"><span class="sr-label">重力加速度 g</span><span class="sr-val"><span id="gVal">9.8</span> m/s²</span></div>
+            <input type="range" id="gSlider" min="1" max="25" step="0.1" value="9.8" aria-label="重力加速度 g，单位米每二次方秒，范围 1 到 25（月球约 1.6，地球约 9.8，木星约 24）">
+            <div class="preset-row">
+              <button class="preset" type="button" data-g="1.6">月球 1.6</button>
+              <button class="preset" type="button" data-g="9.8">地球 9.8</button>
+              <button class="preset" type="button" data-g="24">木星 24</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage-ctrl">
+          <button class="btn btn--primary" id="btnPlay" type="button">播放</button>
+          <button class="btn btn--outline" id="btnStep" type="button">单步</button>
+          <button class="btn btn--outline" id="btnReset" type="button">重置</button>
+          <span class="kbd-hint">← → 单步　·　空格 播放 / 暂停</span>
+        </div>
+        <p class="legend" style="margin-top:var(--s-4)">拖动滑块即可实时改变动画、读数与曲线；曲线与圆点共用同一条时间轴，小球落地时曲线同时到达终点。单步按固定时间片推进。</p>
+      </div>
+
+      <!-- 任务 1：计算填空 -->
+      <div class="task" style="margin-top:var(--s-16)">
+        <div class="task-head">
+          <span class="task-id">Q1</span>
+          <h3 class="task-title">计算落地时间与落地速度</h3>
+        </div>
+        <p class="task-lead">从高度 <b>h = 45 m</b> 自由下落（初速度 0，取 <b>g = 9.8 m/s²</b>）。求落地时间 t 与落地速度 v，保留合适的小数位。系统接受 ±2% 误差，也接受多位小数。</p>
+
+        <div class="calc">
+          <div class="calc-line">落地时间　t = <input class="blank" id="ansT" type="text" aria-label="落地时间 t，单位秒" placeholder="？ s" autocomplete="off" spellcheck="false"></div>
+          <div class="calc-line">落地速度　v = <input class="blank" id="ansV" type="text" aria-label="落地速度 v，单位米每秒" placeholder="？ m/s" autocomplete="off" spellcheck="false"></div>
+        </div>
+
+        <div class="btn-row" style="margin-top:var(--s-5)">
+          <button class="btn btn--primary" id="btnSubmitQ1" type="button">提交作答</button>
+          <button class="btn btn--ghost btn--sm" id="btnClearQ1" type="button">清空重填</button>
+        </div>
+
+        <div class="match-fb" id="q1Fb" role="status" aria-live="polite"></div>
+
+        <div class="note">提示：t = √(2h/g)，v = g·t = √(2gh)。系统会区分「代公式对但算错」「公式用错（例如拿 h 乘 g）」「把 t 和 v 混用，或认为需要质量 m」。答案保留两位小数即可。</div>
+      </div>
+
+      <!-- 提示阶梯 -->
+      <div class="ladder">
+        <div class="ladder-head">
+          <div class="micro micro--accent">PROGRESSIVE DISCLOSURE · 提示阶梯</div>
+          <span style="font-size:12px;color:var(--ink-3)">每一级都必须由你主动点击——它会被记为你的提示依赖</span>
+        </div>
+
+        <div class="ladder-steps" id="ladder" role="group" aria-label="分级提示">
+          <button class="ladder-step" type="button" data-lv="1" data-h="1" data-state="avail">
+            <span class="ls-t">① 引导问题</span><span class="ls-s">只给方向</span>
+          </button>
+          <button class="ladder-step" type="button" data-lv="2" data-h="2" data-state="locked" disabled>
+            <span class="ls-t">② 策略提示</span><span class="ls-s">给思路</span>
+          </button>
+          <button class="ladder-step" type="button" data-lv="3" data-h="3" data-state="locked" disabled>
+            <span class="ls-t">③ 部分示范</span><span class="ls-s">给前半段</span>
+          </button>
+          <button class="ladder-step" type="button" data-lv="4" data-h="4" data-state="locked" disabled>
+            <span class="ls-t">④ 完整答案</span><span class="ls-s">需二次确认</span>
+          </button>
+        </div>
+        <p class="ladder-note" id="ladderNote">阶梯高度 = 支持强度。已用层级越高，hint_dependency 越高；本节点当前 0.00。</p>
+
+        <div class="hint-body" id="hintBody"></div>
+      </div>
+
+      <!-- 反馈 + 评分 -->
+      <div class="result">
+        <div class="fb" id="fb">
+          <div class="fb-bar" id="fbBar"></div>
+          <span class="fb-badge" id="fbBadge">等待作答</span>
+          <div class="fb-sec fb-s1">
+            <h4>你做对的部分</h4>
+            <p id="fbS1">提交任意一题后，这里会先指出你判断正确的部分。</p>
+          </div>
+          <div class="fb-sec fb-s2">
+            <h4>卡在哪里</h4>
+            <p id="fbS2">如果答错，这里会定位到具体的错误点，并说明缺失的是哪个概念。</p>
+          </div>
+          <div class="fb-sec fb-s3">
+            <h4>下一步</h4>
+            <p id="fbS3">这里会给一个你现在就能执行的动作。</p>
+          </div>
+        </div>
+
+        <div class="score">
+          <div class="micro">ASSESSMENT · 多维评分</div>
+          <div class="score-rows" id="scoreRows"></div>
+          <p class="card-foot">transfer 与 hint_dependency 不参与 overall_score 聚合，仅作为 Policy 输入。</p>
+        </div>
+      </div>
+
+      <!-- 后置验证 -->
+      <div class="verify" id="verify" hidden>
+        <div class="micro micro--accent">POST-VERIFICATION · 后置验证（完整答案后必做）</div>
+        <p class="task-lead" style="margin-top:var(--s-4)">你已经看过完整答案。要证明你理解的是<b>原理</b>而不是这一段数字，请完成下面这道变式题——这是本次任务结束的唯一条件。</p>
+        <p style="margin-top:var(--s-4);font-size:13.5px;font-weight:600">变式：高度 h = 80 m，重力加速度 g = 10 m/s²（初速度 0）。求落地时间 t 与落地速度 v（保留两位小数）。并用一句话说明你为什么这样算。</p>
+        <div class="calc" style="margin-top:var(--s-4)">
+          <div class="calc-line">落地时间　t = <input class="blank" id="ansT2" type="text" aria-label="变式落地时间 t，单位秒" placeholder="？ s" autocomplete="off" spellcheck="false"></div>
+          <div class="calc-line">落地速度　v = <input class="blank" id="ansV2" type="text" aria-label="变式落地速度 v，单位米每秒" placeholder="？ m/s" autocomplete="off" spellcheck="false"></div>
+        </div>
+        <textarea id="verifyInput" aria-label="后置验证作答：说明计算思路" placeholder="用一两句话说清楚即可，例如：先 t = √(2h/g)，再 v = g·t。"></textarea>
+        <div class="btn-row" style="margin-top:var(--s-4)">
+          <button class="btn btn--primary" id="btnVerify" type="button">提交变式题</button>
+        </div>
+        <div class="match-fb" id="verifyFb" role="status" aria-live="polite"></div>
+      </div>
+
+      <!-- 证据轨 -->
+      <div class="rail">
+        <div class="rail-head">
+          <div class="micro">EVIDENCE TRAIL · 本次会话事件</div>
+          <span style="font-size:12px;color:var(--ink-3)" id="railCount">已产生 0 条事件（只追加，不覆盖）</span>
+        </div>
+        <div class="rail-track">
+          <div class="rail-dots" id="railDots"></div>
+        </div>
+        <div class="rail-foot">
+          <span id="railLast">尚无事件</span>
+          <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--ev-practiced);margin-right:5px"></i>作答　<i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--warn);margin-right:5px;margin-left:10px"></i>提示　<i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--ev-demonstrated);margin-right:5px;margin-left:10px"></i>运行　<i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--ok);margin-right:5px;margin-left:10px"></i>完成</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Zone 03 · Agent 数据输出 ═════════════════════════════ -->
+  <section class="zone" id="output" aria-labelledby="z3t">
+    <div class="zone-head">
+      <div class="micro micro--accent">03 · AGENT OUTPUT · 数据输出</div>
+      <h2 class="zone-title" id="z3t">交给宿主 Agent 的交互结果</h2>
+      <p class="zone-goal">这一区不是调试信息，而是学习者本次会话的完整档案。宿主 Agent 通过它驱动下一轮教学决策。</p>
+      <div class="zone-rule"></div>
+    </div>
+
+    <div class="zone-body">
+      <div class="bridge-strip" id="bridgeStrip">
+        <div class="bs-l">
+          <span class="micro micro--accent" id="bridgeMode">BRIDGE · 演示模式</span>
+          <span class="bs-t" id="bridgeSummary">未接入宿主 Agent；学习动作会累积为待执行的 MCP 调用。</span>
+        </div>
+        <button class="bs-btn" id="bridgeDrain" type="button">取出调用队列 ▾</button>
+      </div>
+      <pre class="bridge-out" id="bridgeOutbox" hidden></pre>
+      <div class="console">
+        <button class="console-bar" id="consoleBar" type="button" aria-expanded="false" aria-controls="consoleJson">
+          <span class="cb-t" id="consoleSummary">AGENT OUTPUT · 已记录 0 条事件</span>
+          <span class="cb-a" id="consoleAction">展开 JSON ▾</span>
+        </button>
+        <div class="console-json" id="consoleJson">
+          <pre id="leap-interaction-output"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot">
+    LEAP‑V2 分学科前端示例 · 示例 4（物理 / 自由落体）　·　node_id <code>physics.mechanics.free_fall</code>　·　unit_tag <code>free-fall</code><br>
+    单文件零依赖 · 零 CDN · 零外部图片 · 全部图形为内联 Canvas / 原生 MathML 绘制　·　结构规范见 <code>examples/_shared/leap-web-spec.md</code>，视觉规范见 <code>LEAP_视觉设计理念_给Gemini.md</code>
+  </p>
+</main>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   LEAP Runtime 交互结果内核（JSON 契约 · 证据轨 · 评分聚合）
+   契约来源：examples/_shared/interaction-output.schema.json
+   ══════════════════════════════════════════════════════════════ */
+window.LEAP = (function () {
+  "use strict";
+
+  var state = {
+    leap_version: "2.0",
+    example_id: "free-fall",
+    subject: "physics",
+    node: { node_id: "physics.mechanics.free_fall", title: "自由落体运动", unit_tag: "free-fall" },
+    learner: { learner_id: "REPLACE_WITH_LEARNER_ID", session_id: "REPLACE_WITH_SESSION_ID" },
+    events: [],
+    assessment: blankAssessment(),
+    ui_state: {
+      mode: "demo", hosted: false, pending_mcp_calls: 0,
+      hint_dependency: 0, hint_level: 0, answer_revealed: false, completed: false
+    }
+  };
+
+  var mastery = 0.70;                       /* 本地模拟值 */
+  var HINT_DEP = [0, 0.25, 0.40, 0.60, 0.85];
+  var STAGE_ORDER = ["estimated", "practiced", "demonstrated", "retained", "transferred"];
+  var EVENT_COLOR = {
+    attempt_submitted: "#4C7BD9",
+    hint_used: "#B3861A",
+    answer_revealed: "#7A7F8A",
+    drag_submitted: "#4C7BD9",
+    code_run: "#2E8B84",
+    reflection_recorded: "#4C8B3F",
+    item_completed: "#2E7D5B"
+  };
+
+  /* ══ LEAP_HOST_BRIDGE · 宿主桥接 ══════════════════════════════════
+     本页只负责「呈现 + 采集」，不做任何状态判定：
+       · mastery_probability / evidence_stage / hint_dependency 由 LEAP Runtime
+         计算（LEAP_Framework_V2 §10.2‑1），本页只显示 hydrate() 注入的值；
+       · 学习者的每个动作都会被翻译成一条待执行的 MCP 调用，进入 outbox，
+         由宿主 Agent 通过 LEAP.drainOutbox() 取走后真正执行。
+     未调用 hydrate() 时保持 demo 模式，本地推算值一律标记 provisional。 */
+  var bridge = {
+    mode: "demo",
+    context: null,
+    server: {
+      mastery_probability: mastery,
+      evidence_stage: "estimated",
+      hint_dependency: 0,
+      next_review_at: null,
+      transfer_required: false
+    },
+    outbox: [],
+    seq: 0,
+    hooks: [],
+    last_attempt_call_id: null,
+    last_raw_answer: ""
+  };
+
+  function clamp01(v) { return Math.max(0, Math.min(1, Number(v))); }
+  function isHosted() { return bridge.mode === "hosted"; }
+  function peekOutbox() { return clone(bridge.outbox); }
+  function drainOutbox() { var out = clone(bridge.outbox); bridge.outbox.length = 0; renderAll(); return out; }
+  function onOutboxChange(fn) { if (typeof fn === "function") bridge.hooks.push(fn); }
+
+  function enqueue(tool, args, note) {
+    var call = {
+      call_id: "call_" + (++bridge.seq),
+      tool: tool,
+      args: args || {},
+      status: "pending",
+      created_at: nowSec(),
+      note: note || ""
+    };
+    bridge.outbox.push(call);
+    for (var i = 0; i < bridge.hooks.length; i++) { try { bridge.hooks[i](call, bridge.outbox.length); } catch (e) {} }
+    return call;
+  }
+
+  /* 事件 → MCP 调用映射。hint_used / answer_revealed / item_completed 不单独
+     产生调用：它们的信息通过后续 attempt 的 hint_level 一并提交。 */
+  var EVENT_TO_TOOL = {
+    attempt_submitted: "submit_attempt",
+    drag_submitted: "submit_attempt",
+    code_run: "submit_attempt",
+    reflection_recorded: "record_reflection"
+  };
+
+  function enqueueForEvent(ev) {
+    var tool = EVENT_TO_TOOL[ev.event_type];
+    if (!tool) return null;
+    var raw = ev.answer == null ? "" : String(ev.answer);
+
+    if (tool === "submit_attempt") {
+      bridge.last_raw_answer = raw;
+      var call = enqueue("submit_attempt", {
+        session_id: state.learner.session_id,
+        answer: raw,
+        node_id: state.node.node_id,
+        item_id: ev.item_id || null,
+        hint_level: typeof ev.hint_level === "number" ? ev.hint_level : state.ui_state.hint_level,
+        response_time: typeof ev.response_time === "number" ? ev.response_time : null
+      }, "提交本次作答；返回的 attempt_id 供 commit_assessment 使用");
+      bridge.last_attempt_call_id = call.call_id;
+      return call;
+    }
+    return enqueue("record_reflection", {
+      session_id: state.learner.session_id,
+      reflection: raw,
+      node_id: state.node.node_id
+    }, "保存反思");
+  }
+
+  /* 宿主注入：直接吃 get_teaching_context 的返回值 */
+  function hydrate(ctx) {
+    if (!ctx || typeof ctx !== "object") { throw new TypeError("LEAP.hydrate(context) 需要一个对象参数"); }
+    bridge.context = clone(ctx);
+    bridge.mode = "hosted";
+
+    var sess = ctx.session || {};
+    var node = ctx.current_node || ctx.node || {};
+    var ks = ctx.knowledge_state || {};
+
+    var learnerId = ctx.learner_id || sess.learner_id;
+    var sessionId = ctx.session_id || sess.session_id;
+    if (learnerId) state.learner.learner_id = learnerId;
+    if (sessionId) state.learner.session_id = sessionId;
+    if (node.node_id) state.node.node_id = node.node_id;
+    if (node.title) state.node.title = node.title;
+    if (node.unit_tag) state.node.unit_tag = node.unit_tag;
+
+    if (typeof ks.mastery_probability === "number") {
+      bridge.server.mastery_probability = clamp01(ks.mastery_probability);
+      mastery = bridge.server.mastery_probability;
+    }
+    if (ks.evidence_stage) {
+      bridge.server.evidence_stage = ks.evidence_stage;
+      state.assessment.evidence_stage = ks.evidence_stage;
+    }
+    if (typeof ks.hint_dependency === "number") {
+      bridge.server.hint_dependency = clamp01(ks.hint_dependency);
+      state.ui_state.hint_dependency = bridge.server.hint_dependency;
+    }
+    if (ks.next_review_at) bridge.server.next_review_at = ks.next_review_at;
+    if (typeof ctx.transfer_requirement === "boolean") bridge.server.transfer_required = ctx.transfer_requirement;
+
+    bridge.available_actions = ctx.recommended_actions || [];
+    bridge.recommended_strategy = ctx.recommended_strategy || "";
+    bridge.due_reviews = ctx.due_reviews || [];
+
+    renderAll();
+    return snapshot();
+  }
+
+  function toggleOutboxView() {
+    var pre = document.getElementById("bridgeOutbox");
+    var btn = document.getElementById("bridgeDrain");
+    if (!pre) return;
+    var opening = pre.hidden;
+    pre.hidden = !opening;
+    if (btn) btn.textContent = opening ? "收起调用队列 ▴" : "取出调用队列 ▾";
+    if (opening) {
+      var calls = drainOutbox();
+      pre.textContent = calls.length
+        ? JSON.stringify(calls, null, 2)
+        : "（队列为空：尚无需要提交给 LEAP Runtime 的调用）";
+    }
+  }
+
+  var drainWired = false;
+  function renderBridge() {
+    var modeEl = document.getElementById("bridgeMode");
+    var sumEl = document.getElementById("bridgeSummary");
+    var noteEl = document.getElementById("spineNote");
+    var n = bridge.outbox.length;
+
+    if (modeEl) modeEl.textContent = "BRIDGE · " + (isHosted() ? "已接入宿主" : "演示模式");
+    if (sumEl) {
+      sumEl.textContent = isHosted()
+        ? "已注入 Runtime 上下文（" + state.node.node_id + "）；待执行的 MCP 调用 " + n + " 条。"
+        : "未接入宿主 Agent；学习动作会累积为待执行的 MCP 调用（当前 " + n + " 条）。";
+    }
+    if (noteEl) {
+      noteEl.innerHTML = isHosted()
+        ? "本页状态由 <b>LEAP Runtime</b> 注入（<code>LEAP.hydrate()</code>）；掌握度与证据阶段由服务端 BKT 与 State Guard 计算，本页不自行推算。"
+        : "本页掌握度与证据阶段为<b>本地模拟</b>，用于演示界面如何呈现学习状态；真实系统中二者由 LEAP Runtime 的 BKT 估计器与 State Guard 计算（见 LEAP_Framework_V2 §10.2‑1）。";
+    }
+
+    var btn = document.getElementById("bridgeDrain");
+    if (btn && !drainWired) { drainWired = true; btn.addEventListener("click", toggleOutboxView); }
+    if (btn && !n) { btn.disabled = true; } else if (btn) { btn.disabled = false; }
+  }
+
+  function blankAssessment() {
+    return {
+      item_id: "", correctness: 0, conceptual_understanding: 0, reasoning_quality: 0,
+      application: 0, transfer: 0, hint_dependency: 0, confidence: 0, overall_score: 0,
+      error_type: "none", misconception: "", feedback: "",
+      evidence_stage: "estimated", assessor_type: "rule", provisional: true
+    };
+  }
+  function nowSec() { return Math.floor(Date.now() / 1000); }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  /* overall_score：correctness .4 / conceptual .3 / reasoning .2 / application .1
+     缺失维度自动归一化；transfer 与 hint_dependency 不参与聚合 */
+  function aggregate(d) {
+    var w = { correctness: 0.4, conceptual_understanding: 0.3, reasoning_quality: 0.2, application: 0.1 };
+    var sum = 0, tw = 0, k;
+    for (k in w) {
+      if (typeof d[k] === "number" && isFinite(d[k])) { sum += d[k] * w[k]; tw += w[k]; }
+    }
+    return tw ? Math.round((sum / tw) * 100) / 100 : 0;
+  }
+
+  function pushEvent(event_type, payload) {
+    var ev = { event_type: event_type };
+    if (payload) { for (var k in payload) { if (Object.prototype.hasOwnProperty.call(payload, k)) ev[k] = payload[k]; } }
+    ev.created_at = nowSec();
+    state.events.push(ev);
+    enqueueForEvent(ev);
+    renderAll();
+    return ev;
+  }
+
+  function setHint(level) {
+    if (level > state.ui_state.hint_level) state.ui_state.hint_level = level;
+    if (level === 4) state.ui_state.answer_revealed = true;
+    state.ui_state.hint_dependency = HINT_DEP[Math.min(state.ui_state.hint_level, 4)];
+    renderAll();
+  }
+
+  function commitAssessment(item) {
+    var dep = HINT_DEP[Math.min(state.ui_state.hint_level, 4)];
+    var a = {
+      item_id: item.item_id,
+      correctness: r2(item.correctness),
+      conceptual_understanding: r2(item.conceptual_understanding),
+      reasoning_quality: r2(item.reasoning_quality),
+      application: r2(item.application),
+      transfer: r2(item.transfer || 0),
+      hint_dependency: r2(dep),
+      confidence: 0,
+      overall_score: 0,
+      error_type: item.error_type || "none",
+      misconception: item.misconception || "",
+      feedback: item.feedback || "",
+      evidence_stage: "practiced",
+      assessor_type: item.assessor_type || "rule"
+    };
+    a.overall_score = aggregate(a);
+
+    if (bridge.mode === "demo") {
+      /* 演示模式：本地粗略推进，仅为让界面动起来。
+         接入宿主后（hosted）这两项一律以 Runtime 返回值回填（§10.2‑1）。 */
+      a.evidence_stage = deriveStage(a);
+      if (typeof item.transfer === "number" && item.transfer >= 0.7) a.evidence_stage = "transferred";
+      mastery = Math.max(0, Math.min(0.98, mastery + (a.correctness - 0.5) * 0.14 - dep * 0.04));
+      bridge.server.mastery_probability = mastery;
+      bridge.server.evidence_stage = a.evidence_stage;
+      a.provisional = true;
+    } else {
+      a.evidence_stage = bridge.server.evidence_stage;
+      a.provisional = false;
+    }
+    state.assessment = a;
+    state.ui_state.hint_dependency = a.hint_dependency;
+
+    /* 评估证据必须回传 Runtime：raw_answer 不可丢弃（§22.8）。 */
+    enqueue("commit_assessment", {
+      attempt_id: bridge.last_attempt_call_id
+        ? "{{" + bridge.last_attempt_call_id + ".attempt_id}}" : "{{attempt_id}}",
+      raw_answer: bridge.last_raw_answer,
+      assessor_type: a.assessor_type,
+      correctness: a.correctness,
+      conceptual_understanding: a.conceptual_understanding,
+      reasoning_quality: a.reasoning_quality,
+      application: a.application,
+      transfer: a.transfer,
+      hint_dependency: a.hint_dependency,
+      confidence: a.confidence
+    }, "提交评估证据；attempt_id 由上一条 submit_attempt 的返回值填充，mastery 由 Runtime 计算");
+    renderAll();
+    return a;
+  }
+
+  function deriveStage(a) {
+    if (a.correctness >= 0.8 && a.hint_dependency <= 0.5) return "demonstrated";
+    return "practiced";
+  }
+  function r2(v) { return Math.round((v || 0) * 100) / 100; }
+
+  function setCompleted(itemId, reason) {
+    state.ui_state.completed = true;
+    pushEvent("item_completed", { item_id: itemId, reason: reason || "verified" });
+  }
+
+  /* ── 渲染 ─────────────────────────────────────────────── */
+  var renderHooks = [];
+  function onRender(fn) { renderHooks.push(fn); fn(); }
+  function renderAll() {
+    renderOutput(); renderSpine(); renderRail(); renderBridge();
+    for (var i = 0; i < renderHooks.length; i++) { try { renderHooks[i](); } catch (e) { /* 单个面板失败不影响契约输出 */ } }
+  }
+
+
+
+  function renderOutput() {
+    var el = document.getElementById("leap-interaction-output");
+    if (el) el.textContent = JSON.stringify(snapshot(), null, 2);
+    var sum = document.getElementById("consoleSummary");
+    if (sum) {
+      var last = state.events.length ? state.events[state.events.length - 1].event_type : null;
+      sum.textContent = "AGENT OUTPUT · 已记录 " + state.events.length + " 条事件" +
+        (last ? " · 最近 " + last : "") + (state.ui_state.completed ? " · 本节点已完成" : "");
+    }
+  }
+
+  function renderSpine() {
+    var cur = state.assessment.evidence_stage;
+    var idx = Math.max(0, STAGE_ORDER.indexOf(cur));
+    var segs = document.querySelectorAll("#evTrack .ev-seg");
+    for (var i = 0; i < segs.length; i++) {
+      if (i <= idx) { segs[i].classList.add("is-on"); } else { segs[i].classList.remove("is-on"); }
+    }
+    var nameEl = document.getElementById("evName");
+    if (nameEl) {
+      nameEl.textContent = cur + " · " + STAGE_CN[cur];
+      nameEl.style.color = "var(--ev-" + cur + ")";
+    }
+    var fill = document.getElementById("masFill");
+    if (fill) fill.style.width = Math.round(mastery * 100) + "%";
+    var val = document.getElementById("masVal");
+    if (val) val.textContent = mastery.toFixed(2);
+    var note = document.getElementById("ladderNote");
+    if (note) {
+      note.textContent = "阶梯高度 = 支持强度。已用层级越高，hint_dependency 越高；本节点当前 " +
+        HINT_DEP[Math.min(state.ui_state.hint_level, 4)].toFixed(2) + "。";
+    }
+  }
+
+  var STAGE_CN = {
+    estimated: "仅估计", practiced: "练习过", demonstrated: "独立展示",
+    retained: "延迟保持", transferred: "已迁移"
+  };
+
+  function renderRail() {
+    var host = document.getElementById("railDots");
+    if (!host) return;
+    var n = state.events.length;
+    host.innerHTML = "";
+    if (!n) return;
+    var gap = n === 1 ? 0 : 1120 / (n + 1);
+    /* 使用百分比定位，随容器宽度自适应 */
+    for (var i = 0; i < n; i++) {
+      var d = document.createElement("span");
+      var isLast = (i === n - 1);
+      d.className = "rail-dot" + (isLast ? " rail-dot--last" : "");
+      var pct = n === 1 ? 50 : ((i + 1) / (n + 1)) * 100;
+      d.style.left = pct + "%";
+      d.style.background = EVENT_COLOR[state.events[i].event_type] || "#9AA1AD";
+      d.title = state.events[i].event_type;
+      host.appendChild(d);
+    }
+    var cnt = document.getElementById("railCount");
+    if (cnt) cnt.textContent = "已产生 " + n + " 条事件（只追加，不覆盖）";
+    var last = document.getElementById("railLast");
+    if (last) {
+      var e = state.events[n - 1];
+      last.textContent = "最近：" + e.event_type + (e.item_id ? " · " + e.item_id : "") +
+        " · hint_level " + state.ui_state.hint_level + " · " + fmtTime(e.created_at);
+    }
+  }
+  function fmtTime(t) {
+    var d = new Date(t * 1000);
+    return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2) + ":" + ("0" + d.getSeconds()).slice(-2);
+  }
+
+  /* ── 对外接口 ─────────────────────────────────────────── */
+  function snapshot() {
+    var out = clone(state);
+    out.ui_state.mode = bridge.mode;
+    out.ui_state.hosted = isHosted();
+    out.ui_state.pending_mcp_calls = bridge.outbox.length;
+    out.outbox = clone(bridge.outbox);
+    return out;
+  }
+  function getInteractionResult() { return snapshot(); }
+  function getState() { return state; }
+  function getMastery() { return mastery; }
+
+  return {
+    /* ── 输入：宿主 Agent 注入 Runtime 上下文 ── */
+    hydrate: hydrate,
+    isHosted: isHosted,
+    /* ── 输出：契约对象 ── */
+    getInteractionResult: getInteractionResult,
+    /* ── 输出：待执行的 MCP 调用队列 ── */
+    peekOutbox: peekOutbox,
+    drainOutbox: drainOutbox,
+    onOutboxChange: onOutboxChange,
+    pushEvent: pushEvent,
+    setHint: setHint,
+    commitAssessment: commitAssessment,
+    setCompleted: setCompleted,
+    aggregate: aggregate,
+    getState: getState,
+    getMastery: getMastery,
+    onRender: onRender,
+    refresh: renderAll,
+    HINT_DEP: HINT_DEP,
+    STAGE_CN: STAGE_CN
+  };
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   页面交互 · 物理 Free Fall
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var S = window.LEAP.getState();
+
+  /* 画布令牌色（与 :root 令牌一致，用于 Canvas 填充） */
+  var C = {
+    surface:"#FFFFFF", sunk:"#F3F1EC", mute:"#EDEAE3",
+    ink:"#191B20", ink2:"#565E6B", ink3:"#8A909C",
+    hair:"#E8E4DC", rule:"#D8D3C9",
+    accent:"#2B4AC4", ok:"#2E7D5B", warn:"#B3861A", err:"#B4432F"
+  };
+  var MONO = "'JetBrains Mono', ui-monospace, monospace";
+
+  /* ── 1. 理解检查 ───────────────────────────────────────── */
+  (function checkpoint() {
+    var opts = document.querySelectorAll("#cp .opt");
+    var fb = $("cpFb");
+    var done = false;
+    Array.prototype.forEach.call(opts, function (b) {
+      b.addEventListener("click", function () {
+        Array.prototype.forEach.call(opts, function (x) { x.setAttribute("aria-pressed", "false"); });
+        b.setAttribute("aria-pressed", "true");
+        var ok = b.dataset.v === "ok";
+        fb.innerHTML = (ok ? "<b>正确。</b> " : "<b>再想一想。</b> ") + b.dataset.why;
+        fb.classList.add("is-on");
+        if (!done) {
+          done = true;
+          window.LEAP.pushEvent("attempt_submitted", {
+            item_id: "cp-01", answer: b.textContent.trim(), hint_level: 0,
+            response_time: 0, attempt_index: 1, predicted_performance: null,
+            error_type: ok ? "none" : "misconception"
+          });
+        }
+      });
+    });
+  })();
+
+  /* ── 2. 自由落体模拟（Canvas + requestAnimationFrame）────────── */
+  var dropCv = $("dropCanvas"), curveCv = $("curveCanvas");
+  function fit(cv) {
+    var dpr = window.devicePixelRatio || 1;
+    var lw = 480, lh = 300;
+    cv.width = lw * dpr; cv.height = lh * dpr;
+    var ctx = cv.getContext("2d");
+    ctx.scale(dpr, dpr);
+    return ctx;
+  }
+  var dropCtx = fit(dropCv), curveCtx = fit(curveCv);
+  var W = 480, Hh = 300;
+
+  var sim = { h: 50, g: 9.8, t: 0, tTotal: 0, playing: false, raf: null, last: 0 };
+  function recompute() { sim.tTotal = Math.sqrt(2 * sim.h / sim.g); if (sim.t > sim.tTotal) sim.t = sim.tTotal; }
+
+  function curState() {
+    var fallen = 0.5 * sim.g * sim.t * sim.t;
+    if (fallen > sim.h) fallen = sim.h;
+    return { fallen: fallen, curH: sim.h - fallen, curV: Math.min(sim.g * sim.t, sim.g * sim.tTotal) };
+  }
+
+  function drawDrop() {
+    var ctx = dropCtx;
+    ctx.clearRect(0, 0, W, Hh);
+    ctx.fillStyle = C.sunk; ctx.fillRect(0, 0, W, Hh);
+    var topY = 18, groundY = Hh - 26, rulerX = 46;
+    var hPix = groundY - topY;
+    ctx.fillStyle = C.hair; ctx.fillRect(rulerX, groundY, W - rulerX, Hh - groundY);
+    ctx.strokeStyle = C.rule; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(rulerX, groundY); ctx.lineTo(W, groundY); ctx.stroke();
+    ctx.strokeStyle = C.rule;
+    ctx.beginPath(); ctx.moveTo(rulerX, topY); ctx.lineTo(rulerX, groundY); ctx.stroke();
+    ctx.fillStyle = C.ink3; ctx.font = "9px " + MONO; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    var step = 10;
+    for (var m = 0; m <= sim.h + 1e-6; m += step) {
+      var y = groundY - (m / sim.h) * hPix;
+      ctx.beginPath(); ctx.moveTo(rulerX - 5, y); ctx.lineTo(rulerX, y); ctx.stroke();
+      ctx.fillText(m + " m", rulerX - 7, y);
+    }
+    var st = curState();
+    var by = groundY - (st.curH / sim.h) * hPix;
+    var bx = (rulerX + W) / 2;
+    ctx.strokeStyle = C.accent; ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(rulerX, by); ctx.lineTo(bx, by); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = C.accent;
+    ctx.beginPath(); ctx.arc(bx, by, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = C.ink; ctx.font = "10px " + MONO; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+    ctx.fillText("h=" + st.curH.toFixed(1) + "m", bx, by - 12);
+    ctx.fillStyle = C.ink3; ctx.font = "9px " + MONO; ctx.textAlign = "left"; ctx.textBaseline = "top";
+    ctx.fillText("地面 ground", rulerX + 4, groundY + 4);
+  }
+
+  function drawCurve() {
+    var ctx = curveCtx;
+    ctx.clearRect(0, 0, W, Hh);
+    ctx.fillStyle = C.sunk; ctx.fillRect(0, 0, W, Hh);
+    var padL = 46, padB = 34, padT = 18, padR = 14;
+    var x0 = padL, y0 = Hh - padB, x1 = W - padR, y1 = padT;
+    var TT = sim.tTotal;
+    ctx.strokeStyle = C.rule; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x0, y1); ctx.lineTo(x0, y0); ctx.lineTo(x1, y0); ctx.stroke();
+    ctx.fillStyle = C.ink3; ctx.font = "9px " + MONO;
+    var i, j, px, py, tt, ss;
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    for (i = 0; i <= 4; i++) {
+      tt = TT * i / 4; px = x0 + (x1 - x0) * (tt / TT);
+      ctx.beginPath(); ctx.moveTo(px, y0); ctx.lineTo(px, y0 + 4); ctx.stroke();
+      ctx.fillText(tt.toFixed(2), px, y0 + 6);
+    }
+    ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    for (j = 0; j <= 4; j++) {
+      ss = sim.h * j / 4; py = y0 - (y0 - y1) * (ss / sim.h);
+      ctx.beginPath(); ctx.moveTo(x0 - 4, py); ctx.lineTo(x0, py); ctx.stroke();
+      ctx.fillText(ss.toFixed(0), x0 - 6, py);
+    }
+    ctx.strokeStyle = C.accent; ctx.lineWidth = 2;
+    ctx.beginPath();
+    var started = false;
+    for (var t = 0; t <= TT + 1e-9; t += TT / 60) {
+      var s = 0.5 * sim.g * t * t; if (s > sim.h) s = sim.h;
+      px = x0 + (x1 - x0) * (t / TT); py = y0 - (y0 - y1) * (s / sim.h);
+      if (!started) { ctx.moveTo(px, py); started = true; } else { ctx.lineTo(px, py); }
+    }
+    ctx.stroke();
+    var sc = 0.5 * sim.g * sim.t * sim.t; if (sc > sim.h) sc = sim.h;
+    var cxp = x0 + (x1 - x0) * (sim.t / TT), cyp = y0 - (y0 - y1) * (sc / sim.h);
+    ctx.fillStyle = C.ok;
+    ctx.beginPath(); ctx.arc(cxp, cyp, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = C.surface; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = C.ink3; ctx.font = "9px " + MONO; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+    ctx.fillText("时间 t (s)", (x0 + x1) / 2, Hh - 2);
+    ctx.save(); ctx.translate(12, (y0 + y1) / 2); ctx.rotate(-Math.PI / 2);
+    ctx.fillText("下落位移 s (m)", 0, 0); ctx.restore();
+  }
+
+  function draw() {
+    drawDrop(); drawCurve();
+    var st = curState();
+    $("roH").textContent = st.curH.toFixed(1);
+    $("roV").textContent = st.curV.toFixed(1);
+    $("roT").textContent = sim.t.toFixed(2);
+  }
+  function updatePlayBtn() { $("btnPlay").textContent = sim.playing ? "暂停" : "播放"; }
+  function frame(ts) {
+    if (!sim.playing) return;
+    if (!sim.last) sim.last = ts;
+    var dt = (ts - sim.last) / 1000; sim.last = ts;
+    sim.t += dt;
+    if (sim.t >= sim.tTotal) { sim.t = sim.tTotal; sim.playing = false; updatePlayBtn(); }
+    draw();
+    if (sim.playing) sim.raf = requestAnimationFrame(frame);
+  }
+  function play() {
+    if (sim.playing) return;
+    if (sim.t >= sim.tTotal) sim.t = 0;
+    sim.last = 0; sim.playing = true; updatePlayBtn();
+    sim.raf = requestAnimationFrame(frame);
+  }
+  function pause() { sim.playing = false; updatePlayBtn(); if (sim.raf) cancelAnimationFrame(sim.raf); }
+  function togglePlay() { sim.playing ? pause() : play(); }
+  function step() { pause(); sim.t = Math.min(sim.tTotal, sim.t + sim.tTotal / 24); draw(); }
+  function reset() { pause(); sim.t = 0; draw(); }
+
+  $("btnPlay").addEventListener("click", togglePlay);
+  $("btnStep").addEventListener("click", function () { stopPlay2(); step(); });
+  function stopPlay2() { pause(); }
+  $("btnReset").addEventListener("click", reset);
+
+  /* 滑块实时同步 */
+  function onSlider() {
+    sim.h = parseFloat($("hSlider").value);
+    sim.g = parseFloat($("gSlider").value);
+    $("hVal").textContent = sim.h;
+    $("gVal").textContent = sim.g;
+    recompute(); draw();
+  }
+  $("hSlider").addEventListener("input", onSlider);
+  $("gSlider").addEventListener("input", onSlider);
+  Array.prototype.forEach.call(document.querySelectorAll(".preset"), function (b) {
+    b.addEventListener("click", function () {
+      $("gSlider").value = b.dataset.g;
+      onSlider();
+    });
+  });
+
+  document.addEventListener("keydown", function (e) {
+    var t = e.target.tagName;
+    if (t === "INPUT" || t === "TEXTAREA") return;
+    if (e.key === "ArrowRight") { pause(); step(); e.preventDefault(); }
+    else if (e.key === "ArrowLeft") { pause(); sim.t = Math.max(0, sim.t - sim.tTotal / 24); draw(); e.preventDefault(); }
+    else if (e.key === " " || e.code === "Space") { togglePlay(); e.preventDefault(); }
+  });
+
+  recompute(); draw();   /* 初始渲染；不自动播放（prefers-reduced-motion 友好） */
+
+  /* ── 3. 提示阶梯 ───────────────────────────────────────── */
+  var HINTS = {
+    1: { t: "① 引导问题 · 只给方向", h: "先问自己两个问题：① 小球从静止开始下落，它<b>每过一秒速度增加多少</b>？② 要算「落地时间」，本质是在解一个关于 <code>t</code> 的什么方程？" },
+    2: { t: "② 策略提示 · 给思路", h: "位移公式 <code>h = ½ g t²</code> 里，<b>h 与 g 已知、t 未知</b>。把它看成「已知 h 求 t」的方程：两边同除以 ½g 再开方。落地速度用 <code>v = g t</code>（或 <code>v = √(2gh)</code>）。" },
+    3: { t: "③ 部分示范 · 给前半段", h: "先把 <b>t</b> 的推导写完整（这一半我替你写）：", c: "t = √( 2h / g )\n  = √( 2 × 45 / 9.8 )\n  = √9.18\n  ≈ 3.03  (s)        ← 后半段：v 由你算\n\n落地速度：v = g · t = 9.8 × 3.03 ≈ ? (m/s)" },
+    4: { t: "④ 完整答案 · 已展示", h: "完整推导（含每一步）：", c: "t = √( 2h / g )\n  = √( 2 × 45 / 9.8 )\n  = √9.1837 ≈ 3.03 (s)\n\nv = g · t = 9.8 × 3.03 ≈ 29.7 (m/s)\n  （也可直接 v = √(2gh) = √882 ≈ 29.7）" }
+  };
+
+  function setLadderState() {
+    var lvl = S.ui_state.hint_level;
+    Array.prototype.forEach.call(document.querySelectorAll("#ladder .ladder-step"), function (b) {
+      var lv = parseInt(b.dataset.lv, 10);
+      b.dataset.state = lv <= lvl ? "used" : (lv === lvl + 1 ? "avail" : "locked");
+      b.disabled = (lv > lvl + 1);
+      b.setAttribute("aria-disabled", String(lv > lvl + 1));
+    });
+    $("ladderNote").textContent = "阶梯高度 = 支持强度。已用层级越高，hint_dependency 越高；本节点当前 " +
+      window.LEAP.HINT_DEP[Math.min(lvl, 4)].toFixed(2) +
+      (lvl >= 3 ? "（> 0.50，已不足以升级到 demonstrated）" : "（≤ 0.50，仍可升级到 demonstrated）") + "。";
+  }
+
+  function showHint(lv) {
+    var body = $("hintBody");
+    var box = document.createElement("div");
+    box.className = "hint-card";
+    box.dataset.lv = lv;
+    if (lv === 4) {
+      box.innerHTML = '<span class="micro">④ 完整答案</span><p>' + HINTS[4].h + '</p><pre>' + esc(HINTS[4].c) + '</pre>';
+      body.appendChild(box);
+      $("verify").hidden = false;
+      $("verify").scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    box.innerHTML = '<span class="micro">' + HINTS[lv].t + '</span><p>' + HINTS[lv].h + '</p>' +
+      (HINTS[lv].c ? '<pre>' + esc(HINTS[lv].c) + '</pre>' : '');
+    body.appendChild(box);
+  }
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  Array.prototype.forEach.call(document.querySelectorAll("#ladder .ladder-step"), function (b) {
+    b.addEventListener("click", function () {
+      var lv = parseInt(b.dataset.lv, 10);
+      if (lv > S.ui_state.hint_level + 1) return;
+      if (lv <= S.ui_state.hint_level) return;
+      if (lv === 4) { renderConfirm(); return; }
+      window.LEAP.setHint(lv);
+      window.LEAP.pushEvent("hint_used", { item_id: "q1", hint_level: lv, answer: "", response_time: 0, attempt_index: 1, predicted_performance: null });
+      showHint(lv);
+      setLadderState();
+    });
+  });
+
+  function renderConfirm() {
+    if ($("confirmBox")) return;
+    var box = document.createElement("div");
+    box.className = "confirm";
+    box.id = "confirmBox";
+    box.innerHTML = '<p>展开完整答案后，本次作答会被记录为 <code>answer_revealed</code>，' +
+      '<b>hint_dependency 升到 0.85</b>，并且你<b>必须完成一题后置验证</b>，本任务才算结束。' +
+      '如果你只想再试一次，建议先点「③ 部分示范」。</p>' +
+      '<div class="btn-row"><button class="btn btn--primary btn--sm" id="btnConfirmReveal" type="button">我确认，展开完整答案</button>' +
+      '<button class="btn btn--ghost btn--sm" id="btnCancelReveal" type="button">先不展开</button></div>';
+    $("hintBody").appendChild(box);
+    $("btnCancelReveal").addEventListener("click", function () { box.remove(); });
+    $("btnConfirmReveal").addEventListener("click", function () {
+      box.remove();
+      window.LEAP.setHint(4);
+      window.LEAP.pushEvent("answer_revealed", { item_id: "q1", hint_level: 4, answer: "", response_time: 0, attempt_index: 1, predicted_performance: null });
+      showHint(4);
+      setLadderState();
+    });
+  }
+  setLadderState();
+
+  /* ── 4. Q1 计算填空 ────────────────────────────────────── */
+  var Q1 = { h: 45, g: 9.8 };
+  Q1.tTrue = Math.sqrt(2 * Q1.h / Q1.g);
+  Q1.vTrue = Math.sqrt(2 * Q1.h * Q1.g);
+
+  function num(x) {
+    x = String(x).trim().replace(/,/g, "").replace(/，/g, "");
+    var m = x.match(/-?\d+(\.\d+)?/);
+    return m ? parseFloat(m[0]) : NaN;
+  }
+
+  var q1Tried = 0;
+  $("btnSubmitQ1").addEventListener("click", function () {
+    var aT = $("ansT").value, aV = $("ansV").value;
+    var tA = num(aT), vA = num(aV);
+    if (isNaN(tA) && isNaN(vA)) { flashQ1("两个空都还空着。先用 t = √(2h/g) 算出时间，再用 v = g·t 算速度。", "warn"); return; }
+    q1Tried++;
+    var tT = Q1.tTrue, vT = Q1.vTrue;
+    function within(a, b) { return Math.abs(a - b) / b <= 0.02; }
+    function near(a, b) { return Math.abs(a - b) / b <= 0.10; }
+    var tOk = within(tA, tT), vOk = within(vA, vT);
+    var tNear = near(tA, tT), vNear = near(vA, vT);
+    var tAsV = within(tA, vT), vAsT = within(vA, tT);
+
+    var errType = "none", misconception = "", fb2 = "";
+    if (tOk && vOk) { errType = "none"; }
+    else if (tAsV || vAsT) { errType = "misconception"; misconception = "把 t 与 v 的值混用（或误以为需要用到质量 m）"; }
+    else if (tNear || vNear) { errType = "answer_error"; }
+    else { errType = "reasoning_error"; }
+
+    var cT = tOk ? 1 : (tNear ? 0.5 : 0);
+    var cV = vOk ? 1 : (vNear ? 0.5 : 0);
+    var correctness = (cT + cV) / 2;
+    var conceptual = (tOk && vOk) ? 1 : (tNear || vNear ? 0.6 : 0.3);
+    var reasoning = (tOk && vOk) ? 1 : (errType === "reasoning_error" ? 0.3 : 0.5);
+    var application = correctness;
+
+    $("ansT").dataset.state = tOk ? "ok" : (tNear ? "hint" : "bad");
+    $("ansV").dataset.state = vOk ? "ok" : (vNear ? "hint" : "bad");
+
+    var f1, f2, f3;
+    if (tOk && vOk) {
+      f1 = "两个量都算对了：落地时间 t ≈ <b>" + tT.toFixed(2) + " s</b>，落地速度 v ≈ <b>" + vT.toFixed(1) + " m/s</b>。";
+      f2 = "没有发现错误。";
+      f3 = q1Tried === 1 && S.ui_state.hint_level === 0
+        ? "一次无提示通过。建议回到 Stage 把 g 调成「木星 24」，看落地时间为什么变短——验证 t 与 √g 成反比。"
+        : "建议再做一次后置验证题（若已展开完整答案）或把 g 换成其他值自测，确认你理解的是「关系」而非「这组数字」。";
+    } else {
+      var right = [];
+      if (tOk) right.push("落地时间 t ≈ " + tT.toFixed(2) + " s 正确");
+      if (vOk) right.push("落地速度 v ≈ " + vT.toFixed(1) + " m/s 正确");
+      f1 = right.length ? "你算对了一部分：" + right.join("；") + "。" : "别急——t 与 v 可以分开想：先由 h 求 t，再由 t 求 v。";
+      if (errType === "misconception") {
+        fb2 = "你把 <b>t 和 v 的值填反了</b>：时间填进了速度框、或速度填进了时间框。t = √(2h/g)（单位是秒），v = g·t（单位是 m/s），二者量级不同，别混用；也<b>不需要</b>用到质量 m。";
+      } else if (errType === "reasoning_error") {
+        var why = "";
+        if (within(vA, Q1.h * Q1.g)) why = "你把速度算成了 h × g，是把「位移」误当成了「速度」——速度应是 v = √(2gh)，不是 h·g。";
+        else if (within(tA, Q1.h / Q1.g)) why = "你把时间算成了 h ÷ g，方向反了——正确是 t = √(2h/g)，先乘 2 再开方。";
+        else why = "公式用错了。正确关系：t = √(2h/g)，v = g·t（或 √(2gh)）。";
+        fb2 = why;
+      } else {
+        fb2 = "公式方向是对的（用了 t = √(2h/g)），但中间一步算错了——再核对 2h/g 的数值与开方：2h/g = " + (2 * Q1.h / Q1.g).toFixed(3) + "，开方后约 " + tT.toFixed(2) + " s。";
+      }
+      f2 = fb2;
+      f3 = (!tOk) ? "先单独算 t：t = √(2×45/9.8) = √9.18 ≈ 3.03 s，再算 v = 9.8 × 3.03 ≈ 29.7 m/s。" :
+        "v 用 v = g·t 算：9.8 × 3.03 ≈ 29.7 m/s。改完直接提交。";
+    }
+    flashQ1("", null);
+    setFeedback(errType, f1, f2, f3, !(tOk && vOk));
+    window.LEAP.pushEvent("attempt_submitted", {
+      item_id: "q1", answer: "t:" + aT.trim() + " | v:" + aV.trim(),
+      hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: q1Tried,
+      predicted_performance: null, error_type: errType
+    });
+    window.LEAP.commitAssessment({
+      item_id: "q1", correctness: correctness, conceptual_understanding: conceptual,
+      reasoning_quality: reasoning, application: application, transfer: 0,
+      error_type: errType, misconception: misconception, feedback: f1 + " " + f2,
+      assessor_type: "rule"
+    });
+    if (tOk && vOk && !S.ui_state.answer_revealed) window.LEAP.setCompleted("q1", "solved_without_reveal");
+    if (tOk && vOk) { $("verify").hidden = true; }
+  });
+  $("btnClearQ1").addEventListener("click", function () {
+    $("ansT").value = ""; $("ansV").value = "";
+    $("ansT").dataset.state = ""; $("ansV").dataset.state = "";
+  });
+  function flashQ1(msg, kind) {
+    var el = $("q1Fb");
+    if (!msg) { el.classList.remove("is-on"); el.textContent = ""; return; }
+    el.innerHTML = msg;
+    el.style.color = kind === "warn" ? "var(--warn)" : "var(--ink-2)";
+    el.classList.add("is-on");
+  }
+
+  /* ── 5. 反馈面板 + 评分面板 ────────────────────────────── */
+  function setFeedback(errType, f1, f2, f3, isBad) {
+    var t = errType === "none" ? "ok" : (errType === "misconception" ? "err" : "warn");
+    var badge = $("fbBadge");
+    badge.textContent = errType === "none" ? "no_error" : errType;
+    badge.dataset.t = t;
+    $("fbBar").style.background = t === "ok" ? "var(--ok)" : (t === "err" ? "var(--err)" : "var(--warn)");
+    $("fbS1").innerHTML = f1;
+    $("fbS2").innerHTML = f2;
+    $("fbS3").innerHTML = f3;
+  }
+  function renderScore() {
+    var a = S.assessment;
+    var rows = [
+      { k: "correctness", v: a.correctness, c: "var(--ok)" },
+      { k: "reasoning_quality", v: a.reasoning_quality, c: "var(--warn)" },
+      { k: "hint_dependency", v: a.hint_dependency, c: "var(--accent)" },
+      { k: "overall_score", v: a.overall_score, c: "var(--accent)", strong: true }
+    ];
+    var host = $("scoreRows");
+    host.innerHTML = "";
+    rows.forEach(function (r) {
+      var d = document.createElement("div");
+      d.className = "score-row";
+      d.innerHTML = '<span class="score-key">' + r.k + '<b style="color:' + r.c + '">' + r.v.toFixed(2) + '</b></span>' +
+        '<span class="score-track"><span class="score-fill" data-k="' + r.k + '" style="width:' + (r.v * 100) + '%"></span></span>';
+      host.appendChild(d);
+    });
+  }
+  renderScore();
+  window.LEAP.onRender(renderScore);
+
+  /* ── 6. 后置验证（变式题）─────────────────────────────── */
+  var V = { h: 80, g: 10 };
+  V.tTrue = Math.sqrt(2 * V.h / V.g);
+  V.vTrue = Math.sqrt(2 * V.h * V.g);
+  $("btnVerify").addEventListener("click", function () {
+    var tA = num($("ansT2").value), vA = num($("ansV2").value);
+    var exp = $("verifyInput").value.trim();
+    var tOk = !isNaN(tA) && Math.abs(tA - V.tTrue) / V.tTrue <= 0.02;
+    var vOk = !isNaN(vA) && Math.abs(vA - V.vTrue) / V.vTrue <= 0.02;
+    var fb = $("verifyFb");
+    if (isNaN(tA) || isNaN(vA)) {
+      fb.innerHTML = "先把变式题的 t 与 v 都填好再提交。";
+      fb.style.color = "var(--warn)"; fb.classList.add("is-on"); return;
+    }
+    var correctness = (tOk ? 0.5 : 0) + (vOk ? 0.5 : 0);
+    var hitReason = /(√(2h\/g)|2h\/g|2\s*×\s*80|2\*80|关系|公式|开方|根号)/.test(exp) || exp.length >= 8;
+    var transfer = Math.min(1, correctness * 0.6 + (hitReason ? 0.4 : 0.1));
+    var ok = tOk && vOk && hitReason;
+    fb.innerHTML = ok
+      ? "<b>就对了。</b> h = 80 m、g = 10 时，t = √(160/10) = √16 = 4.00 s，v = 10 × 4 = 40.0 m/s。你抓住的是「同一套关系换一组数」，而不是背答案。"
+      : "<b>还差一点。</b> 答案应为 t = 4.00 s、v = 40.0 m/s（t = √(2h/g)，v = g·t）。请连同计算思路一并说明为什么这样算。";
+    fb.style.color = ok ? "var(--ok)" : "var(--ink-2)";
+    fb.classList.add("is-on");
+    window.LEAP.pushEvent("reflection_recorded", {
+      item_id: "q1-verify", answer: "t:" + $("ansT2").value.trim() + " v:" + $("ansV2").value.trim() + " | " + exp,
+      hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: 1,
+      predicted_performance: null, error_type: ok ? "none" : "reasoning_error"
+    });
+    window.LEAP.commitAssessment({
+      item_id: "q1-verify", correctness: transfer, conceptual_understanding: transfer,
+      reasoning_quality: transfer, application: 0.8, transfer: transfer,
+      error_type: ok ? "none" : "reasoning_error", misconception: "",
+      feedback: ok ? "后置验证通过。" : "后置验证未通过。", assessor_type: "hybrid"
+    });
+    if (ok) window.LEAP.setCompleted("q1", "post_verification_passed");
+  });
+
+  /* ── 7. 输出控制台折叠 ─────────────────────────────────── */
+  $("consoleBar").addEventListener("click", function () {
+    var on = $("consoleJson").classList.toggle("is-on");
+    $("consoleBar").setAttribute("aria-expanded", String(on));
+    $("consoleAction").textContent = on ? "收起 JSON ▴" : "展开 JSON ▾";
+  });
+
+  /* ── 初始渲染 ──────────────────────────────────────────── */
+  renderScore();
+  setFeedback("none",
+    "还没有提交任何作答。先看自由落体模拟，再去做 Q1。",
+    "答错也没关系——反馈会区分「公式用错」「算错」与「把 t、v 混用」，三种处理方式完全不同。",
+    "建议路径：调滑块看动画与曲线联动 → 做 Q1 → 需要时再点提示阶梯。");
+  window.LEAP.refresh();
+  setLadderState();
+})();
+</script>
+</body>
+</html>

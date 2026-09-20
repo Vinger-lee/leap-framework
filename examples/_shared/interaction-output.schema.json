@@ -1,0 +1,294 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://leap.local/schemas/interaction-output.schema.json",
+  "title": "LEAP V2 Frontend Interaction Output",
+  "description": "LEAP-V2 前端教学网页的统一 Agent 数据输出契约。所有分学科示例必须遵守同一结构，字段名不得改动。输出位置固定为 id=\"leap-interaction-output\"，并可通过 window.LEAP.getInteractionResult() 获取同一对象。",
+  "type": "object",
+  "required": [
+    "leap_version",
+    "example_id",
+    "subject",
+    "node",
+    "learner",
+    "events",
+    "assessment",
+    "ui_state"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "leap_version": {
+      "type": "string",
+      "const": "2.0",
+      "description": "LEAP 版本号"
+    },
+    "example_id": {
+      "type": "string",
+      "description": "示例标识，如 python-recursion / linear-equation / osi-model / free-fall / flowchart-basics",
+      "examples": [
+        "python-recursion",
+        "linear-equation",
+        "osi-model",
+        "free-fall",
+        "flowchart-basics"
+      ]
+    },
+    "subject": {
+      "type": "string",
+      "description": "学科分类",
+      "enum": [
+        "programming",
+        "math",
+        "computer-science",
+        "physics",
+        "logic"
+      ]
+    },
+    "node": {
+      "type": "object",
+      "description": "对应的 LEAP 知识节点信息（对齐文档 §6.2 Knowledge Node）",
+      "required": ["node_id", "title", "unit_tag"],
+      "properties": {
+        "node_id": {
+          "type": "string",
+          "description": "知识节点 ID，如 py.recursion.factorial"
+        },
+        "title": {
+          "type": "string",
+          "description": "节点标题"
+        },
+        "unit_tag": {
+          "type": "string",
+          "description": "所属教学 Unit 标签（对齐文档 §6.6 Unit 与 Knowledge Node 关系）"
+        }
+      }
+    },
+    "learner": {
+      "type": "object",
+      "description": "学习者与会话标识。示例中保留占位符，由宿主 Agent 注入真实值。",
+      "required": ["learner_id", "session_id"],
+      "properties": {
+        "learner_id": {
+          "type": "string",
+          "description": "学习者 ID；示例中固定为占位符 REPLACE_WITH_LEARNER_ID"
+        },
+        "session_id": {
+          "type": "string",
+          "description": "学习会话 ID；示例中固定为占位符 REPLACE_WITH_SESSION_ID"
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "description": "交互事件流，只追加不覆盖（对齐文档 §18.1 核心事件）",
+      "items": {
+        "type": "object",
+        "required": ["event_type", "item_id", "created_at"],
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "enum": [
+              "attempt_submitted",
+              "hint_used",
+              "answer_revealed",
+              "drag_submitted",
+              "code_run",
+              "reflection_recorded",
+              "item_completed"
+            ]
+          },
+          "item_id": {
+            "type": "string",
+            "description": "题目 / 交互项 ID，如 q1、drag1"
+          },
+          "answer": {
+            "type": ["string", "null"],
+            "description": "学习者原始作答文本，审计用，不允许丢弃（对齐文档 §22.8 commit_assessment 要求）"
+          },
+          "hint_level": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4,
+            "description": "0=未用提示，1/2/3=对应提示级别，4=已展示完整答案"
+          },
+          "response_time": {
+            "type": ["number", "null"],
+            "description": "本次作答耗时（秒）"
+          },
+          "attempt_index": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "description": "同一题目的第几次尝试"
+          },
+          "predicted_performance": {
+            "type": ["number", "null"],
+            "description": "学习者自评预测表现 0-100（P1 可选，P0 允许为 null）"
+          },
+          "created_at": {
+            "type": "integer",
+            "description": "Unix 时间戳，单位：秒（对齐文档 §23 时间戳统一约定）"
+          }
+        }
+      }
+    },
+    "assessment": {
+      "type": "object",
+      "description": "最近一次评估结果（对齐文档 §10.3 多维 Assessment / §10.4 Partial Credit）",
+      "required": ["item_id", "error_type", "overall_score"],
+      "properties": {
+        "item_id": {
+          "type": "string"
+        },
+        "correctness": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "conceptual_understanding": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "reasoning_quality": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "application": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "transfer": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "hint_dependency": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "提示依赖度，越高表示越依赖提示"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "overall_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "加权综合分；默认权重 correctness 0.4 / conceptual_understanding 0.3 / reasoning_quality 0.2 / application 0.1，transfer 与 hint_dependency 不参与聚合（对齐文档 §10.3-1）"
+        },
+        "error_type": {
+          "type": "string",
+          "enum": ["none", "answer_error", "reasoning_error", "misconception"],
+          "description": "错误类型：答案错误 / 推理错误 / 概念误解"
+        },
+        "misconception": {
+          "type": "string",
+          "description": "检测到的错误概念描述；无则为空字符串"
+        },
+        "feedback": {
+          "type": "string",
+          "description": "面向学习者的中文反馈文本"
+        },
+        "evidence_stage": {
+          "type": "string",
+          "enum": ["estimated", "practiced", "demonstrated", "retained", "transferred"],
+          "description": "证据阶段（对齐文档 §11 Evidence Stage 模型）"
+        },
+        "assessor_type": {
+          "type": "string",
+          "enum": ["rule", "model", "hybrid", "human", "external_estimator"],
+          "description": "评估主体（对齐文档 §23.10 assessment_results.assessor_type）"
+        },
+        "provisional": {
+          "type": "boolean",
+          "description": "true 表示该评估是页面在 demo 模式下本地推算的演示值，尚未经 LEAP Runtime 确认；接入宿主（hosted）后应为 false，且 evidence_stage 以 Runtime 返回值回填"
+        }
+      }
+    },
+    "outbox": {
+      "type": "array",
+      "description": "待宿主 Agent 执行的 MCP 调用队列。页面只负责把学习动作翻译成调用，不自行判定状态；宿主 Agent 用 LEAP.drainOutbox() 取走后真正执行（submit_attempt → commit_assessment 两步顺序不可颠倒）。args 中形如 {{call_N.attempt_id}} 的字符串为引用占位符，由宿主用前一条调用的返回值填充。",
+      "items": {
+        "type": "object",
+        "required": ["call_id", "tool", "args", "created_at"],
+        "properties": {
+          "call_id": {
+            "type": "string",
+            "description": "本页内唯一的调用 ID，用于被后续调用引用"
+          },
+          "tool": {
+            "type": "string",
+            "enum": [
+              "submit_attempt",
+              "commit_assessment",
+              "record_reflection",
+              "schedule_review",
+              "advance_unit"
+            ],
+            "description": "目标 MCP 工具名（对齐文档 §22）"
+          },
+          "args": {
+            "type": "object",
+            "description": "该工具的入参。commit_assessment 的 raw_answer 必须非空（对齐文档 §22.8）"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "taken"],
+            "description": "pending = 仍在队列中；taken = 已被 drainOutbox 取走"
+          },
+          "created_at": {
+            "type": "integer",
+            "description": "Unix 时间戳，单位：秒"
+          },
+          "note": {
+            "type": "string",
+            "description": "给宿主 Agent 的执行提示"
+          }
+        }
+      }
+    },
+    "ui_state": {
+      "type": "object",
+      "description": "页面当前交互状态",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["demo", "hosted"],
+          "description": "demo = 未接入宿主，掌握度为本地演示值；hosted = 已通过 LEAP.hydrate() 注入 Runtime 上下文"
+        },
+        "hosted": {
+          "type": "boolean",
+          "description": "mode === 'hosted' 的布尔便捷形式"
+        },
+        "pending_mcp_calls": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "outbox 中待执行的调用条数"
+        },
+        "hint_dependency": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "当前提示依赖（hosted 下由 Runtime 注入）。对齐设计理念 M9：提示依赖必须对学习者可见，不得只藏在 JSON 里"
+        },
+        "hint_level": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "answer_revealed": {
+          "type": "boolean",
+          "description": "是否已展示完整答案"
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "本示例任务是否已完成（含完整答案后的后置验证）"
+        }
+      }
+    }
+  }
+}

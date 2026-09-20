@@ -1,0 +1,43 @@
+# Line-ending normalisation.
+#
+# Without this, contributors on different platforms produce whole-file diffs
+# whenever a text file crosses an OS boundary. Normalise to LF in the
+# repository and let each platform check out its own convention.
+
+* text=auto
+
+# Text files: keep LF in the repository.
+*.py      text eol=lf
+*.md      text eol=lf
+*.sql     text eol=lf
+*.yaml    text eol=lf
+*.yml     text eol=lf
+*.json    text eol=lf
+*.toml    text eol=lf
+*.html    text eol=lf
+*.css     text eol=lf
+*.js      text eol=lf
+*.txt     text eol=lf
+.gitignore        text eol=lf
+.gitattributes    text eol=lf
+LICENSE           text eol=lf
+
+# Shell scripts must keep LF even on Windows (bash refuses CRLF shebangs).
+*.sh      text eol=lf
+*.bash    text eol=lf
+
+# Binary files: never touch, never diff.
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.gif     binary
+*.ico     binary
+*.pdf     binary
+*.zip     binary
+*.woff    binary
+*.woff2   binary
+*.ttf     binary
+*.otf     binary
+*.db      binary
+*.sqlite  binary
+*.sqlite3 binary

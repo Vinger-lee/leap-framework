@@ -1,0 +1,65 @@
+{
+  "spec_id": "leap.obsidian.structure",
+  "version": "2.0",
+  "description": "Obsidian vault layout for the LEAP long-term knowledge layer. The MCP server only returns this specification; the host agent writes the actual files.",
+  "role": "long_term_knowledge_layer",
+  "not_a_state_store": "The LEAP runtime remains the authoritative structured state source. These Markdown files are a human-facing workspace and must not be treated as a strongly consistent database.",
+  "vault_root": "LEAP/",
+  "directories": [
+    {
+      "path": "00_System/",
+      "purpose": "Session-level configuration and learner profile",
+      "files": [
+        { "name": "learning_goal.md", "template": "goal" },
+        { "name": "learner_profile.md", "template": "profile" },
+        { "name": "session_config.md", "template": "session_config" }
+      ]
+    },
+    {
+      "path": "01_Knowledge/",
+      "purpose": "Knowledge structure mirrored from the DAG",
+      "files": [
+        { "name": "Knowledge_Map.md", "template": "knowledge_map" },
+        { "name": "Nodes/", "pattern": "<node_id>.md", "template": "knowledge_node" },
+        { "name": "Relations/", "pattern": "<edge_id>.md", "template": "knowledge_edge" }
+      ]
+    },
+    {
+      "path": "02_Lessons/",
+      "purpose": "One folder per teaching unit",
+      "files": [{ "name": "Unit_<nnn>/", "pattern": "unit notes", "template": "lesson" }]
+    },
+    {
+      "path": "03_Assessment/",
+      "purpose": "Assessment artefacts by kind",
+      "files": [
+        { "name": "Diagnostic/" },
+        { "name": "Formative/" },
+        { "name": "Transfer/" },
+        { "name": "Summative/" }
+      ]
+    },
+    { "path": "04_Misconceptions/", "purpose": "Active and resolved misconceptions" },
+    { "path": "05_Review/", "purpose": "Review queue and retention notes" },
+    { "path": "06_Reflection/", "purpose": "Learner reflections" },
+    { "path": "07_Projects/", "purpose": "Project-based learning artefacts" },
+    { "path": "08_Artifacts/", "purpose": "Generated HTML, charts, code, diagrams" },
+    { "path": "09_Reports/", "purpose": "Final reports and exports" }
+  ],
+  "frontmatter_conventions": {
+    "node_id": "string - must match knowledge_nodes.node_id",
+    "unit_tag": "string - must match knowledge_nodes.unit_tag",
+    "learner_id": "string",
+    "session_id": "string",
+    "evidence_stage": "estimated | practiced | demonstrated | retained | transferred",
+    "updated_at": "integer - Unix seconds"
+  },
+  "linking_rules": [
+    "Link knowledge notes with [[wikilinks]] keyed by node_id.",
+    "Never duplicate learner state into Markdown as the source of truth; mirror it and mark it as a snapshot.",
+    "Reference generated artefacts by relative path from 08_Artifacts/."
+  ],
+  "templates": {
+    "knowledge_node": "---\nnode_id: <id>\nunit_tag: <tag>\nbloom_level: <level>\nevidence_stage: <stage>\nupdated_at: <unix_seconds>\n---\n\n# <title>\n\n## Learning objective\n\n## Key points\n\n## Common misconceptions\n\n## Evidence and sources\n\n## Related nodes\n"
+  }
+}

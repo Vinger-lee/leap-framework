@@ -1,0 +1,83 @@
+# ===========================================================================
+# LEAP Framework V2.0 - default engineering parameters
+# ---------------------------------------------------------------------------
+# IMPORTANT: every value in this file is an ENGINEERING HEURISTIC, not a
+# scientific optimum. The Pedagogical Policy engine is allowed to override all
+# of them. See LEAP-Framework-V2 section 30.
+# ===========================================================================
+
+# --- Mastery & evidence thresholds ----------------------------------------
+mastery_threshold: 0.80          # initial engineering value only
+reasoning_quality_low: 0.50      # below this is "significantly low"
+hint_dependency_high: 0.70       # above this counts as high hint dependency
+transfer_pass_score: 0.70        # score required to count as a passed transfer probe
+
+# --- Progressive answer disclosure (section 12) ---------------------------
+max_hint_level: 3
+max_retry_before_example: 3
+
+# --- Learning friction (section 15) ---------------------------------------
+friction_window: 3               # unit = attempt turns
+friction_trigger_consecutive: 3  # N consecutive high-dependency/failed attempts
+
+# --- Strategy toggles ------------------------------------------------------
+interleaving_enabled: conditional
+diagnostic_depth: adaptive
+default_transfer_requirement: conditional
+state_update_mode: hybrid
+unit_concept_budget: 8           # max core nodes per teaching unit
+
+# --- Knowledge state estimation (section 10.2-1) --------------------------
+bkt:
+  p_init: 0.20                   # P(L0) prior mastery at first observation
+  p_transit: 0.30                # P(T) learn rate after an opportunity
+  p_guess: 0.20                  # P(G) correct despite not knowing
+  p_slip: 0.10                   # P(S) incorrect despite knowing
+  p_forget: 0.02                 # forgetting-aware decay applied per elapsed interval
+  forget_halflife_days: 30       # decay reference window
+
+# --- Retention scheduling (section 13) ------------------------------------
+fsrs:
+  desired_retention: 0.90
+  maximum_interval_days: 365
+  scheduler_version: "fsrs-6"
+
+# --- Internationalisation -------------------------------------------------
+# Language of the text a learner or operator actually reads: State Guard
+# reasons, the Domain Grounding notice, learning-mode labels and the closing
+# report. Code, logs and comments stay in English.
+# Supported: zh-CN | en. Overridable with the LEAP_LOCALE environment variable.
+locale: zh-CN
+
+# --- Pluggable seams (section 35) -----------------------------------------
+# Each value selects a registered implementation. Alternatives can be added
+# without touching any call site - see leap.runtime.plugins.
+mastery_estimator: simplified_bkt   # 35.1 State estimation
+score_aggregator: weighted          # 35.2 Assessment aggregation
+policy_engine: rule_based           # 35.3 Pedagogical policy
+review_scheduler: py-fsrs           # 35.4 Review scheduler
+storage_backend: sqlite             # 35.5 Storage
+artifact_store: local               # 35.6 Artifact storage
+
+# --- Assessment aggregation (section 10.3-1) ------------------------------
+# `transfer` and `hint_dependency` are deliberately EXCLUDED from the
+# aggregate and are consumed by the Policy engine as separate inputs.
+overall_score_weights:
+  correctness: 0.40
+  conceptual_understanding: 0.30
+  reasoning_quality: 0.20
+  application: 0.10
+
+# --- Domain grounding (section 20, per-session defaults) ------------------
+# These are the values written into a new learning_session row. They are
+# PER-SESSION configuration, not global switches.
+allow_skip_domain_grounding: false
+domain_grounding_warn_user: true
+
+# --- Transport & security (section 3.1) -----------------------------------
+mcp_transport: stdio             # P0: local process only, no HTTP/SSE
+auth_enabled: false              # P0: single-machine trusted environment
+
+# --- Storage ---------------------------------------------------------------
+database_path: data/leap.db
+artifact_root: artifacts

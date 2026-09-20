@@ -1,0 +1,107 @@
+# ---------------------------------------------------------------------------
+# LEAP Framework - files that must never reach the public repository
+# ---------------------------------------------------------------------------
+
+# --- Secrets & credentials -------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.jks
+*.keystore
+secrets.yml
+secrets.yaml
+credentials.json
+.netrc
+.npmrc
+.pypirc
+id_rsa
+id_ed25519
+
+# --- Local runtime data ----------------------------------------------------
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+data/
+artifacts/
+logs/
+*.log
+
+# --- Python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Node ------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnpm-store/
+
+# --- Editors & OS ----------------------------------------------------------
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- AI assistant workspaces (local agent state, never project source) -----
+# These hold agent scratch state, memory, caches and session logs. They are
+# local to whoever is working on the repo and must never be published.
+#
+# The wildcard forms cover versioned/variant names too, e.g.
+#   .workbuddy, .workbuddy-ai, .workbuddy-ai-2
+#   .claude, .claude-code
+#   .cursor, .cursor-rules
+.workbuddy*/
+.claude*/
+.cursor*/
+.aider*
+.continue*/
+.codeium/
+.copilot/
+.windsurf/
+.zed/
+.specstory/
+.sourcegraph/
+.cody/
+.codegpt/
+.tabnine/
+.gemini/
+
+# Agent state and caches that do not follow a dotted convention
+agent-state/
+.ai/
+ai-cache/
+
+# MCP client configuration. Ignored by default because it routinely carries
+# API credentials in its `env` block; force-add it if you ship a sanitised one.
+.mcp.json
+
+# git filter-branch / filter-repo scratch directory (never commit)
+.git-rewrite/
+.git-rewrite
+
+# --- Local archive: internal material and temporary artefacts --------------
+# Kept on disk for traceability, never published. See _archive/README.md.
+_archive/
+
+# --- Generated scan output -------------------------------------------------
+reports/security-scan.*.json

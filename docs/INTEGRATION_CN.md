@@ -1,6 +1,6 @@
 # Host Agent 接入指南（System Prompt）
 
-**语言 / Language**：**简体中文** ｜ [English](host-agent-system-prompt.en.md)
+**语言 / Language**：**简体中文** ｜ [English](INTEGRATION.md)
 
 > 把下面 **§1 系统提示词** 直接作为宿主 Agent 的 System Prompt 使用。
 > §2 起是工程说明，供开发者阅读，不必放入提示词。

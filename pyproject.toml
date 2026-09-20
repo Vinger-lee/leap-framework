@@ -4,13 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "leap-framework"
-version = "2.0.0.dev0"
-description = "LEAP (Learning Evolution & Adaptation Pipeline) - a model-agnostic agentic intelligent tutoring runtime exposed to host agents over MCP."
+version = "2.0.0"
+description = "🎓 LEAP (Learning Evolution & Adaptation Pipeline) - a model-agnostic agentic intelligent tutoring runtime exposed to host agents over MCP."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-authors = [{ name = "LEAP Framework Contributors" }]
-keywords = ["llm", "agent", "tutoring", "mcp", "adaptive-learning", "knowledge-tracing"]
+authors = [{ name = "Vinger-lee", email = "209410338+Vinger-lee@users.noreply.github.com" }]
+maintainers = [{ name = "Vinger-lee", email = "209410338+Vinger-lee@users.noreply.github.com" }]
+keywords = ["llm", "agent", "tutoring", "mcp", "adaptive-learning", "knowledge-tracing", "fsrs", "ai-agent", "education", "intelligent-tutoring-system"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -41,7 +42,10 @@ examples = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/"
+Homepage = "https://github.com/Vinger-lee/leap-framework"
+Repository = "https://github.com/Vinger-lee/leap-framework"
+Issues = "https://github.com/Vinger-lee/leap-framework/issues"
+Changelog = "https://github.com/Vinger-lee/leap-framework/blob/main/CHANGELOG.md"
 
 [project.scripts]
 leap-mcp = "leap.server:main"

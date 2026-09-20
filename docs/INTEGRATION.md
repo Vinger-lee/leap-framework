@@ -1,6 +1,6 @@
 # Host Agent Integration Guide (System Prompt)
 
-**Language**: [简体中文](host-agent-system-prompt.md) ｜ **English**
+**Language**: **English** ｜ [简体中文](INTEGRATION_CN.md)
 
 > Copy **§1 System prompt** directly into your host agent's system prompt.
 > Everything from §2 onwards is engineering notes for developers — it does not need to go into the

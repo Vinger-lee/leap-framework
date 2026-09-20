@@ -1,5 +1,8 @@
 # LEAP-V2 Front-end Example Library (examples/)
 
+**语言 / Language**：**简体中文** ｜ [English](README.md)
+
+
 **Language**: [简体中文](README.md) ｜ **English**
 
 This directory holds the **per-subject front-end teaching page examples** for LEAP-V2. They serve as
@@ -15,8 +18,8 @@ generates pages later.
 
 ```text
 examples/
-├── README.md                       # this file: naming, placement, acceptance checklist
-├── README.en.md                    # English version
+├── README.md                       # English version
+├── README_CN.md                    # 本文件：命名、存放规则、验收清单
 ├── _shared/
 │   ├── leap-web-spec.md            # web specification (structure, authoritative)
 │   ├── leap-bridge.md              # host bridge contract (state in, MCP calls out)

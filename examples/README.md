@@ -1,123 +1,125 @@
-# LEAP‑V2 前端示例库（examples/）
+# Teaching Page Examples
 
-**语言 / Language**：**简体中文** ｜ [English](README.en.md)
+**Language**: English ｜ [中文](README_CN.md)
 
-本目录用于存放 LEAP‑V2 的**分学科前端教学网页示例**，作为后续宿主 Agent 生成网页时的结构、组件、交互与视觉参考标准。
+Five single-file teaching pages, produced by a host agent from the engineering-side task book.
+They are the reference for structure, components, interaction and visuals when a host agent
+generates pages later.
 
-> 生成方：Gemini 网页版，按 `../（内部示例任务书，不在本仓库）` 执行。
->
-> 本目录由工程侧预先建好，**只负责收文件**，示例 HTML 由 Gemini 产出后手动保存进来。
+> The visual design system is maintained by the project author separately and is **not** in this
+> repository; every page here follows it.
 
-## 目录结构
+## Layout
 
-```text
+```
 examples/
-├── README.md                       # 本文件：命名规范 + 存放规则 + 验收清单
+├── README.md                     # this file
+├── README_CN.md                  # 中文
 ├── _shared/
-│   ├── leap-web-spec.md            # LEAP 网页规范总纲（结构层，权威版）
-│   ├── leap-bridge.md              # 宿主桥接契约（输入注入 + MCP 调用出队）
-│   ├── interaction-output.schema.json  # Agent 数据输出契约（机器可读）
-│   └── design-references/          # 视觉参考图（4 张，Gemini 必读）
-│       ├── 01-design-tokens.png    # 色彩 / 提示阶梯 / 证据阶段 / 字阶
-│       ├── 02-teaching-zone.png    # 进度脊柱 + 教学内容区 + 理解检查
-│       ├── 03-practice-zone.png    # Stage + 提示阶梯 + 反馈 + 证据轨 + 输出
-│       └── 04-mobile-390.png       # 390px 移动端版式
-├── 01-python-recursion/            # 示例 1：编程类
-├── 02-math-linear-equation/        # 示例 2：数学类
-├── 03-cs-osi-model/                # 示例 3：计算机基础
-├── 04-physics-free-fall/           # 示例 4：物理类
-└── 05-logic-flowchart/             # 示例 5：逻辑类
+│   ├── leap-web-spec.md          # structural spec (authoritative for structure)
+│   ├── leap-bridge.md            # page ↔ runtime interface
+│   ├── interaction-output.schema.json
+│   └── design-references/        # four visual reference images
+├── 01-python-recursion/          # programming
+├── 02-math-linear-equation/      # mathematics
+├── 03-cs-osi-model/              # computer science
+├── 04-physics-free-fall/         # physics
+└── 05-logic-flowchart/           # logic
 ```
 
-> **视觉规范不在本仓库**：（作者另行维护的视觉规范，不在本仓库）。
-> `leap-web-spec.md` 管"必须有哪三段、JSON 必须有哪些字段"；视觉规范管"这三段长什么样"，示例必须遵守。
+`leap-web-spec.md` defines *which three zones must exist and which JSON fields are required*;
+the visual specification defines *what those zones look like*.
 
-## 文件命名与存放规则
+## Naming and placement
 
-每个示例产出 **1 个单文件 HTML**，命名与存放位置如下（文件名不得随意更改）：
+Each example is **one single-file HTML**. Names and locations are fixed:
 
-| 示例 | 学科 | 文件名 | 存放目录 |
+| # | Subject | File | Directory |
 |---|---|---|---|
-| 1 | 编程（Python 递归） | `leap-01-python-recursion.html` | `01-python-recursion/` |
-| 2 | 数学（一元一次方程） | `leap-02-math-linear-equation.html` | `02-math-linear-equation/` |
-| 3 | 计算机基础（OSI 七层） | `leap-03-cs-osi-model.html` | `03-cs-osi-model/` |
-| 4 | 物理（自由落体） | `leap-04-physics-free-fall.html` | `04-physics-free-fall/` |
-| 5 | 逻辑（流程图基础） | `leap-05-logic-flowchart.html` | `05-logic-flowchart/` |
+| 1 | Programming — Python recursion | `leap-01-python-recursion.html` | `01-python-recursion/` |
+| 2 | Mathematics — linear equations | `leap-02-math-linear-equation.html` | `02-math-linear-equation/` |
+| 3 | Computer science — OSI model | `leap-03-cs-osi-model.html` | `03-cs-osi-model/` |
+| 4 | Physics — free fall | `leap-04-physics-free-fall.html` | `04-physics-free-fall/` |
+| 5 | Logic — flowcharts | `leap-05-logic-flowchart.html` | `05-logic-flowchart/` |
 
-> Gemini 分段输出时，请把各段**按顺序拼接完整**后再保存为上述文件名；不要保存成多个碎片文件。
+When a page is produced in several parts, concatenate them **in order** before saving under the
+name above. Do not leave fragment files.
 
-## 硬性验收清单
+## Automated verification
 
-每个示例入库前逐条核对，**全部通过才算合格**：
-
-- [ ] 单文件、零外部 CDN / 零网络请求 / 零外部图片，双击可直接运行
-- [ ] 三段式结构齐全：教学内容区 + 交互练习区 + Agent 数据输出区
-- [ ] 输出区 `id="leap-interaction-output"`，且存在 `window.LEAP.getInteractionResult()`
-- [ ] JSON 结构完全符合 `_shared/interaction-output.schema.json`，字段名未改动
-- [ ] **宿主桥接齐备**：`LEAP.hydrate()` 可注入、`LEAP.drainOutbox()` 可出队（见 `_shared/leap-bridge.md`）
-- [ ] **每次交互都产生对应 MCP 调用**，`commit_assessment` 带非空 `raw_answer`
-- [ ] **页面不自行推算 `mastery_probability`**，也不把它放进调用入参
-- [ ] 三级渐进提示可用，使用后正确记录 `hint_level`（0/1/2/3/4）
-- [ ] 反馈区分 `answer_error` / `reasoning_error` / `misconception`
-- [ ] 支持部分正确（不只有对 / 错两态）
-- [ ] 公式使用原生 MathML 或 SVG（**不得**出现 KaTeX / MathJax）
-- [ ] 图形全部为内联 SVG / Canvas（无外部图片）
-- [ ] 本学科要求的交互组件全部实现
-- [ ] 桌面 1280px 与移动 375px 下布局不错位
-
-### 视觉层验收（对照 `../（作者维护的视觉规范，不在本仓库）` §8 逐条核对）
-
-- [ ] `:root` 令牌块完整粘贴，全文无裸 hex、无表外间距值
-- [ ] 顶栏常驻"学习进度脊柱"（证据阶段五段轨 + 掌握度 + 下次复习）
-- [ ] 三个 Zone 使用 ZoneHeader 五件套分隔（微标签 / 标题 / 目标句 / 元信息 / hairline）
-- [ ] 提示阶梯为**底部对齐、高度递增**的阶梯图元，非三个并排按钮
-- [ ] 提示第 4 级需二次确认，展示后强制后置验证
-- [ ] 反馈面板为三段式（你做对的部分 → 卡在哪里 → 下一步），色条随 `error_type` 变化
-- [ ] 证据轨随每次交互新增事件点
-- [ ] Agent 输出区为折叠状态条 + 可展开记录仪（**非黑底裸 `<pre>`**）
-- [ ] 无渐变、无玻璃拟态、无 emoji 图标
-
-## 自动化验收（推荐先跑这个，再人工核对）
-
-上面的清单已固化为可执行检查，**不要靠肉眼逐条比对**：
+Run these before reviewing by eye:
 
 ```bash
-# 1) 静态规范符合性（65 项，零依赖）
+# 1) static spec compliance
 python scripts/verify_example.py --all
 
-# 2) 运行时行为（headless Chromium 真实执行 + JSON Schema 权威校验）
+# 2) runtime behaviour (headless Chromium + authoritative JSON Schema validation)
 python scripts/verify_example_runtime.py --all
 
-# 3) 隐私扫描（本目录也会被扫）
+# 3) privacy scan (this directory is scanned too)
 python scripts/security_scan.py --root .
+
+# 4) host-bridge completeness
+python scripts/apply_leap_bridge.py --check
 ```
 
-- `verify_example.py` 覆盖清单里的**结构 / 契约 / 视觉令牌 / 反模式 / 学科组件 / 宿主桥接 / DOM 引用完整性**，退出码非 0 即不合格。
-- `verify_example_runtime.py` 覆盖清单里**只有真跑起来才能验的部分**：`getInteractionResult()` 是否可调用、返回值是否通过 `interaction-output.schema.json` 校验、`events` 是否只增不减、`created_at` 是否 Unix 秒、375/1280px 是否横向溢出，以及**宿主桥接是否真的通**（`hydrate()` 注入是否生效、作答是否产生 `submit_attempt`、`commit_assessment` 是否带 `raw_answer`、是否偷偷提交了 `mastery_probability`）。
-- 静态检查通过 ≠ 运行时可用；**两个都要跑**。
+- `verify_example.py` covers structure, contract, design tokens, anti-patterns, subject
+  components, the host bridge, and **DOM reference integrity** (a renamed element id with a stale
+  script reference only fails at runtime).
+- `verify_example_runtime.py` covers what only a real run can prove: whether
+  `getInteractionResult()` is callable, whether its return value validates against the schema,
+  whether `events` is append-only, whether `created_at` is Unix seconds, whether 375/1280px
+  overflow horizontally, and whether the bridge actually works.
+- **Static success does not mean runtime-usable. Run both.**
 
-若某个示例缺少宿主桥接，或页面被重新生成后桥接被弄丢了一部分：
+If a page is missing the bridge, or a regeneration dropped part of it:
 
 ```bash
-python scripts/apply_leap_bridge.py --all       # 注入（幂等）
-python scripts/apply_leap_bridge.py --repair    # 补齐被重新生成弄丢的部分
-python scripts/apply_leap_bridge.py --check     # 检查完整性（不只是有没有）
+python scripts/apply_leap_bridge.py --all       # inject (idempotent)
+python scripts/apply_leap_bridge.py --repair    # restore a dropped part
+python scripts/apply_leap_bridge.py --check     # completeness, not just presence
 ```
 
-`verify_example_runtime.py` 需要 `playwright` 与一个 Chromium。若浏览器不在默认缓存路径，用 `--chromium <path>` 指定。
-加 `--screenshots <dir>` 可导出全页截图，便于人工复核视觉层。
+`verify_example_runtime.py` needs `playwright` and a Chromium build; point at one with
+`--chromium <path>` and export captures with `--screenshots <dir>`.
 
-## 与 LEAP‑V2 文档的对应关系
+## Acceptance checklist
 
-| 本目录内容 | 对应 LEAP‑V2 文档章节 |
+- [ ] Single file, zero external CDN / requests / images; opens offline
+- [ ] All three zones present: teaching + practice + agent output
+- [ ] Output container `id="leap-interaction-output"` and `window.LEAP.getInteractionResult()`
+- [ ] JSON matches `_shared/interaction-output.schema.json` exactly; field names unchanged
+- [ ] **Host bridge complete**: `LEAP.hydrate()` accepts state, `LEAP.drainOutbox()` emits calls
+- [ ] **Every interaction produces the corresponding MCP call**, and `commit_assessment` carries a
+      non-empty `raw_answer`
+- [ ] **The page never computes `mastery_probability`**, and never sends one in a call
+- [ ] Three-level progressive hints work and record `hint_level` (0–4)
+- [ ] Feedback distinguishes `answer_error` / `reasoning_error` / `misconception`
+- [ ] Partial credit is supported (not just right/wrong)
+- [ ] Formulas use native MathML or SVG (**no** KaTeX / MathJax)
+- [ ] All graphics are inline SVG / Canvas (no external images)
+- [ ] Every interaction component required by the subject is implemented
+- [ ] Layout holds at 1280px desktop and 375px mobile
+
+### Visual checklist
+
+- [ ] The `:root` token block is present in full; no bare hex, no off-grid spacing
+- [ ] A persistent progress spine (five-segment evidence rail + mastery + next review)
+- [ ] All three zones separated by the five-part zone header
+- [ ] The hint ladder is a bottom-aligned, height-increasing figure — not three flat buttons
+- [ ] Level 4 requires a second confirmation and forces post-verification
+- [ ] Feedback is three-part, with the colour bar following `error_type`
+- [ ] The evidence rail gains a point on every interaction
+- [ ] The agent output zone is a collapsed status bar with an expandable recorder (**not a bare
+      black `<pre>`**)
+- [ ] No gradients, no glassmorphism, no emoji icons
+
+## Relationship to the framework design
+
+| Item here | Framework concept |
 |---|---|
-| 渐进式答案揭示（3 级） | §12 Progressive Answer Disclosure |
-| 多维度反馈与错误类型 | §10.3 多维 Assessment、§10.4 Partial Credit |
-| JSON 输出契约字段 | §22 MCP Tool Contract、§23 数据库设计 |
-| 交互事件类型 | §18.1 核心事件 |
-| 页面即"教学主交互载体" | §24.1 Web：交互学习层 |
-
-## 备注
-
-- 本目录**不包含** Web 前端框架代码、不包含 Obsidian 读写代码；按 LEAP‑V2 §36 的 P0 边界，MCP Runtime 只输出规范，页面文件由宿主 Agent（或本目录的示例）承载。
-- 若后续要新增学科示例，请在 `_shared/leap-web-spec.md` 中先补充该学科规范，再新增对应子目录与命名条目。
+| Progressive answer disclosure (3 levels) | Progressive Answer Disclosure |
+| Multi-dimensional feedback and error types | Multi-dimensional assessment, partial credit |
+| JSON output contract fields | MCP tool contract, database design |
+| Interaction event types | Core events |
+| The page as the primary teaching surface | Web: interactive learning layer |

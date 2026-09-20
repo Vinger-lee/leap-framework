@@ -1,291 +1,257 @@
-# LEAP Framework V2.0
+# 🎓 LEAP Framework
 
-**Learning Evolution & Adaptation Pipeline** —— 面向 AI Agent 的 **Agentic Intelligent Tutoring System（智能导师引擎）** 基础架构。
+<p align="center">
+  <img src="https://img.shields.io/github/stars/Vinger-lee/leap-framework?style=social" alt="Stars">
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
+  <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
+  <img src="https://img.shields.io/badge/MCP-58%20tools-22bb33" alt="MCP Tools">
+  <img src="https://img.shields.io/badge/tests-260%20passing-22bb33" alt="Tests">
+  <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
+  <br>
+  <b>🤖 Give your AI agent a real tutoring engine — not just a prompt.</b>
+</p>
 
-**语言 / Language**：**简体中文** ｜ [English](README.en.md)
-
-> LEAP 的核心不是让大模型"更像老师"，而是为 Agent 提供一套**可执行、可持久化、可审计、可迭代**的学习闭环：
-> **理解目标 → 领域校准 → 诊断学习者 → 建立知识结构 → 估计学习状态 → 选择教学策略 → 执行教学动作 → 获取评估证据 → 更新状态 → 安排保持与迁移 → 进入下一轮决策**
-
-```
-Learner
-   ↓
-Host Agent（推理 / 生成 / 交互 / 多模态）
-   ↓  MCP (stdio)
-LEAP MCP Server（工具接口 / 请求校验）
-   ↓
-LEAP Learning Runtime
-   Goal · Diagnostic · Knowledge DAG · State Estimation
-   Policy · Assessment · Retention/Transfer · State Guard
-   ↓
-Persistence（SQLite / Artifact Store / Event Log）
-```
-
----
-
-## 1. 核心设计原则
-
-| 原则 | 含义 |
-|---|---|
-| **三层分离** | 循证原则（Level 1）→ 教学策略（Level 2）→ 工程参数（Level 3）。所有阈值都是可配置启发值，不是"科学最优值" |
-| **状态驱动** | Session 只是容器，**Learner State 才是教学决策的主要输入**。不存在"讲解 10 分钟 → 提问"这类硬编码节奏 |
-| **Prompt 引导行为，服务端保证一致性** | 掌握状态、前置依赖、评估完成度、迁移证据、复习状态、单元能否结束，全部由 **Server-side State Guard** 最终校验 |
-| **"答对" ≠ "学会"** | 一次正确只产生一条证据。内部证据模型：`estimated → practiced → demonstrated → retained → transferred`，**允许回退** |
-| **渐进式答案披露** | 答案是一种教学资源，不是永久禁止的输出。先保留思考空间 → 检测困难 → 适度支持 → 必要时完整示范 → **后置验证** |
-| **保持与迁移是最终证据** | 不把"本轮任务成功"当作最终结果。Retention 与 Transfer 是**互补的两个长期证据维度**，不必严格线性 |
-| **模型无关** | 不绑定 GPT / Claude / Gemini / Qwen 等任何具体模型 |
+<p align="center">
+  <a href="README.md">English</a> ·
+  <a href="README_CN.md">中文</a> ·
+  <a href="docs/i18n/README.ja.md">日本語</a> ·
+  <a href="docs/i18n/README.ko.md">한국어</a> ·
+  <a href="docs/i18n/README.fr.md">Français</a> ·
+  <a href="docs/i18n/README.es.md">Español</a> ·
+  <a href="docs/i18n/README.ru.md">Русский</a> ·
+  <a href="docs/i18n/README.ar.md">العربية</a>
+</p>
 
 ---
 
-## 2. 快速开始
+## 🚀 What is LEAP?
 
-### 环境要求
+**LEAP (Learning Evolution & Adaptation Pipeline) is a state-driven tutoring runtime for AI
+agents.** It gives an agent a persistent, auditable learning loop instead of a one-shot
+"explain then quiz" prompt.
 
-- Python ≥ 3.11
-- 无外部服务依赖（P0 为纯本地进程）
+Your agent keeps doing what it is good at — understanding the learner, generating explanations,
+writing questions, judging open answers. LEAP owns everything that must be consistent:
 
-### 安装
+- **learner state** and mastery estimation
+- **prerequisites** and whether a topic may be entered
+- **assessment sufficiency** and evidence quality
+- **review scheduling** and long-term retention
+- **state transitions** — nothing advances without passing the server-side State Guard
 
 ```bash
-git clone <repo-url>
-cd LEAP_Framework
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+# Your agent asks LEAP what to do next
+get_teaching_context(session_id, "py.recursion.base_case")
+# 👉 strategy: Retrieval Practice · action: Generate Practice
+#    evidence_stage: practiced · mastery: 0.62 · hint_dependency: 0.25
+#    due_reviews: 2 · active_misconceptions: 1
+```
+
+## ⚡ Quick Start
+
+```bash
+git clone https://github.com/Vinger-lee/leap-framework.git
+cd leap-framework
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 ```
 
-### 运行测试
+Run the test suite:
 
 ```bash
-pytest
+pytest -q        # 260 passed
 ```
 
-### 启动 MCP Server（stdio）
+Start the MCP server:
 
 ```bash
-python -m leap.server
-# 或安装后
-leap-mcp
+python -m leap.server      # or: leap-mcp
 ```
 
-### 发布前隐私自检
+Verify the bundled teaching pages:
 
 ```bash
-python scripts/security_scan.py --root . --md reports/security-scan.md
+python scripts/verify_example.py --all          # static spec compliance
+python scripts/verify_example_runtime.py --all  # headless runtime + JSON Schema
 ```
 
-退出码 `0` 干净 / `1` 有 P0+P1（阻断发布）/ `2` 仅有 P2。可直接接入 CI。
-
-> **不参与上传的内容**：AI 助手工作区（`.workbuddy-ai/`、`.claude/`、`.cursor/` 等）、
-> 本地归档（`_archive/`）、缓存与本地运行数据。由 `.gitignore` + 扫描器规则 `AI001` +
-> 测试 `TestAiWorkspaceIsolation` 三重保障。详见 [`docs/README.md`](docs/README.md)。
-
-### 校验前端示例
-
-```bash
-python scripts/verify_example.py --all                    # 静态规范符合性
-python scripts/verify_example_runtime.py --all            # 运行时行为 + JSON Schema
-```
-
-前者检查结构与契约（零依赖），后者用 headless Chromium 真实执行页面，校验
-`window.LEAP.getInteractionResult()` 的返回值是否符合 `interaction-output.schema.json`。
-后者需要 `playwright` 与一个 Chromium，可用 `--chromium <path>` 指定浏览器。
-
----
-
-## 3. 目录结构
-
-```
-LEAP_Framework/
-├── config/default.yaml          # 全部工程参数（可被 Policy 覆写）
-├── src/leap/
-│   ├── config.py                # 配置加载（YAML + 环境变量 + 覆盖）
-│   ├── i18n.py                  # 多语言消息目录（zh-CN / en）
-│   ├── server.py                # MCP Server（stdio），58 个工具
-│   ├── runtime/                 # 服务端决策核心
-│   │   ├── contracts.py         #   §35 六个可插拔协议
-│   │   ├── plugins.py           #   实现注册表（配置选择实现）
-│   │   ├── bkt.py               #   简化遗忘感知 BKT 估计器
-│   │   ├── scoring.py           #   多维评分聚合（§10.3-1）
-│   │   ├── evidence.py          #   Evidence Stage 升级/回退启发式
-│   │   ├── scheduler.py         #   py-fsrs 复习调度
-│   │   ├── state_guard.py       #   状态守卫（唯一有权批准迁移者）
-│   │   ├── policy.py            #   教学策略决策引擎（含 §31 交错练习）
-│   │   ├── learning_modes.py    #   §32 自定义学习模式与策略覆写
-│   │   ├── metrics.py           #   §26 学习效果评测指标
-│   │   └── events.py            #   事件日志
-│   ├── storage/                 # SQLite schema + 连接/事务/幂等
-│   ├── tools/                   # 工具实现（按领域分模块）
-│   └── specs/                   # Obsidian / Web 组件静态规范
-├── tests/                       # 244 项测试
-├── scripts/
-│   ├── security_scan.py         # 隐私与密钥扫描器（CI 门禁）
-│   ├── verify_example.py        # 前端示例静态规范符合性检查
-│   ├── verify_example_runtime.py# 前端示例运行时检查（headless + JSON Schema）
-│   └── apply_leap_bridge.py     # 给示例注入宿主桥接（幂等 / 可撤销）
-├── examples/                    # 前端交互示例（由 Host Agent 生成）
-└── reports/                     # 分阶段实施报告
-```
-
----
-
-## 4. 学习生命周期
+## 🧠 The learning loop
 
 ```
 1. Goal Specification
-2. Domain Grounding【Agent 领域自学校准】   ← 默认强制前置
-3. Learner Diagnostic                      ← 受 State Guard 保护
-4. Knowledge Representation（DAG）
-5. Learner State Initialization
-6. Dynamic Teaching Loop
-   Read State → Policy → Action → Attempt → Assessment → State Update
-7. Retention（FSRS 复习调度）
-8. Transfer（近迁移 → 变式 → 远迁移 → 综合任务）
+2. Domain Grounding          ← the agent studies the topic before teaching it
+3. Learner Diagnostic
+4. Knowledge Representation  ← DAG of knowledge nodes
+5. Learner State Initialisation
+6. Dynamic Teaching Loop     ← Read State → Policy → Action → Attempt → Assessment → Update
+7. Retention                 ← FSRS spaced review
+8. Transfer                  ← near → variation → far → integrated
 9. Reflection & Persistence
 ```
 
-### Domain Grounding（默认强制）
+### 🔒 State Guard
 
-正式教学前，宿主 Agent 必须先对目标专题完成自学习，产出《Agent 内部知识基准报告》。
+The State Guard is the only component that may authorise a transition. When a tool returns
+`REJECT`, the agent adapts to the reason instead of pushing harder through prompt text.
+A failed tool call never becomes a silent state update.
 
-- **收益**：极大降低幻觉，教学内容事实准确性更高
-- **代价**：消耗更多 Token、增加前期等待时间
-- **可跳过**：`allow_skip_domain_grounding=true`（**per-session** 配置），但会升高内容出错风险，开启前必须向用户明示
+### 📊 Mastery is estimated server-side
 
-未完成校准且未开启跳过时，`generate_diagnostic` 会被 State Guard 拒绝。
+`mastery_probability` is a **model estimate, not ground truth**. It is computed by a built-in
+forgetting-aware BKT model, never emitted by the host agent's LLM — that keeps it numerically
+stable and auditable. Each update runs four steps: time decay → evidence update → state
+transition → spontaneous forgetting.
 
----
+Partial credit and low-confidence discounting are supported. Uncertainty is never written in as
+`mastery = 0`.
 
-## 5. 关键机制
+### 🪜 Evidence stages (and they can regress)
 
-### 5.1 `mastery_probability` 由服务端计算
+`estimated → practiced → demonstrated → retained → transferred`
 
-掌握度是**模型估计值，不是事实真值**。P0 由 Runtime 内置简化遗忘 BKT 计算，**不由 Host Agent 的 LLM 输出概率**（避免数值不稳定）。
+One correct answer produces one piece of evidence — not mastery. Stages **regress** when a
+learner has been away too long or fails in a new scenario. The criteria live in the Policy layer
+and are fully configurable.
 
-单次更新四步：时间衰减 → 证据更新（guess/slip 后验）→ 状态转移 → 自发遗忘。
+### ⏰ Retention and transfer
 
-- 支持**部分得分**：`s·P(正确) + (1-s)·P(错误)`
-- 支持**低置信度降权**：评估不确定时把观测拉回先验，**不允许把"不确定"写成 `mastery = 0`**
+Due reviews do **not** block everything. Whether to insert, prioritise or block is decided per
+node. Retention (FSRS, rating 1–4) and transfer (near / variation / far / integrated) are two
+complementary long-term evidence dimensions.
 
-### 5.2 Evidence Stage 允许回退
+## 🔧 MCP tools
 
-| 阶段 | 参考默认判据 |
+58 tools over stdio, grouped by domain:
+
+| Group | Examples |
 |---|---|
-| `estimated` | 仅通过 DAG / 诊断间接推断，无该 node 的答题证据 |
-| `practiced` | ≥1 次有效尝试，且 `hint_dependency < 0.9` |
-| `demonstrated` | `mastery ≥ 0.8`、`hint_dependency ≤ 0.5`，且至少一次低提示成功 |
-| `retained` | 已达 `demonstrated`，且经过配置间隔后复习仍达标 |
-| `transferred` | 完成至少一次 transfer probe，且得分 `≥ 0.7` |
+| Session & goal | `create_session`, `save_learning_goal`, `set_learning_configuration` |
+| Diagnostic | `generate_diagnostic`, `submit_diagnostic`, `save_diagnostic_result` |
+| Knowledge | `decompose_topic`, `save_knowledge_nodes`, `validate_knowledge_dag` |
+| Policy | `get_teaching_context`, `evaluate_pedagogical_policy`, `commit_pedagogical_decision` |
+| Assessment | `generate_assessment`, `assess_response`, `assess_misconception` |
+| Retention | `schedule_review`, `get_due_reviews`, `submit_review` |
+| State Guard | `start_unit`, `check_advance_unit`, `advance_unit`, `rollback_unit` |
+| Evidence | `save_benchmark_report`, `get_evidence`, `validate_claim` |
+| Artifacts | `save_artifact`, `get_obsidian_structure`, `get_web_component_spec` |
+| Reporting | `generate_final_report`, `get_learning_metrics` |
 
-回退：长期未接触 → 退回 `practiced` 并重新进入复习队列；新场景失败 → 退回 `demonstrated`。
+## 🧩 Pluggable by design
 
-> 判据位于 **Policy 层且可配置**；State Guard 只读取最终 `evidence_stage`，不强制校验升级条件。
+Six components are resolved through a plugin registry, so an implementation can be swapped from
+`config/default.yaml` without touching call sites:
 
-### 5.3 `advance_unit` 是批量业务封装
-
-- **数据层唯一实体是 `knowledge_node`**；`unit` 只是业务聚合标签（`knowledge_nodes.unit_tag`），**不建 unit 表**
-- `advance_unit` 遍历该 unit 下全部 node，**逐个执行 node 级 State Guard 校验，任一不过则整体拒绝**
-- 7 项检查：`prerequisites_met` / `assessment_sufficient` / `evidence_sufficient` / `transfer_required` / `transfer_completed` / `current_state_version_valid` / `manual_override`
-
-### 5.4 权威源与缓存
-
-| 语义 | 权威源 | 缓存字段 |
+| Seam | Default | Alternatives |
 |---|---|---|
-| 错误概念 | `misconceptions` 表 | `learner_knowledge_state.misconception_state` |
-| 复习状态 | `review_items` 表 | `learner_knowledge_state.next_review_at` |
-| 证据阶段 | `learner_knowledge_state.evidence_stage` | `assessment_results.evidence_stage`（单次快照，不可修改） |
+| State estimation | `simplified_bkt` | PFA, DKT, Bayesian, hybrid |
+| Score aggregation | `weighted` | rubric, model-based |
+| Pedagogical policy | `rule_based` | LLM, hybrid, learned |
+| Review scheduler | `py-fsrs` | any scheduler |
+| Storage | `sqlite` | PostgreSQL, distributed |
+| Artifact store | `local` | object storage, knowledge base |
 
-缓存字段由 Runtime 自动刷新，**禁止业务代码直接写入**。
+## 🌍 Internationalisation
 
-### 5.5 到期复习不全局阻塞
+Learner-facing text comes from a message catalogue (`zh-CN` / `en`). Tool names, field names and
+enum values are deliberately **not** translated — translating them would break host-agent
+integrations. Set `locale` in `config/default.yaml`, or override with `LEAP_LOCALE`.
 
-存在到期复习项 **不等于**必须阻断全部新知识。是否插入、优先或阻塞由 Policy + State Guard 按节点决定。
+## 📦 Configuration
 
----
+Every parameter lives in `config/default.yaml` and is an engineering heuristic the Policy engine
+may override:
 
-## 6. 工程参数
-
-`config/default.yaml` 收录全部参数，**每一项都是 engineering heuristic，Policy 可以全部覆写**。常用项：
-
-| 参数 | 默认值 | 说明 |
+| Parameter | Default | Meaning |
 |---|---|---|
-| `mastery_threshold` | `0.80` | 掌握阈值（初始工程值） |
-| `max_hint_level` | `3` | 提示层级 |
-| `max_retry_before_example` | `3` | 触发示范的失败次数 |
-| `friction_window` | `3` | 摩擦观察窗口，**单位 = attempt 次数** |
-| `reasoning_quality_low` | `0.5` | 低于此视为推理质量显著偏低 |
-| `hint_dependency_high` | `0.7` | 高于此视为高提示依赖 |
+| `mastery_threshold` | `0.80` | Mastery threshold |
+| `max_hint_level` | `3` | Hint ceiling |
+| `max_retry_before_example` | `3` | Failures before a worked example |
+| `hint_dependency_high` | `0.7` | High hint-dependency cutoff |
 | `overall_score_weights` | `0.4/0.3/0.2/0.1` | correctness / conceptual / reasoning / application |
-| `review_scheduler` | `py-fsrs` | 复习调度器，rating 1–4 |
-| `mcp_transport` | `stdio` | P0 仅本地进程 |
-| `auth_enabled` | `false` | P0 单机本地信任环境 |
+| `review_scheduler` | `py-fsrs` | Spaced-repetition backend |
+| `interleaving_enabled` | `conditional` | Interleaved practice |
+| `locale` | `zh-CN` | Language of learner-facing text |
 
-`transfer` 与 `hint_dependency` **不参与** `overall_score` 聚合，单独作为 Policy 输入。
+## 📚 Examples
 
----
+Five single-page teaching demos, each verified statically and in headless Chromium:
 
-## 6.1 多语言适配
-
-运行时内置 i18n 层，**学习者与运维人员会读到的文本**全部走消息目录，不硬编码：
-
-| 已本地化 | 未本地化（有意为之） |
+| Example | Subject |
 |---|---|
-| State Guard 拒绝原因 | 代码注释、日志、异常类型 |
-| 领域校准提示文案 | 工具名、字段名、枚举值 |
-| 学习模式名称与描述 | Policy 决策理由（内部审计用） |
-| 结业报告标题与小节名 | |
+| `examples/01-python-recursion/` | Programming — Python recursion |
+| `examples/02-math-linear-equation/` | Mathematics — linear equations |
+| `examples/03-cs-osi-model/` | Computer science — OSI model |
+| `examples/04-physics-free-fall/` | Physics — free fall |
+| `examples/05-logic-flowchart/` | Logic — flowcharts |
 
-```yaml
-locale: zh-CN          # 支持 zh-CN | en
+Every page is a **reference implementation**: zero CDN, zero network requests, and it demonstrates
+the real page ↔ runtime bridge — `LEAP.hydrate(context)` for state in, `LEAP.drainOutbox()` for
+MCP calls out.
+
+## 🗂 Repository layout
+
+```
+leap-framework/
+├── config/default.yaml      # every engineering parameter
+├── src/leap/
+│   ├── i18n.py              # message catalogue
+│   ├── server.py            # MCP server (stdio)
+│   ├── runtime/             # decision core
+│   │   ├── contracts.py     #   the plugin seams
+│   │   ├── plugins.py       #   implementation registry
+│   │   ├── bkt.py           #   mastery estimation
+│   │   ├── policy.py        #   pedagogical policy
+│   │   ├── scheduler.py     #   FSRS review scheduling
+│   │   ├── state_guard.py   #   transition authority
+│   │   └── ...
+│   ├── storage/             # SQLite schema + migrations
+│   ├── tools/               # tool implementations
+│   └── specs/               # Obsidian / web component specs
+├── examples/                # five teaching pages + shared specs
+├── docs/                    # architecture, integration, i18n
+├── scripts/                 # verifiers, scanner, auditors
+└── tests/                   # 260 tests
 ```
 
-也可用环境变量覆盖：`LEAP_LOCALE=en`。语言只影响文案，**不改变任何状态迁移行为**。
+## 🔍 Quality gates
 
-新增语言的步骤见 [`docs/i18n.md`](docs/i18n.md)。测试会强制两份目录的**键集合完全一致**，缺翻译不会静默漏出原始 key。
+```bash
+pytest -q                                        # 260 tests
+python scripts/security_scan.py --root .         # secrets & PII (CI gate)
+python scripts/verify_example.py --all           # example static compliance
+python scripts/verify_example_runtime.py --all   # example runtime compliance
+python scripts/spec_coverage.py                  # spec vs. code coverage
+python scripts/apply_leap_bridge.py --check      # host-bridge completeness
+```
 
----
+Exit codes are `0` clean / `1` blocking / `2` warnings only. The first four run in CI on every
+push.
 
-## 7. P0 交付边界
+AI assistant workspaces (`.workbuddy*/`, `.claude*/`, `.cursor*/`, `agent-state/`, …) and local
+scratch directories are excluded from publication by `.gitignore`, scanner rule `AI001`, and a CI
+test that asserts the index and full history contain zero such files.
 
-### ✅ 已实现
+## 📖 Documentation
 
-1. LEAP MCP Server（stdio）+ SQLite
-2. 完整工具集（58 个）
-3. Server-side State Guard
-4. 内置简化遗忘 BKT
-5. FSRS（`py-fsrs`）复习调度
-6. 事件日志与决策日志
-7. Artifact 存储
-8. 静态规范输出（Web 组件规范 / Obsidian 目录规范）
-9. 隐私扫描器 + 测试套件
-
-### ❌ P0 不交付
-
-> Web 前端页面、真实 Obsidian 库读写代码、完整参考 Agent 程序。
-> **MCP 只输出规范，生成文件全部交给宿主 Agent 完成。**
-
-### 后续阶段
-
-- **P1**：参考最小 Host Agent 示例代码、外部估计器（模式 B）、多维 Rubric 扩展
-- **P2**：HTTP / SSE 传输、认证、多租户、Teacher Dashboard
-
----
-
-## 8. 文档
-
-| 文档 | 内容 |
+| Document | Contents |
 |---|---|
-| （作者维护的框架设计文档，不在本仓库） | 完整框架设计（42 节；权威文档不在本仓库） |
-| **教学界面视觉规范**。示例必须与作者维护的视觉规范对齐；该规范不在本仓库。 |
-| [`docs/`](docs/README.md) | 文档索引 |
-| [`docs/host-agent-system-prompt.md`](docs/host-agent-system-prompt.md) | 宿主 Agent 接入指南（中文） |
-| [`docs/host-agent-system-prompt.en.md`](docs/host-agent-system-prompt.en.md) | Host Agent integration guide (English) |
-| [`docs/i18n.md`](docs/i18n.md) | 多语言适配说明 |
-| [`examples/`](examples/README.md) | 5 个学科前端示例 + 规范 + 验收脚本 |
-| [`reports/`](reports/) | 分阶段实施报告 |
+| [`README_CN.md`](README_CN.md) | 中文说明 |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Architecture and design decisions |
+| [`docs/INTEGRATION.md`](docs/INTEGRATION.md) | Host-agent integration guide |
+| [`docs/EXAMPLES.md`](docs/EXAMPLES.md) | The five teaching pages and their contract |
+| [`docs/i18n/`](docs/i18n/) | Translations |
+| [`CHANGELOG.md`](CHANGELOG.md) | Release history |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to contribute |
+| [`SECURITY.md`](SECURITY.md) | Reporting a vulnerability |
 
----
+> The authoritative framework design specification and visual design system are maintained by the
+> project author separately and are **not** part of this repository. The implementation here
+> follows those documents.
 
-## 9. 许可证
+## 🤝 Contributing
 
-[MIT](LICENSE)
+Issues and pull requests are welcome. Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) first.
+
+## 📄 License
+
+[MIT](LICENSE) © Vinger-lee

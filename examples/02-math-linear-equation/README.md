@@ -1,15 +1,17 @@
-# 示例 2 · 数学类：一元一次方程
+# Example 2 · Mathematics: Linear Equations
 
-- **产出文件名**：`leap-02-math-linear-equation.html`（放入本目录）
-- **主题**：一元一次方程的解法与等价变形
-- **node_id**：`math.algebra.linear_equation` ｜ **unit_tag**：`linear-equation`
-- **必含交互组件**：
-  1. 原生 MathML 公式渲染（禁止 KaTeX CDN）
-  2. 交互式参数计算器（滑块调 a/b/c，实时看解变化）
-  3. 拖拽排序题（方程变形步骤排序，松手即判分）
-  4. 分步求解练习 + 三级提示
-  5. SVG 数轴可视化
-- **参考 Skill 思路**：交互式数学计算器、LiaScript DragAndDrop Template
-- **验收**：公式渲染正确；参数修改实时计算；拖拽判分准确。
+**Language**: English ｜ [中文](README_CN.md)
 
-规范见 `../_shared/leap-web-spec.md`，JSON 契约见 `../_shared/interaction-output.schema.json`。
+- **Output file**: `leap-02-math-linear-equation.html` (place in this directory)
+- **Topic**: Solving linear equations and equivalent transformations
+- **node_id**: `math.algebra.linear_equation` · **unit_tag**: `linear-equation`
+- **Required interaction components**:
+  1. Native MathML formula rendering (KaTeX CDN forbidden)
+  2. Interactive parameter calculator (sliders for a/b/c, solution updates live)
+  3. Drag-and-order item (order the transformation steps; scored on drop)
+  4. Step-by-step solving practice with three-level hints
+  5. SVG number-line visualisation
+- **Reference approaches**: Interactive math calculator, LiaScript DragAndDrop Template
+- **Acceptance**: Formulas render correctly; parameter changes recompute live; drag scoring is accurate.
+
+Structural spec: `../_shared/leap-web-spec.md`. JSON contract: `../_shared/interaction-output.schema.json`.

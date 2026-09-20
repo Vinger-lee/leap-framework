@@ -1,7 +1,7 @@
 # LEAP 宿主桥接契约（Host Bridge）
 
 > 本文件定义教学网页与 **LEAP Runtime** 之间的双向接口。
-> 结构规范见 `leap-web-spec.md`，视觉规范见仓库根目录 （视觉规范 — （作者另行维护的视觉规范，不在本仓库）），
+> 结构规范见 `leap-web-spec.md`；视觉规范由项目作者另行维护，**不在本仓库**。
 > 机器可读契约见 `interaction-output.schema.json`。
 
 ---

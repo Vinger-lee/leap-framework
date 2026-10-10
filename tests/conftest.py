@@ -8,6 +8,19 @@ from leap.config import Config, load_config
 from leap.tools import LeapService, build_service
 
 
+def complete_grounding(service, session_id, report_text="# Test baseline", **kwargs):
+    """Synthetic evidence for workflow tests; not a claim of real source reading."""
+    refs = kwargs.pop("source_refs", None) or [{"source": "fixture textbook", "source_type": "test_fixture"}]
+    refs = [{**r, "source_type": r.get("source_type", "test_fixture"),
+             "locator": "fixture chapter", "excerpt": "Recursion needs a terminating base case."} for r in refs]
+    return service.save_benchmark_report(session_id, report_text, source_refs=refs, verification={
+        "scope": "Synthetic recursion baseline for runtime tests",
+        "claims": [{"claim": "A terminating base case stops recursion", "source_index": 0}],
+        "worked_examples": [{"problem": "factorial(0)", "solution": "1", "check_method": "base-case substitution", "check_result": "returns 1 without recursion"}],
+        "limitations": ["Test fixture; not a source verification integration test"],
+    }, **kwargs)
+
+
 @pytest.fixture(scope="session")
 def base_config() -> Config:
     return load_config()
@@ -25,7 +38,7 @@ def service() -> LeapService:
 def grounded_service(service: LeapService) -> LeapService:
     """A service with one session that already passed Domain Grounding."""
     session = service.create_session("learner-test", "python recursion")
-    service.save_benchmark_report(
+    complete_grounding(service,
         session["session_id"],
         "# Baseline\n\nRecursion = base case + recursive case.",
         source_refs=[{"source": "textbook ch.4", "source_type": "textbook", "authority": "high"}],

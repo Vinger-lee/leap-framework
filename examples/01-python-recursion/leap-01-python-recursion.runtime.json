@@ -1,0 +1,91 @@
+[
+  {
+    "name": "wrong understanding-check answer records an attempt",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".opt[data-v=\"bad\"] >> nth=0"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().events.some(e => e.event_type === 'attempt_submitted')"
+    ]
+  },
+  {
+    "name": "hint ladder cannot skip to full answer",
+    "steps": [],
+    "assertions": [
+      "window.LEAP.getInteractionResult().ui_state.answer_revealed === false",
+      "window.LEAP.getInteractionResult().ui_state.completed === false",
+      "document.querySelector('.ladder-step[data-lv=\"4\"]').disabled === true"
+    ]
+  },
+  {
+    "name": "queue preview does not discard pending calls",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".opt[data-v=\"ok\"] >> nth=0"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__pending = window.LEAP.peekOutbox().length"
+      },
+      {
+        "action": "click",
+        "selector": "#bridgeDrain"
+      }
+    ],
+    "assertions": [
+      "window.__pending > 0 && window.LEAP.peekOutbox().length === window.__pending"
+    ]
+  },
+  {
+    "name": "demo assessment never promotes Runtime state",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "window.__stage = window.LEAP.getInteractionResult().assessment.evidence_stage; window.LEAP.pushEvent('attempt_submitted',{item_id:'test',answer:'test answer',hint_level:0}); window.LEAP.commitAssessment({item_id:'test',correctness:1,conceptual_understanding:1,reasoning_quality:1,application:1,transfer:1})"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.evidence_stage === window.__stage",
+      "window.LEAP.getInteractionResult().assessment.provisional === true"
+    ]
+  },
+  {
+    "name": "local completion requests guard check",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "window.LEAP.setCompleted('test','activity finished')"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.peekOutbox().some(c => c.tool === 'check_advance_unit')",
+      "!window.LEAP.peekOutbox().some(c => c.tool === 'advance_unit')"
+    ]
+  },
+  {
+    "name": "base case blanks",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#blankA",
+        "value": "n <= 1"
+      },
+      {
+        "action": "fill",
+        "selector": "#blankB",
+        "value": "n * factorial(n - 1)"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.correctness === 1"
+    ]
+  }
+]

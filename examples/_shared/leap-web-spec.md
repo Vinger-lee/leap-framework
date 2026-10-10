@@ -83,8 +83,11 @@
 1. 学习者的每次交互（作答 / 拖拽 / 运行代码 / 反思）都必须**翻译成一条 MCP 调用**入队；
 2. `commit_assessment` 调用必须带非空 `raw_answer`（对齐 LEAP‑V2 §22.8）；
 3. 页面**不得**自行推算 `mastery_probability`、**不得**自行判定 `evidence_stage` 升级、**不得**把 `mastery_probability` 放进调用入参（对齐 §10.2‑1）；
-4. 未调用 `hydrate()` 时保持 `ui_state.mode === "demo"`，本地推算值必须标记 `assessment.provisional = true`，界面明确标注为演示数据；
+4. 未调用 `hydrate()` 时保持 `ui_state.mode === "demo"`，掌握度与证据阶段不得本地升级；本地评分标记 `assessment.provisional = true`，界面明确标注为待核验。进入 hosted 也不代表新评分已确认；
 5. 调用队列、`ui_state.mode`、`assessment.provisional` 的字段名与取值以 `interaction-output.schema.json` 为准。
+
+6. 出题前宿主须按 [内容质量流程](../../docs/content-quality.md) 完成来源阅读和逐题复核，通过 `save_assessment_item` 登记题目；自由文本必须由宿主语义评估，不得以关键词存在代替推理正确。
+7. `item_completed` 产生 `check_advance_unit`，不能把本地活动完成描述为 Runtime 已批准节点完成。浏览器检查、真实 MCP 联调和学科审校必须分开报告。
 
 ## 6. 视觉与可访问性
 

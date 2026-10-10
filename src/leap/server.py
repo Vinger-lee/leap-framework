@@ -93,7 +93,15 @@ def build_server() -> MCPServer:
             "Goal -> Domain Grounding -> Diagnostic -> Knowledge DAG -> State Init -> "
             "Teaching loop -> Retention/Transfer -> Reflection -> Persistence. "
             "Domain Grounding is mandatory unless the session allows skipping it; the "
-            "server will reject generate_diagnostic otherwise. mastery_probability is "
+            "Read relevant authoritative sources yourself using host tools; record precise locators, "
+            "excerpts, source-linked claims, worked checks and limitations via save_benchmark_report "
+            "(verification). Saving prose alone does not complete grounding. Never claim source "
+            "reading or syllabus alignment without evidence, and never enable skipping on your own. "
+            "The server guards diagnostics and teaching entry points. Register each generated item "
+            "via save_assessment_item before delivery; independently solve it, check boundary cases, "
+            "options and counterexamples. Free-text reasoning needs semantic review by the host, "
+            "not keyword scoring. LEAP validates records and estimates state; it does not verify "
+            "the truth of supplied mathematical answers. mastery_probability is "
             "computed server-side from evidence you submit via commit_assessment - never "
             "send your own probability. Always pass raw_answer when committing an assessment."
         ),
@@ -413,6 +421,24 @@ def build_server() -> MCPServer:
         """Return a transfer-probe blueprint (near / variation / far / integrated)."""
         return get_service().generate_transfer_probe(session_id, node_id)
 
+    @server.tool()
+    @_guard
+    def save_assessment_item(
+        session_id: str, item_id: str, question: str, expected_answer: str,
+        solution: str, assumptions: list[str], verification_checks: list[dict],
+        node_id: str | None = None, source_ids: list[str] | None = None,
+        rejected_answers: list[dict] | None = None, assessor_scope: str = "host_semantic_review",
+    ) -> dict:
+        """Register a checked item before delivery. Supply conditions, solution and independent checks.
+
+        Runtime checks structure only. The host must verify content, options,
+        counterexamples and free-text reasoning. Item IDs are immutable.
+        """
+        return get_service().save_assessment_item(
+            session_id, item_id, question, expected_answer, solution, assumptions, verification_checks,
+            node_id=node_id, source_ids=source_ids, rejected_answers=rejected_answers, assessor_scope=assessor_scope,
+        )
+
     # -- 22.7 Retention -----------------------------------------------------
     @server.tool()
     @_guard
@@ -616,14 +642,19 @@ def build_server() -> MCPServer:
         report_text: str,
         source_refs: list[dict] | None = None,
         request_id: str | None = None,
+        verification: dict | None = None,
     ) -> dict:
-        """Save the agent's domain grounding report and unlock diagnostics.
+        """Save grounding evidence; prose alone remains pending and does not unlock teaching.
 
         The full text is stored as an artifact of type agent_benchmark_report;
-        structured claims go to benchmark_claims.
+        source_refs require source, source_type, locator and excerpt. verification
+        requires scope, claims (claim + source_index), worked_examples (problem,
+        solution, check_method, check_result) and limitations. Read sources with
+        host tools first. Runtime checks completeness, not truth of the content.
         """
         return get_service().save_benchmark_report(
-            session_id, report_text, source_refs=source_refs, request_id=request_id
+            session_id, report_text, source_refs=source_refs, request_id=request_id,
+            verification=verification,
         )
 
     @server.tool()

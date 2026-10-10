@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/github/v/release/Vinger-lee/leap-framework" alt="Release">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-58%20tools-22bb33" alt="MCP Tools">
+  <img src="https://img.shields.io/badge/MCP-59%20tools-22bb33" alt="MCP Tools">
   <img src="https://img.shields.io/badge/tests-260%20passing-22bb33" alt="Tests">
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
@@ -123,7 +123,7 @@ complementary long-term evidence dimensions.
 
 ## 🔧 MCP tools
 
-58 tools over stdio, grouped by domain:
+59 tools over stdio, grouped by domain:
 
 | Group | Examples |
 |---|---|
@@ -131,12 +131,19 @@ complementary long-term evidence dimensions.
 | Diagnostic | `generate_diagnostic`, `submit_diagnostic`, `save_diagnostic_result` |
 | Knowledge | `decompose_topic`, `save_knowledge_nodes`, `validate_knowledge_dag` |
 | Policy | `get_teaching_context`, `evaluate_pedagogical_policy`, `commit_pedagogical_decision` |
-| Assessment | `generate_assessment`, `assess_response`, `assess_misconception` |
+| Assessment | `generate_assessment`, `save_assessment_item`, `submit_attempt`, `commit_assessment`, `assess_response` |
 | Retention | `schedule_review`, `get_due_reviews`, `submit_review` |
 | State Guard | `start_unit`, `check_advance_unit`, `advance_unit`, `rollback_unit` |
 | Evidence | `save_benchmark_report`, `get_evidence`, `validate_claim` |
 | Artifacts | `save_artifact`, `get_obsidian_structure`, `get_web_component_spec` |
+| Reflection | `record_reflection` |
 | Reporting | `generate_final_report`, `get_learning_metrics` |
+
+The table shows examples, not the complete catalog. The [generated tool reference](docs/mcp-tools.md) lists every registered tool and its exact parameters; CI checks it against the MCP catalog.
+
+Domain Grounding now requires source locators, excerpts, linked claims, checked examples and limitations in `save_benchmark_report(verification=...)`. Text alone remains pending; teaching entry points are guarded too. Hosts must read sources themselves and register checked questions with `save_assessment_item` before delivery. Free-text reasoning needs host semantic review: LEAP validates submitted records and estimates state; it does not prove subject-matter correctness.
+
+See the [content-quality and integration workflow](docs/content-quality.md) and [audit of the reported delivery](docs/quality-audit-2026-10-10.md). Browser scenario checks and real MCP integration checks are separate from content review.
 
 ## 🧩 Pluggable by design
 

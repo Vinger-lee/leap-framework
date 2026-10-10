@@ -16,6 +16,7 @@ Two invariants matter here:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import json
 from typing import Any, Iterable, Mapping
 
 from leap.runtime.evidence import stage_index
@@ -146,11 +147,26 @@ class StateGuard:
         allow_skip = bool(session["allow_skip_domain_grounding"])
         stage = session["domain_grounding_stage"]
         report_id = session["benchmark_report_artifact_id"]
+        artifact = self._db.query_one(
+            "SELECT metadata FROM artifacts WHERE artifact_id = ? AND session_id = ? AND artifact_type = 'agent_benchmark_report'",
+            (report_id, session_id),
+        ) if report_id else None
+        try:
+            metadata = json.loads(artifact["metadata"] or "{}") if artifact else {}
+        except (TypeError, ValueError):
+            metadata = {}
+        if not isinstance(metadata, dict):
+            metadata = {}
+        evidence_recorded = bool(metadata.get("evidence_format_version") == 1
+                                 and metadata.get("source_count", 0) > 0
+                                 and metadata.get("verification")
+                                 and metadata.get("missing_evidence") == [])
 
         checks = {
             "allow_skip_domain_grounding": allow_skip,
             "domain_grounding_completed": stage == "completed",
             "benchmark_report_present": bool(report_id),
+            "grounding_evidence_recorded": evidence_recorded,
         }
         details = {"domain_grounding_stage": stage, "benchmark_report_artifact_id": report_id}
 
@@ -160,7 +176,7 @@ class StateGuard:
                 checks=checks,
                 details=details,
             )
-        if stage != "completed" or not report_id:
+        if stage != "completed" or not report_id or not evidence_recorded:
             return GuardDecision.reject(
                 self._t("domain_grounding.reject.not_completed"),
                 checks=checks,

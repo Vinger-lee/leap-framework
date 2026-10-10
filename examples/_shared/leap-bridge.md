@@ -46,7 +46,7 @@ window.LEAP.hydrate(ctx);
 
 调用后 `ui_state.mode` 由 `"demo"` 变为 `"hosted"`，页面顶部的免责说明同步改为"本页状态由 LEAP Runtime 注入"。
 
-**未调用 `hydrate()` 时页面保持 `demo` 模式**，此时本地推算值一律带 `assessment.provisional = true`，界面明确标注为演示数据。
+**未调用 `hydrate()` 时页面保持 `demo` 模式**。掌握度和证据阶段保留初始占位值，不得在 demo 中自行升级。本地评分始终标记 `assessment.provisional = true`，表示尚未获得 Runtime 确认；hosted 模式也不能自动确认一份新评分。
 
 ---
 
@@ -88,7 +88,10 @@ for (const call of calls) {
 | `drag_submitted` | `submit_attempt` |
 | `code_run` | `submit_attempt` |
 | `reflection_recorded` | `record_reflection` |
-| `hint_used` / `answer_revealed` / `item_completed` | **不单独产生调用** —— 它们的信息通过下一次 `attempt` 的 `hint_level` 一并提交 |
+| `hint_used` / `answer_revealed` | 不单独产生调用，提示级别通过下一次 `attempt` 的 `hint_level` 提交 |
+| `item_completed` | `check_advance_unit(session_id, node_id)`；仅表示本地活动结束，宿主须读取 guard，允许后才能提议 `advance_unit` |
+
+出题前宿主须完成来源校准，并用 `save_assessment_item` 登记每个 `item_id`。后置验证是新的作答，必须产生自己的 `submit_attempt`；不能只记录 `reflection_recorded` 再给上一条 attempt 提交分数。自由文本评分由宿主语义审阅，Runtime 不替宿主判断数学推理。
 
 `commitAssessment()` 额外产生一条 `commit_assessment`，其 `attempt_id` 用**引用占位符**指向前面那条 `submit_attempt`：
 
@@ -141,7 +144,7 @@ for (const call of calls) {
 
 | ❌ 禁止 | ✅ 应改为 |
 |---|---|
-| 自行推算 `mastery_probability` 并当作真值展示 | 只显示 `hydrate()` 注入的值；demo 模式下标注"本地模拟" |
+| 自行推算 `mastery_probability` 并当作真值展示 | 只显示 `hydrate()` 注入的值；demo 保留初始占位值，明确未接入 |
 | 自行决定 `evidence_stage` 升级 | 以 Runtime 返回值回填 |
 | 自行判定单元能否推进 | 产生 `advance_unit` 调用，由 State Guard 裁决 |
 | `commit_assessment` 不带 `raw_answer` | `raw_answer` 必须非空（§22.8：原始作答不可丢弃） |
@@ -152,10 +155,11 @@ for (const call of calls) {
 
 ## 6. 验收
 
-桥接是自动化验收的一部分，不需要人工核对：
+桥接是自动化验收的一部分；浏览器场景和真实 MCP 联调分别执行，内容仍须独立审校：
 
 ```bash
 python scripts/verify_example_runtime.py --all
+python scripts/verify_mcp_bridge.py
 ```
 
 覆盖的桥接检查项：
@@ -167,6 +171,10 @@ python scripts/verify_example_runtime.py --all
 - `commit_assessment` 携带非空 `raw_answer` 与 `attempt_id` 引用
 - `commit_assessment` 入参中**不含** `mastery_probability`
 - 桥接后返回值仍通过 `interaction-output.schema.json` 校验
+- 同名 `.runtime.json` 明确列出操作与断言，缺失清单不得通过；只对已声明路径负责
+- 真实 stdio 进程接收页面的作答、评分、guard 检查，并从临时数据库回填状态
+
+查看队列使用 `peekOutbox()`。`drainOutbox()` 会取走队列，执行方应保存结果并处理失败和依赖；参考桥接没有持久确认/重试协议。单纯注入模拟上下文不能称为真实 MCP 联调。完整质量流程见 [content-quality.md](../../docs/content-quality.md)。
 
 若页面缺少桥接，用下面这条命令补齐（幂等，已打过会跳过）：
 

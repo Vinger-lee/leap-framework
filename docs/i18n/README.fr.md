@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/github/stars/Vinger-lee/leap-framework?style=social" alt="Stars">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-58%20tools-22bb33" alt="MCP Tools">
+  <img src="https://img.shields.io/badge/MCP-59%20tools-22bb33" alt="MCP Tools">
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
   <b>🤖 Donnez à votre agent IA un véritable moteur de tutorat — pas seulement un prompt.</b>
@@ -85,7 +85,7 @@ Une bonne réponse produit une preuve — pas la maîtrise. Les stades **régres
 
 ## 🔧 Outils MCP
 
-58 outils exposés via stdio.
+59 outils exposés via stdio.
 
 | Groupe | Exemples |
 |---|---|

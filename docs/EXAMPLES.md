@@ -47,7 +47,7 @@ Every learner action becomes a queued call (`submit_attempt`, `commit_assessment
 call argument — mastery is decided server-side.
 
 Before injection the page runs in `demo` mode: locally derived numbers are flagged
-`assessment.provisional = true` and labelled as demonstration data.
+`assessment.provisional = true` and labelled as unconfirmed feedback. Demo mode never advances mastery or evidence stage; hosted mode alone does not confirm a new assessment.
 
 ## Verification
 

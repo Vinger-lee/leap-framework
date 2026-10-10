@@ -24,6 +24,7 @@ class TeachingTools(LeapToolMixin):
     # ------------------------------------------------------------------
     def get_teaching_context(self, session_id: str, node_id: str | None = None) -> dict:
         """One call that returns everything a teaching turn needs."""
+        self.require_grounding(session_id)
         context = self.policy.build_teaching_context(session_id, node_id)
         node_id = node_id or context["session"].get("current_node_id")
 
@@ -41,6 +42,12 @@ class TeachingTools(LeapToolMixin):
             context["recommendation_error"] = str(exc)
 
         context["due_review_count"] = len(context.get("due_reviews") or [])
+        context["domain_grounding_evidence"] = self.get_evidence(session_id, node_id)
+        context["assessment_delivery"] = {
+            "register_items_before_delivery": "save_assessment_item",
+            "free_text_requires": "host semantic review; never keyword-only scoring",
+            "runtime_content_verification": False,
+        }
         return self.ok(session_id=session_id, node_id=node_id, **context)
 
     # ------------------------------------------------------------------
@@ -207,6 +214,7 @@ class TeachingTools(LeapToolMixin):
     ) -> dict:
         """Mark a unit/node as the current focus."""
         session = self.require_session(session_id)
+        self.require_grounding(session_id)
         resolved_node = self._resolve_entry_node(session_id, unit_tag, node_id)
         ts = now_ts()
         with self.db.transaction():

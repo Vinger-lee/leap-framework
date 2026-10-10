@@ -186,6 +186,11 @@ class LeapToolMixin:
             raise ToolError("unknown_node", f"knowledge node not found: {node_id}")
         return dict(row)
 
+    def require_grounding(self, session_id: str) -> None:
+        decision = self.guard.check_domain_grounding(session_id)
+        if not decision.allowed:
+            raise ToolError("domain_grounding_required", decision.reason, decision.as_dict())
+
     def require_learner(self, learner_id: str) -> dict:
         row = self.db.query_one("SELECT * FROM learners WHERE learner_id = ?", (learner_id,))
         if row is None:

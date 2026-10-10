@@ -13,6 +13,7 @@ properties that matter:
 from __future__ import annotations
 
 import pytest
+from tests.conftest import complete_grounding
 
 from leap.i18n import (
     DEFAULT_LOCALE,
@@ -172,7 +173,7 @@ class TestLocaleReachesTheSurface:
         for locale, expected in (("zh-CN", "学习目标"), ("en", "Learning Goal")):
             svc = self._service(locale)
             sid = svc.create_session("L1", "t")["session_id"]
-            svc.save_benchmark_report(sid, "# b")
+            complete_grounding(svc, sid, "# b")
             markdown = svc.generate_final_report(sid)["markdown"]
             assert expected in markdown, locale
 
@@ -182,7 +183,7 @@ class TestLocaleReachesTheSurface:
         for locale in ("zh-CN", "en"):
             svc = self._service(locale)
             sid = svc.create_session("L1", "t")["session_id"]
-            svc.save_benchmark_report(sid, "# b")
+            complete_grounding(svc, sid, "# b")
             svc.save_knowledge_nodes(
                 sid, [{"node_id": "n1", "title": "t", "bloom_level": "apply", "unit_tag": "u1"}]
             )

@@ -17,6 +17,7 @@ import re
 from pathlib import Path
 
 import pytest
+from tests.conftest import complete_grounding
 
 from leap.config import REPO_ROOT, load_config
 from leap.i18n import translator_for
@@ -113,7 +114,7 @@ class TestPluggableSeams:
 def _unit_service(cfg=None):
     svc = build_service(":memory:", cfg)
     sid = svc.create_session("L1", "recursion")["session_id"]
-    svc.save_benchmark_report(sid, "# baseline")
+    complete_grounding(svc, sid, "# baseline")
     svc.save_knowledge_nodes(sid, [
         {"node_id": "n1", "title": "base case", "bloom_level": "understand", "unit_tag": "u1"},
         {"node_id": "n2", "title": "recursive case", "bloom_level": "understand", "unit_tag": "u1"},
@@ -201,7 +202,7 @@ class TestLearningModes:
 
     def test_overrides_actually_change_engine_parameters(self, service):
         sid = service.create_session("L1", "recursion")["session_id"]
-        service.save_benchmark_report(sid, "# b")
+        complete_grounding(service, sid, "# b")
         assert service.policy._get("mastery_threshold", None, sid) == 0.80
 
         service.set_learning_configuration(sid, request="我要准备考试")
@@ -231,8 +232,8 @@ class TestLearningModes:
     def test_overrides_do_not_leak_between_sessions(self, service):
         a = service.create_session("L1", "recursion")["session_id"]
         b = service.create_session("L1", "recursion")["session_id"]
-        service.save_benchmark_report(a, "# b")
-        service.save_benchmark_report(b, "# b")
+        complete_grounding(service, a, "# b")
+        complete_grounding(service, b, "# b")
         service.set_learning_configuration(a, request="我要准备考试")
         assert service.policy._get("mastery_threshold", None, a) == 0.85
         assert service.policy._get("mastery_threshold", None, b) == 0.80
@@ -248,7 +249,7 @@ class TestLearningModes:
 
     def test_transfer_requirement_follows_the_mode(self, service):
         sid = service.create_session("L1", "recursion")["session_id"]
-        service.save_benchmark_report(sid, "# b")
+        complete_grounding(service, sid, "# b")
         service.save_knowledge_nodes(
             sid, [{"node_id": "n1", "title": "t", "bloom_level": "remember", "unit_tag": "u1"}]
         )
@@ -259,7 +260,7 @@ class TestLearningModes:
 
     def test_preferences_are_surfaced_to_the_host_agent(self, service):
         sid = service.create_session("L1", "recursion")["session_id"]
-        service.save_benchmark_report(sid, "# b")
+        complete_grounding(service, sid, "# b")
         service.set_learning_configuration(sid, request="以项目实战为主")
         context = service.get_teaching_context(sid)
         assert context["learning_mode"] == "project_based"
@@ -290,7 +291,7 @@ class TestReportSections:
     @staticmethod
     def _session_with_history(service) -> str:
         sid = service.create_session("L1", "recursion")["session_id"]
-        service.save_benchmark_report(sid, "# baseline")
+        complete_grounding(service, sid, "# baseline")
         first = service.submit_attempt(sid, "diagnostic answer")
         service.commit_assessment(
             first["attempt_id"], "diagnostic answer", correctness=0.3, reasoning_quality=0.35

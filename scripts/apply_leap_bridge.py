@@ -21,8 +21,8 @@ This script adds the missing half of the contract to a page:
 in ``LEAP.drainOutbox()`` for the host agent to execute.
 
 The page keeps working standalone: without ``hydrate()`` it stays in
-``demo`` mode and says so, and its locally derived numbers are flagged
-``provisional: true``.
+``demo`` mode, never advances Runtime mastery/evidence, and flags local feedback
+``provisional: true``. New local feedback stays provisional in hosted mode too.
 
 Usage:
     python scripts/apply_leap_bridge.py --check
@@ -105,7 +105,7 @@ BRIDGE_STATE_BLOCK = """  /* ══ LEAP_HOST_BRIDGE · 宿主桥接 ═══�
          计算（LEAP_Framework_V2 §10.2‑1），本页只显示 hydrate() 注入的值；
        · 学习者的每个动作都会被翻译成一条待执行的 MCP 调用，进入 outbox，
          由宿主 Agent 通过 LEAP.drainOutbox() 取走后真正执行。
-     未调用 hydrate() 时保持 demo 模式，本地推算值一律标记 provisional。 */
+     未调用 hydrate() 时保持 demo 模式，待核验评估标记 provisional；掌握度和证据阶段不在本地推算。 */
   var bridge = {
     mode: "demo",
     context: null,
@@ -143,7 +143,7 @@ BRIDGE_STATE_BLOCK = """  /* ══ LEAP_HOST_BRIDGE · 宿主桥接 ═══�
     return call;
   }
 
-  /* 事件 → MCP 调用映射。hint_used / answer_revealed / item_completed 不单独
+  /* 事件 → MCP 调用映射。hint_used / answer_revealed 不单独
      产生调用：它们的信息通过后续 attempt 的 hint_level 一并提交。 */
   var EVENT_TO_TOOL = {
     attempt_submitted: "submit_attempt",
@@ -153,6 +153,11 @@ BRIDGE_STATE_BLOCK = """  /* ══ LEAP_HOST_BRIDGE · 宿主桥接 ═══�
   };
 
   function enqueueForEvent(ev) {
+    if (ev.event_type === "item_completed") {
+      enqueue("check_advance_unit", { session_id: state.learner.session_id,
+        node_id: state.node.node_id }, "Local completion; Runtime guard must approve advancement");
+      return;
+    }
     var tool = EVENT_TO_TOOL[ev.event_type];
     if (!tool) return null;
     var raw = ev.answer == null ? "" : String(ev.answer);
@@ -226,7 +231,7 @@ BRIDGE_STATE_BLOCK = """  /* ══ LEAP_HOST_BRIDGE · 宿主桥接 ═══�
     pre.hidden = !opening;
     if (btn) btn.textContent = opening ? "收起调用队列 ▴" : "取出调用队列 ▾";
     if (opening) {
-      var calls = drainOutbox();
+      var calls = peekOutbox();
       pre.textContent = calls.length
         ? JSON.stringify(calls, null, 2)
         : "（队列为空：尚无需要提交给 LEAP Runtime 的调用）";
@@ -249,7 +254,7 @@ BRIDGE_STATE_BLOCK = """  /* ══ LEAP_HOST_BRIDGE · 宿主桥接 ═══�
     if (noteEl) {
       noteEl.innerHTML = isHosted()
         ? "本页状态由 <b>LEAP Runtime</b> 注入（<code>LEAP.hydrate()</code>）；掌握度与证据阶段由服务端 BKT 与 State Guard 计算，本页不自行推算。"
-        : "本页掌握度与证据阶段为<b>本地模拟</b>，用于演示界面如何呈现学习状态；真实系统中二者由 LEAP Runtime 的 BKT 估计器与 State Guard 计算（见 LEAP_Framework_V2 §10.2‑1）。";
+        : "本页尚未连接 Runtime；掌握度与证据阶段保持初始占位值，作答评分仅为待核验反馈。";
     }
 
     var btn = document.getElementById("bridgeDrain");
@@ -309,19 +314,8 @@ def _patch_table() -> list[tuple[str, str, str]]:
             "    return a;",
             "    a.overall_score = aggregate(a);\n"
             "\n"
-            "    if (bridge.mode === \"demo\") {\n"
-            "      /* 演示模式：本地粗略推进，仅为让界面动起来。\n"
-            "         接入宿主后（hosted）这两项一律以 Runtime 返回值回填（§10.2‑1）。 */\n"
-            "      a.evidence_stage = deriveStage(a);\n"
-            "      if (typeof item.transfer === \"number\" && item.transfer >= 0.7) a.evidence_stage = \"transferred\";\n"
-            "      mastery = Math.max(0, Math.min(0.98, mastery + (a.correctness - 0.5) * 0.14 - dep * 0.04));\n"
-            "      bridge.server.mastery_probability = mastery;\n"
-            "      bridge.server.evidence_stage = a.evidence_stage;\n"
-            "      a.provisional = true;\n"
-            "    } else {\n"
-            "      a.evidence_stage = bridge.server.evidence_stage;\n"
-            "      a.provisional = false;\n"
-            "    }\n"
+            "    a.evidence_stage = bridge.server.evidence_stage;\n"
+            "    a.provisional = true;\n"
             "    state.assessment = a;\n"
             "    state.ui_state.hint_dependency = a.hint_dependency;\n"
             "\n"

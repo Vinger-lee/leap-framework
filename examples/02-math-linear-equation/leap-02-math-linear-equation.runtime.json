@@ -1,0 +1,253 @@
+[
+  {
+    "name": "wrong understanding-check answer records an attempt",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".opt[data-v=\"bad\"] >> nth=0"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().events.some(e => e.event_type === 'attempt_submitted')"
+    ]
+  },
+  {
+    "name": "hint ladder cannot skip to full answer",
+    "steps": [],
+    "assertions": [
+      "window.LEAP.getInteractionResult().ui_state.answer_revealed === false",
+      "window.LEAP.getInteractionResult().ui_state.completed === false",
+      "document.querySelector('.ladder-step[data-lv=\"4\"]').disabled === true"
+    ]
+  },
+  {
+    "name": "queue preview does not discard pending calls",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".opt[data-v=\"ok\"] >> nth=0"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__pending = window.LEAP.peekOutbox().length"
+      },
+      {
+        "action": "click",
+        "selector": "#bridgeDrain"
+      }
+    ],
+    "assertions": [
+      "window.__pending > 0 && window.LEAP.peekOutbox().length === window.__pending"
+    ]
+  },
+  {
+    "name": "demo assessment never promotes Runtime state",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "window.__stage = window.LEAP.getInteractionResult().assessment.evidence_stage; window.LEAP.pushEvent('attempt_submitted',{item_id:'test',answer:'test answer',hint_level:0}); window.LEAP.commitAssessment({item_id:'test',correctness:1,conceptual_understanding:1,reasoning_quality:1,application:1,transfer:1})"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.evidence_stage === window.__stage",
+      "window.LEAP.getInteractionResult().assessment.provisional === true"
+    ]
+  },
+  {
+    "name": "local completion requests guard check",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "window.LEAP.setCompleted('test','activity finished')"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.peekOutbox().some(c => c.tool === 'check_advance_unit')",
+      "!window.LEAP.peekOutbox().some(c => c.tool === 'advance_unit')"
+    ]
+  },
+  {
+    "name": "all sorting slots wrong",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".chip[data-chip=\"observe\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".slot[data-slot=\"final\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".chip[data-chip=\"move\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".slot[data-slot=\"divide\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".chip[data-chip=\"divide\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".slot[data-slot=\"move\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".chip[data-chip=\"final\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".slot[data-slot=\"observe\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.correctness === 0",
+      "window.LEAP.getInteractionResult().ui_state.completed === false"
+    ]
+  },
+  {
+    "name": "native drag then sorting judgement",
+    "steps": [
+      {
+        "action": "drag",
+        "selector": ".chip[data-chip=\"observe\"]",
+        "target": ".slot[data-slot=\"observe\"]"
+      },
+      {
+        "action": "drag",
+        "selector": ".chip[data-chip=\"move\"]",
+        "target": ".slot[data-slot=\"move\"]"
+      },
+      {
+        "action": "drag",
+        "selector": ".chip[data-chip=\"divide\"]",
+        "target": ".slot[data-slot=\"divide\"]"
+      },
+      {
+        "action": "drag",
+        "selector": ".chip[data-chip=\"final\"]",
+        "target": ".slot[data-slot=\"final\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.correctness === 1",
+      "window.LEAP.peekOutbox().some(c=>c.tool==='submit_attempt')"
+    ]
+  },
+  {
+    "name": "equation steps reject wrong answer then accept correct",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#step1",
+        "value": "3x=15"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep1"
+      },
+      {
+        "action": "fill",
+        "selector": "#step2",
+        "value": "x=6"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep2"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__wrong = window.LEAP.getInteractionResult().assessment.correctness"
+      },
+      {
+        "action": "fill",
+        "selector": "#step2",
+        "value": "x=5"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep2"
+      }
+    ],
+    "assertions": [
+      "window.__wrong < 1",
+      "window.LEAP.getInteractionResult().assessment.correctness === 1"
+    ]
+  },
+  {
+    "name": "revealing answer does not complete task",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"1\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"2\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"3\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"4\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#btnConfirmReveal"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().ui_state.answer_revealed === true",
+      "window.LEAP.getInteractionResult().ui_state.completed === false"
+    ]
+  },
+  {
+    "name": "post-check uses its own raw answer and attempt",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"1\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"2\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"3\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"4\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#btnConfirmReveal"
+      },
+      {
+        "action": "fill",
+        "selector": "#verifyInput",
+        "value": "移项变号是两边同减，随便翻符号会出错"
+      },
+      {
+        "action": "click",
+        "selector": "#btnVerify"
+      }
+    ],
+    "assertions": [
+      "(() => { const q=window.LEAP.peekOutbox(), c=q.filter(x=>x.tool==='commit_assessment').pop(), a=q.filter(x=>x.tool==='submit_attempt').pop(); return !!c && !!a && c.args.raw_answer === a.args.answer && c.args.attempt_id === '{{'+a.call_id+'.attempt_id}}'; })() "
+    ]
+  }
+]

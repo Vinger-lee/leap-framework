@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/github/stars/Vinger-lee/leap-framework?style=social" alt="Stars">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-58%20tools-22bb33" alt="MCP Tools">
+  <img src="https://img.shields.io/badge/MCP-59%20tools-22bb33" alt="MCP Tools">
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
   <b>🤖 Dale a tu agente de IA un motor de tutoría real, no solo un prompt.</b>
@@ -85,7 +85,7 @@ Una respuesta correcta produce evidencia, no dominio. Las etapas **retroceden** 
 
 ## 🔧 Herramientas MCP
 
-58 herramientas expuestas por stdio.
+59 herramientas expuestas por stdio.
 
 | Grupo | Ejemplos |
 |---|---|

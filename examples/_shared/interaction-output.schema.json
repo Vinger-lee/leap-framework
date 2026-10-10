@@ -46,7 +46,11 @@
     "node": {
       "type": "object",
       "description": "对应的 LEAP 知识节点信息（对齐文档 §6.2 Knowledge Node）",
-      "required": ["node_id", "title", "unit_tag"],
+      "required": [
+        "node_id",
+        "title",
+        "unit_tag"
+      ],
       "properties": {
         "node_id": {
           "type": "string",
@@ -65,7 +69,10 @@
     "learner": {
       "type": "object",
       "description": "学习者与会话标识。示例中保留占位符，由宿主 Agent 注入真实值。",
-      "required": ["learner_id", "session_id"],
+      "required": [
+        "learner_id",
+        "session_id"
+      ],
       "properties": {
         "learner_id": {
           "type": "string",
@@ -82,7 +89,11 @@
       "description": "交互事件流，只追加不覆盖（对齐文档 §18.1 核心事件）",
       "items": {
         "type": "object",
-        "required": ["event_type", "item_id", "created_at"],
+        "required": [
+          "event_type",
+          "item_id",
+          "created_at"
+        ],
         "properties": {
           "event_type": {
             "type": "string",
@@ -101,7 +112,10 @@
             "description": "题目 / 交互项 ID，如 q1、drag1"
           },
           "answer": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "学习者原始作答文本，审计用，不允许丢弃（对齐文档 §22.8 commit_assessment 要求）"
           },
           "hint_level": {
@@ -111,16 +125,25 @@
             "description": "0=未用提示，1/2/3=对应提示级别，4=已展示完整答案"
           },
           "response_time": {
-            "type": ["number", "null"],
+            "type": [
+              "number",
+              "null"
+            ],
             "description": "本次作答耗时（秒）"
           },
           "attempt_index": {
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "minimum": 1,
             "description": "同一题目的第几次尝试"
           },
           "predicted_performance": {
-            "type": ["number", "null"],
+            "type": [
+              "number",
+              "null"
+            ],
             "description": "学习者自评预测表现 0-100（P1 可选，P0 允许为 null）"
           },
           "created_at": {
@@ -133,7 +156,11 @@
     "assessment": {
       "type": "object",
       "description": "最近一次评估结果（对齐文档 §10.3 多维 Assessment / §10.4 Partial Credit）",
-      "required": ["item_id", "error_type", "overall_score"],
+      "required": [
+        "item_id",
+        "error_type",
+        "overall_score"
+      ],
       "properties": {
         "item_id": {
           "type": "string"
@@ -182,7 +209,12 @@
         },
         "error_type": {
           "type": "string",
-          "enum": ["none", "answer_error", "reasoning_error", "misconception"],
+          "enum": [
+            "none",
+            "answer_error",
+            "reasoning_error",
+            "misconception"
+          ],
           "description": "错误类型：答案错误 / 推理错误 / 概念误解"
         },
         "misconception": {
@@ -195,17 +227,29 @@
         },
         "evidence_stage": {
           "type": "string",
-          "enum": ["estimated", "practiced", "demonstrated", "retained", "transferred"],
+          "enum": [
+            "estimated",
+            "practiced",
+            "demonstrated",
+            "retained",
+            "transferred"
+          ],
           "description": "证据阶段（对齐文档 §11 Evidence Stage 模型）"
         },
         "assessor_type": {
           "type": "string",
-          "enum": ["rule", "model", "hybrid", "human", "external_estimator"],
+          "enum": [
+            "rule",
+            "model",
+            "hybrid",
+            "human",
+            "external_estimator"
+          ],
           "description": "评估主体（对齐文档 §23.10 assessment_results.assessor_type）"
         },
         "provisional": {
           "type": "boolean",
-          "description": "true 表示该评估是页面在 demo 模式下本地推算的演示值，尚未经 LEAP Runtime 确认；接入宿主（hosted）后应为 false，且 evidence_stage 以 Runtime 返回值回填"
+          "description": "true means the local assessment has not been confirmed by Runtime; demo never promotes mastery or evidence_stage. Hosted mode alone does not confirm a new assessment."
         }
       }
     },
@@ -214,7 +258,12 @@
       "description": "待宿主 Agent 执行的 MCP 调用队列。页面只负责把学习动作翻译成调用，不自行判定状态；宿主 Agent 用 LEAP.drainOutbox() 取走后真正执行（submit_attempt → commit_assessment 两步顺序不可颠倒）。args 中形如 {{call_N.attempt_id}} 的字符串为引用占位符，由宿主用前一条调用的返回值填充。",
       "items": {
         "type": "object",
-        "required": ["call_id", "tool", "args", "created_at"],
+        "required": [
+          "call_id",
+          "tool",
+          "args",
+          "created_at"
+        ],
         "properties": {
           "call_id": {
             "type": "string",
@@ -227,7 +276,8 @@
               "commit_assessment",
               "record_reflection",
               "schedule_review",
-              "advance_unit"
+              "advance_unit",
+              "check_advance_unit"
             ],
             "description": "目标 MCP 工具名（对齐文档 §22）"
           },
@@ -237,7 +287,10 @@
           },
           "status": {
             "type": "string",
-            "enum": ["pending", "taken"],
+            "enum": [
+              "pending",
+              "taken"
+            ],
             "description": "pending = 仍在队列中；taken = 已被 drainOutbox 取走"
           },
           "created_at": {
@@ -257,7 +310,10 @@
       "properties": {
         "mode": {
           "type": "string",
-          "enum": ["demo", "hosted"],
+          "enum": [
+            "demo",
+            "hosted"
+          ],
           "description": "demo = 未接入宿主，掌握度为本地演示值；hosted = 已通过 LEAP.hydrate() 注入 Runtime 上下文"
         },
         "hosted": {

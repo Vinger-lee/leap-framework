@@ -5,7 +5,11 @@
   "delivery": {
     "produced_by": "host_agent",
     "format": "single self-contained .html file",
-    "not_delivered_by_mcp": ["HTML files", "Obsidian vault files", "any front-end source code"]
+    "not_delivered_by_mcp": [
+      "HTML files",
+      "Obsidian vault files",
+      "any front-end source code"
+    ]
   },
   "constraints": {
     "no_cdn": "Every page must run offline. Do not rely on network fetches at runtime.",
@@ -25,12 +29,29 @@
       "warning": "#9a6700",
       "danger": "#b3261e"
     },
-    "radius": { "sm": "4px", "md": "8px", "lg": "12px" },
-    "spacing_scale": [4, 8, 12, 16, 24, 32],
+    "radius": {
+      "sm": "4px",
+      "md": "8px",
+      "lg": "12px"
+    },
+    "spacing_scale": [
+      4,
+      8,
+      12,
+      16,
+      24,
+      32
+    ],
     "typography": {
       "font_family": "system-ui, -apple-system, 'Segoe UI', 'Noto Sans SC', sans-serif",
       "mono_family": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
-      "scale": { "body": "15px", "h3": "17px", "h2": "20px", "h1": "26px", "line_height": "1.65" }
+      "scale": {
+        "body": "15px",
+        "h3": "17px",
+        "h2": "20px",
+        "h1": "26px",
+        "line_height": "1.65"
+      }
     }
   },
   "required_components": [
@@ -56,7 +77,9 @@
     {
       "id": "confidence_probe",
       "description": "Optional 0-100 self-rating before assessment (P1 collection).",
-      "rules": ["May be omitted entirely in P0; if present, store as predicted_performance."]
+      "rules": [
+        "May be omitted entirely in P0; if present, store as predicted_performance."
+      ]
     },
     {
       "id": "transfer_task",
@@ -67,19 +90,24 @@
     "global_object": "window.LEAP",
     "accessor": "window.LEAP.getInteractionResult()",
     "schema_id": "leap-interaction-output",
-    "fields": {
-      "session_id": "string",
-      "node_id": "string",
-      "item_id": "string",
-      "raw_answer": "string - required, never omitted",
-      "hint_level": "integer 0-4",
-      "hint_levels_used": "integer[]",
-      "response_time": "number - seconds",
-      "predicted_performance": "number | null - 0..1",
-      "event_type": "attempt_submitted | hint_revealed | answer_revealed | reflection_recorded",
-      "error_type": "answer_error | reasoning_error | misconception | null",
-      "timestamp": "integer - Unix seconds"
-    }
+    "schema_file": "interaction_output.schema.json",
+    "required_top_level_fields": [
+      "leap_version",
+      "example_id",
+      "subject",
+      "node",
+      "learner",
+      "events",
+      "assessment",
+      "ui_state",
+      "outbox"
+    ],
+    "host_input": "window.LEAP.hydrate(context)",
+    "host_output": [
+      "window.LEAP.peekOutbox()",
+      "window.LEAP.drainOutbox()"
+    ],
+    "assessment_confirmation": "All local assessments remain provisional, including hosted ones, until Runtime confirms them. Never derive evidence_stage or mastery locally."
   },
   "accessibility": [
     "All interactive controls reachable by keyboard.",
@@ -89,5 +117,39 @@
   "file_naming": {
     "pattern": "leap-<nn>-<topic-slug>.html",
     "example": "leap-01-python-recursion.html"
-  }
+  },
+  "host_workflow": [
+    "Check the MCP connection with get_available_actions; a copied schema is not a live connection.",
+    "Read authoritative domain sources with host tools, save source locators, excerpts, claims and worked checks through save_benchmark_report. Do not self-enable skipping.",
+    "Independently solve each question; check assumptions, boundary cases, uniqueness/equivalent options, expected answer, feedback and counterexamples.",
+    "Register each item using save_assessment_item before presenting it. Keep its returned item_id in page events.",
+    "Hydrate from real get_teaching_context, execute outbox calls in order, resolve attempt_id references, require ok=true, refresh Runtime context after commits.",
+    "Reassess free-text reasoning semantically on the host; Runtime normalises submitted scores and does not judge mathematics.",
+    "On item_completed execute check_advance_unit, then propose advance_unit only if the guard allows it.",
+    "Report source/content audit, browser scenarios and actual MCP integration separately. No claim of exam alignment without a dated syllabus source."
+  ],
+  "content_quality_contract": {
+    "item_fields": [
+      "question",
+      "assumptions",
+      "expected_answer",
+      "solution",
+      "verification_checks",
+      "rejected_answers",
+      "assessor_scope"
+    ],
+    "free_text_assessor": "host_semantic_review",
+    "forbidden": [
+      "keyword-only semantic scoring",
+      "claiming sampled numerical checks prove a statement for all x",
+      "claiming source review or exam frequency without evidence",
+      "marking a lesson complete merely after revealing an answer"
+    ]
+  },
+  "bridge_tools": [
+    "submit_attempt",
+    "commit_assessment",
+    "record_reflection",
+    "check_advance_unit"
+  ]
 }

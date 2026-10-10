@@ -459,7 +459,7 @@ button,input,textarea{font:inherit;color:inherit}
       <span class="val">1 天后 · 09/20</span>
     </div>
   </div>
-  <p class="spine-note" id="spineNote">本页掌握度与证据阶段为<b>本地模拟</b>，用于演示界面如何呈现学习状态；真实系统中二者由 LEAP Runtime 的 BKT 估计器与 State Guard 计算（见 LEAP_Framework_V2 §10.2‑1）。</p>
+  <p class="spine-note" id="spineNote">本页尚未连接 Runtime；掌握度与证据阶段保持初始占位值，作答评分仅为待核验反馈。</p>
 </header>
 
 <main class="wrap">
@@ -781,7 +781,7 @@ window.LEAP = (function () {
          计算（LEAP_Framework_V2 §10.2‑1），本页只显示 hydrate() 注入的值；
        · 学习者的每个动作都会被翻译成一条待执行的 MCP 调用，进入 outbox，
          由宿主 Agent 通过 LEAP.drainOutbox() 取走后真正执行。
-     未调用 hydrate() 时保持 demo 模式，本地推算值一律标记 provisional。 */
+     未调用 hydrate() 时保持 demo 模式，未确认的评估标记 provisional；掌握度和证据阶段不在本地推算。 */
   var bridge = {
     mode: "demo",
     context: null,
@@ -819,7 +819,7 @@ window.LEAP = (function () {
     return call;
   }
 
-  /* 事件 → MCP 调用映射。hint_used / answer_revealed / item_completed 不单独
+  /* 事件 → MCP 调用映射。hint_used / answer_revealed 不单独
      产生调用：它们的信息通过后续 attempt 的 hint_level 一并提交。 */
   var EVENT_TO_TOOL = {
     attempt_submitted: "submit_attempt",
@@ -829,6 +829,12 @@ window.LEAP = (function () {
   };
 
   function enqueueForEvent(ev) {
+    if (ev.event_type === "item_completed") {
+      enqueue("check_advance_unit", { session_id: state.learner.session_id,
+        node_id: state.node.node_id }, "Local activity finished; Runtime guard must approve advancement");
+      return;
+    }
+
     var tool = EVENT_TO_TOOL[ev.event_type];
     if (!tool) return null;
     var raw = ev.answer == null ? "" : String(ev.answer);
@@ -902,7 +908,7 @@ window.LEAP = (function () {
     pre.hidden = !opening;
     if (btn) btn.textContent = opening ? "收起调用队列 ▴" : "取出调用队列 ▾";
     if (opening) {
-      var calls = drainOutbox();
+      var calls = peekOutbox();
       pre.textContent = calls.length
         ? JSON.stringify(calls, null, 2)
         : "（队列为空：尚无需要提交给 LEAP Runtime 的调用）";
@@ -925,7 +931,7 @@ window.LEAP = (function () {
     if (noteEl) {
       noteEl.innerHTML = isHosted()
         ? "本页状态由 <b>LEAP Runtime</b> 注入（<code>LEAP.hydrate()</code>）；掌握度与证据阶段由服务端 BKT 与 State Guard 计算，本页不自行推算。"
-        : "本页掌握度与证据阶段为<b>本地模拟</b>，用于演示界面如何呈现学习状态；真实系统中二者由 LEAP Runtime 的 BKT 估计器与 State Guard 计算（见 LEAP_Framework_V2 §10.2‑1）。";
+        : "本页尚未连接 Runtime；掌握度与证据阶段保持初始占位值，作答评分仅为待核验反馈。";
     }
 
     var btn = document.getElementById("bridgeDrain");
@@ -992,19 +998,9 @@ window.LEAP = (function () {
     };
     a.overall_score = aggregate(a);
 
-    if (bridge.mode === "demo") {
-      /* 演示模式：本地粗略推进，仅为让界面动起来。
-         接入宿主后（hosted）这两项一律以 Runtime 返回值回填（§10.2‑1）。 */
-      a.evidence_stage = deriveStage(a);
-      if (typeof item.transfer === "number" && item.transfer >= 0.7) a.evidence_stage = "transferred";
-      mastery = Math.max(0, Math.min(0.98, mastery + (a.correctness - 0.5) * 0.14 - dep * 0.04));
-      bridge.server.mastery_probability = mastery;
-      bridge.server.evidence_stage = a.evidence_stage;
-      a.provisional = true;
-    } else {
-      a.evidence_stage = bridge.server.evidence_stage;
-      a.provisional = false;
-    }
+    /* Evidence stage and mastery are exclusively Runtime state, even in demo. */
+    a.evidence_stage = bridge.server.evidence_stage;
+    a.provisional = true; // this new assessment has not been committed by Runtime
     state.assessment = a;
     state.ui_state.hint_dependency = a.hint_dependency;
 
@@ -1026,10 +1022,6 @@ window.LEAP = (function () {
     return a;
   }
 
-  function deriveStage(a) {
-    if (a.correctness >= 0.8 && a.hint_dependency <= 0.5) return "demonstrated";
-    return "practiced";
-  }
   function r2(v) { return Math.round((v || 0) * 100) / 100; }
 
   function setCompleted(itemId, reason) {
@@ -1577,7 +1569,7 @@ window.LEAP = (function () {
       : "<b>还差一点。</b> 答案应为 t = 4.00 s、v = 40.0 m/s（t = √(2h/g)，v = g·t）。请连同计算思路一并说明为什么这样算。";
     fb.style.color = ok ? "var(--ok)" : "var(--ink-2)";
     fb.classList.add("is-on");
-    window.LEAP.pushEvent("reflection_recorded", {
+    window.LEAP.pushEvent("attempt_submitted", {
       item_id: "q1-verify", answer: "t:" + $("ansT2").value.trim() + " v:" + $("ansV2").value.trim() + " | " + exp,
       hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: 1,
       predicted_performance: null, error_type: ok ? "none" : "reasoning_error"

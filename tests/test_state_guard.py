@@ -8,6 +8,7 @@ A guard that can only reject would deadlock the learner.
 from __future__ import annotations
 
 import pytest
+from tests.conftest import complete_grounding
 
 from leap.tools import ToolError
 from leap.runtime.state_guard import bloom_rank, transfer_required
@@ -39,7 +40,7 @@ class TestDomainGroundingGate:
 
     def test_saving_a_report_marks_grounding_complete(self, service):
         session = service.create_session("L1", "recursion")
-        result = service.save_benchmark_report(session["session_id"], "# report")
+        result = complete_grounding(service, session["session_id"], "# report")
         assert result["domain_grounding_stage"] == "completed"
         assert service.generate_diagnostic(session["session_id"])["ok"] is True
 
@@ -47,7 +48,7 @@ class TestDomainGroundingGate:
         """The gate reads the stage flag, not merely the presence of a report."""
         session = service.create_session("L1", "recursion")
         sid = session["session_id"]
-        service.save_benchmark_report(sid, "# report")
+        complete_grounding(service, sid, "# report")
         service.db.execute(
             "UPDATE learning_sessions SET domain_grounding_stage = 'pending' WHERE session_id = ?",
             (sid,),

@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/github/stars/Vinger-lee/leap-framework?style=social" alt="Stars">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-58%20tools-22bb33" alt="MCP Tools">
+  <img src="https://img.shields.io/badge/MCP-59%20tools-22bb33" alt="MCP Tools">
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
   <b>🤖 AI 에이전트에 프롬프트가 아닌 진짜 튜터링 엔진을 제공하세요.</b>
@@ -85,7 +85,7 @@ State Guard는 상태 전이를 승인할 수 있는 유일한 컴포넌트입�
 
 ## 🔧 MCP 도구
 
-stdio를 통해 58개 도구를 제공합니다.
+stdio를 통해 59개 도구를 제공합니다.
 
 | 그룹 | 예시 |
 |---|---|

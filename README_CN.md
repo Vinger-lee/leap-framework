@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/github/v/release/Vinger-lee/leap-framework" alt="Release">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-58%20tools-22bb33" alt="MCP 工具">
+  <img src="https://img.shields.io/badge/MCP-59%20tools-22bb33" alt="MCP 工具">
   <img src="https://img.shields.io/badge/tests-260%20passing-22bb33" alt="测试">
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
@@ -117,7 +117,7 @@ State Guard 是唯一有权批准状态迁移的组件。当工具返回 `REJECT
 
 ## 🔧 MCP 工具
 
-58 个工具，走 stdio，按领域分组：
+59 个工具，走 stdio，按领域分组：
 
 | 分组 | 示例 |
 |---|---|
@@ -125,12 +125,19 @@ State Guard 是唯一有权批准状态迁移的组件。当工具返回 `REJECT
 | 诊断 | `generate_diagnostic`、`submit_diagnostic`、`save_diagnostic_result` |
 | 知识 | `decompose_topic`、`save_knowledge_nodes`、`validate_knowledge_dag` |
 | 策略 | `get_teaching_context`、`evaluate_pedagogical_policy`、`commit_pedagogical_decision` |
-| 评估 | `generate_assessment`、`assess_response`、`assess_misconception` |
+| 评估 | `generate_assessment`、`save_assessment_item`、`submit_attempt`、`commit_assessment`、`assess_response` |
 | 保持 | `schedule_review`、`get_due_reviews`、`submit_review` |
 | 状态守卫 | `start_unit`、`check_advance_unit`、`advance_unit`、`rollback_unit` |
 | 证据 | `save_benchmark_report`、`get_evidence`、`validate_claim` |
 | 工件 | `save_artifact`、`get_obsidian_structure`、`get_web_component_spec` |
+| 反思 | `record_reflection` |
 | 报告 | `generate_final_report`、`get_learning_metrics` |
+
+上表只列示例；[自动生成的完整工具参考](docs/mcp-tools.md) 包含全部注册工具与准确参数，并由 CI 核对。
+
+领域校准现在要求 `save_benchmark_report(verification=...)` 提供来源定位、摘录、关联论断、复核例题和不确定性；仅保存文字报告会保持 pending，教学入口也受门禁约束。宿主必须自行阅读资料，出题前用 `save_assessment_item` 登记题目条件、答案、推导与独立检查。自由文本推理必须由宿主做语义评估：LEAP 检查记录并估计学习状态，不能证明学科答案正确。
+
+参见[内容质量与真实联调流程](docs/content-quality.md)及[本次交付物审计](docs/quality-audit-2026-10-10.md)。浏览器场景、真实 MCP 联调、内容审校分别验收。
 
 ## 🧩 可插拔设计
 

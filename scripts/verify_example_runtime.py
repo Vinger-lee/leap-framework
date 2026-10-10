@@ -70,6 +70,12 @@ def _find_chromium(explicit: str | None) -> str | None:
         hits = sorted(root.glob("chromium*/**/chrome-headless-shell.exe"))
         if hits:
             return str(hits[0])
+    # Playwright's cache location and directory names differ across platforms.
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as pw:
+        bundled = Path(pw.chromium.executable_path)
+        if bundled.is_file():
+            return str(bundled)
     return None
 
 
@@ -85,6 +91,38 @@ def _validate(payload: Any, schema: dict) -> list[str]:
         location = "/".join(str(p) for p in err.path) or "<root>"
         out.append(f"{location}: {err.message}")
     return out
+
+
+def _exercise_scenarios(page: Any, path: Path, report: RuntimeReport) -> None:
+    """Run declared, reviewable paths. Missing coverage is a failed gate."""
+    manifest = path.with_suffix(".runtime.json")
+    if not manifest.exists():
+        report.add("交互场景已声明", False, f"Missing {manifest.name}; smoke checks cannot establish interaction correctness")
+        return
+    scenarios = json.loads(manifest.read_text(encoding="utf-8"))
+    report.add("交互场景已声明", bool(scenarios))
+    for scenario in scenarios:
+        page.reload(wait_until="load")
+        try:
+            for step in scenario["steps"]:
+                action = step["action"]
+                if action == "click":
+                    page.locator(step["selector"]).click(timeout=2000)
+                elif action == "fill":
+                    page.locator(step["selector"]).fill(step["value"])
+                elif action == "drag":
+                    page.locator(step["selector"]).drag_to(page.locator(step["target"]))
+                elif action == "evaluate":
+                    page.evaluate(step["script"])
+                else:
+                    raise ValueError(f"unknown scenario action: {action}")
+            for assertion in scenario["assertions"]:
+                if page.evaluate(assertion) is not True:
+                    raise AssertionError(assertion)
+            report.add("场景: " + scenario["name"], True)
+        except Exception as exc:
+            report.add("场景: " + scenario["name"], False, str(exc))
+    page.reload(wait_until="load")
 
 
 def verify(path: Path, chromium: str | None, schema: dict, shots_dir: Path | None = None) -> RuntimeReport:
@@ -103,6 +141,8 @@ def verify(path: Path, chromium: str | None, schema: dict, shots_dir: Path | Non
 
         page.goto(url, wait_until="load")
         page.wait_for_timeout(400)
+
+        _exercise_scenarios(page, path, report)
 
         # --- namespace + accessor -----------------------------------------
         has_ns = page.evaluate("typeof window.LEAP === 'object' && window.LEAP !== null")
@@ -195,7 +235,7 @@ def verify(path: Path, chromium: str | None, schema: dict, shots_dir: Path | Non
             events_before = payload_before.get("events") or []
             report.add(
                 "交互后 events 只增不减（append-only）",
-                len(events_after) >= len(events_before),
+                events_after[:len(events_before)] == events_before,
                 f"{len(events_before)} -> {len(events_after)}",
             )
             report.add(

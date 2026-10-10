@@ -106,6 +106,7 @@ class ArtifactTools(LeapToolMixin):
         """Return the static web-component specification. No source reading."""
         return self.ok(
             spec=self._load_spec("web_component_spec.json"),
+            interaction_schema=self._load_spec("interaction_output.schema.json"),
             note=(
                 "This is a specification only. The LEAP runtime does not generate HTML and "
                 "does not read local front-end sources; the host agent does."

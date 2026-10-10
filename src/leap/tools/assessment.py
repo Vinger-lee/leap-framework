@@ -47,6 +47,48 @@ _INDEPENDENT_HINT_MAX = 1
 class AssessmentTools(LeapToolMixin):
     """Multi-dimensional assessment and learner-state updating."""
 
+    def save_assessment_item(
+        self, session_id: str, item_id: str, question: str, expected_answer: str,
+        solution: str, assumptions: list[str], verification_checks: list[dict], *,
+        node_id: str | None = None, source_ids: list[str] | None = None,
+        rejected_answers: list[dict] | None = None, assessor_scope: str = "host_semantic_review",
+    ) -> dict:
+        """Register an immutable item only after the host records a worked solution and checks.
+
+        This validates the evidence record, not mathematical truth. Free prose
+        requires host semantic review; keyword matching is not a valid assessor.
+        """
+        self.require_session(session_id)
+        self.require_grounding(session_id)
+        item_id = self.require_text(item_id, "item_id")
+        for name, value in (("question", question), ("expected_answer", expected_answer), ("solution", solution)):
+            self.require_text(value, name)
+        if not isinstance(assumptions, list) or any(not isinstance(a, str) for a in assumptions):
+            raise ToolError("invalid_argument", "assumptions must be a list of conditions")
+        if not verification_checks or any(not isinstance(c, dict) or not c.get("method") or not c.get("result") for c in verification_checks):
+            raise ToolError("item_verification_required", "Record an independent solution check with method and result")
+        if assessor_scope not in {"host_semantic_review", "exact_answer", "numeric_tolerance", "executable_test"}:
+            raise ToolError("invalid_assessor_scope", "Keyword matching cannot grade free-form reasoning")
+        if node_id:
+            node = self.require_node(node_id)
+            if node["session_id"] != session_id:
+                raise ToolError("invalid_node", "node must belong to this session")
+        for source_id in source_ids or []:
+            if not self.db.query_one("SELECT 1 FROM evidence_sources WHERE source_id = ? AND session_id = ?", (source_id, session_id)):
+                raise ToolError("invalid_source", "item source must belong to this session")
+        if self.db.query_one("SELECT 1 FROM assessment_items WHERE item_id = ?", (item_id,)):
+            raise ToolError("item_already_exists", "Use a new versioned item_id when changing an item")
+        from leap.tools.base import json_dumps
+        rubric = {"expected_answer": expected_answer, "solution": solution, "assumptions": assumptions,
+                  "verification_checks": verification_checks, "source_ids": source_ids or [],
+                  "rejected_answers": rejected_answers or [], "assessor_scope": assessor_scope,
+                  "content_verified_by_runtime": False}
+        self.db.execute(
+            "INSERT INTO assessment_items (item_id, session_id, node_id, question, rubric, created_at) VALUES (?,?,?,?,?,?)",
+            (item_id, session_id, node_id, question, json_dumps(rubric), now_ts()),
+        )
+        return self.ok(item_id=item_id, session_id=session_id, rubric=rubric, content_verified_by_runtime=False)
+
     # ------------------------------------------------------------------
     # 22.6 Assessment generation
     # ------------------------------------------------------------------
@@ -60,6 +102,7 @@ class AssessmentTools(LeapToolMixin):
     ) -> dict:
         """Return an assessment blueprint for the host agent to materialise."""
         session = self.require_session(session_id)
+        self.require_grounding(session_id)
         node_id = node_id or session.get("current_node_id")
         node = self.require_node(node_id) if node_id else None
 
@@ -80,8 +123,16 @@ class AssessmentTools(LeapToolMixin):
                 "open_ended": ["conclusion", "evidence", "reasoning", "concept", "support", "expression"],
             },
             node=node,
+            item_registration_tool="save_assessment_item",
+            content_quality_requirements=[
+                "State assumptions and domain restrictions, then independently solve the question.",
+                "Record a substitution, symbolic derivation or executable check, including boundary cases.",
+                "Check all options for truth and equivalence; single-choice items need exactly one valid option.",
+                "Check feedback and counterexamples against the worked solution.",
+                "Free-text reasoning requires host semantic review; keywords do not establish correctness.",
+            ],
             guidance=(
-                "Ask the learner, judge each dimension in [0,1], then call assess_response "
+                "Register and verify the item before asking the learner. Judge each dimension in [0,1], then call assess_response "
                 "followed by commit_assessment with the raw answer text."
             ),
         )
@@ -91,6 +142,7 @@ class AssessmentTools(LeapToolMixin):
     ) -> dict:
         """Return a transfer-probe blueprint (section 13.6)."""
         session = self.require_session(session_id)
+        self.require_grounding(session_id)
         node_id = node_id or session.get("current_node_id")
         node = self.require_node(node_id) if node_id else None
 
@@ -164,6 +216,14 @@ class AssessmentTools(LeapToolMixin):
         """Record a learner attempt and return its id for assessment."""
         session = self.require_session(session_id)
         answer = self.require_text(answer, "answer")
+        self.require_grounding(session_id)
+        if item_id:
+            item = self.db.query_one("SELECT session_id, node_id FROM assessment_items WHERE item_id = ?", (item_id,))
+            if not item or item["session_id"] != session_id:
+                raise ToolError("unknown_assessment_item", "Register this session's item with save_assessment_item before submitting answers")
+            if node_id and item["node_id"] and node_id != item["node_id"]:
+                raise ToolError("invalid_node", "attempt node does not match item node")
+            node_id = node_id or item["node_id"]
         node_id = node_id or session.get("current_node_id")
 
         max_hint = int(self.conf("max_hint_level", 3))
@@ -240,6 +300,16 @@ class AssessmentTools(LeapToolMixin):
         session_id = attempt["session_id"]
         node_id = attempt.get("node_id")
         session = self.require_session(session_id)
+
+        self.require_grounding(session_id)
+        if raw_answer != attempt["answer"]:
+            raise ToolError("raw_answer_mismatch", "raw_answer must match the referenced attempt exactly")
+        if attempt.get("item_id"):
+            import json
+            rubric_text = self.db.scalar("SELECT rubric FROM assessment_items WHERE item_id = ?", (attempt["item_id"],))
+            rubric = json.loads(rubric_text) if rubric_text else {}
+            if rubric.get("assessor_scope") == "host_semantic_review" and assessor_type == "rule":
+                raise ToolError("semantic_review_required", "Host must semantically assess free-text reasoning before committing")
 
         if expected_state_version is not None:
             version_check = self.guard.check_state_version(session_id, expected_state_version)

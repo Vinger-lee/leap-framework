@@ -1,3 +1,22 @@
+---
+title: Contributing
+tags:
+- leap
+- engineering
+aliases:
+- Contributing guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP Contributing foundations definitions workflow`
+> Extension: `LEAP Contributing failure cases examples comparison`
+> Advanced: `LEAP Contributing invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # Contributing
 
 Thanks for considering a contribution to LEAP Framework.
@@ -79,8 +98,20 @@ Open an issue including:
 - Python version and OS
 - the tool call and its response, with any secrets removed
 
-For security issues, follow [`SECURITY.md`](SECURITY.md) instead.
+For security issues, follow [[SECURITY|SECURITY.md]] instead.
 
 ## License
 
 By contributing you agree that your contributions are licensed under the [MIT License](LICENSE).
+
+> [!note]- Reading and verification sequence: LEAP Contributing
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[README]] · [[README_CN]]

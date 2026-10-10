@@ -4,8 +4,11 @@ from __future__ import annotations
 import argparse
 import ast
 from pathlib import Path
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from leap.runtime.notes import obsidian_note
 
 
 def registered_tools():
@@ -23,7 +26,8 @@ def render():
     for tool in tools:
         lines += [f"## `{tool.name}`", "", f"```python\n{tool.name}({ast.unparse(tool.args)})\n```", "",
                   ast.get_docstring(tool) or "", ""]
-    return "\n".join(lines)
+    return obsidian_note("\n".join(lines), title="MCP tool reference", topic="LEAP MCP stdio registered tool signatures",
+                         tags=["leap", "reference"], links=["Knowledge_Index", "docs/teaching-delivery", "docs/INTEGRATION", "docs/INTEGRATION_CN"]).rstrip()+"\n"
 
 
 def main():

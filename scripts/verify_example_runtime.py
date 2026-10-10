@@ -266,6 +266,40 @@ def verify(path: Path, chromium: str | None, schema: dict, shots_dir: Path | Non
         report.add("LEAP.hydrate() 可调用（宿主注入入口）", bool(has_bridge))
 
         if has_bridge:
+            authority = page.evaluate("""() => {
+              const k=createLeapBridge({example_id:'kernel-test',subject:'math',node:{node_id:'n0',title:'test',unit_tag:'u0'}}),passed=[];
+              const check=(name,ok)=>{if(!ok)throw new Error(name);passed.push(name)};
+              const ctx=(node)=>({ok:true,session:{session_id:'s',learner_id:'l'},current_node:{node_id:node,title:node,unit_tag:node},knowledge_state:{mastery_probability:.73,evidence_stage:'demonstrated',hint_dependency:.31}});
+              check('initial unknown scores',k.getMastery()===null&&k.getInteractionResult().assessment.overall_score===null);
+              k.hydrate(ctx('a'));k.setHint(4);
+              check('local hints preserve Runtime estimate',k.getInteractionResult().ui_state.hint_dependency===.31&&k.getMastery()===.73);
+              k.pushEvent('attempt_submitted',{item_id:'A',answer:' raw A ',hint_level:1});
+              k.pushEvent('attempt_submitted',{item_id:'B',answer:'raw B',hint_level:2});
+              k.commitAssessment({item_id:'A',correctness:2/3});
+              let calls=k.peekOutbox(),commit=calls[2];
+              check('interleaved per-item attempts',commit.args.attempt_id==='{{'+calls[0].call_id+'.attempt_id}}'&&commit.args.raw_answer===' raw A '&&commit.args.hint_dependency===.25);
+              check('only observed correctness',commit.args.correctness===.67&&!('reasoning_quality' in commit.args)&&k.getInteractionResult().assessment.transfer===null);
+              let missing=false;try{k.commitAssessment({item_id:'missing',correctness:1})}catch(e){missing=true}check('missing attempt rejected',missing);
+              k.hydrate(ctx('a'));check('snapshot cannot confirm new score',k.getInteractionResult().assessment.provisional===true);
+              let mismatch=false;try{k.applyToolResults({[calls[0].call_id]:{ok:true,attempt_id:'a1'},[commit.call_id]:{ok:true,attempt_id:'wrong',result_id:'r1',overall_score:.67}})}catch(e){mismatch=true}
+              check('mismatched receipt rejected without confirming',mismatch&&k.getInteractionResult().assessment.provisional===true);
+              k.applyToolResults({[commit.call_id]:{ok:true,attempt_id:'a1',result_id:'r1',overall_score:.67},[calls[0].call_id]:{ok:true,attempt_id:'a1'}});
+              check('matching receipts confirm regardless of key order',k.getInteractionResult().assessment.provisional===false);
+              k.pushEvent('attempt_submitted',{item_id:'S',answer:'explanation',assessor_scope:'host_semantic_review'});
+              const size=k.peekOutbox().length;k.commitAssessment({item_id:'S',correctness:1});
+              check('semantic response remains ungraded',k.peekOutbox().length===size&&k.getInteractionResult().assessment.correctness===null);
+              k.applyToolResults({[commit.call_id]:{ok:true,attempt_id:'a1',result_id:'r1',overall_score:.67}});
+              check('old objective receipt cannot grade semantic response',k.getInteractionResult().assessment.correctness===null);
+              k.setCompleted('S');check('local completion requests guard only',!k.getInteractionResult().ui_state.completed&&k.peekOutbox().at(-1).tool==='check_advance_unit');
+              const adv=k.requestAdvance();check('advance request stays pending',!k.getInteractionResult().ui_state.completed);
+              k.applyToolResults({[adv.call_id]:{ok:true,session_id:'s',advanced:true}});
+              check('Runtime advance receipt confirms completion',k.getInteractionResult().ui_state.completed);
+              let pending=false;try{k.hydrate(ctx('b'))}catch(e){pending=true}check('pending queue blocks context switch',pending);
+              k.drainOutbox();k.hydrate(ctx('b'));k.applyToolResults({[adv.call_id]:{ok:true,session_id:'s',advanced:true}});
+              check('old-node receipt cannot complete new node',!k.getInteractionResult().ui_state.completed&&k.getInteractionResult().node.node_id==='b');
+              return passed;
+            }""")
+            report.add("共享桥接权限与回执负向场景", len(authority) == 15, "; ".join(authority))
             # Clear anything the interaction pass queued.
             page.evaluate("() => window.LEAP.drainOutbox()")
 
@@ -353,7 +387,7 @@ def verify(path: Path, chromium: str | None, schema: dict, shots_dir: Path | Non
                    "; ".join(report.console_errors[:2]))
 
         # --- responsive ----------------------------------------------------
-        for width in (375, 1280):
+        for width in (375, 1280, 1440, 1920, 2560):
             page.set_viewport_size({"width": width, "height": 900})
             page.wait_for_timeout(250)
             overflow = page.evaluate(
@@ -363,6 +397,9 @@ def verify(path: Path, chromium: str | None, schema: dict, shots_dir: Path | Non
             ok = overflow["doc"] <= overflow["win"] + 1
             report.add(f"{width}px 无横向滚动", ok,
                        f"scrollWidth={overflow['doc']} innerWidth={overflow['win']}")
+            if width in (1440, 1920):
+                utilization = page.evaluate("() => {const el=document.querySelector('main.wrap, .layout, main, .wrap'); if(!el)return 0;const css=getComputedStyle(el);return (el.getBoundingClientRect().width-parseFloat(css.paddingLeft)-parseFloat(css.paddingRight))/innerWidth}")
+                report.add(f"{width}px 横向内容占比 ≥88%", utilization >= .88, f"{utilization:.1%}")
             if shots_dir is not None:
                 shots_dir.mkdir(parents=True, exist_ok=True)
                 page.screenshot(path=str(shots_dir / f"{path.stem}-{width}.png"), full_page=True)

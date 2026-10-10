@@ -1,0 +1,296 @@
+{
+  "records": [
+    {
+      "source": "https://openstax.org/books/calculus-volume-1/pages/1-1-review-of-functions",
+      "source_type": "open_textbook",
+      "locator": "sources/functions.txt:L29–L33; 1-1-review-of-functions; fetched 2026-10-10; SHA256 a181ecbae5f67ef74c4b36adcad003671600823d76d4489fc292b9bb80bcb534",
+      "excerpt": "Given two sets AA and B,B, a set with elements that are ordered pairs (x,y),(x,y), where xx is an element of AA and yy is an element of B,B, is a relation from AA to B.B. A relation from AA to BB defines a relationship between those two sets. A function is a special type of relation in which each element of the first set is related to exactly one element of the second set. The element of the first set is called the input; the element of the second set is called the output. Functions are used all the time in mathematics to describe relationships between two sets. For any function, when we know the input, the output is determined, so we say that the output is a function of the input. For example, the area of a square is determined by its side length, so we say that the area (the output) is a function of its side length (the input). The velocity of a ball thrown in the air can be described as a function of the amount of time the ball is in the air. The cost of mailing a package is a function of the weight of the package. Since functions have so many uses, it is important to have precise definitions and terminology to study them.\nDefinition\nA function ff consists of a set of inputs, a set of outputs, and a rule for assigning each input to exactly one output. The set of inputs is called the domain of the function. The set of outputs is called the range of the function.\nFor example, consider the function f,f, where the domain is the set of all real numbers and the rule is to square the input. Then, the input x=3x=3 is assigned to the output 32=9.32=9. Since every nonnegative real number has a real-value square root, every nonnegative number is an element of the range of this function. Since there is no real number with a square that is negative, the negative real numbers are not elements of the range. We conclude that the range is the set of nonnegative real numbers.\nFor a general function ff with domain D,D, we often use xx to denote the input and yy to denote the output associated with x.x. When doing so, we refer to xx as the independent variable and yy as the dependent variable, because it depends on x.x. Using function notation, we write y=f(x),y=f(x), and we read this equation as “y“y equals ff of x.”x.” For the squaring function described earlier, we write f(x)=x2.f(x)=x2."
+    },
+    {
+      "source": "https://openstax.org/books/calculus-volume-1/pages/1-4-inverse-functions",
+      "source_type": "open_textbook",
+      "locator": "sources/inverse.txt:L20–L27; 1-4-inverse-functions; fetched 2026-10-10; SHA256 29e38e72e3f5af7b835cd6d50f57f9808c317aa7ca65f39cf2dab011846b10ea",
+      "excerpt": "Draw the graph of an inverse function.\n1.4.5\nEvaluate inverse trigonometric functions.\nAn inverse function reverses the operation done by a particular function. In other words, whatever a function does, the inverse function undoes it. In this section, we define an inverse function formally and state the necessary conditions for an inverse function to exist. We examine how to find an inverse function and study the relationship between the graph of a function and the graph of its inverse. Then we apply these ideas to define and discuss properties of the inverse trigonometric functions.\nExistence of an Inverse Function\nWe begin with an example. Given a function ff and an output y=f(x),y=f(x), we are often interested in finding what value or values xx were mapped to yy by f.f. For example, consider the function f(x)=x3+4.f(x)=x3+4. Since any output y=x3+4,y=x3+4, we can solve this equation for xx to find that the input is x=y−43.x=y−43. This equation defines xx as a function of y.y. Denoting this function as f−1,f−1, and writing x=f−1(y)=y−43,x=f−1(y)=y−43, we see that for any xx in the domain of f,f−1(f(x))=f−1(x3+4)=x.f,f−1(f(x))=f−1(x3+4)=x. Thus, this new function, f−1,f−1, “undid” what the original function ff did. A function with this property is called the inverse function of the original function.\nDefinition\nGiven a function ff with domain DD and range R,R, its inverse function (if it exists) is the function f−1f−1 with domain RR and range DD such that f−1(y)=xf−1(y)=x if f(x)=y.f(x)=y. In other words, for a function ff and its inverse f−1,f−1,"
+    },
+    {
+      "source": "https://openstax.org/books/calculus-volume-1/pages/2-2-the-limit-of-a-function",
+      "source_type": "open_textbook",
+      "locator": "sources/limits.txt:L506–L514; 2-2-the-limit-of-a-function; fetched 2026-10-10; SHA256 55b40dc97ff054c58227656bd35b97b134858176b1392fa9e84b9f5efcb867cd",
+      "excerpt": "Let f(x)f(x) be a function defined at all values in an open interval containing a, with the possible exception of a itself, and let L be a real number. Then,\nlimx→af(x)=Lif and only iflimx→a−f(x)=Landlimx→a+f(x)=L.limx→af(x)=Lif and only iflimx→a−f(x)=Landlimx→a+f(x)=L.\nInfinite Limits\nEvaluating the limit of a function at a point or evaluating the limit of a function from the right and left at a point helps us to characterize the behavior of a function around a given value. As we shall see, we can also describe the behavior of functions that do not have finite limits.\nWe now turn our attention to h(x)=1/(x−2)2,h(x)=1/(x−2)2, the third and final function introduced at the beginning of this section (see Figure 2.12(c)). From its graph we see that as the values of x approach 2, the values of h(x)=1/(x−2)2h(x)=1/(x−2)2 become larger and larger and, in fact, become infinite. Mathematically, we say that the limit of h(x)h(x) as x approaches 2 is positive infinity. Symbolically, we express this idea as\nlimx→2h(x)=+∞.limx→2h(x)=+∞.\nMore generally, we define infinite limits as follows:\nDefinition\nWe define three types of infinite limits."
+    },
+    {
+      "source": "https://openstax.org/books/calculus-volume-1/pages/2-5-the-precise-definition-of-a-limit",
+      "source_type": "open_textbook",
+      "locator": "sources/precise.txt:L31–L34; 2-5-the-precise-definition-of-a-limit; fetched 2026-10-10; SHA256 1e4a5e39fdc88d5e52a74eec6e67537cfafb6c12379deda0a5924ff79a770554",
+      "excerpt": "Let f(x)f(x) be defined for all x≠ax≠a over an open interval containing a. Let L be a real number. Then\nlimx→af(x)=Llimx→af(x)=L\nif, for every ε>0,ε>0, there exists a δ>0,δ>0, such that if 0<|x−a|<δ,0<|x−a|<δ, then |f(x)−L|<ε.|f(x)−L|<ε.\nThis definition may seem rather complex from a mathematical point of view, but it becomes easier to understand if we break it down phrase by phrase. The statement itself involves something called a universal quantifier (for every ε>0),ε>0), an existential quantifier (there exists a δ>0),δ>0), and, last, a conditional statement (if 0<|x−a|<δ,0<|x−a|<δ, then |f(x)−L|<ε).|f(x)−L|<ε). Let’s take a look at Table 2.9, which breaks down the definition and translates each part."
+    },
+    {
+      "source": "https://openstax.org/books/calculus-volume-1/pages/2-3-the-limit-laws",
+      "source_type": "open_textbook",
+      "locator": "sources/laws.txt:L49–L56; 2-3-the-limit-laws; fetched 2026-10-10; SHA256 88eae7e10f9b980473a0e16ad32378f3e384fadf1ab9022e3eb5bf6d77c4c4fd",
+      "excerpt": "Let f(x)f(x) and g(x)g(x) be defined for all x≠ax≠a over some open interval containing a. Assume that L and M are real numbers such that limx→af(x)=Llimx→af(x)=L and limx→ag(x)=M.limx→ag(x)=M. Let c be a constant. Then, each of the following statements holds:\nSum law for limits: limx→a(f(x)+g(x))=limx→af(x)+limx→ag(x)=L+Mlimx→a(f(x)+g(x))=limx→af(x)+limx→ag(x)=L+M\nDifference law for limits: limx→a(f(x)−g(x))=limx→af(x)−limx→ag(x)=L−Mlimx→a(f(x)−g(x))=limx→af(x)−limx→ag(x)=L−M\nConstant multiple law for limits: limx→acf(x)=c·limx→af(x)=cLlimx→acf(x)=c·limx→af(x)=cL\nProduct law for limits: limx→a(f(x)·g(x))=limx→af(x)·limx→ag(x)=L·Mlimx→a(f(x)·g(x))=limx→af(x)·limx→ag(x)=L·M\nQuotient law for limits: limx→af(x)g(x)=limx→af(x)limx→ag(x)=LMlimx→af(x)g(x)=limx→af(x)limx→ag(x)=LM for M≠0M≠0\nPower law for limits: limx→a(f(x))n=(limx→af(x))n=Lnlimx→a(f(x))n=(limx→af(x))n=Ln for every positive integer n.\nRoot law for limits: limx→af(x)n=limx→af(x)n=Lnlimx→af(x)n=limx→af(x)n=Ln for all L if n is odd and for L≥0L≥0 if n is even and f(x)≥0f(x)≥0."
+    },
+    {
+      "source": "https://openstax.org/books/calculus-volume-1/pages/2-4-continuity",
+      "source_type": "open_textbook",
+      "locator": "sources/continuity.txt:L44–L47; 2-4-continuity; fetched 2026-10-10; SHA256 1cf2f420c51f3a5fccaa75d832f106c1d34c87dee3f03ad9ea91a42a71e83ef0",
+      "excerpt": "A function f(x)f(x) is continuous at a point a if and only if the following three conditions are satisfied:\nf(a)f(a) is defined\nlimx→af(x)limx→af(x) exists\nlimx→af(x)=f(a)limx→af(x)=f(a)"
+    },
+    {
+      "source": "https://openstax.org/books/calculus-volume-1/pages/2-4-continuity",
+      "source_type": "open_textbook",
+      "locator": "sources/continuity.txt:L457–L459; 2-4-continuity; fetched 2026-10-10; SHA256 1cf2f420c51f3a5fccaa75d832f106c1d34c87dee3f03ad9ea91a42a71e83ef0",
+      "excerpt": "Composite Function Theorem\nIf f(x)f(x) is continuous at L and limx→ag(x)=L,limx→ag(x)=L, then\nlimx→af(g(x))=f(limx→ag(x))=f(L).limx→af(g(x))=f(limx→ag(x))=f(L)."
+    },
+    {
+      "source": "https://openstax.org/books/calculus-volume-1/pages/2-4-continuity",
+      "source_type": "open_textbook",
+      "locator": "sources/continuity.txt:L555–L560; 2-4-continuity; fetched 2026-10-10; SHA256 1cf2f420c51f3a5fccaa75d832f106c1d34c87dee3f03ad9ea91a42a71e83ef0",
+      "excerpt": "The Intermediate Value Theorem\nFunctions that are continuous over intervals of the form [a,b],[a,b], where a and b are real numbers, exhibit many useful properties. Throughout our study of calculus, we will encounter many powerful theorems concerning such functions. The first of these theorems is the Intermediate Value Theorem.\nTheorem\n2.11\nThe Intermediate Value Theorem\nLet f be continuous over a closed, bounded interval [a,b].[a,b]. If z is any real number between f(a)f(a) and f(b),f(b), then there is a number c in [a,b][a,b] satisfying f(c)=zf(c)=z in Figure 2.38."
+    },
+    {
+      "source": "https://openstax.org/books/calculus-volume-2/pages/5-1-sequences",
+      "source_type": "open_textbook",
+      "locator": "sources/sequences.txt:L318–L321; 5-1-sequences; fetched 2026-10-10; SHA256 62ad9b8d6aecefe6535565907268457ca8e57aa82359f6e981feaa4ab1b26c33",
+      "excerpt": "Theorem\n5.6\nMonotone Convergence Theorem\nIf {an}{an} is a bounded sequence and there exists a positive integer n0n0 such that {an}{an} is monotone for all n≥n0,n≥n0, then {an}{an} converges."
+    }
+  ],
+  "verification": {
+    "scope": "函数、有限极限、一侧极限、极限运算、连续、复合与数列收敛的条件；原创习题逐题解析复核",
+    "claims": [
+      {
+        "claim": "函数每个输入只能对应唯一输出；求定义域要合并所有合法性条件。",
+        "source_index": 0
+      },
+      {
+        "claim": "双侧有限极限存在当且仅当两侧有限极限相等；广义无穷极限不是实数有限极限。",
+        "source_index": 2
+      },
+      {
+        "claim": "ε–δ 定义的量词顺序为任意 ε、存在 δ、任意合法去心邻域输入。",
+        "source_index": 3
+      },
+      {
+        "claim": "商法则要求分母的有限极限不等于 0。",
+        "source_index": 4
+      },
+      {
+        "claim": "连续要求点值定义、有限极限存在、二者相等。",
+        "source_index": 5
+      },
+      {
+        "claim": "复合极限可由外层在内层极限值连续保证。",
+        "source_index": 6
+      },
+      {
+        "claim": "闭有界区间连续函数满足介值定理；零点存在不自动唯一。",
+        "source_index": 7
+      },
+      {
+        "claim": "最终单调且有界数列收敛。",
+        "source_index": 8
+      }
+    ],
+    "worked_examples": [
+      {
+        "problem": "f(x)=√(x−1)+1/(x−3) 的定义域是？",
+        "solution": "根号要求 x≥1，分母要求 x≠3。取交集为 [1,3)∪(3,+∞)，也可写为 [1,+∞)∖{3}。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "边界代入：x=1 合法，x=3 禁止；x<1 根号无实值。"
+      },
+      {
+        "problem": "ln(1−x²) 的定义域是？",
+        "solution": "1−x²>0 ⇔ x²<1 ⇔ −1<x<1，端点真数为 0，不允许。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "端点 ±1 给 ln 0；x=0 合法。"
+      },
+      {
+        "problem": "f(x)=x/(1+x²)（x∈ℝ）的奇偶性是？",
+        "solution": "定义域对称，f(−x)=−x/(1+x²)=−f(x)，且不是零函数，故只为奇函数。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "精确代数恒等式；f(1)=1/2 非零。"
+      },
+      {
+        "problem": "f(x)=x²，定义域 [0,+∞)，其反函数是？",
+        "solution": "原函数在 [0,+∞) 严格递增，值域 [0,+∞)。解 y=x² 得 x=√y，负根不在原定义域。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "两个方向复合：√(x²)=x（x≥0），(√y)²=y（y≥0）。"
+      },
+      {
+        "problem": "下列哪条结论成立？",
+        "solution": "连续周期函数在一个闭周期区间上有界，由周期性覆盖 ℝ。只具周期性不够，例如 1/|sin(πx)| 在 ℝ∖ℤ 上周期为 1 而无界。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "定理条件审核；周期无界反例逐项检查。"
+      },
+      {
+        "problem": "哪一个例子能否定“单调函数在任意区间上都有界”？",
+        "solution": "1/x 在 (0,1) 严格递减，x→0⁺ 时趋于 +∞，因此无界。一个满足前提、不满足结论的例子足够推翻全称命题。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "取 x=1/n（n≥2）函数值 n 任意大。"
+      },
+      {
+        "problem": "g(x)=√(4−x²)，f(u)=ln(u−1)，则 f(g(x)) 的定义域是？",
+        "solution": "内层要求 |x|≤2；外层要求 √(4−x²)>1，等价于 4−x²>1，即 |x|<√3。这一条件已包含内层合法性。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "端点 ±√3 使真数 0；区间外要么真数非正要么根号非法。"
+      },
+      {
+        "problem": "给出一个“周期但无界”的实函数，明确其定义域、正周期，并证明无界。",
+        "solution": "D 在平移 1 下不变，|sin(π(x+1))|=|sin(πx)|，所以 1 是周期。取 xₙ=1/n（n≥2），xₙ∈D，sin(π/n)→0⁺，故 f(xₙ)→+∞，无界。其他正确构造也接受；若要求定义域为 ℝ，可额外定义整数处值为 0，仍周期且无界。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "解析中的平移恒等式和无界数列逐条论证；开放构造需语义审核。"
+      },
+      {
+        "problem": "lim（x→0）|x|/x 是否存在有限极限？",
+        "solution": "x<0 时 |x|/x=−1；x>0 时为 1。左右极限不等，所以无双侧有限极限，与如何定义 f(0) 无关。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "两侧精确常值，非数值采样。"
+      },
+      {
+        "problem": "函数有限极限的 ε–δ 定义，正确的量词顺序是？",
+        "solution": "必须对每个 ε>0 选择一个 δ>0，这个 δ 对所有满足去心范围的 x 都有效。δ 可以依赖 ε，不能依赖随后挑选的具体 x。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "与 precise 原文定义逐项对照。"
+      },
+      {
+        "problem": "证明 x²→4（x→2）时，使用 δ=min(1,ε/5)。若 ε=0.2，这个充分选择给出 δ=多少？",
+        "solution": "δ=min(1,0.2/5)=0.04。因为 |x−2|<δ≤1 ⇒ |x+2|<5，所以误差 <5δ≤0.2。不是要求最大 δ。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "精确有理数 1/5 ÷5=1/25；|x+2|<5 推导成立。"
+      },
+      {
+        "problem": "aₙ=(−1)ⁿ（n≥1）的收敛性是？",
+        "solution": "偶数子列恒为 1，奇数子列恒为 −1，子列极限不同，故原数列不收敛。它有界说明有界不是收敛的充分条件。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "奇偶子列的精确值；定义反证可取 ε<1。"
+      },
+      {
+        "problem": "lim（x→0）x sin(1/x) = 多少？",
+        "solution": "|x sin(1/x)|≤|x|→0，所以由夹逼原极限为 0；sin(1/x) 本身没有极限。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "全去心邻域不等式，不依赖有限采样。"
+      },
+      {
+        "problem": "若 lim（x→a）f(x)=L∈ℝ，能保证哪一项？",
+        "solution": "有限极限保证某个去心邻域内有界，可取 ε=1 得 |f(x)|<|L|+1。不保证全定义域有界，也不保证 f(a) 定义或等于 L。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "定义推出 |f(x)|≤|f(x)−L|+|L|；全局有界反例 f(x)=x。"
+      },
+      {
+        "problem": "a₁=1，aₙ₊₁=√(2+aₙ)。在证明单调有界之后，其极限是多少？",
+        "solution": "归纳得 1≤aₙ<2，且 (2−aₙ)(aₙ+1)>0 ⇒ aₙ₊₁>aₙ。收敛后 L=√(2+L)，L²−L−2=0 得 2 或 −1，L≥1 排除 −1。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "不变区间与差的符号解析证明；两根代回原非负根式检查。"
+      },
+      {
+        "problem": "不使用导数，证明 a₁=1、aₙ₊₁=√(2+aₙ) 收敛，并求极限。",
+        "solution": "初值 1∈[1,2)。若 1≤aₙ<2，则 √3≤aₙ₊₁<2，归纳得界。aₙ₊₁²−aₙ²=2+aₙ−aₙ²=(2−aₙ)(aₙ+1)>0，两项非负，故严格递增。单调有界定理保证收敛，根号连续给 L=√(2+L)，解得 L=2 或 −1；由 L≥1 得 L=2。直接假定收敛并解方程不足以证明收敛。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "界、单调、收敛依据、合法取极限、根筛选五步人工数学复核；回答需宿主审核。"
+      },
+      {
+        "problem": "lim（x→0）sin(3x)/(2x) = 多少？",
+        "solution": "sin(3x)/(2x)=(3/2)[sin(3x)/(3x)]→3/2。角度采用弧度。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "精确系数变换；基本极限适用 3x→0。"
+      },
+      {
+        "problem": "lim（x→0）(√(1+x)−1)/x = 多少？",
+        "solution": "乘共轭得 1/(√(1+x)+1)，x→0 时为 1/2。约去 x 在去心邻域合法。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "共轭恒等式；去心定义域 x>-1。"
+      },
+      {
+        "problem": "lim（x→0）(1−cos x)/x² = 多少？",
+        "solution": "1−cos x=2sin²(x/2)。比值=(1/2)[sin(x/2)/(x/2)]²→1/2；注意 1−cos 0=0。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "三角恒等式及基本极限解析推导。"
+      },
+      {
+        "problem": "lim（x→0）(sin x−tan x)/x³ = 多少？",
+        "solution": "精确化为 (sin x/x)·[(cos x−1)/x²]·(1/cos x)→1·(−1/2)·1=−1/2。不能用 sin x∼x、tan x∼x 把差替换成 0。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "恒等式（cos x≠0）+ E03；无泰勒依赖。"
+      },
+      {
+        "problem": "lim（x→0）(1+2x)^(3/x) 为？（取近 0 的正底数）",
+        "solution": "令 y=(1+2x)^(3/x)，ln y=(3/x)ln(1+2x)=6·ln(1+2x)/(2x)→6，故 y→e⁶。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "对数等价和 exp 连续性；底数近 0 为正。"
+      },
+      {
+        "problem": "lim（x→+∞）(3x²−x+1)/(2x²+5) = 多少？",
+        "solution": "同除 x² 得 (3−1/x+1/x²)/(2+5/x²)→3/2。分母极限 2 非零，可以用商法则。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "精确除法变形，商法则分母非零。"
+      },
+      {
+        "problem": "x→0 时，1−cos x 相对于 x 是？",
+        "solution": "(1−cos x)/x = x·[(1−cos x)/x²]→0，因此是 x 的高阶无穷小；与 x² 同阶且等价于 x²/2。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "E03 推出比值；等价关系必须系数 1 才成立。"
+      },
+      {
+        "problem": "有人因 x→+∞ 时 √(x²+1)∼x，便说 x(√(x²+1)−x)→0。指出错误并求正确极限。",
+        "solution": "相减会抵消首项，而遗漏差的量级。乘共轭得 x(√(x²+1)−x)=x/(√(x²+1)+x)=1/(√(1+1/x²)+1)→1/2，最后一步用 x>0。错误在于用相对误差趋于 0 推断经乘 x 后绝对误差仍趋于 0。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "两次精确变形；对 x→−∞ 的错误符号推广另行排除。"
+      },
+      {
+        "problem": "f(x)=a(x²−1)/(x−1)（x≠1），f(1)=a−1。使其在 1 连续的 a=多少？",
+        "solution": "去心处 f(x)=a(x+1)，极限为 2a。令 2a=a−1，得 a=−1；代回极限与函数值均为 −2。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "线性方程精确求解并回代；原交付物错误值 2 代回不成立。"
+      },
+      {
+        "problem": "f(x)=−1（x<0），f(x)=1（x≥0）。0 是什么点？",
+        "solution": "左极限 −1、右极限 1，均有限但不相等，故跳跃间断。改变 f(0) 不能改变左右极限。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "精确两侧常值；任意点值无法补连续。"
+      },
+      {
+        "problem": "f(x)=sin x/x（x≠0）。补定义 f(0)=多少能使其在 0 连续？",
+        "solution": "两侧极限均为 1，连续要求点值等于该极限，所以应补 f(0)=1。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "基本极限与连续定义。"
+      },
+      {
+        "problem": "仅由“f 在 [a,b] 连续且 f(a)f(b)<0”，可推出？",
+        "solution": "零点定理只保证 (a,b) 内至少一个零点。唯一性需其他条件。多项式 x(x²−1/4) 在 [−1,1] 端点异号，却有 −1/2、0、1/2 三个零点。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "定理条件逐项核对；三零点多项式精确反例。"
+      },
+      {
+        "problem": "哪一组条件保证函数能取到最大和最小值？",
+        "solution": "闭有界区间上连续保证达到两个最值。开区间上连续不够，如 x 在 (0,1)；仅有界也不够，如在 [0,1] 上 f(x)=x（x<1），f(1)=0，取不到上确界 1。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "最值定理及两个边界反例；非连续有界例的 supremum 不取到。"
+      },
+      {
+        "problem": "f(x)=sin(1/x)（x≠0），f(0)=0。0 是？",
+        "solution": "取趋近 0 的数列使函数值恒为 1 与 −1，极限不存在且振荡，属于第二类振荡间断。点值 0 不消除振荡。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "显式两列证伪极限；不使用采样推断。"
+      },
+      {
+        "problem": "g(x)=x sin(1/x)（x≠0），g(0)=0。关于 0 的正确说法是？",
+        "solution": "L05 的夹逼得极限 0，与 g(0) 相等，因此在 0 连续。可导性不能直接由连续推出；本例差商 sin(1/x) 振荡，实际不可导。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "夹逼与连续定义；差商振荡说明连续不蕴含可导。"
+      },
+      {
+        "problem": "设 h(x)=(eˣ−1)/x（x<0），h(0)=a，h(x)=sin(2x)/x（x>0）。有无实数 a 使其在 0 连续？说明间断类型。",
+        "solution": "左侧用 (eˣ−1)/x→1；右侧 sin(2x)/x=2·sin(2x)/(2x)→2。两侧有限不等，双侧极限不存在；任意 a 只能改变点值，不能改变左右极限，所以均为第一类跳跃间断。称“可去”或写错左右极限均不成立。",
+        "check_method": "精确推导及条件检查；辅助程序验证见 scripts/verify_math1_chapter.py",
+        "check_result": "基本极限两侧合法；跳跃类型条件复核；自由文本只收集不规则评分。"
+      }
+    ],
+    "limitations": [
+      "未取得2028官方考试大纲，不标称最新考纲或考试频率。",
+      "Runtime仅检查记录完整性，不证明数学命题。",
+      "开放证明题待宿主语义审核，不通过关键词判分。",
+      "未获取真实学习者诊断，不制造掌握度或测试成绩。",
+      "OpenStax章节定位与中国教材章节编排不同；复核一般微积分内容，不充当考纲。"
+    ]
+  }
+}

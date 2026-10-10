@@ -1,6 +1,25 @@
+---
+title: Internationalisation (i18n)
+tags:
+- leap
+- engineering
+aliases:
+- Internationalisation (i18n) guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP Internationalisation (i18n) foundations definitions workflow`
+> Extension: `LEAP Internationalisation (i18n) failure cases examples comparison`
+> Advanced: `LEAP Internationalisation (i18n) invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # Internationalisation (i18n)
 
-**语言 / Language**：**简体中文** ｜ [English](LOCALIZATION.md)
+**语言 / Language**：**简体中文** ｜ [[docs/LOCALIZATION|English]]
 
 LEAP is model-agnostic and is embedded by host agents written by anyone, so text a **learner or
 operator actually reads** must not be hard-coded to a single language.
@@ -100,3 +119,15 @@ the standard toolchain becomes worthwhile — the `Translator.t()` call sites wo
 | `config/default.yaml` | The `locale` parameter |
 | `tests/test_i18n.py` | Catalogue integrity and end-to-end locale tests |
 | `docs/LOCALIZATION.md` | English version of this document |
+
+> [!note]- Reading and verification sequence: LEAP Internationalisation (i18n)
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[docs/ARCHITECTURE_CN]] · [[docs/LOCALIZATION]]

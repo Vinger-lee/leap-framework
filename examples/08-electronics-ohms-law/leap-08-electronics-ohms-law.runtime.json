@@ -1,0 +1,1010 @@
+[
+  {
+    "name": "initial scores unknown and single resistor exact",
+    "steps": [],
+    "assertions": [
+      "window.LEAP.getInteractionResult().subject==='electronics'",
+      "window.LEAP.getInteractionResult().assessment.correctness===null && window.LEAP.getInteractionResult().assessment.reasoning_quality===null",
+      "document.querySelector('#circuitResult').dataset.mode==='single' && Number(document.querySelector('#circuitResult').dataset.current)===0.012",
+      "Number(document.querySelector('#ivGraph').dataset.slope)===1",
+      "document.querySelector('#r2Range').disabled && !window.LEAP.getInteractionResult().ui_state.completed"
+    ]
+  },
+  {
+    "name": "series same current and voltage drops",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#modeSeries"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#circuitResult').dataset.mode==='series' && Number(document.querySelector('#circuitResult').dataset.resistance)===3000",
+      "Number(document.querySelector('#circuitResult').dataset.current)===0.004",
+      "document.querySelector('#branchValues').textContent.includes('V₁=4 V') && document.querySelector('#branchValues').textContent.includes('V₂=8 V')",
+      "!document.querySelector('#r2Range').disabled"
+    ]
+  },
+  {
+    "name": "parallel same voltage and summed currents",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#modeParallel"
+      }
+    ],
+    "assertions": [
+      "Math.abs(Number(document.querySelector('#circuitResult').dataset.resistance)-2000/3)<1e-9",
+      "Math.abs(Number(document.querySelector('#circuitResult').dataset.current)-0.018)<1e-12",
+      "document.querySelector('#branchValues').textContent.includes('I₁=12 mA') && document.querySelector('#branchValues').textContent.includes('I₂=6 mA')",
+      "document.querySelector('#modeParallel').getAttribute('aria-pressed')==='true'"
+    ]
+  },
+  {
+    "name": "all parameter controls change the same model",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#modeSeries"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#voltageRange').value='24';document.querySelector('#voltageRange').dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('#voltageRange').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#r1Range').value='2000';document.querySelector('#r1Range').dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('#r1Range').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#r2Range').value='1000';document.querySelector('#r2Range').dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('#r2Range').dispatchEvent(new Event('change',{bubbles:true}))"
+      }
+    ],
+    "assertions": [
+      "Number(document.querySelector('#circuitResult').dataset.current)===0.008",
+      "document.querySelector('#voltageValue').textContent==='24 V' && document.querySelector('#r1Value').textContent==='2000 Ω' && document.querySelector('#r2Value').textContent==='1000 Ω'",
+      "document.querySelector('#branchValues').textContent.includes('V₁=16 V') && document.querySelector('#branchValues').textContent.includes('V₂=8 V')",
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='circuit-exploration').length>=4"
+    ]
+  },
+  {
+    "name": "open circuit current zero with possible gap voltage",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#switchToggle"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#circuitResult').dataset.boundary==='open' && Number(document.querySelector('#circuitResult').dataset.current)===0",
+      "document.querySelector('#circuitBoundary').textContent.includes('断口电压=12 V')",
+      "document.querySelector('#switchWire').getAttribute('y2')==='25' && Number(document.querySelector('#ivGraph').dataset.slope)===0"
+    ]
+  },
+  {
+    "name": "current highlight and power distribution controls",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#modeParallel"
+      },
+      {
+        "action": "click",
+        "selector": "#currentToggle"
+      },
+      {
+        "action": "click",
+        "selector": "#powerToggle"
+      }
+    ],
+    "assertions": [
+      "!document.querySelector('#currentPaths').hasAttribute('hidden') && document.querySelector('#currentToggle').getAttribute('aria-pressed')==='true'",
+      "!document.querySelector('#powerPanel').hidden && document.querySelector('#powerTotal').textContent==='总功率 P=216 mW'",
+      "document.querySelector('#powerR1').textContent==='P₁=144 mW' && document.querySelector('#powerR2').textContent==='P₂=72 mW'",
+      "Math.abs(parseFloat(document.querySelector('#powerBar1').style.width)-200/3)<0.001"
+    ]
+  },
+  {
+    "name": "circuit reset restores all visible controls",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#modeParallel"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#voltageRange').value='24';document.querySelector('#voltageRange').dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('#voltageRange').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "click",
+        "selector": "#switchToggle"
+      },
+      {
+        "action": "click",
+        "selector": "#currentToggle"
+      },
+      {
+        "action": "click",
+        "selector": "#powerToggle"
+      },
+      {
+        "action": "click",
+        "selector": "#lawHighlight"
+      },
+      {
+        "action": "click",
+        "selector": "#circuitReset"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#circuitResult').dataset.mode==='single' && document.querySelector('#circuitResult').dataset.boundary==='finite'",
+      "document.querySelector('#voltageRange').value==='12' && document.querySelector('#r1Range').value==='1000' && document.querySelector('#r2Range').value==='2000'",
+      "document.querySelector('#powerPanel').hidden && document.querySelector('#currentPaths').hasAttribute('hidden')",
+      "document.querySelector('#lawHighlight').getAttribute('aria-pressed')==='false'"
+    ]
+  },
+  {
+    "name": "derivation forward back reset highlight and compare",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#lawNext"
+      },
+      {
+        "action": "click",
+        "selector": "#lawNext"
+      },
+      {
+        "action": "click",
+        "selector": "#lawNext"
+      },
+      {
+        "action": "click",
+        "selector": "#lawNext"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__lastStep=document.querySelector('#lawStepStatus').dataset.step"
+      },
+      {
+        "action": "click",
+        "selector": "#lawPrev"
+      },
+      {
+        "action": "click",
+        "selector": "#lawHighlight"
+      },
+      {
+        "action": "click",
+        "selector": "#lawCompare"
+      }
+    ],
+    "assertions": [
+      "window.__lastStep==='4' && document.querySelector('#lawStepStatus').dataset.step==='3'",
+      "document.querySelector('#circuitResult').dataset.mode==='parallel'",
+      "document.querySelector('#circuitSVG').classList.contains('is-highlight') && !document.querySelector('#lawComparison').hidden",
+      "document.querySelector('#lawCompare').getAttribute('aria-expanded')==='true'"
+    ]
+  },
+  {
+    "name": "derivation reset boundary and compare collapse",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#lawNext"
+      },
+      {
+        "action": "click",
+        "selector": "#lawNext"
+      },
+      {
+        "action": "click",
+        "selector": "#lawReset"
+      },
+      {
+        "action": "click",
+        "selector": "#lawCompare"
+      },
+      {
+        "action": "click",
+        "selector": "#lawCompare"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#lawStepStatus').dataset.step==='0' && document.querySelector('#lawPrev').disabled",
+      "document.querySelector('#lawComparison').hidden && document.querySelector('#lawCompare').getAttribute('aria-expanded')==='false'"
+    ]
+  },
+  {
+    "name": "zero voltage positive resistance unique zero current",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#voltageRange').value='0';document.querySelector('#voltageRange').dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('#voltageRange').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "click",
+        "selector": "#powerToggle"
+      },
+      {
+        "action": "click",
+        "selector": "#currentToggle"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#circuitResult').dataset.boundary==='finite' && Number(document.querySelector('#circuitResult').dataset.current)===0",
+      "document.querySelector('#powerTotal').textContent==='总功率 P=0 mW' && document.querySelector('#powerBar1').style.width==='0%'",
+      "document.querySelector('#currentPaths').hasAttribute('hidden')"
+    ]
+  },
+  {
+    "name": "ideal short refuses finite values",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#r1Range').value='0';document.querySelector('#r1Range').dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('#r1Range').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "click",
+        "selector": "#powerToggle"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#circuitResult').dataset.boundary==='short' && document.querySelector('#circuitResult').dataset.current===''",
+      "document.querySelector('#ivLine').hasAttribute('hidden') && document.querySelector('#ivPoint').hasAttribute('hidden')",
+      "document.querySelector('#circuitBoundary').textContent.includes('不存在有限稳态解')",
+      "!document.querySelector('#circuitCurrent').textContent.includes('Infinity') && !document.querySelector('#circuitCurrent').textContent.includes('NaN')"
+    ]
+  },
+  {
+    "name": "zero voltage zero resistance underdetermined",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#voltageRange').value='0';document.querySelector('#voltageRange').dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('#voltageRange').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#r1Range').value='0';document.querySelector('#r1Range').dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('#r1Range').dispatchEvent(new Event('change',{bubbles:true}))"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#circuitResult').dataset.boundary==='underdetermined' && document.querySelector('#circuitResult').dataset.current===''",
+      "document.querySelector('#circuitBoundary').textContent.includes('不能唯一确定 I')"
+    ]
+  },
+  {
+    "name": "zero resistor in series can remain finite",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#modeSeries"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#r1Range').value='0';document.querySelector('#r1Range').dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('#r1Range').dispatchEvent(new Event('change',{bubbles:true}))"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#circuitResult').dataset.boundary==='finite' && Number(document.querySelector('#circuitResult').dataset.current)===0.006",
+      "document.querySelector('#branchValues').textContent.includes('V₁=0 V') && document.querySelector('#branchValues').textContent.includes('V₂=12 V')"
+    ]
+  },
+  {
+    "name": "zero parallel branch shorts entire load",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#modeParallel"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#r2Range').value='0';document.querySelector('#r2Range').dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('#r2Range').dispatchEvent(new Event('change',{bubbles:true}))"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#circuitResult').dataset.boundary==='short' && Number(document.querySelector('#circuitResult').dataset.resistance)===0",
+      "document.querySelector('#circuitResult').dataset.current===''"
+    ]
+  },
+  {
+    "name": "checkpoint every retry retained and misconception explicit",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "[data-choice=consumed]"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__wrong=window.LEAP.getInteractionResult().assessment"
+      },
+      {
+        "action": "click",
+        "selector": "[data-choice=equal]"
+      }
+    ],
+    "assertions": [
+      "window.__wrong.correctness===0 && window.__wrong.error_type==='misconception'",
+      "window.LEAP.getInteractionResult().assessment.correctness===1",
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='checkpoint-current').length===2",
+      "window.LEAP.getInteractionResult().assessment.reasoning_quality===null"
+    ]
+  },
+  {
+    "name": "base blank wrong partial and correct numeric answers",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#checkBase"
+      },
+      {
+        "action": "fill",
+        "selector": "#currentAnswer",
+        "value": "6"
+      },
+      {
+        "action": "fill",
+        "selector": "#powerAnswer",
+        "value": "55"
+      },
+      {
+        "action": "click",
+        "selector": "#checkBase"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__partial=window.LEAP.getInteractionResult().assessment.correctness"
+      },
+      {
+        "action": "fill",
+        "selector": "#powerAnswer",
+        "value": "54"
+      },
+      {
+        "action": "click",
+        "selector": "#checkBase"
+      }
+    ],
+    "assertions": [
+      "window.__partial===0.5 && window.LEAP.getInteractionResult().assessment.correctness===1",
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='q1' && e.event_type==='attempt_submitted').length===3",
+      "window.LEAP.getInteractionResult().ui_state.completed===false && window.LEAP.getInteractionResult().ui_state.local_activity_completed===true",
+      "window.LEAP.peekOutbox().some(c=>c.tool==='check_advance_unit') && !window.LEAP.peekOutbox().some(c=>c.tool==='advance_unit')"
+    ]
+  },
+  {
+    "name": "base strict units and full-string parser rejects prose",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#currentAnswer",
+        "value": "6 W"
+      },
+      {
+        "action": "fill",
+        "selector": "#powerAnswer",
+        "value": "54 mA"
+      },
+      {
+        "action": "click",
+        "selector": "#checkBase"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__unitWrong=window.LEAP.getInteractionResult().assessment.correctness"
+      },
+      {
+        "action": "fill",
+        "selector": "#currentAnswer",
+        "value": "answer 6 mA"
+      },
+      {
+        "action": "fill",
+        "selector": "#powerAnswer",
+        "value": "54 mW extra"
+      },
+      {
+        "action": "click",
+        "selector": "#checkBase"
+      }
+    ],
+    "assertions": [
+      "window.__unitWrong===0 && window.LEAP.getInteractionResult().assessment.correctness===0",
+      "!window.LEAP.getInteractionResult().ui_state.local_activity_completed"
+    ]
+  },
+  {
+    "name": "base fractional and SI unit equivalents accepted",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#currentAnswer",
+        "value": "3/500 A"
+      },
+      {
+        "action": "fill",
+        "selector": "#powerAnswer",
+        "value": "0.054 W"
+      },
+      {
+        "action": "click",
+        "selector": "#checkBase"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.correctness===1",
+      "window.LEAP.peekOutbox().find(c=>c.tool==='submit_attempt').args.answer.includes('3/500 A') && window.LEAP.peekOutbox().find(c=>c.tool==='submit_attempt').args.answer.includes('0.054 W')"
+    ]
+  },
+  {
+    "name": "division by zero cannot grade as numeric answer",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#currentAnswer",
+        "value": "6/0 A"
+      },
+      {
+        "action": "fill",
+        "selector": "#powerAnswer",
+        "value": "NaN W"
+      },
+      {
+        "action": "click",
+        "selector": "#checkBase"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.correctness===0",
+      "document.querySelector('#currentAnswer').dataset.state==='bad' && document.querySelector('#powerAnswer').dataset.state==='bad'"
+    ]
+  },
+  {
+    "name": "series partial and SI units correct",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#seriesCurrent",
+        "value": "4 mA"
+      },
+      {
+        "action": "fill",
+        "selector": "#seriesVoltage",
+        "value": "4 V"
+      },
+      {
+        "action": "click",
+        "selector": "#checkSeries"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__partial=window.LEAP.getInteractionResult().assessment.correctness"
+      },
+      {
+        "action": "fill",
+        "selector": "#seriesCurrent",
+        "value": "0.004 A"
+      },
+      {
+        "action": "fill",
+        "selector": "#seriesVoltage",
+        "value": "8000 mV"
+      },
+      {
+        "action": "click",
+        "selector": "#checkSeries"
+      }
+    ],
+    "assertions": [
+      "window.__partial===0.5 && window.LEAP.getInteractionResult().assessment.correctness===1",
+      "window.LEAP.getInteractionResult().assessment.item_id==='q2-series'"
+    ]
+  },
+  {
+    "name": "parallel sum error then rational answer accepted",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#parallelResistance",
+        "value": "3000 Ω"
+      },
+      {
+        "action": "fill",
+        "selector": "#parallelCurrent",
+        "value": "4"
+      },
+      {
+        "action": "click",
+        "selector": "#checkParallel"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__wrong=window.LEAP.getInteractionResult().assessment.correctness"
+      },
+      {
+        "action": "fill",
+        "selector": "#parallelResistance",
+        "value": "2000/3 Ω"
+      },
+      {
+        "action": "fill",
+        "selector": "#parallelCurrent",
+        "value": "0.018 A"
+      },
+      {
+        "action": "click",
+        "selector": "#checkParallel"
+      }
+    ],
+    "assertions": [
+      "window.__wrong===0 && window.LEAP.getInteractionResult().assessment.correctness===1"
+    ]
+  },
+  {
+    "name": "parallel decimal tolerance and kilo-ohm conversion",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#parallelResistance",
+        "value": "2/3 kΩ"
+      },
+      {
+        "action": "fill",
+        "selector": "#parallelCurrent",
+        "value": "18 mA"
+      },
+      {
+        "action": "click",
+        "selector": "#checkParallel"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__fraction=window.LEAP.getInteractionResult().assessment.correctness"
+      },
+      {
+        "action": "fill",
+        "selector": "#parallelResistance",
+        "value": "666.667 Ω"
+      },
+      {
+        "action": "click",
+        "selector": "#checkParallel"
+      }
+    ],
+    "assertions": [
+      "window.__fraction===1 && window.LEAP.getInteractionResult().assessment.correctness===1"
+    ]
+  },
+  {
+    "name": "semantic transfer raw text has no grading call",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#parallelReason",
+        "value": "我认为原支路也变大；这段解释需要审核。"
+      },
+      {
+        "action": "click",
+        "selector": "#submitParallelReason"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.peekOutbox().filter(c=>c.tool==='submit_attempt').length===1 && !window.LEAP.peekOutbox().some(c=>c.tool==='commit_assessment')",
+      "window.LEAP.peekOutbox()[0].args.answer==='我认为原支路也变大；这段解释需要审核。'",
+      "document.querySelector('#parallelReasonFeedback').textContent.includes('待宿主语义审核')",
+      "window.LEAP.getInteractionResult().assessment.correctness===null && !window.LEAP.getInteractionResult().ui_state.completed"
+    ]
+  },
+  {
+    "name": "empty semantic explanation not submitted",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#submitParallelReason"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.peekOutbox().length===0 && document.querySelector('#parallelReasonFeedback').textContent.includes('尚未写下解释')"
+    ]
+  },
+  {
+    "name": "power conditions wrong partial correct",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#powerFixedV').value='double';document.querySelector('#powerFixedV').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#powerFixedI').value='half';document.querySelector('#powerFixedI').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "click",
+        "selector": "#checkPower"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__wrong=window.LEAP.getInteractionResult().assessment.correctness"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#powerFixedV').value='half';document.querySelector('#powerFixedV').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "click",
+        "selector": "#checkPower"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__partial=window.LEAP.getInteractionResult().assessment.correctness"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#powerFixedI').value='double';document.querySelector('#powerFixedI').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "click",
+        "selector": "#checkPower"
+      }
+    ],
+    "assertions": [
+      "window.__wrong===0 && window.__partial===0.5 && window.LEAP.getInteractionResult().assessment.correctness===1"
+    ]
+  },
+  {
+    "name": "boundary wrong cases then all four correct",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#zeroVoltageChoice').value='unknown';document.querySelector('#zeroVoltageChoice').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#openChoice').value='zero-voltage';document.querySelector('#openChoice').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#shortChoice').value='measured-infinity';document.querySelector('#shortChoice').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#zeroZeroChoice').value='unique-zero';document.querySelector('#zeroZeroChoice').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "click",
+        "selector": "#checkBoundary"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__wrong=window.LEAP.getInteractionResult().assessment.correctness"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#zeroVoltageChoice').value='zero';document.querySelector('#zeroVoltageChoice').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#openChoice').value='zero-current';document.querySelector('#openChoice').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#shortChoice').value='finite-none';document.querySelector('#shortChoice').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#zeroZeroChoice').value='underdetermined';document.querySelector('#zeroZeroChoice').dispatchEvent(new Event('change',{bubbles:true}))"
+      },
+      {
+        "action": "click",
+        "selector": "#checkBoundary"
+      }
+    ],
+    "assertions": [
+      "window.__wrong===0 && window.LEAP.getInteractionResult().assessment.correctness===1",
+      "window.LEAP.getInteractionResult().assessment.item_id==='q5-boundaries'"
+    ]
+  },
+  {
+    "name": "four hints progressive and cancel does not reveal",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"1\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"2\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"3\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"4\"]"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__beforeConfirm=window.LEAP.getInteractionResult().ui_state.answer_revealed"
+      },
+      {
+        "action": "click",
+        "selector": "#revealCancel"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().ui_state.hint_level===3 && window.__beforeConfirm===false && !window.LEAP.getInteractionResult().ui_state.answer_revealed",
+      "document.querySelector('#postVerify').hidden && document.querySelector('#revealConfirm').hidden",
+      "window.LEAP.getInteractionResult().events.filter(e=>e.event_type==='hint_used').length===3"
+    ]
+  },
+  {
+    "name": "revealing answer forces new task without completion",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"1\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"2\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"3\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"4\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#revealAccept"
+      },
+      {
+        "action": "fill",
+        "selector": "#currentAnswer",
+        "value": "6"
+      },
+      {
+        "action": "fill",
+        "selector": "#powerAnswer",
+        "value": "54"
+      },
+      {
+        "action": "click",
+        "selector": "#checkBase"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().ui_state.answer_revealed===true && window.LEAP.getInteractionResult().ui_state.hint_level===4",
+      "!document.querySelector('#postVerify').hidden && !window.LEAP.getInteractionResult().ui_state.completed && !window.LEAP.getInteractionResult().ui_state.local_activity_completed",
+      "!window.LEAP.peekOutbox().some(c=>c.tool==='check_advance_unit')",
+      "window.LEAP.getInteractionResult().assessment.hint_dependency===0.85"
+    ]
+  },
+  {
+    "name": "post-verification wrong and correct original text no grading",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"1\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"2\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"3\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"4\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#revealAccept"
+      },
+      {
+        "action": "fill",
+        "selector": "#verifyCurrent",
+        "value": "5"
+      },
+      {
+        "action": "fill",
+        "selector": "#verifyPower",
+        "value": "36"
+      },
+      {
+        "action": "fill",
+        "selector": "#verifyReason",
+        "value": "先写 I=V/R，再用 P=VI；电荷没有消失。"
+      },
+      {
+        "action": "click",
+        "selector": "#submitVerify"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__wrongField=document.querySelector('#verifyCurrent').dataset.state"
+      },
+      {
+        "action": "fill",
+        "selector": "#verifyCurrent",
+        "value": "0.006 A"
+      },
+      {
+        "action": "click",
+        "selector": "#submitVerify"
+      }
+    ],
+    "assertions": [
+      "window.__wrongField==='bad' && document.querySelector('#verifyCurrent').dataset.state==='ok' && document.querySelector('#verifyPower').dataset.state==='ok'",
+      "window.LEAP.peekOutbox().filter(c=>c.tool==='submit_attempt').length===2 && !window.LEAP.peekOutbox().some(c=>c.tool==='commit_assessment' || c.tool==='check_advance_unit')",
+      "window.LEAP.getInteractionResult().assessment.correctness===null && !window.LEAP.getInteractionResult().ui_state.completed",
+      "document.querySelector('#verifyFeedback').textContent.includes('待宿主语义审核') && !document.querySelector('#postVerify').hidden"
+    ]
+  },
+  {
+    "name": "post-verification requires all fields",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"1\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"2\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"3\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"4\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#revealAccept"
+      },
+      {
+        "action": "fill",
+        "selector": "#verifyCurrent",
+        "value": "6"
+      },
+      {
+        "action": "fill",
+        "selector": "#verifyPower",
+        "value": "36"
+      },
+      {
+        "action": "click",
+        "selector": "#submitVerify"
+      }
+    ],
+    "assertions": [
+      "!window.LEAP.peekOutbox().some(c=>c.tool==='submit_attempt') && document.querySelector('#verifyFeedback').textContent.includes('仍为空')"
+    ]
+  },
+  {
+    "name": "queue preview retains pending and output toggles",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "[data-choice=equal]"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__pending=window.LEAP.peekOutbox().length"
+      },
+      {
+        "action": "click",
+        "selector": "#bridgeDrain"
+      },
+      {
+        "action": "click",
+        "selector": "#consoleBar"
+      }
+    ],
+    "assertions": [
+      "window.__pending>0 && window.LEAP.peekOutbox().length===window.__pending && !document.querySelector('#bridgeOutbox').hidden",
+      "document.querySelector('#consoleBar').getAttribute('aria-expanded')==='true' && !document.querySelector('#consoleJson').hidden",
+      "JSON.parse(document.querySelector('#leap-interaction-output').textContent).events.length===1"
+    ]
+  },
+  {
+    "name": "folded worked solutions are native controls",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#seriesExercise summary"
+      },
+      {
+        "action": "click",
+        "selector": "#parallelExercise summary"
+      },
+      {
+        "action": "click",
+        "selector": "#powerExercise summary"
+      },
+      {
+        "action": "click",
+        "selector": "#boundaryExercise summary"
+      }
+    ],
+    "assertions": [
+      "Array.from(document.querySelectorAll('#practice details')).every(d=>d.open)",
+      "document.querySelector('#seriesExercise details').textContent.includes('V₁+V₂=12 V') && document.querySelector('#parallelExercise details').textContent.includes('22 mA')",
+      "window.LEAP.getInteractionResult().events.filter(e=>e.event_type==='answer_revealed').length===4"
+    ]
+  },
+  {
+    "name": "hint level belongs to the answered item",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"1\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"2\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"3\"]"
+      },
+      {
+        "action": "fill",
+        "selector": "#seriesCurrent",
+        "value": "4"
+      },
+      {
+        "action": "fill",
+        "selector": "#seriesVoltage",
+        "value": "8"
+      },
+      {
+        "action": "click",
+        "selector": "#checkSeries"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.hint_dependency===0 && window.LEAP.getInteractionResult().ui_state.hint_level===3",
+      "window.LEAP.peekOutbox().find(c=>c.tool==='submit_attempt'&&c.args.item_id==='q2-series').args.hint_level===0"
+    ]
+  },
+  {
+    "name": "folded solution disclosure persists for that item",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#seriesExercise summary"
+      },
+      {
+        "action": "click",
+        "selector": "#seriesExercise summary"
+      },
+      {
+        "action": "fill",
+        "selector": "#seriesCurrent",
+        "value": "4"
+      },
+      {
+        "action": "fill",
+        "selector": "#seriesVoltage",
+        "value": "8"
+      },
+      {
+        "action": "click",
+        "selector": "#checkSeries"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.hint_dependency===0.85 && !document.querySelector('#seriesExercise details').open",
+      "window.LEAP.peekOutbox().find(c=>c.tool==='submit_attempt').args.hint_level===4",
+      "!window.LEAP.getInteractionResult().ui_state.completed"
+    ]
+  }
+]

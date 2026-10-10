@@ -1,0 +1,19 @@
+{
+  "catalog_id": "leap.starter.subjects",
+  "version": "1.0",
+  "catalog_is_exhaustive": false,
+  "description": "A modular starter graph for choosing a grounded teaching sequence. It is not a claim that these modules cover an entire discipline.",
+  "subjects": [
+    {"subject_id": "programming", "title": "Programming", "modules": ["syntax-and-types", "control-flow", "recursion", "testing"], "canonical_notes": ["examples/01-python-recursion/knowledge.md"], "prerequisite_edges": [["syntax-and-types", "control-flow"], ["control-flow", "recursion"], ["recursion", "testing"]]},
+    {"subject_id": "math", "title": "Mathematics", "modules": ["functions", "limits", "equations", "continuity"], "canonical_notes": ["examples/02-math-linear-equation/knowledge.md"], "prerequisite_edges": [["functions", "limits"], ["limits", "continuity"]]},
+    {"subject_id": "computer-science", "title": "Computer science", "modules": ["data-representation", "osi-layers", "protocols", "diagnosis"], "canonical_notes": ["examples/03-cs-osi-model/knowledge.md"], "prerequisite_edges": [["data-representation", "osi-layers"], ["osi-layers", "protocols"]]},
+    {"subject_id": "physics", "title": "Physics", "modules": ["units-and-vectors", "kinematics", "free-fall", "model-checking"], "canonical_notes": ["examples/04-physics-free-fall/knowledge.md"], "prerequisite_edges": [["units-and-vectors", "kinematics"], ["kinematics", "free-fall"], ["free-fall", "model-checking"]]},
+    {"subject_id": "logic", "title": "Logic", "modules": ["propositions", "conditions", "flowcharts", "invariants"], "canonical_notes": ["examples/05-logic-flowchart/knowledge.md"], "prerequisite_edges": [["propositions", "conditions"], ["conditions", "flowcharts"]]},
+    {"subject_id": "statistics", "title": "Statistics", "modules": ["sample-space", "conditional-probability", "independence", "bayes"], "canonical_notes": ["examples/06-statistics-probability/knowledge.md"], "prerequisite_edges": [["sample-space", "conditional-probability"], ["conditional-probability", "independence"], ["conditional-probability", "bayes"]]},
+    {"subject_id": "chemistry", "title": "Chemistry", "modules": ["units-and-moles", "stoichiometry", "bonding", "equilibrium"], "canonical_notes": ["docs/subject-notes/chemistry.md"], "prerequisite_edges": [["units-and-moles", "stoichiometry"], ["stoichiometry", "equilibrium"]]},
+    {"subject_id": "electronics", "title": "Electronics", "modules": ["charge-and-voltage", "ohms-law", "kirchhoff-laws", "measurement"], "canonical_notes": ["docs/subject-notes/electronics.md"], "prerequisite_edges": [["charge-and-voltage", "ohms-law"], ["ohms-law", "kirchhoff-laws"], ["kirchhoff-laws", "measurement"]]},
+    {"subject_id": "biology", "title": "Biology", "modules": ["cells", "genetics", "metabolism", "systems"], "canonical_notes": ["docs/subject-notes/biology.md"], "prerequisite_edges": [["cells", "genetics"], ["genetics", "systems"]]},
+    {"subject_id": "economics", "title": "Economics", "modules": ["scarcity", "marginal-analysis", "markets", "policy"], "canonical_notes": ["docs/subject-notes/economics.md"], "prerequisite_edges": [["scarcity", "marginal-analysis"], ["marginal-analysis", "markets"]]},
+    {"subject_id": "language", "title": "Language learning", "modules": ["sounds", "words", "syntax", "discourse"], "canonical_notes": ["docs/subject-notes/language.md"], "prerequisite_edges": [["sounds", "words"], ["words", "syntax"], ["syntax", "discourse"]]}
+  ]
+}

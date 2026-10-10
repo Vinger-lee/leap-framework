@@ -2,6 +2,7 @@
 import pytest
 
 from leap.tools import ToolError
+from tests.teaching_fixture import register_pair
 
 
 def grounding_evidence():
@@ -58,6 +59,7 @@ def test_claim_cannot_borrow_source_from_another_session(service):
 def test_item_requires_solution_and_check_before_registration(grounded_service, session_id):
     with pytest.raises(ToolError):
         grounded_service.save_assessment_item(session_id, "q", "Solve 2a=a-1", "-1", "", [], [])
+    register_pair(grounded_service, session_id)
     item = grounded_service.save_assessment_item(
         session_id, "q", "Solve 2a=a-1", "-1", "Subtract a from each side: a=-1", [],
         [{"method": "substitution", "result": "2*(-1) == (-1)-1 == -2"}],
@@ -71,6 +73,7 @@ def test_item_requires_solution_and_check_before_registration(grounded_service, 
 
 
 def test_free_text_rule_scores_do_not_enter_learner_state(grounded_service, session_id):
+    register_pair(grounded_service, session_id)
     grounded_service.save_assessment_item(session_id, "prose", "Explain continuity", "limit equals value", "Use the definition", [], [{"method": "definition", "result": "Requires equal finite limit and value"}])
     attempt = grounded_service.submit_attempt(session_id, "left and right differ, therefore continuous", item_id="prose")
     with pytest.raises(ToolError) as exc:

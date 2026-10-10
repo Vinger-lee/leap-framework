@@ -87,5 +87,627 @@
     "assertions": [
       "window.LEAP.getInteractionResult().assessment.correctness >= 0.9"
     ]
+  },
+  {
+    "name": "derivation next previous reset and triangle emphasis",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#fallNext"
+      },
+      {
+        "action": "click",
+        "selector": "#fallNext"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__fallStep=document.querySelector('#fallStepStatus').dataset.step"
+      },
+      {
+        "action": "click",
+        "selector": "#fallPrev"
+      },
+      {
+        "action": "click",
+        "selector": "#fallHighlight"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__fallHighlight=document.querySelector('#fallArea').getAttribute('stroke-width')"
+      },
+      {
+        "action": "click",
+        "selector": "#fallHighlight"
+      },
+      {
+        "action": "click",
+        "selector": "#fallReset"
+      }
+    ],
+    "assertions": [
+      "window.__fallStep==='2'",
+      "window.__fallHighlight==='4'",
+      "document.querySelector('#fallArea').getAttribute('stroke-width')==='1'",
+      "document.querySelector('#fallStepStatus').dataset.step==='0'",
+      "document.querySelector('#fallPrev').disabled"
+    ]
+  },
+  {
+    "name": "six derivation steps reach numerical verification",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#fallNext"
+      },
+      {
+        "action": "click",
+        "selector": "#fallNext"
+      },
+      {
+        "action": "click",
+        "selector": "#fallNext"
+      },
+      {
+        "action": "click",
+        "selector": "#fallNext"
+      },
+      {
+        "action": "click",
+        "selector": "#fallNext"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#fallNext').disabled",
+      "document.querySelector('#fallStepStatus').dataset.step==='5'",
+      "document.querySelector('#fallStepStatus').textContent.includes('882')"
+    ]
+  },
+  {
+    "name": "velocity area error comparison opens and closes",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#fallCompare"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__fallCompare=!document.querySelector('#fallComparison').hidden"
+      },
+      {
+        "action": "click",
+        "selector": "#fallCompare"
+      }
+    ],
+    "assertions": [
+      "window.__fallCompare===true",
+      "document.querySelector('#fallComparison').hidden",
+      "document.querySelector('#fallCompare').getAttribute('aria-expanded')==='false'"
+    ]
+  },
+  {
+    "name": "time scrub and reference axis signs share actual simulation",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "(() => { const e=document.querySelector('#hSlider');e.value='20';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true})); })()"
+      },
+      {
+        "action": "evaluate",
+        "script": "(() => { const e=document.querySelector('#gSlider');e.value='10';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true})); })()"
+      },
+      {
+        "action": "evaluate",
+        "script": "(() => { const e=document.querySelector('#fallScrub');e.value='500';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true})); })()"
+      },
+      {
+        "action": "click",
+        "selector": "#axisUp"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__signed=Number(document.querySelector('#fallAxisResult').dataset.velocity)"
+      },
+      {
+        "action": "click",
+        "selector": "#axisDown"
+      }
+    ],
+    "assertions": [
+      "Math.abs(window.__signed+10)<1e-6",
+      "document.querySelector('#fallAxisResult').dataset.axis==='down'",
+      "Math.abs(Number(document.querySelector('#fallAxisResult').dataset.velocity)-10)<1e-6",
+      "Math.abs(Number(document.querySelector('#fallVelocitySVG').dataset.area)-5)<1e-6",
+      "document.querySelector('#roH').textContent==='15.0'",
+      "document.querySelector('#roT').textContent==='1.00'",
+      "document.querySelector('#axisBall').getAttribute('cy')==='97.5'"
+    ]
+  },
+  {
+    "name": "scrub endpoint is pre-impact and reset restores release",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "(() => { const e=document.querySelector('#hSlider');e.value='20';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true})); })()"
+      },
+      {
+        "action": "evaluate",
+        "script": "(() => { const e=document.querySelector('#gSlider');e.value='10';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true})); })()"
+      },
+      {
+        "action": "evaluate",
+        "script": "(() => { const e=document.querySelector('#fallScrub');e.value='1000';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true})); })()"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__impact={t:document.querySelector('#roT').textContent,v:document.querySelector('#roV').textContent,h:document.querySelector('#roH').textContent,area:Number(document.querySelector('#fallVelocitySVG').dataset.area)}"
+      },
+      {
+        "action": "click",
+        "selector": "#btnReset"
+      }
+    ],
+    "assertions": [
+      "window.__impact.t==='2.00'",
+      "window.__impact.v==='20.0'",
+      "window.__impact.h==='0.0'",
+      "window.__impact.area===20",
+      "document.querySelector('#roT').textContent==='0.00'",
+      "Number(document.querySelector('#fallVelocitySVG').dataset.area)===0"
+    ]
+  },
+  {
+    "name": "single step and focused button keep native keyboard semantics",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#btnStep"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__stepTime=Number(document.querySelector('#roT').textContent)"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#fallNext').focus();document.querySelector('#fallNext').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true,cancelable:true}));"
+      }
+    ],
+    "assertions": [
+      "window.__stepTime>0",
+      "Number(document.querySelector('#roT').textContent)===window.__stepTime"
+    ]
+  },
+  {
+    "name": "all gravity presets restart at release and sync graph",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".preset[data-g=\"1.6\"]"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__moon={g:document.querySelector('#gSlider').value,T:document.querySelector('#fallMaxT').textContent}"
+      },
+      {
+        "action": "click",
+        "selector": ".preset[data-g=\"24\"]"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__jupiter={g:document.querySelector('#gSlider').value,T:document.querySelector('#fallMaxT').textContent}"
+      },
+      {
+        "action": "click",
+        "selector": ".preset[data-g=\"9.8\"]"
+      }
+    ],
+    "assertions": [
+      "window.__moon.g==='1.6'",
+      "window.__moon.T.includes('7.91')",
+      "window.__jupiter.g==='24'",
+      "window.__jupiter.T.includes('2.04')",
+      "document.querySelector('#gSlider').value==='9.8'",
+      "document.querySelector('#roT').textContent==='0.00'"
+    ]
+  },
+  {
+    "name": "play pause reset operate without auto-start",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#btnPlay"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__playing=document.querySelector('#btnPlay').textContent==='暂停'"
+      },
+      {
+        "action": "click",
+        "selector": "#btnPlay"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__paused=document.querySelector('#btnPlay').textContent==='播放'"
+      },
+      {
+        "action": "click",
+        "selector": "#btnReset"
+      }
+    ],
+    "assertions": [
+      "window.__playing===true",
+      "window.__paused===true",
+      "document.querySelector('#roT').textContent==='0.00'"
+    ]
+  },
+  {
+    "name": "vacuum and air comparison has explicit qualitative model boundary",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#massAir"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__air={model:document.querySelector('#massStatus').dataset.model,drag:document.querySelector('#dragArrows').getAttribute('opacity')}"
+      },
+      {
+        "action": "click",
+        "selector": "#massVacuum"
+      }
+    ],
+    "assertions": [
+      "window.__air.model==='air'",
+      "window.__air.drag==='1'",
+      "document.querySelector('#massStatus').dataset.model==='vacuum'",
+      "document.querySelector('#dragArrows').getAttribute('opacity')==='0'",
+      "document.querySelector('#massVacuum').getAttribute('aria-pressed')==='true'"
+    ]
+  },
+  {
+    "name": "new last-second exercise rejects first-second then accepts interval",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#fallExercise",
+        "value": "5"
+      },
+      {
+        "action": "click",
+        "selector": "#fallExerciseCheck"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__wrongInterval=window.LEAP.getInteractionResult().assessment.correctness"
+      },
+      {
+        "action": "fill",
+        "selector": "#fallExercise",
+        "value": "25 m"
+      },
+      {
+        "action": "click",
+        "selector": "#fallExerciseCheck"
+      }
+    ],
+    "assertions": [
+      "window.__wrongInterval===0",
+      "window.LEAP.getInteractionResult().assessment.correctness===1",
+      "document.querySelector('#fallExerciseFeedback').dataset.ok==='true'"
+    ]
+  },
+  {
+    "name": "new ratio transfer gives partial credit then complete",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#fallTransferTime",
+        "value": "2"
+      },
+      {
+        "action": "fill",
+        "selector": "#fallTransferSpeed",
+        "value": "2"
+      },
+      {
+        "action": "click",
+        "selector": "#fallTransferCheck"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__partialRatio=window.LEAP.getInteractionResult().assessment.correctness"
+      },
+      {
+        "action": "fill",
+        "selector": "#fallTransferTime",
+        "value": "1/2"
+      },
+      {
+        "action": "click",
+        "selector": "#fallTransferCheck"
+      }
+    ],
+    "assertions": [
+      "window.__partialRatio===0.5",
+      "window.LEAP.getInteractionResult().assessment.correctness===1",
+      "window.LEAP.getInteractionResult().assessment.correctness===1 && window.LEAP.getInteractionResult().assessment.transfer===null",
+      "window.LEAP.peekOutbox().filter(c=>c.tool==='commit_assessment').pop().args.raw_answer==='1/2 | 2'"
+    ]
+  },
+  {
+    "name": "zero gravity boundary rejects zero-time then accepts static",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#fallBoundary').value='zero'"
+      },
+      {
+        "action": "click",
+        "selector": "#fallBoundaryCheck"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__wrongZero=window.LEAP.getInteractionResult().assessment.correctness"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#fallBoundary').value='still'"
+      },
+      {
+        "action": "click",
+        "selector": "#fallBoundaryCheck"
+      }
+    ],
+    "assertions": [
+      "window.__wrongZero===0",
+      "window.LEAP.getInteractionResult().assessment.correctness===1",
+      "document.querySelector('#fallBoundaryFeedback').textContent.includes('不能除以0')"
+    ]
+  },
+  {
+    "name": "original Q1 wrong values and compatible units are judged",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#ansT",
+        "value": "9.18"
+      },
+      {
+        "action": "fill",
+        "selector": "#ansV",
+        "value": "441"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__wrongOriginal=window.LEAP.getInteractionResult().assessment.correctness"
+      },
+      {
+        "action": "fill",
+        "selector": "#ansT",
+        "value": "3.03 s"
+      },
+      {
+        "action": "fill",
+        "selector": "#ansV",
+        "value": "29.70 m/s"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "window.__wrongOriginal===0",
+      "window.LEAP.getInteractionResult().assessment.correctness===1",
+      "window.LEAP.peekOutbox().filter(c=>c.tool==='commit_assessment').pop().args.raw_answer==='t:3.03 s | v:29.70 m/s'"
+    ]
+  },
+  {
+    "name": "original numeric fields reject wrong units and embedded extra text",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#ansT",
+        "value": "3.03 m/s"
+      },
+      {
+        "action": "fill",
+        "selector": "#ansV",
+        "value": "29.70 m/s"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.correctness===0.5",
+      "document.querySelector('#ansT').dataset.state==='bad'"
+    ]
+  },
+  {
+    "name": "original numeric fields do not extract numbers from arbitrary prose",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#ansT",
+        "value": "time 3.03 maybe"
+      },
+      {
+        "action": "fill",
+        "selector": "#ansV",
+        "value": "speed 29.7"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().ui_state.completed===false",
+      "!window.LEAP.getInteractionResult().events.some(e=>e.item_id==='q1'&&e.event_type==='attempt_submitted')"
+    ]
+  },
+  {
+    "name": "original Q1 clear restores empty inputs",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#ansT",
+        "value": "3.03"
+      },
+      {
+        "action": "fill",
+        "selector": "#ansV",
+        "value": "29.70"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      },
+      {
+        "action": "click",
+        "selector": "#btnClearQ1"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#ansT').value===''",
+      "document.querySelector('#ansV').value===''",
+      "document.querySelector('#ansT').dataset.state===''"
+    ]
+  },
+  {
+    "name": "foldout explains last-second boundary and supports closing",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#fall-intervals summary"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__fallFold=document.querySelector('#fall-intervals details').open"
+      },
+      {
+        "action": "click",
+        "selector": "#fall-intervals summary"
+      }
+    ],
+    "assertions": [
+      "window.__fallFold===true",
+      "document.querySelector('#fall-intervals details').open===false"
+    ]
+  },
+  {
+    "name": "checkpoint retries keep both original attempts",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".opt[data-v=\"bad\"] >> nth=0"
+      },
+      {
+        "action": "click",
+        "selector": ".opt[data-v=\"ok\"] >> nth=0"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='cp-01'&&e.event_type==='attempt_submitted').length===2",
+      "window.LEAP.peekOutbox().filter(c=>c.tool==='submit_attempt'&&c.args.item_id==='cp-01').length===2"
+    ]
+  },
+  {
+    "name": "free-text fall verification records raw answer only",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"1\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"2\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"3\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"4\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#btnConfirmReveal"
+      },
+      {
+        "action": "fill",
+        "selector": "#ansT2",
+        "value": "4"
+      },
+      {
+        "action": "fill",
+        "selector": "#ansV2",
+        "value": "40"
+      },
+      {
+        "action": "fill",
+        "selector": "#verifyInput",
+        "value": "关系 公式 开方 但是这些词本身不能证明过程"
+      },
+      {
+        "action": "click",
+        "selector": "#btnVerify"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.peekOutbox().some(c=>c.tool==='submit_attempt'&&c.args.item_id==='q1-verify'&&c.args.answer.includes('不能证明过程'))",
+      "!window.LEAP.peekOutbox().some(c=>c.tool==='commit_assessment'&&c.args.item_id==='q1-verify')",
+      "window.LEAP.getInteractionResult().ui_state.completed===false",
+      "document.querySelector('#verifyFb').textContent.includes('待宿主语义审核')"
+    ]
+  },
+  {
+    "name": "revealed original fall values keep verification visible",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"1\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"2\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"3\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"4\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#btnConfirmReveal"
+      },
+      {
+        "action": "fill",
+        "selector": "#ansT",
+        "value": "3.03"
+      },
+      {
+        "action": "fill",
+        "selector": "#ansV",
+        "value": "29.70"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#verify').hidden===false",
+      "window.LEAP.getInteractionResult().ui_state.completed===false"
+    ]
   }
 ]

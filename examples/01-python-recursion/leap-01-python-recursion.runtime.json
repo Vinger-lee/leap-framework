@@ -87,5 +87,656 @@
     "assertions": [
       "window.LEAP.getInteractionResult().assessment.correctness === 1"
     ]
+  },
+  {
+    "name": "line trace preserves outer n and highlights new frame",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#traceNext"
+      },
+      {
+        "action": "click",
+        "selector": "#traceNext"
+      },
+      {
+        "action": "click",
+        "selector": "#traceNext"
+      },
+      {
+        "action": "click",
+        "selector": "#traceNext"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#recTraceSvg').dataset.step === '4'",
+      "document.querySelectorAll('#recTraceSvg .trace-frame').length === 2",
+      "document.querySelector('#recTraceSvg .trace-frame[data-active=\"true\"]').textContent.includes('n=2')",
+      "document.querySelector('#recTraceSvg').textContent.includes('n=3') && document.querySelector('#recTraceSvg').textContent.includes('3 × □')",
+      "document.querySelector('#traceCode li[data-line=\"1\"]').dataset.active === 'true'"
+    ]
+  },
+  {
+    "name": "line trace reaches factorial result and empties stack",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "while (!document.getElementById('traceNext').disabled) document.getElementById('traceNext').click();"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#recTraceSvg').dataset.result === '6'",
+      "document.querySelector('#recTraceSvg').dataset.done === 'true'",
+      "document.querySelectorAll('#recTraceSvg .trace-frame').length === 0",
+      "document.querySelector('#recTraceStatus').textContent.includes('最终结果为 6')",
+      "window.LEAP.getInteractionResult().events.some(e => e.item_id === 'rec-trace' && e.event_type === 'code_run' && e.answer.includes('=6'))"
+    ]
+  },
+  {
+    "name": "line trace back and reset restore visible execution state",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#traceNext"
+      },
+      {
+        "action": "click",
+        "selector": "#traceNext"
+      },
+      {
+        "action": "click",
+        "selector": "#tracePrev"
+      },
+      {
+        "action": "click",
+        "selector": "#traceReset"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#recTraceSvg').dataset.step === '0'",
+      "document.querySelector('#tracePrev').disabled === true",
+      "document.querySelectorAll('#traceCode li[data-active=\"true\"]').length === 0",
+      "document.querySelectorAll('#recTraceSvg .trace-frame').length === 0"
+    ]
+  },
+  {
+    "name": "zero factorial reaches base immediately",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#traceN",
+        "value": "0"
+      },
+      {
+        "action": "evaluate",
+        "script": "while (!document.getElementById('traceNext').disabled) document.getElementById('traceNext').click();"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#recTraceSvg').dataset.result === '1'",
+      "document.querySelector('#recTraceSvg').dataset.step === '4'",
+      "document.querySelector('#recTraceState').textContent.includes('最终结果：1')"
+    ]
+  },
+  {
+    "name": "sum transfer mode changes code and produces ten",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#traceN",
+        "value": "4"
+      },
+      {
+        "action": "evaluate",
+        "script": "const s=document.getElementById('traceMode');s.value='sum';s.dispatchEvent(new Event('change',{bubbles:true})); while(!document.getElementById('traceNext').disabled) document.getElementById('traceNext').click();"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#recTraceSvg').dataset.result === '10'",
+      "document.querySelector('#traceCode li[data-line=\"3\"]').textContent.includes('return 0')",
+      "document.querySelector('#traceCode li[data-line=\"4\"]').textContent.includes('n + sum_to')"
+    ]
+  },
+  {
+    "name": "invalid trace input never displays stale result",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#traceN",
+        "value": "-1"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#traceNext').disabled === true",
+      "document.querySelector('#recTraceSvg').dataset.result === ''",
+      "document.querySelector('#recTraceStatus').textContent.includes('0 到 6 的整数')"
+    ]
+  },
+  {
+    "name": "prediction incorrect then correct produces two classified attempts",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#recBaseAnswer",
+        "value": "0"
+      },
+      {
+        "action": "fill",
+        "selector": "#recFourAnswer",
+        "value": "12"
+      },
+      {
+        "action": "click",
+        "selector": "#recPredictCheck"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__firstPrediction=document.querySelector('#recPredictFeedback').dataset.result;"
+      },
+      {
+        "action": "fill",
+        "selector": "#recBaseAnswer",
+        "value": "1"
+      },
+      {
+        "action": "fill",
+        "selector": "#recFourAnswer",
+        "value": "24"
+      },
+      {
+        "action": "click",
+        "selector": "#recPredictCheck"
+      }
+    ],
+    "assertions": [
+      "window.__firstPrediction === 'incorrect'",
+      "document.querySelector('#recPredictFeedback').dataset.result === 'correct'",
+      "window.LEAP.getInteractionResult().events.filter(e => e.item_id === 'rec-predict').length === 2",
+      "window.LEAP.getInteractionResult().events.filter(e => e.item_id === 'rec-predict')[0].error_type === 'reasoning_error'",
+      "window.LEAP.getInteractionResult().events.filter(e => e.item_id === 'rec-predict')[1].error_type === 'none'"
+    ]
+  },
+  {
+    "name": "step size misconception feedback distinguishes termination from correctness",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "input[name=\"recDebugAnswer\"][value=\"never\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#recDebugCheck"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__wrongDebug=document.querySelector('#recDebugFeedback').dataset.result;"
+      },
+      {
+        "action": "click",
+        "selector": "input[name=\"recDebugAnswer\"][value=\"skip\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#recDebugCheck"
+      }
+    ],
+    "assertions": [
+      "window.__wrongDebug === 'incorrect'",
+      "document.querySelector('#recDebugFeedback').dataset.result === 'correct'",
+      "document.querySelector('#recDebugFeedback').textContent.includes('4→2→0')",
+      "document.querySelector('#recDebugFeedback').textContent.includes('8')"
+    ]
+  },
+  {
+    "name": "sum transfer rejects multiplication identity then accepts empty sum",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#recSumBase",
+        "value": "1"
+      },
+      {
+        "action": "fill",
+        "selector": "#recSumFour",
+        "value": "10"
+      },
+      {
+        "action": "click",
+        "selector": "#recTransferCheck"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__wrongTransfer=document.querySelector('#recTransferFeedback').dataset.result;"
+      },
+      {
+        "action": "fill",
+        "selector": "#recSumBase",
+        "value": "0"
+      },
+      {
+        "action": "click",
+        "selector": "#recTransferCheck"
+      }
+    ],
+    "assertions": [
+      "window.__wrongTransfer === 'incorrect'",
+      "document.querySelector('#recTransferFeedback').dataset.result === 'correct'",
+      "window.LEAP.getInteractionResult().events.filter(e => e.item_id === 'rec-transfer-sum').length === 2"
+    ]
+  },
+  {
+    "name": "original correct blanks now show success and guard request",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#blankA",
+        "value": "n <= 1"
+      },
+      {
+        "action": "fill",
+        "selector": "#blankB",
+        "value": "n * factorial(n - 1)"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.correctness === 1",
+      "document.querySelector('#fbS1').textContent.includes('都写对了')",
+      "window.LEAP.peekOutbox().some(c => c.tool === 'check_advance_unit')"
+    ]
+  },
+  {
+    "name": "controlled runner respects reversed multiplication form",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#srcCode",
+        "value": "def factorial(n):\n    if n <= 1:\n        return 1\n    return factorial(n - 1) * n"
+      },
+      {
+        "action": "fill",
+        "selector": "#argN",
+        "value": "4"
+      },
+      {
+        "action": "click",
+        "selector": "#btnRun"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#term').textContent.includes('factorial(4) = 24')",
+      "!document.querySelector('#term').textContent.includes('ParseError')"
+    ]
+  },
+  {
+    "name": "controlled runner refuses decimal input rather than truncating",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#argN",
+        "value": "3.5"
+      },
+      {
+        "action": "click",
+        "selector": "#btnRun"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#term').textContent.includes('非负整数')",
+      "!document.querySelector('#term').textContent.includes('factorial(3) =')"
+    ]
+  },
+  {
+    "name": "original stack genuinely empties after outer return",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "for(let i=0;i<9;i++)document.getElementById('btnStep').click();"
+      }
+    ],
+    "assertions": [
+      "document.querySelectorAll('#tube .tf').length === 0",
+      "document.querySelector('#tube').textContent.includes('最外层已返回 24')",
+      "document.querySelector('#stepCount').textContent.includes('已完成')"
+    ]
+  },
+  {
+    "name": "native details and button keyboard keep demonstration independent",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "const d=document.querySelector('#recursion-trace details'); d.open=true; const b=document.getElementById('traceNext');b.focus();b.dispatchEvent(new KeyboardEvent('keydown',{key:' ',code:'Space',bubbles:true})); window.__nativeButtonFocus=document.activeElement===b;"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#recursion-trace details').open === true",
+      "window.__nativeButtonFocus === true",
+      "document.querySelector('#btnPlay').textContent === '播放'",
+      "document.querySelector('a[href=\"knowledge.md\"]') !== null"
+    ]
+  },
+  {
+    "name": "free explanation is submitted for host semantic review without keyword grade or completion",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "document.getElementById('verify').hidden=false;window.__beforeExplanation=window.LEAP.getInteractionResult().assessment.correctness;window.__guardCount=window.LEAP.peekOutbox().filter(c=>c.tool==='check_advance_unit').length;"
+      },
+      {
+        "action": "fill",
+        "selector": "#verifyInput",
+        "value": "0 负数 递归栈 上限 是 否 奇数 偶数，但我不知道为什么。"
+      },
+      {
+        "action": "click",
+        "selector": "#btnVerify"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().events.some(e=>e.item_id==='q1-verify'&&e.assessor_scope==='host_semantic_review')",
+      "window.LEAP.getInteractionResult().assessment.correctness===window.__beforeExplanation",
+      "window.LEAP.peekOutbox().filter(c=>c.tool==='check_advance_unit').length===window.__guardCount",
+      "document.querySelector('#verifyFb').textContent.includes('等待宿主')"
+    ]
+  },
+  {
+    "name": "base condition feedback reflects actual execution True",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#blankA",
+        "value": "True"
+      },
+      {
+        "action": "fill",
+        "selector": "#blankB",
+        "value": "n*factorial(n-1)"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "document.body.textContent.includes(\"第一次调用\")",
+      "window.LEAP.getInteractionResult().assessment.correctness < 1"
+    ]
+  },
+  {
+    "name": "base condition feedback reflects actual execution n<0",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#blankA",
+        "value": "n<0"
+      },
+      {
+        "action": "fill",
+        "selector": "#blankB",
+        "value": "n*factorial(n-1)"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "document.body.textContent.includes(\"经过0\")",
+      "window.LEAP.getInteractionResult().assessment.correctness < 1"
+    ]
+  },
+  {
+    "name": "base condition feedback reflects actual execution n>=1",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#blankA",
+        "value": "n>=1"
+      },
+      {
+        "action": "fill",
+        "selector": "#blankB",
+        "value": "n*factorial(n-1)"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "document.body.textContent.includes(\"所有正整数\")",
+      "window.LEAP.getInteractionResult().assessment.correctness < 1"
+    ]
+  },
+  {
+    "name": "undefined names cannot receive correct grade n*f(n-1)",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#blankA",
+        "value": "n<=1"
+      },
+      {
+        "action": "fill",
+        "selector": "#blankB",
+        "value": "n*f(n-1)"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "document.body.textContent.includes(\"NameError\")",
+      "window.LEAP.getInteractionResult().assessment.correctness < 1"
+    ]
+  },
+  {
+    "name": "undefined names cannot receive correct grade n*factorial(n-one)",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#blankA",
+        "value": "n<=1"
+      },
+      {
+        "action": "fill",
+        "selector": "#blankB",
+        "value": "n*factorial(n-one)"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "document.body.textContent.includes(\"NameError\")",
+      "window.LEAP.getInteractionResult().assessment.correctness < 1"
+    ]
+  },
+  {
+    "name": "zero-only base gives mathematically correct factorial",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#blankA",
+        "value": "n==0"
+      },
+      {
+        "action": "fill",
+        "selector": "#blankB",
+        "value": "n*factorial(n-1)"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.correctness===1",
+      "document.body.textContent.includes(\"数学答案仍正确\")"
+    ]
+  },
+  {
+    "name": "valid large recursion reports a depth limit without claiming nontermination",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#argN",
+        "value": "121"
+      },
+      {
+        "action": "click",
+        "selector": "#btnRun"
+      }
+    ],
+    "assertions": [
+      "document.querySelector(\"#term\").textContent.includes(\"深度超限不能单独证明无限递归\")",
+      "window.LEAP.peekOutbox().at(-1).args.answer.includes(\"def factorial(n)\")",
+      "window.LEAP.peekOutbox().at(-1).args.answer.startsWith(\"input n=121\")"
+    ]
+  },
+  {
+    "name": "checkpoint retries preserve each original choice",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#cp .opt[data-v=\"bad\"] >> nth=0"
+      },
+      {
+        "action": "click",
+        "selector": "#cp .opt[data-v=\"ok\"] >> nth=0"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id===\"cp-01\").length===2",
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id===\"cp-01\")[1].attempt_index===2"
+    ]
+  },
+  {
+    "name": "Python identifiers are case sensitive",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#blankA",
+        "value": "N<=1"
+      },
+      {
+        "action": "fill",
+        "selector": "#blankB",
+        "value": "N*Factorial(N-1)"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.correctness===0"
+    ]
+  },
+  {
+    "name": "latest stack frame appears at top",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "for(let i=0;i<4;i++)document.getElementById(\"btnStep\").click()"
+      }
+    ],
+    "assertions": [
+      "document.querySelector(\"#tube .tf\").textContent.includes(\"factorial(1)\")",
+      "document.querySelectorAll(\"#tube .tf\")[3].textContent.includes(\"factorial(4)\")"
+    ]
+  },
+  {
+    "name": "Q2 initializes four draggable cards and four targets",
+    "steps": [],
+    "assertions": [
+      "document.querySelectorAll('#slots .slot').length===4",
+      "document.querySelectorAll('#chips .chip').length===4",
+      "document.querySelectorAll('#chips .chip[draggable=true]').length===4"
+    ]
+  },
+  {
+    "name": "Q2 empty submission explains missing placements without recording a grade",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ2"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#q2Fb').textContent.includes('4')",
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='q2').length===0",
+      "window.LEAP.getInteractionResult().assessment.correctness===null"
+    ]
+  },
+  {
+    "name": "Q2 drag placement retains exact mapping and scores four stages",
+    "steps": [
+      {
+        "action": "drag",
+        "selector": ".chip[data-chip=\"push\"]",
+        "target": ".slot[data-slot=\"push\"]"
+      },
+      {
+        "action": "drag",
+        "selector": ".chip[data-chip=\"base\"]",
+        "target": ".slot[data-slot=\"base\"]"
+      },
+      {
+        "action": "drag",
+        "selector": ".chip[data-chip=\"unwind\"]",
+        "target": ".slot[data-slot=\"unwind\"]"
+      },
+      {
+        "action": "drag",
+        "selector": ".chip[data-chip=\"ret\"]",
+        "target": ".slot[data-slot=\"ret\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ2"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.correctness===1",
+      "JSON.stringify(JSON.parse(window.LEAP.peekOutbox().find(c=>c.tool==='submit_attempt'&&c.args.item_id==='q2').args.answer))===JSON.stringify(['push','base','unwind','ret'].map(i=>({slot:i,chip:i})))",
+      "document.querySelector('#fbS3').textContent.includes('保留基线')"
+    ]
+  },
+  {
+    "name": "Q2 wrong placements can move from occupied targets and repair every pair",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "const ids=['push','base','unwind','ret'];ids.forEach((id,i)=>{document.querySelector('.chip[data-chip=\"'+id+'\"]').click();document.querySelector('.slot[data-slot=\"'+ids[(i+1)%4]+'\"]').click()});document.getElementById('btnSubmitQ2').click();window.__wrongQ2=window.LEAP.getInteractionResult().assessment.correctness;ids.forEach(id=>{document.querySelector('.chip[data-chip=\"'+id+'\"]').click();document.querySelector('.slot[data-slot=\"'+id+'\"]').click()});document.getElementById('btnSubmitQ2').click();"
+      }
+    ],
+    "assertions": [
+      "window.__wrongQ2===0",
+      "window.LEAP.getInteractionResult().assessment.correctness===1",
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='q2').length===2",
+      "document.querySelectorAll('#slots .chip').length===4"
+    ]
+  },
+  {
+    "name": "Q2 keyboard target activation and clear restore every card",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "const ids=['push','base','unwind','ret'];ids.forEach((id,i)=>{document.querySelector('.chip[data-chip=\"'+id+'\"]').click();const s=document.querySelector('.slot[data-slot=\"'+id+'\"]');s.focus();s.dispatchEvent(new KeyboardEvent('keydown',{key:i%2?' ':'Enter',bubbles:true}))});document.getElementById('btnSubmitQ2').click();window.__keyQ2=window.LEAP.getInteractionResult().assessment.correctness;document.getElementById('btnClearQ2').click();"
+      }
+    ],
+    "assertions": [
+      "window.__keyQ2===1",
+      "document.querySelectorAll('#slots .chip').length===0",
+      "document.querySelectorAll('#chips .chip').length===4",
+      "document.querySelectorAll('.chip.is-sel').length===0",
+      "!document.querySelector('#q2Fb').classList.contains('is-on')"
+    ]
   }
 ]

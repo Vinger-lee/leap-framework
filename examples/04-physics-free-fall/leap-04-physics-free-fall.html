@@ -420,6 +420,53 @@ button,input,textarea{font:inherit;color:inherit}
   .sim-grid{grid-template-columns:minmax(0,1fr)}
   .math-row{gap:var(--s-5)}
 }
+
+/* 阅读与学科实验布局：宽屏利用可用空间，窄屏保持完整公式。 */
+:root{--page-max:1800px;--page-pad:clamp(20px,2.5vw,48px);--side-col:420px;--col-gap:32px}
+.cols{grid-template-columns:minmax(0,1fr) var(--side-col)}
+.col-main,.side,.result>*{min-width:0}.col-main>p,.lesson-text{max-width:86ch}
+.resource-guide{margin:32px 0;padding:24px;border:1px solid var(--hairline);border-radius:var(--r-lg);background:var(--surface)}
+.resource-guide h2,.lesson-block h2{font-size:var(--fs-h3);margin:0 0 16px}
+.resource-guide p{margin:8px 0}.resource-guide a{color:var(--accent);text-underline-offset:3px}
+.keyword-tiers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:16px}
+.keyword-tiers>div{border-left:2px solid var(--accent);padding-left:16px}
+.keyword-tiers b{display:block}.keyword-tiers code{white-space:normal;overflow-wrap:anywhere}
+.lesson-block{margin:32px 0;padding-top:24px;border-top:1px solid var(--hairline);line-height:1.78}
+.lesson-block p{margin:12px 0;overflow-wrap:anywhere}.lesson-block li{margin:8px 0}
+.derivation{padding:16px 20px;border-left:3px solid var(--accent);background:var(--surface-sunk);overflow-wrap:anywhere}
+.derivation p{font-family:var(--font-mono);font-size:14px;line-height:1.8}
+.lesson-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px;line-height:1.75;margin:16px 0}
+.lesson-table th,.lesson-table td{padding:12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--hairline);overflow-wrap:anywhere}
+.lesson-table th{color:var(--ink-2);font-weight:600}.lesson-table caption{text-align:left;margin:0 0 8px;font-weight:600}
+.subject-visual{margin:24px 0;padding:24px;border:1px solid var(--hairline);border-radius:var(--r-lg);background:var(--surface)}
+.subject-visual svg{display:block;width:100%;height:auto;color:var(--ink);overflow:visible}
+.subject-visual svg text{font-family:var(--font-sans);font-size:17px;fill:currentColor}
+.subject-visual svg .muted{fill:var(--ink-3)}.subject-visual svg .ac{fill:var(--accent)}
+.subject-visual .visual-caption{font-size:14px;color:var(--ink-2);line-height:1.75;margin:12px 0}
+.visual-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0}
+.visual-toolbar .btn{height:auto;min-height:40px;white-space:normal;line-height:1.5;padding:8px 14px}
+.visual-toolbar [aria-pressed=true]{background:var(--accent-wash);border-color:var(--accent);color:var(--accent)}
+.visual-status{background:var(--surface-sunk);padding:16px;line-height:1.8;min-height:72px}
+.visual-status strong{color:var(--accent)}
+.visual-compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px}
+.visual-compare>div{padding:16px;border:1px solid var(--hairline);border-radius:var(--r-md)}
+.visual-compare .wrong{border-color:var(--err)}
+.visual-compare[hidden]{display:none}.visual-compare h3{font-size:16px;margin:0 0 12px}
+.lesson-block details{margin:16px 0;border:1px solid var(--hairline);border-radius:var(--r-md);padding:16px 20px;background:var(--surface)}
+.lesson-block summary{font-weight:600;cursor:pointer;line-height:1.8}
+.lesson-block summary:focus-visible,.lesson-block select:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.lesson-block details[open] summary{padding-bottom:12px;border-bottom:1px solid var(--hairline)}
+.lesson-block label{display:block;margin:12px 0 8px}.lesson-block select{max-width:100%;padding:12px;border:1px solid var(--rule);border-radius:var(--r-md);background:var(--surface);color:var(--ink);font:inherit}
+.lesson-block input.blank{max-width:100%;width:180px}.exercise-feedback{margin-top:16px;font-size:14px;line-height:1.8}
+.exercise-feedback[data-ok=true]{color:var(--ok)}.exercise-feedback[data-ok=false]{color:var(--err)}
+.lesson-block .math-inline{font-family:var(--font-mono);overflow-wrap:anywhere}
+.graph-key{display:flex;gap:20px;flex-wrap:wrap;font-size:13px;line-height:1.7}
+.graph-key b{color:var(--accent)}
+@media(min-width:1200px){.side{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:1199px){:root{--page-max:1800px;--page-pad:clamp(20px,2.5vw,48px);--col-gap:32px}.cols,.result{grid-template-columns:minmax(0,1fr)}.side{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}}
+@media(max-width:700px){.keyword-tiers,.visual-compare{grid-template-columns:minmax(0,1fr)}.subject-visual{padding:16px}.subject-visual svg text{font-size:19px}.lesson-table th,.lesson-table td{padding:8px;font-size:13px}.derivation{padding:12px}.calc-step{grid-template-columns:minmax(0,1fr);gap:4px}.resource-guide{padding:20px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -464,38 +511,116 @@ button,input,textarea{font:inherit;color:inherit}
 
 <main class="wrap">
 
+<nav class="resource-guide" aria-label="自由落体学习资源与笔记">
+  <h2>学习资源 · 从定义与方向开始，再查公式与图像</h2>
+  <p>离线逐行推导、单位检查和更多边界见 <a href="knowledge.md">自由落体知识笔记</a>；建议顺序见 <a href="README_CN.md">主题指南</a>。</p>
+  <div class="keyword-tiers">
+    <div><b>核心 · 先学</b><p><code>自由落体 初速度为零 重力加速度 匀加速直线运动 位移时间公式 速度时间图像面积</code></p><p>解释 v=gt 与 s=½gt² 的来源。</p></div>
+    <div><b>扩展 · 计算与方向</b><p><code>自由落体 落地时间 速度位移关系 竖直坐标轴 正方向 SI单位 最后一秒位移</code></p><p>把符号、单位与数值统一起来。</p></div>
+    <div><b>进阶 · 模型边界</b><p><code>真空落体 质量与加速度 空气阻力 终端速度 重力随高度变化 初速度非零 竖直抛体</code></p><p>判断理想模型什么时候失效。</p></div>
+  </div>
+  <p class="visual-caption">检索词用于拓展阅读；本页不把未核验的视频链接列为学习资源。地球/月球/木星的 g 只是本模型使用的近似值。</p>
+</nav>
+
+
   <!-- ═══ Zone 01 · 教学内容 ═══════════════════════════════ -->
   <section class="zone" id="teaching" aria-labelledby="z1t">
     <div class="zone-head">
       <div class="micro micro--accent">01 · TEACHING · 教学内容</div>
       <h1 class="zone-title" id="z1t">自由落体运动 —— h = ½gt² 与位移模拟</h1>
-      <p class="zone-goal">学完这一节，你能用 h = ½gt² 计算任意高度、任意引力下的落地时间与落地速度，并解释「为什么重的物体不会落得更快」。</p>
-      <p class="zone-meta">预计 12 分钟　·　难度 2/5　·　先修：匀加速直线运动、初速度与加速度</p>
+      <p class="zone-goal">从零推导理想自由落体公式，分清方向、位移与高度，算出落地时间与速率，并判断质量无关的结论何时适用。</p>
+      <p class="zone-meta">核心 30 分钟 · 扩展自学 20 分钟　·　难度 2/5　·　先修：四则运算、平方与平方根；本页补齐速度与加速度</p>
       <div class="zone-rule"></div>
     </div>
 
     <div class="zone-body">
       <div class="cols">
         <div class="col-main">
-          <p>自由落体是指物体<b>只在重力作用下、初速度为零</b>从静止开始下落的运动。在忽略空气阻力时，它是一种匀加速直线运动：加速度大小等于当地的<b>重力加速度 g</b>，方向竖直向下。</p>
 
-          <div class="quote">因为加速度 g 与物体质量无关，所以在真空中，无论羽毛还是铁球，从同一高度释放都会<b>同时落地</b>。差异只来自空气阻力，而不是重力本身。</div>
-
-          <h2 style="font-size:var(--fs-h3)">三个核心公式（原生 MathML 渲染）</h2>
-          <div class="math-block" role="group" aria-label="自由落体三个核心公式">
-            <div class="math-row">
-              <math><mi>h</mi><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>g</mi><msup><mi>t</mi><mn>2</mn></msup></math>
-              <math><mi>v</mi><mo>=</mo><mi>g</mi><mi>t</mi></math>
-              <math><mi>v</mi><mo>=</mo><msqrt><mn>2</mn><mi>g</mi><mi>h</mi></msqrt></math>
-            </div>
-            <p class="math-cap">下落位移 h（米）· 落地速度 v（米／秒）· 时间 t（秒）· g 为重力加速度（米／秒²）</p>
-          </div>
-
-          <ul class="terms">
-            <li>①　<b>自由落体</b> —— 初速度为零、只受重力的下落运动，加速度恒为 g。</li>
-            <li>②　<b>重力加速度 g</b> —— 地球表面约 9.8 m/s²；月球约 1.6，木星约 24，由天体质量与半径决定。</li>
-            <li>③　<b>落地时间 t</b> —— 由 h = ½gt² 反解：t = √(2h/g)；落地速度 v = g·t = √(2gh)。</li>
-          </ul>
+<div class="lesson-block" id="fall-foundations">
+  <h2>1 · 先认识四个量，再选模型</h2>
+  <p>速度描述位置变化有多快，单位 m/s；加速度描述速度变化有多快，单位 m/s²。g=9.8m/s² 的意思是在理想下落过程中，每多过 1s，向下的速度增加 9.8m/s。加速度恒定不表示速度恒定。</p>
+  <p>先修自检：2²=4，√16=4，½×10×2²=20。√(9s²)=3s，长度要用 m、时间要用 s；200cm=2m。式子中 t² 是时间平方，不能先把 t 忘记平方。</p>
+  <p>本课的<b>理想自由落体</b>满足：物体从静止释放 v₀=0；释放后只受重力；忽略空气阻力与浮力；在这段高度内 g 近似恒定；运动竖直。地球近地面可取 g≈9.8m/s²，有些题明确取 10。只计算释放到首次碰地前的运动。</p>
+  <p>下落中只受重力的一般运动可能有非零初速度；本课“自由落体”使用中学教材常见的从静止开始这一约定。向下抛出、向上抛出均应使用含 v₀ 的更一般公式，不能直接套本页零初速结果。</p>
+  <p>设初始<b>距地高度 H</b>，已经下落的距离 s(t)，当前距地高度 z(t)=H−s(t)。H 不随时间变化，s 从 0 增到 H，z 从 H 减到 0。落地时才有 s(T)=H。因此教材中的 h=½gt² 若把 h 用作“已经下落的距离”，不能同时把它当作剩余高度。</p>
+</div>
+<div class="lesson-block" id="fall-axis">
+  <h2>2 · 方向先约定：g 是正的大小，a 才带方向</h2>
+  <p>默认从释放点向下为正：s₀=0，v₀=0，a=+g，v=+gt，s=+½gt²。改为从地面向上为正：y₀=H，a=−g，v_y=−gt，y=H−½gt²。两种写法描述同一条运动，速率 |v|=gt 都为正。</p>
+  <figure class="subject-visual" aria-labelledby="fall-axis-caption">
+    <svg viewBox="0 0 760 290" role="img" aria-label="同一落体在向下正轴和向上正轴的坐标表示">
+      <title>参考轴与物理位置</title>
+      <path d="M45 245 H715" stroke="var(--ink-3)" stroke-width="3"/>
+      <path d="M110 45 V228 l-9 -15 m9 15 l9 -15" fill="none" stroke="var(--accent)" stroke-width="3"/>
+      <path d="M650 230 V48 l-9 15 m9 -15 l9 15" fill="none" stroke="var(--accent)" stroke-width="3"/>
+      <text x="35" y="32">释放点为原点</text><text x="16" y="278">向下正：s 增大</text><text x="565" y="32">地面为原点</text><text x="543" y="278">向上正：y 减小</text>
+      <line x1="150" y1="55" x2="600" y2="55" stroke="var(--hairline)" stroke-dasharray="5 5"/>
+      <circle id="axisBall" cx="380" cy="55" r="14" fill="var(--accent)"/>
+      <path id="axisVelocityArrow" d="M420 70 V105 l-6 -10 m6 10 l6 -10" fill="none" stroke="var(--warn)" stroke-width="3"/>
+      <text x="465" y="113">物理下落方向始终向下</text>
+      <text id="axisPositionLabel" x="155" y="170">s=0 m；距地 H=50 m</text>
+    </svg>
+    <figcaption id="fall-axis-caption" class="visual-caption">坐标轴改变的是量的符号与原点，不会把真实运动翻转。下方模拟与这里的小球、读数和 v–t 图共用参数与时刻。</figcaption>
+    <div class="visual-toolbar" role="group" aria-label="选择参考坐标轴"><button class="btn btn--primary" id="axisDown" type="button" aria-pressed="true">释放点向下为正</button><button class="btn btn--outline" id="axisUp" type="button" aria-pressed="false">地面向上为正</button></div>
+    <div class="visual-status" id="fallAxisResult" data-axis="down" role="status" aria-live="polite">向下正：a=+9.8m/s²，v=0m/s，s=0m；当前距地50m。</div>
+  </figure>
+</div>
+<div class="lesson-block" id="fall-derivation">
+  <h2>3 · 不背结论：逐行推导速度、位移与落地时间</h2>
+  <div class="math-block" role="group" aria-label="理想自由落体核心公式，向下为正"><div class="math-row"><math><mi>v</mi><mo>=</mo><mi>g</mi><mi>t</mi></math><math><mi>s</mi><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>g</mi><msup><mi>t</mi><mn>2</mn></msup></math><math><mi>T</mi><mo>=</mo><msqrt><mfrac><mrow><mn>2</mn><mi>H</mi></mrow><mi>g</mi></mfrac></msqrt></math></div><p class="math-cap">g&gt;0，H≥0，v₀=0；H 是初始高度，s 是累计下落位移，T 是落地时刻。</p></div>
+  <p>先采用向下为正，设开始时 t=0。由于 a=g 恒定，速度按时间均匀增加，速度—时间图是一条过原点的直线。</p>
+  <div class="derivation">
+    <p>① 对 t&gt;0，加速度定义 a=(v−v₀)/(t−0)=g；两边乘 t 得 v−v₀=gt。</p>
+    <p>② v₀=0，因此 v(t)=gt，单位 (m/s²)×s=m/s。</p>
+    <p>③ 速度线性变化，平均速度 v̄=(v₀+v)/2=gt/2。这里能取首末速度平均，是因为加速度恒定。</p>
+    <p>④ 位移 s=v̄t=(gt/2)t=½gt²。图上它也是 v–t 直线下三角形面积：½×底 t×高 gt。</p>
+    <p>⑤ 把 v=gt 两边除以 g（g>0）得 t=v/g；代入 s=½gt² 得 s=½g(v/g)²=v²/(2g)。</p>
+    <p>⑥ 两边乘 2g：v²=2gs。向下正且从静止下落，所以 v≥0，取 v=√(2gs)。</p>
+    <p>⑦ 落地时 s=H：H=½gT²；同乘2、同除g得 T²=2H/g。</p>
+    <p>⑧ 代数上 T=±√(2H/g)，但经过的时间 T≥0，因此取 T=√(2H/g)。落地前速率 V=gT=√(2gH)。</p>
+  </div>
+  <p>每一步都先保证 g>0、H≥0。单位检验：2H/g 的单位 m/(m/s²)=s²，开方后是 s；2gH 的单位 m²/s²，开方后是 m/s。单位不同的量不能直接相加，H/g 自身也还不是时间。</p>
+  <figure class="subject-visual" aria-labelledby="velocity-caption">
+    <svg id="fallVelocitySVG" viewBox="0 0 760 310" role="img" aria-label="当前落体速度时间直线及累计位移三角形面积">
+      <title>v–t 图：斜率是 g，面积是位移</title>
+      <path d="M70 245 H705 l-12 -6 m12 6 l-12 6 M70 245 V35 l-6 12 m6 -12 l6 12" fill="none" stroke="var(--ink-3)" stroke-width="2"/>
+      <path id="fallArea" d="M70 245 L70 245 L70 245 Z" fill="var(--accent-wash)" stroke="var(--accent)"/>
+      <path id="fallVelocityLine" d="M70 245 L660 55" fill="none" stroke="var(--accent)" stroke-width="3"/>
+      <circle id="fallVelocityPoint" cx="70" cy="245" r="7" fill="var(--accent)"/>
+      <path id="fallTimeGuide" d="M70 245 V245" stroke="var(--warn)" stroke-dasharray="5 4"/>
+      <text x="12" y="26">速率 |v| (m/s)</text><text x="607" y="290">时间 t (s)</text><text x="42" y="268">0</text>
+      <text id="fallMaxT" x="660" y="268" text-anchor="middle">T=3.19</text><text id="fallMaxV" x="76" y="47">V=31.30</text>
+      <text id="fallAreaLabel" x="200" y="214">三角形面积 s=0 m</text><text x="315" y="55">斜率 Δv/Δt = g</text>
+    </svg>
+    <figcaption id="velocity-caption" class="visual-caption">横轴与纵轴都有单位，面积单位 (m/s)×s=m。曲线的斜率单位 (m/s)/s=m/s²。切换参考轴后，带符号的 v_y–t 直线与面积会在横轴下方；这里始终画正的速率，用来比较距离。</figcaption>
+    <div class="visual-toolbar" role="group" aria-label="自由落体推导步骤"><button class="btn btn--outline" id="fallPrev" type="button">上一步</button><button class="btn btn--primary" id="fallNext" type="button">下一步</button><button class="btn btn--outline" id="fallReset" type="button">推导复位</button><button class="btn btn--outline" id="fallHighlight" type="button" aria-pressed="false">强调三角形面积</button><button class="btn btn--outline" id="fallCompare" type="button" aria-expanded="false" aria-controls="fallComparison">比较常见错误</button></div>
+    <div id="fallStepStatus" class="visual-status" data-step="0" role="status" aria-live="polite">第1/6步：只受重力，v₀=0，向下正，a=g 恒定。</div>
+    <div id="fallComparison" class="visual-compare" hidden><div><h3>正确：图下面积</h3><svg viewBox="0 0 300 150" role="img" aria-label="正确位移是三角形面积"><path d="M30 115 H250 V25 Z" fill="var(--accent-wash)" stroke="var(--accent)"/><text x="74" y="97">½ × t × gt</text><text x="35" y="142">s=½gt²</text></svg><p>取 g=10、t=2s：v=20m/s，s=½×2×20=20m。</p></div><div class="wrong"><h3>错误：把末速度当平均速度</h3><svg viewBox="0 0 300 150" role="img" aria-label="错误矩形面积是正确位移的两倍"><path d="M30 115 H250 V25 H30 Z" fill="var(--surface-sunk)" stroke="var(--err)"/><path d="M30 115 L250 25" stroke="var(--accent)"/><text x="78" y="77">t × gt，面积多一倍</text><text x="35" y="142">错误 s=gt²</text></svg><p>末速度 20m/s 并非整段平均速度；错误地用 20×2=40m，会高估一倍。写 s=gt 则连单位都不对。</p></div></div>
+  </figure>
+  <p>核心例题 H=45m、g=9.8m/s²：T=√(2×45/9.8)s=√9.183673…s≈3.03046s；V=√(2×9.8×45)m/s=√882m/s≈29.69848m/s。最后才四舍五入，填写 3.03s、29.70m/s。</p>
+  <p>完整验证：½×9.8×(√(90/9.8))²=45m；V²=(√882)²=882m²/s²=2×9.8×45。用取整后的 3.03s 验算得到 44.98641m，约 0.03% 的差异来自舍入，不是公式失效。</p>
+</div>
+<div class="lesson-block" id="fall-intervals">
+  <h2>4 · 等时间段：路程为什么越走越多？</h2>
+  <p>取 g=10m/s²，累计位移 s(t)=5t²：0、1、2、3s 时分别是 0、5、20、45m。相邻一秒内的位移要相减：第一秒 5−0=5m，第二秒 20−5=15m，第三秒 45−20=25m，比例 1:3:5。</p>
+  <figure class="subject-visual"><svg viewBox="0 0 760 190" role="img" aria-label="前三秒每秒位移5、15、25米的比例条形图"><title>等时间间隔的位移</title><text x="20" y="42">第1秒</text><text x="20" y="92">第2秒</text><text x="20" y="142">第3秒</text><rect x="120" y="18" width="100" height="34" fill="var(--accent-wash)" stroke="var(--accent)"/><rect x="120" y="68" width="300" height="34" fill="var(--accent-wash)" stroke="var(--accent)"/><rect x="120" y="118" width="500" height="34" fill="var(--accent-wash)" stroke="var(--accent)"/><text x="236" y="42">5 m</text><text x="436" y="92">15 m</text><text x="636" y="142">25 m</text><text x="120" y="180">比较同样1s内新增的距离，不是累计位移</text></svg><figcaption class="visual-caption">一般第 n 个完整等时段 Δt 的位移为 ½g[n²−(n−1)²]Δt²=½g(2n−1)Δt²；必须从静止开始并满足恒定加速度。</figcaption></figure>
+  <details><summary>迁移：只问“最后一秒”，为什么不能直接用 s(1)？</summary><p>若落地时刻 T≥1s，最后一秒指从 T−1 到 T，位移是 s(T)−s(T−1)=½g[T²−(T−1)²]=g(T−½)。H=45m、g=10 时 T=3s，最后一秒为 10×(3−½)=25m；s(1)=5m 是第一秒。若 T&lt;1s，则不存在完整的“最后一秒”，应说明题意或只算整个过程。</p></details>
+</div>
+<div class="lesson-block" id="fall-model-limits">
+  <h2>5 · 同时落地的条件与模型边界</h2>
+  <p>重力 F=mg，牛顿第二定律 F=ma。只受重力时 mg=ma，物体质量 m&gt;0，两边同除以 m 得 a=g。质量较大时重力与惯性一起变大；因此同地点、同释放时刻、同高度、同初速度且真空条件下，质量不会改变落地时间。</p>
+  <figure class="subject-visual" aria-labelledby="mass-caption"><svg viewBox="0 0 760 260" role="img" aria-label="铁球与羽毛在真空和空气中的定性比较"><title>质量与空气阻力的区别</title><path d="M40 220 H720" stroke="var(--ink-3)" stroke-width="3"/><circle id="massBall" cx="220" cy="125" r="18" fill="var(--accent)"/><path id="massFeather" d="M530 95 Q555 120 530 145 Q505 120 530 95 M510 145 L550 95" fill="var(--accent-wash)" stroke="var(--accent)" stroke-width="3"/><path d="M220 152 V200 l-7 -12 m7 12 l7 -12 M530 152 V200 l-7 -12 m7 12 l7 -12" fill="none" stroke="var(--warn)" stroke-width="3"/><g id="dragArrows" opacity="0"><path d="M260 142 V92 l-7 12 m7 -12 l7 12 M580 140 V55 l-7 12 m7 -12 l7 12" fill="none" stroke="var(--err)" stroke-width="3"/><text x="560" y="34">阻力方向向上</text></g><text x="178" y="73">铁球</text><text x="489" y="73">羽毛</text><text x="115" y="250">向下箭头：重力；空气模式只示意非零速度时的阻力</text></svg><figcaption id="mass-caption" class="visual-caption">箭头是概念示意，没有按力的大小绘制；这不是空气阻力的数值模拟。空气中阻力还取决于形状、迎风面积、速率与流体性质，仅给质量不足以计算谁先落地。</figcaption><div class="visual-toolbar" role="group" aria-label="真空与空气比较"><button class="btn btn--primary" id="massVacuum" type="button" aria-pressed="true">理想真空</button><button class="btn btn--outline" id="massAir" type="button" aria-pressed="false">真实空气的边界</button></div><div class="visual-status" id="massStatus" data-model="vacuum" role="status" aria-live="polite">真空中 a=g；同高同初速同时释放，二者落地时间相同。</div></figure>
+  <table class="lesson-table"><caption>使用公式前必须检查的条件</caption><thead><tr><th>情形</th><th>判断与处理</th></tr></thead><tbody>
+    <tr><td>H=0，g&gt;0</td><td>T=0、V=0，释放点就在地面，是初始边界。</td></tr>
+    <tr><td>g=0，H&gt;0，v₀=0</td><td>没有加速度，物体保持静止，不会自行落地；不能除以 0。</td></tr>
+    <tr><td>H&lt;0 或 g&lt;0（把 g 定义为大小）</td><td>不属于本页参数域。反向坐标用 a=−g，不能把 g 的大小改成负数。</td></tr>
+    <tr><td>v₀≠0</td><td>改用 v=v₀+at，s=v₀t+½at²，v²=v₀²+2as，并按物理方向与时间选根。</td></tr>
+    <tr><td>空气阻力显著、很大的高度</td><td>可能加速度随速度/高度变化；恒定 g、零阻力公式不再精确。</td></tr>
+    <tr><td>已经撞地或弹起</td><td>碰撞力改变运动；图中落地前速率不是碰撞后的速度。</td></tr>
+  </tbody></table>
+  <p>比较关系要保持另一个量不变：固定 g，H 变为 4H，T 和 V 均变为原来的 2 倍；固定 H，g 变为 4g，T 变为 ½ 倍，V 变为 2 倍。更短的下落时间可以对应更大的落地速率。</p>
+</div>
 
           <!-- 理解检查 -->
           <div class="cp" id="cp">
@@ -503,7 +628,7 @@ button,input,textarea{font:inherit;color:inherit}
             <p class="cp-q">在真空中，从同一高度同时释放一个铁球和一个羽毛（初速度都为零），会发生什么？</p>
             <div class="cp-opts" role="group" aria-label="理解检查选项">
               <button class="opt" type="button" data-v="bad" data-why="铁球确实更重，但重力给它的更大拉力，恰好被它更大的惯性（质量）抵消——加速度仍由 g 决定，与质量无关。" aria-pressed="false">A. 铁球先落地，因为它受到更大的重力</button>
-              <button class="opt" type="button" data-v="ok" data-why="正确。真空中没有空气阻力，二者加速度都是 g，从同一高度、同一初速度开始，必同时落地。1971 年阿波罗 15 号在月球上用锤子和羽毛做过这个实验。" aria-pressed="false">B. 同时落地，因为加速度 g 与质量无关</button>
+              <button class="opt" type="button" data-v="ok" data-why="正确。真空中没有空气阻力，二者加速度都是 g，从同一高度、同一初速度开始，必同时落地。这要求同地点、同高度、同初速度且忽略空气阻力，不能只凭质量比较真实空气里的下落。" aria-pressed="false">B. 同时落地，因为加速度 g 与质量无关</button>
             </div>
             <div class="cp-rule"></div>
             <p class="cp-fb" id="cpFb" role="status" aria-live="polite"></p>
@@ -515,12 +640,12 @@ button,input,textarea{font:inherit;color:inherit}
             <span class="micro">KEY FORM · 关键式子</span>
             <span class="formula">h = ½ g t²</span>
             <span class="formula formula--base">v = g t = √(2 g h)</span>
-            <p class="card-foot">墨色 = 位移公式，绿色 = 速度公式（两式等价）。</p>
+            <p class="card-foot">H 是初始距地高度，s(t) 是已下落的位移；落地时 s(T)=H。公式只用于零初速、恒定g且无阻力的过程。</p>
           </div>
 
           <div class="card card--err">
             <span class="micro">MISCONCEPTION · 常见误解</span>
-            <p class="card-body">「重的物体下落更快」——这是亚里士多德的错误直觉。在<b>真实空气</b>里羽毛确实慢，但那是因为空气阻力，不是因为重力偏爱轻的东西。抽掉空气（真空），二者同步落地。</p>
+            <p class="card-body">「重的物体下落更快」——这是亚里士多德的错误直觉。在<b>真实空气</b>里羽毛确实慢，但那是因为空气阻力，不是因为重力只让重的物体加速更快。抽掉空气（真空），二者同步落地。</p>
           </div>
 
           <div class="card card--sunk">
@@ -541,7 +666,7 @@ button,input,textarea{font:inherit;color:inherit}
   <section class="zone" id="practice" aria-labelledby="z2t">
     <div class="zone-head">
       <div class="micro micro--accent">02 · PRACTICE · 交互练习</div>
-      <h2 class="zone-title" id="z2t">自由落体模拟：拖动滑块看小球下落与 h–t 曲线</h2>
+      <h2 class="zone-title" id="z2t">自由落体模拟：拖动滑块看小球下落与 s–t 曲线</h2>
       <p class="zone-goal">先调参数、看动画与曲线如何联动，再亲手算一次落地时间与速度。</p>
       <p class="zone-meta">1 个物理模拟 + 1 道计算填空　·　即时反馈　·　全部结果写入下方 Agent 输出区</p>
       <div class="zone-rule"></div>
@@ -560,21 +685,21 @@ button,input,textarea{font:inherit;color:inherit}
             <canvas class="sim-canvas" id="dropCanvas" width="480" height="300" role="img" aria-label="小球下落动画，含地面与带刻度的高度标尺"></canvas>
           </div>
           <div class="sim-panel">
-            <span class="micro">h–t CURVE · 下落位移曲线</span>
+            <span class="micro">s–t CURVE · 下落位移曲线</span>
             <canvas class="sim-canvas" id="curveCanvas" width="480" height="300" role="img" aria-label="下落位移随时间变化的抛物线曲线，标注当前时刻位置点"></canvas>
           </div>
         </div>
 
         <div class="sim-readouts">
-          <div class="readout"><div class="ro-k">当前高度</div><div class="ro-v"><span id="roH">0.0</span><span class="ro-u">m</span></div></div>
-          <div class="readout"><div class="ro-k">当前速度</div><div class="ro-v"><span id="roV">0.0</span><span class="ro-u">m/s</span></div></div>
+          <div class="readout"><div class="ro-k">当前距地高度</div><div class="ro-v"><span id="roH">0.0</span><span class="ro-u">m</span></div></div>
+          <div class="readout"><div class="ro-k">当前向下速率</div><div class="ro-v"><span id="roV">0.0</span><span class="ro-u">m/s</span></div></div>
           <div class="readout"><div class="ro-k">已用时间</div><div class="ro-v"><span id="roT">0.00</span><span class="ro-u">s</span></div></div>
         </div>
 
         <div class="sim-controls">
           <div class="slider-row">
-            <div class="sr-top"><span class="sr-label">初始高度 h</span><span class="sr-val"><span id="hVal">50</span> m</span></div>
-            <input type="range" id="hSlider" min="10" max="100" step="1" value="50" aria-label="初始高度 h，单位米，范围 10 到 100">
+            <div class="sr-top"><span class="sr-label">初始距地高度 H</span><span class="sr-val"><span id="hVal">50</span> m</span></div>
+            <input type="range" id="hSlider" min="10" max="100" step="1" value="50" aria-label="初始距地高度 H，单位米，范围 10 到 100">
           </div>
           <div class="slider-row">
             <div class="sr-top"><span class="sr-label">重力加速度 g</span><span class="sr-val"><span id="gVal">9.8</span> m/s²</span></div>
@@ -587,6 +712,7 @@ button,input,textarea{font:inherit;color:inherit}
           </div>
         </div>
 
+<div class="slider-row" style="margin-top:24px"><label class="sr-label" for="fallScrub">选定下落时刻（释放至落地前，%）</label><input id="fallScrub" type="range" min="0" max="1000" step="1" value="0" aria-label="下落时间进度，0为释放、1000为落地前"><p class="visual-caption" id="fallScrubStatus" role="status">0%：t=0s；使用方向键也可控制，无需播放动画。</p></div>
         <div class="stage-ctrl">
           <button class="btn btn--primary" id="btnPlay" type="button">播放</button>
           <button class="btn btn--outline" id="btnStep" type="button">单步</button>
@@ -704,6 +830,23 @@ button,input,textarea{font:inherit;color:inherit}
     </div>
   </section>
 
+
+<section class="lesson-block" id="fall-graduated" aria-labelledby="fall-ex-title">
+  <h2 id="fall-ex-title">分层练习 · 条件、代入、单位、检验都要写</h2>
+  <details><summary>基础 1 · H=20m，g=10m/s²，从静止落下</summary><p>T²=2H/g=40/10=4s²，T=2s。V=gT=10×2=20m/s，方向向下。检验 ½×10×2²=20m，V²=400=2×10×20。</p></details>
+  <details><summary>基础 2 · 月球模型 H=20m，g=1.6m/s²</summary><p>T=√(40/1.6)=√25=5s，V=1.6×5=8m/s。检验 ½×1.6×25=20m。与同高度的地球模型相比，月球 g 较小，时间更长，落地速率更小；这需要忽略空气阻力并以所给 g 为准。</p></details>
+  <details><summary>发展 3 · 落地速率 V=30m/s，g=10m/s²，反求 H 与 T</summary><p>V²=2gH → H=V²/(2g)=900/20=45m。V=gT → T=V/g=30/10=3s。检验 ½gT²=½×10×9=45m。V/g 单位是 s，V²/g 单位是 m。</p></details>
+  <div class="task"><h3 class="task-title">发展 4 · H=45m，g=10m/s²，最后一秒下落多少米？</h3><label for="fallExercise">最后一秒的位移（m）</label><input class="blank" id="fallExercise" type="text" autocomplete="off" placeholder="填写数值或数值 m"><button class="btn btn--primary" id="fallExerciseCheck" type="button">检查区间位移</button><p class="exercise-feedback" id="fallExerciseFeedback" role="status" aria-live="polite"></p></div>
+  <details><summary>发展 4 的完整解答</summary><p>T=√(2×45/10)=3s。最后一秒从 2s 到 3s，位移 s(3)−s(2)=½×10×9−½×10×4=45−20=25m。不是第一秒的 5m，也不是全程的 45m。</p></details>
+  <div class="task"><h3 class="task-title">迁移 5 · 固定 H，只把 g 增大为原来的 4 倍</h3><p>填写“新值/原值”的倍率，允许小数或分数。</p><label for="fallTransferTime">落地时间倍率</label><input class="blank" id="fallTransferTime" type="text" autocomplete="off" placeholder="例如 1/2"><label for="fallTransferSpeed">落地速率倍率</label><input class="blank" id="fallTransferSpeed" type="text" autocomplete="off" placeholder="例如 2"><button class="btn btn--primary" id="fallTransferCheck" type="button">检查迁移关系</button><p class="exercise-feedback" id="fallTransferFeedback" role="status" aria-live="polite"></p></div>
+  <details><summary>迁移 5 的完整解答</summary><p>T′/T=√[(2H/(4g))/(2H/g)]=√(1/4)=1/2；V′/V=√[(2×4g×H)/(2gH)]=√4=2。注意“时间减少”不表示“落地速率减少”；两者关系不同。</p></details>
+  <div class="task"><h3 class="task-title">边界 6 · g=0、H=10m、从静止释放，会自行落地吗？</h3><label for="fallBoundary">选择物理结果</label><select id="fallBoundary"><option value="">请选择</option><option value="zero">时间为 0s，立即落地</option><option value="still">保持静止，不会自行落地</option><option value="ten">10s 后落地</option></select><button class="btn btn--primary" id="fallBoundaryCheck" type="button">检查边界</button><p class="exercise-feedback" id="fallBoundaryFeedback" role="status" aria-live="polite"></p></div>
+  <details><summary>边界 6 的完整解答</summary><p>v=v₀+at=0，s=0×t+½×0×t²=0；距地高度仍为 10m，不会自行落地。T=√(2H/g) 的推导用了同除以 g，只在 g&gt;0 的参数域有效。</p></details>
+  <details><summary>诊断 7 · “45/9.8=4.59，所以落地时间4.59秒”</summary><p>45m/(9.8m/s²)≈4.59s²，这还不是时间，而且原公式含 ½。应先求 T²=2H/g≈9.1837s²，再取非负平方根 T≈3.03s。单位与代数两项检查都能定位错误。</p></details>
+  <details><summary>方向 8 · 地面为原点、向上正，H=20m、g=10，t=1s</summary><p>a=−10m/s²；v_y=−10×1=−10m/s；y=20−½×10×1²=15m。已经下落 s=5m，速率 |v_y|=10m/s。负速度只表示向下，不能解释成“负的快慢”。</p></details>
+  <p>退出自测：说明为什么 ½ 出现、为什么时间取正根、为什么铁球更重却不一定更快；任选一种参考轴，再独立计算 H=80m、g=10m/s² 的 T=4s、V=40m/s，并代回 H=½gT² 验证。</p>
+</section>
+
   <!-- ═══ Zone 03 · Agent 数据输出 ═════════════════════════════ -->
   <section class="zone" id="output" aria-labelledby="z3t">
     <div class="zone-head">
@@ -736,7 +879,7 @@ button,input,textarea{font:inherit;color:inherit}
 
   <p class="foot">
     LEAP‑V2 分学科前端示例 · 示例 4（物理 / 自由落体）　·　node_id <code>physics.mechanics.free_fall</code>　·　unit_tag <code>free-fall</code><br>
-    单文件零依赖 · 零 CDN · 零外部图片 · 全部图形为内联 Canvas / 原生 MathML 绘制　·　结构规范见 <code>examples/_shared/leap-web-spec.md</code>，视觉规范见 <code>LEAP_视觉设计理念_给Gemini.md</code>
+    单文件零依赖 · 零 CDN · 零外部图片 · 全部图形为内联 SVG / Canvas，公式为原生 MathML　·　结构规范见 <code>examples/_shared/leap-web-spec.md</code>，视觉规范见 <code>LEAP_视觉设计理念_给Gemini.md</code>
   </p>
 </main>
 
@@ -745,407 +888,191 @@ button,input,textarea{font:inherit;color:inherit}
    LEAP Runtime 交互结果内核（JSON 契约 · 证据轨 · 评分聚合）
    契约来源：examples/_shared/interaction-output.schema.json
    ══════════════════════════════════════════════════════════════ */
-window.LEAP = (function () {
+/* LEAP_HOST_BRIDGE v3: embed this kernel inline in standalone pages.
+ * Runtime receipts own evidence and completion; local exact checks own feedback.
+ */
+function createLeapBridge(config) {
   "use strict";
-
-  var state = {
-    leap_version: "2.0",
-    example_id: "free-fall",
-    subject: "physics",
-    node: { node_id: "physics.mechanics.free_fall", title: "自由落体运动", unit_tag: "free-fall" },
-    learner: { learner_id: "REPLACE_WITH_LEARNER_ID", session_id: "REPLACE_WITH_SESSION_ID" },
-    events: [],
-    assessment: blankAssessment(),
-    ui_state: {
-      mode: "demo", hosted: false, pending_mcp_calls: 0,
-      hint_dependency: 0, hint_level: 0, answer_revealed: false, completed: false
-    }
-  };
-
-  var mastery = 0.70;                       /* 本地模拟值 */
   var HINT_DEP = [0, 0.25, 0.40, 0.60, 0.85];
-  var STAGE_ORDER = ["estimated", "practiced", "demonstrated", "retained", "transferred"];
-  var EVENT_COLOR = {
-    attempt_submitted: "#4C7BD9",
-    hint_used: "#B3861A",
-    answer_revealed: "#7A7F8A",
-    drag_submitted: "#4C7BD9",
-    code_run: "#2E8B84",
-    reflection_recorded: "#4C8B3F",
-    item_completed: "#2E7D5B"
-  };
-
-  /* ══ LEAP_HOST_BRIDGE · 宿主桥接 ══════════════════════════════════
-     本页只负责「呈现 + 采集」，不做任何状态判定：
-       · mastery_probability / evidence_stage / hint_dependency 由 LEAP Runtime
-         计算（LEAP_Framework_V2 §10.2‑1），本页只显示 hydrate() 注入的值；
-       · 学习者的每个动作都会被翻译成一条待执行的 MCP 调用，进入 outbox，
-         由宿主 Agent 通过 LEAP.drainOutbox() 取走后真正执行。
-     未调用 hydrate() 时保持 demo 模式，未确认的评估标记 provisional；掌握度和证据阶段不在本地推算。 */
+  var STAGE_CN = {estimated:"仅估计",practiced:"练习过",demonstrated:"独立展示",retained:"延迟保持",transferred:"已迁移"};
   var bridge = {
-    mode: "demo",
-    context: null,
-    server: {
-      mastery_probability: mastery,
-      evidence_stage: "estimated",
-      hint_dependency: 0,
-      next_review_at: null,
-      transfer_required: false
-    },
+    mode: "demo", context: null, server: {mastery_probability:null,evidence_stage:"estimated",hint_dependency:null,next_review_at:null},
     outbox: [],
-    seq: 0,
-    hooks: [],
-    last_attempt_call_id: null,
-    last_raw_answer: ""
+    seq: 0, hooks: [], attempts: {}, ledger: {}, receipts: {}, origins: {}, latestAssessmentCall: null
   };
-
-  function clamp01(v) { return Math.max(0, Math.min(1, Number(v))); }
-  function isHosted() { return bridge.mode === "hosted"; }
-  function peekOutbox() { return clone(bridge.outbox); }
-  function drainOutbox() { var out = clone(bridge.outbox); bridge.outbox.length = 0; renderAll(); return out; }
-  function onOutboxChange(fn) { if (typeof fn === "function") bridge.hooks.push(fn); }
-
-  function enqueue(tool, args, note) {
-    var call = {
-      call_id: "call_" + (++bridge.seq),
-      tool: tool,
-      args: args || {},
-      status: "pending",
-      created_at: nowSec(),
-      note: note || ""
-    };
-    bridge.outbox.push(call);
-    for (var i = 0; i < bridge.hooks.length; i++) { try { bridge.hooks[i](call, bridge.outbox.length); } catch (e) {} }
-    return call;
-  }
-
-  /* 事件 → MCP 调用映射。hint_used / answer_revealed 不单独
-     产生调用：它们的信息通过后续 attempt 的 hint_level 一并提交。 */
-  var EVENT_TO_TOOL = {
-    attempt_submitted: "submit_attempt",
-    drag_submitted: "submit_attempt",
-    code_run: "submit_attempt",
-    reflection_recorded: "record_reflection"
+  var state = {
+    leap_version: "2.0", example_id: config.example_id, subject: config.subject,
+    node: config.node, learner: {learner_id:"REPLACE_WITH_LEARNER_ID",session_id:"REPLACE_WITH_SESSION_ID"},
+    events: [], assessment: blankAssessment(),
+    ui_state: {mode:"demo",hosted:false,pending_mcp_calls:0,hint_level:0,hint_dependency:null,
+      answer_revealed:false,completed:false,local_activity_completed:false}
   };
-
-  function enqueueForEvent(ev) {
-    if (ev.event_type === "item_completed") {
-      enqueue("check_advance_unit", { session_id: state.learner.session_id,
-        node_id: state.node.node_id }, "Local activity finished; Runtime guard must approve advancement");
-      return;
-    }
-
-    var tool = EVENT_TO_TOOL[ev.event_type];
-    if (!tool) return null;
-    var raw = ev.answer == null ? "" : String(ev.answer);
-
-    if (tool === "submit_attempt") {
-      bridge.last_raw_answer = raw;
-      var call = enqueue("submit_attempt", {
-        session_id: state.learner.session_id,
-        answer: raw,
-        node_id: state.node.node_id,
-        item_id: ev.item_id || null,
-        hint_level: typeof ev.hint_level === "number" ? ev.hint_level : state.ui_state.hint_level,
-        response_time: typeof ev.response_time === "number" ? ev.response_time : null
-      }, "提交本次作答；返回的 attempt_id 供 commit_assessment 使用");
-      bridge.last_attempt_call_id = call.call_id;
-      return call;
-    }
-    return enqueue("record_reflection", {
-      session_id: state.learner.session_id,
-      reflection: raw,
-      node_id: state.node.node_id
-    }, "保存反思");
-  }
-
-  /* 宿主注入：直接吃 get_teaching_context 的返回值 */
-  function hydrate(ctx) {
-    if (!ctx || typeof ctx !== "object") { throw new TypeError("LEAP.hydrate(context) 需要一个对象参数"); }
-    bridge.context = clone(ctx);
-    bridge.mode = "hosted";
-
-    var sess = ctx.session || {};
-    var node = ctx.current_node || ctx.node || {};
-    var ks = ctx.knowledge_state || {};
-
-    var learnerId = ctx.learner_id || sess.learner_id;
-    var sessionId = ctx.session_id || sess.session_id;
-    if (learnerId) state.learner.learner_id = learnerId;
-    if (sessionId) state.learner.session_id = sessionId;
-    if (node.node_id) state.node.node_id = node.node_id;
-    if (node.title) state.node.title = node.title;
-    if (node.unit_tag) state.node.unit_tag = node.unit_tag;
-
-    if (typeof ks.mastery_probability === "number") {
-      bridge.server.mastery_probability = clamp01(ks.mastery_probability);
-      mastery = bridge.server.mastery_probability;
-    }
-    if (ks.evidence_stage) {
-      bridge.server.evidence_stage = ks.evidence_stage;
-      state.assessment.evidence_stage = ks.evidence_stage;
-    }
-    if (typeof ks.hint_dependency === "number") {
-      bridge.server.hint_dependency = clamp01(ks.hint_dependency);
-      state.ui_state.hint_dependency = bridge.server.hint_dependency;
-    }
-    if (ks.next_review_at) bridge.server.next_review_at = ks.next_review_at;
-    if (typeof ctx.transfer_requirement === "boolean") bridge.server.transfer_required = ctx.transfer_requirement;
-
-    bridge.available_actions = ctx.recommended_actions || [];
-    bridge.recommended_strategy = ctx.recommended_strategy || "";
-    bridge.due_reviews = ctx.due_reviews || [];
-
-    renderAll();
-    return snapshot();
-  }
-
-  function toggleOutboxView() {
-    var pre = document.getElementById("bridgeOutbox");
-    var btn = document.getElementById("bridgeDrain");
-    if (!pre) return;
-    var opening = pre.hidden;
-    pre.hidden = !opening;
-    if (btn) btn.textContent = opening ? "收起调用队列 ▴" : "取出调用队列 ▾";
-    if (opening) {
-      var calls = peekOutbox();
-      pre.textContent = calls.length
-        ? JSON.stringify(calls, null, 2)
-        : "（队列为空：尚无需要提交给 LEAP Runtime 的调用）";
-    }
-  }
-
-  var drainWired = false;
-  function renderBridge() {
-    var modeEl = document.getElementById("bridgeMode");
-    var sumEl = document.getElementById("bridgeSummary");
-    var noteEl = document.getElementById("spineNote");
-    var n = bridge.outbox.length;
-
-    if (modeEl) modeEl.textContent = "BRIDGE · " + (isHosted() ? "已接入宿主" : "演示模式");
-    if (sumEl) {
-      sumEl.textContent = isHosted()
-        ? "已注入 Runtime 上下文（" + state.node.node_id + "）；待执行的 MCP 调用 " + n + " 条。"
-        : "未接入宿主 Agent；学习动作会累积为待执行的 MCP 调用（当前 " + n + " 条）。";
-    }
-    if (noteEl) {
-      noteEl.innerHTML = isHosted()
-        ? "本页状态由 <b>LEAP Runtime</b> 注入（<code>LEAP.hydrate()</code>）；掌握度与证据阶段由服务端 BKT 与 State Guard 计算，本页不自行推算。"
-        : "本页尚未连接 Runtime；掌握度与证据阶段保持初始占位值，作答评分仅为待核验反馈。";
-    }
-
-    var btn = document.getElementById("bridgeDrain");
-    if (btn && !drainWired) { drainWired = true; btn.addEventListener("click", toggleOutboxView); }
-    if (btn && !n) { btn.disabled = true; } else if (btn) { btn.disabled = false; }
-  }
-
-  function blankAssessment() {
-    return {
-      item_id: "", correctness: 0, conceptual_understanding: 0, reasoning_quality: 0,
-      application: 0, transfer: 0, hint_dependency: 0, confidence: 0, overall_score: 0,
-      error_type: "none", misconception: "", feedback: "",
-      evidence_stage: "estimated", assessor_type: "rule", provisional: true
-    };
-  }
+  var renderHooks = [], drainWired = false;
   function nowSec() { return Math.floor(Date.now() / 1000); }
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
-
-  /* overall_score：correctness .4 / conceptual .3 / reasoning .2 / application .1
-     缺失维度自动归一化；transfer 与 hint_dependency 不参与聚合 */
+  function isHosted() { return bridge.mode === "hosted"; }
+  function blankAssessment() { return {item_id:"",correctness:null,conceptual_understanding:null,reasoning_quality:null,
+    application:null,transfer:null,hint_dependency:null,confidence:null,overall_score:null,error_type:"none",
+    misconception:"",feedback:"尚未评估",evidence_stage:"estimated",assessor_type:"rule",provisional:true}; }
   function aggregate(d) {
-    var w = { correctness: 0.4, conceptual_understanding: 0.3, reasoning_quality: 0.2, application: 0.1 };
-    var sum = 0, tw = 0, k;
-    for (k in w) {
-      if (typeof d[k] === "number" && isFinite(d[k])) { sum += d[k] * w[k]; tw += w[k]; }
+    var weights = {correctness:0.4,conceptual_understanding:0.3,reasoning_quality:0.2,application:0.1}, sum=0,total=0;
+    Object.keys(weights).forEach(function(k) {if(typeof d[k]==="number" && Number.isFinite(d[k])) {sum+=d[k]*weights[k];total+=weights[k];}});
+    return total ? Math.round(sum/total*100)/100 : null;
+  }
+  function enqueue(tool,args,note) {
+    var call = {call_id:"call_"+(++bridge.seq),tool:tool,args:args||{},status:"pending",created_at:nowSec(),note:note||""};
+    bridge.outbox.push(call); bridge.ledger[call.call_id]=clone(call);
+    bridge.origins[call.call_id]={session_id:state.learner.session_id,node_id:state.node.node_id};
+    bridge.hooks.forEach(function(fn) {fn(clone(call),bridge.outbox.length);});
+    return call;
+  }
+  function enqueueForEvent(ev) {
+    if(ev.event_type === "item_completed") {
+      enqueue("check_advance_unit",{session_id:state.learner.session_id,node_id:state.node.node_id},"检查推进条件；检查通过本身不代表已推进");
+      return;
     }
-    return tw ? Math.round((sum / tw) * 100) / 100 : 0;
+    if(["attempt_submitted","drag_submitted","code_run"].indexOf(ev.event_type)>=0) {
+      var raw=ev.answer==null?"":String(ev.answer), key=ev.item_id||"";
+      var call=enqueue("submit_attempt",{session_id:state.learner.session_id,node_id:state.node.node_id,item_id:key||null,
+        answer:raw,hint_level:typeof ev.hint_level==="number"?ev.hint_level:state.ui_state.hint_level,
+        response_time:typeof ev.response_time==="number"?ev.response_time:null},"保留原始作答与本题 attempt 引用");
+      bridge.attempts[key]={call_id:call.call_id,raw_answer:raw,hint_level:call.args.hint_level,assessor_scope:ev.assessor_scope||"exact_answer"};
+    } else if(ev.event_type==="reflection_recorded") {
+      enqueue("record_reflection",{session_id:state.learner.session_id,node_id:state.node.node_id,reflection:String(ev.answer||"")},"保存反思，不作为正确性评分");
+    }
   }
-
-  function pushEvent(event_type, payload) {
-    var ev = { event_type: event_type };
-    if (payload) { for (var k in payload) { if (Object.prototype.hasOwnProperty.call(payload, k)) ev[k] = payload[k]; } }
-    ev.created_at = nowSec();
-    state.events.push(ev);
-    enqueueForEvent(ev);
-    renderAll();
-    return ev;
+  function pushEvent(event_type,payload) {
+    var ev=Object.assign({event_type:event_type,item_id:""},payload||{},{created_at:nowSec()});
+    state.events.push(ev); enqueueForEvent(ev); renderAll(); return ev;
   }
-
   function setHint(level) {
-    if (level > state.ui_state.hint_level) state.ui_state.hint_level = level;
-    if (level === 4) state.ui_state.answer_revealed = true;
-    state.ui_state.hint_dependency = HINT_DEP[Math.min(state.ui_state.hint_level, 4)];
-    renderAll();
+    if(!Number.isInteger(level)||level<0||level>4) throw new RangeError("hint level must be 0..4");
+    state.ui_state.hint_level=Math.max(level,state.ui_state.hint_level);
+    if(level===4) state.ui_state.answer_revealed=true;
+    // Local hint usage is separate from the Runtime's historical estimate.
+    state.ui_state.local_hint_dependency=HINT_DEP[state.ui_state.hint_level]; renderAll();
   }
-
   function commitAssessment(item) {
-    var dep = HINT_DEP[Math.min(state.ui_state.hint_level, 4)];
-    var a = {
-      item_id: item.item_id,
-      correctness: r2(item.correctness),
-      conceptual_understanding: r2(item.conceptual_understanding),
-      reasoning_quality: r2(item.reasoning_quality),
-      application: r2(item.application),
-      transfer: r2(item.transfer || 0),
-      hint_dependency: r2(dep),
-      confidence: 0,
-      overall_score: 0,
-      error_type: item.error_type || "none",
-      misconception: item.misconception || "",
-      feedback: item.feedback || "",
-      evidence_stage: "practiced",
-      assessor_type: item.assessor_type || "rule"
-    };
-    a.overall_score = aggregate(a);
-
-    /* Evidence stage and mastery are exclusively Runtime state, even in demo. */
-    a.evidence_stage = bridge.server.evidence_stage;
-    a.provisional = true; // this new assessment has not been committed by Runtime
-    state.assessment = a;
-    state.ui_state.hint_dependency = a.hint_dependency;
-
-    /* 评估证据必须回传 Runtime：raw_answer 不可丢弃（§22.8）。 */
-    enqueue("commit_assessment", {
-      attempt_id: bridge.last_attempt_call_id
-        ? "{{" + bridge.last_attempt_call_id + ".attempt_id}}" : "{{attempt_id}}",
-      raw_answer: bridge.last_raw_answer,
-      assessor_type: a.assessor_type,
-      correctness: a.correctness,
-      conceptual_understanding: a.conceptual_understanding,
-      reasoning_quality: a.reasoning_quality,
-      application: a.application,
-      transfer: a.transfer,
-      hint_dependency: a.hint_dependency,
-      confidence: a.confidence
-    }, "提交评估证据；attempt_id 由上一条 submit_attempt 的返回值填充，mastery 由 Runtime 计算");
-    renderAll();
-    return a;
-  }
-
-  function r2(v) { return Math.round((v || 0) * 100) / 100; }
-
-  function setCompleted(itemId, reason) {
-    state.ui_state.completed = true;
-    pushEvent("item_completed", { item_id: itemId, reason: reason || "verified" });
-  }
-
-  /* ── 渲染 ─────────────────────────────────────────────── */
-  var renderHooks = [];
-  function onRender(fn) { renderHooks.push(fn); fn(); }
-  function renderAll() {
-    renderOutput(); renderSpine(); renderRail(); renderBridge();
-    for (var i = 0; i < renderHooks.length; i++) { try { renderHooks[i](); } catch (e) { /* 单个面板失败不影响契约输出 */ } }
-  }
-
-
-
-  function renderOutput() {
-    var el = document.getElementById("leap-interaction-output");
-    if (el) el.textContent = JSON.stringify(snapshot(), null, 2);
-    var sum = document.getElementById("consoleSummary");
-    if (sum) {
-      var last = state.events.length ? state.events[state.events.length - 1].event_type : null;
-      sum.textContent = "AGENT OUTPUT · 已记录 " + state.events.length + " 条事件" +
-        (last ? " · 最近 " + last : "") + (state.ui_state.completed ? " · 本节点已完成" : "");
+    var attempt=bridge.attempts[item.item_id];
+    if(!attempt) throw new Error("本题尚未提交作答，不能借用其他题目的 attempt");
+    if(attempt.assessor_scope==="host_semantic_review"||item.assessor_scope==="host_semantic_review") {
+      bridge.latestAssessmentCall=null;
+      state.assessment=Object.assign(blankAssessment(),{item_id:item.item_id,feedback:"原始作答已收集，等待宿主审核论证",evidence_stage:bridge.server.evidence_stage});
+      renderAll(); return clone(state.assessment);
     }
+    if(typeof item.correctness!=="number"||!Number.isFinite(item.correctness)||item.correctness<0||item.correctness>1) throw new TypeError("Exact checks require an explicit correctness value");
+    // An exact answer does not establish reasoning, concepts, transfer or self-confidence.
+    var value=Math.round(item.correctness*100)/100;
+    var a=Object.assign(blankAssessment(),{item_id:item.item_id,correctness:value,overall_score:value,
+      feedback:item.feedback||"仅核对客观答案",error_type:item.error_type||"none",misconception:item.misconception||"",
+      hint_dependency:HINT_DEP[Math.min(attempt.hint_level,4)],evidence_stage:bridge.server.evidence_stage,provisional:true});
+    state.assessment=a;
+    var call=enqueue("commit_assessment",{attempt_id:"{{"+attempt.call_id+".attempt_id}}",raw_answer:attempt.raw_answer,
+      assessor_type:"rule",correctness:a.correctness,hint_dependency:a.hint_dependency},"仅提交客观正确性；其他维度待相应证据评估");
+    bridge.latestAssessmentCall=call.call_id; renderAll(); return clone(a);
   }
-
-  function renderSpine() {
-    var cur = state.assessment.evidence_stage;
-    var idx = Math.max(0, STAGE_ORDER.indexOf(cur));
-    var segs = document.querySelectorAll("#evTrack .ev-seg");
-    for (var i = 0; i < segs.length; i++) {
-      if (i <= idx) { segs[i].classList.add("is-on"); } else { segs[i].classList.remove("is-on"); }
-    }
-    var nameEl = document.getElementById("evName");
-    if (nameEl) {
-      nameEl.textContent = cur + " · " + STAGE_CN[cur];
-      nameEl.style.color = "var(--ev-" + cur + ")";
-    }
-    var fill = document.getElementById("masFill");
-    if (fill) fill.style.width = Math.round(mastery * 100) + "%";
-    var val = document.getElementById("masVal");
-    if (val) val.textContent = mastery.toFixed(2);
-    var note = document.getElementById("ladderNote");
-    if (note) {
-      note.textContent = "阶梯高度 = 支持强度。已用层级越高，hint_dependency 越高；本节点当前 " +
-        HINT_DEP[Math.min(state.ui_state.hint_level, 4)].toFixed(2) + "。";
-    }
+  function setCompleted(itemId,reason) {
+    state.ui_state.local_activity_completed=true;
+    pushEvent("item_completed",{item_id:itemId,reason:reason||"local_check_finished"});
   }
-
-  var STAGE_CN = {
-    estimated: "仅估计", practiced: "练习过", demonstrated: "独立展示",
-    retained: "延迟保持", transferred: "已迁移"
-  };
-
-  function renderRail() {
-    var host = document.getElementById("railDots");
-    if (!host) return;
-    var n = state.events.length;
-    host.innerHTML = "";
-    if (!n) return;
-    var gap = n === 1 ? 0 : 1120 / (n + 1);
-    /* 使用百分比定位，随容器宽度自适应 */
-    for (var i = 0; i < n; i++) {
-      var d = document.createElement("span");
-      var isLast = (i === n - 1);
-      d.className = "rail-dot" + (isLast ? " rail-dot--last" : "");
-      var pct = n === 1 ? 50 : ((i + 1) / (n + 1)) * 100;
-      d.style.left = pct + "%";
-      d.style.background = EVENT_COLOR[state.events[i].event_type] || "#9AA1AD";
-      d.title = state.events[i].event_type;
-      host.appendChild(d);
+  function hydrate(ctx) {
+    if(!ctx||typeof ctx!=="object"||ctx.ok===false) throw new TypeError("hydrate requires a successful Runtime context");
+    var sess=ctx.session||{},node=ctx.current_node||ctx.node||{},ks=ctx.knowledge_state||{};
+    var learner=ctx.learner_id||sess.learner_id, sid=ctx.session_id||sess.session_id;
+    if(!learner||!sid||!node.node_id) throw new TypeError("Runtime context needs learner, session and node identifiers");
+    if(sid!==state.learner.session_id||node.node_id!==state.node.node_id) {
+      if(bridge.outbox.length) throw new Error("切换上下文前必须先取走并处理原节点的调用队列");
+      bridge.attempts={}; bridge.latestAssessmentCall=null; state.ui_state.completed=false; state.ui_state.local_activity_completed=false;
+      state.ui_state.hint_level=0; state.ui_state.answer_revealed=false; state.assessment=blankAssessment();
     }
-    var cnt = document.getElementById("railCount");
-    if (cnt) cnt.textContent = "已产生 " + n + " 条事件（只追加，不覆盖）";
-    var last = document.getElementById("railLast");
-    if (last) {
-      var e = state.events[n - 1];
-      last.textContent = "最近：" + e.event_type + (e.item_id ? " · " + e.item_id : "") +
-        " · hint_level " + state.ui_state.hint_level + " · " + fmtTime(e.created_at);
-    }
+    state.learner={learner_id:learner,session_id:sid}; state.node=Object.assign({},state.node,node);
+    bridge.context=clone(ctx); bridge.mode="hosted";
+    bridge.server={mastery_probability:typeof ks.mastery_probability==="number"?ks.mastery_probability:null,
+      evidence_stage:ks.evidence_stage||"estimated",hint_dependency:typeof ks.hint_dependency==="number"?ks.hint_dependency:null,
+      next_review_at:ks.next_review_at||null};
+    state.assessment.evidence_stage=bridge.server.evidence_stage;
+    state.ui_state.hint_dependency=bridge.server.hint_dependency;
+    // A state snapshot does not confirm a particular pending assessment receipt.
+    renderAll(); return snapshot();
   }
-  function fmtTime(t) {
-    var d = new Date(t * 1000);
-    return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2) + ":" + ("0" + d.getSeconds()).slice(-2);
+  function applyToolResults(results) {
+    // Validate the whole batch before changing any receipt or displayed state.
+    var merged=Object.assign({},bridge.receipts,results||{});
+    Object.keys(results||{}).forEach(function(id) {
+      var call=bridge.ledger[id],result=results[id];
+      if(!call) throw new Error("Unknown outbox call receipt: "+id);
+      if(!result||result.ok!==true) return;
+      if(call.tool==="commit_assessment") {
+        var match=/^\{\{(call_\d+)\.attempt_id\}\}$/.exec(call.args.attempt_id);
+        var attemptReceipt=match&&merged[match[1]];
+        if(!attemptReceipt||attemptReceipt.ok!==true||!attemptReceipt.attempt_id||result.attempt_id!==attemptReceipt.attempt_id) throw new Error("Assessment receipt does not match its attempt");
+        if(!result.result_id||typeof result.overall_score!=="number"||!Number.isFinite(result.overall_score)) throw new Error("Incomplete assessment receipt");
+      }
+    });
+    Object.keys(results||{}).forEach(function(id) {
+      var call=bridge.ledger[id], result=results[id];
+      bridge.receipts[id]=clone(result);
+      if(!result||result.ok!==true) return;
+      var origin=bridge.origins[id];
+      if(origin.session_id!==state.learner.session_id||origin.node_id!==state.node.node_id) return;
+      if(call.tool==="commit_assessment" && id===bridge.latestAssessmentCall) {
+        Object.assign(state.assessment,result.scores||{},{overall_score:result.overall_score,provisional:false,result_id:result.result_id});
+        if(result.learner_state) bridge.server=Object.assign({},bridge.server,result.learner_state);
+      }
+      if(call.tool==="advance_unit"&&result.advanced===true&&result.session_id===state.learner.session_id) state.ui_state.completed=true;
+    });
+    state.assessment.evidence_stage=bridge.server.evidence_stage;
+    state.ui_state.hint_dependency=bridge.server.hint_dependency; renderAll(); return snapshot();
   }
-
-  /* ── 对外接口 ─────────────────────────────────────────── */
+  function requestAdvance() {
+    var call=enqueue("advance_unit",{session_id:state.learner.session_id,node_id:state.node.node_id},"Runtime State Guard 批准后推进"); renderAll(); return clone(call);
+  }
+  function peekOutbox() {return clone(bridge.outbox);}
+  function drainOutbox() {var out=peekOutbox();bridge.outbox.length=0;renderAll();return out;}
   function snapshot() {
-    var out = clone(state);
-    out.ui_state.mode = bridge.mode;
-    out.ui_state.hosted = isHosted();
-    out.ui_state.pending_mcp_calls = bridge.outbox.length;
-    out.outbox = clone(bridge.outbox);
-    return out;
+    var out=clone(state); out.ui_state.mode=bridge.mode; out.ui_state.hosted=isHosted();out.ui_state.pending_mcp_calls=bridge.outbox.length;
+    out.outbox=peekOutbox();return out;
   }
-  function getInteractionResult() { return snapshot(); }
-  function getState() { return state; }
-  function getMastery() { return mastery; }
+  function renderOutput() {
+    var el=document.getElementById("leap-interaction-output");if(el) el.textContent=JSON.stringify(snapshot(),null,2);
+    var sum=document.getElementById("consoleSummary");if(sum) sum.textContent="AGENT OUTPUT · 已记录 "+state.events.length+" 条事件"+(state.ui_state.completed?" · Runtime 已推进":state.ui_state.local_activity_completed?" · 本地练习已结束，待 Runtime 检查":"");
+  }
+  function renderSpine() {
+    var cur=bridge.server.evidence_stage,stages=Object.keys(STAGE_CN),idx=stages.indexOf(cur);
+    document.querySelectorAll("#evTrack .ev-seg").forEach(function(el,i){el.classList.toggle("is-on",i<=idx);});
+    var name=document.getElementById("evName");if(name) name.textContent=cur+" · "+STAGE_CN[cur];
+    var val=document.getElementById("masVal"),fill=document.getElementById("masFill"),m=bridge.server.mastery_probability;
+    if(val) val.textContent=typeof m==="number"?m.toFixed(2):"未评估";
+    if(fill) fill.style.width=typeof m==="number"?Math.round(m*100)+"%":"0%";
+    var review=document.querySelector(".spine-rev .val"),at=bridge.server.next_review_at;
+    if(review) review.textContent=at?new Date(at*1000).toLocaleString():"尚未安排";
+    var note=document.getElementById("ladderNote");if(note) note.textContent="提示只在主动请求时展开；当前提示层级 "+state.ui_state.hint_level+"。";
+  }
+  function renderBridge() {
+    var mode=document.getElementById("bridgeMode"),sum=document.getElementById("bridgeSummary"),note=document.getElementById("spineNote");
+    if(mode) mode.textContent="BRIDGE · "+(isHosted()?"Runtime 上下文快照":"离线演示");
+    if(sum) sum.textContent="待处理调用 "+bridge.outbox.length+" 条。客观答案反馈需回执确认；论证等待宿主审核。";
+    if(note) note.textContent=isHosted()?"显示最近一次 Runtime 上下文；新作答等待实际调用回执。":"掌握度未评估；离线操作仅收集学习动作。";
+    var button=document.getElementById("bridgeDrain"),pre=document.getElementById("bridgeOutbox");
+    if(button&&!drainWired) {drainWired=true;button.addEventListener("click",function(){if(pre){pre.hidden=!pre.hidden;pre.textContent=JSON.stringify(peekOutbox(),null,2);}});}
+    if(button) button.disabled=!bridge.outbox.length;
+  }
+  function renderRail() {
+    var dots=document.getElementById("railDots"),n=state.events.length;
+    if(dots) {dots.replaceChildren();state.events.forEach(function(e,i){var d=document.createElement("span");d.className="rail-dot";d.style.left=((i+1)/(n+1)*100)+"%";d.title=e.event_type;dots.appendChild(d);});}
+    var count=document.getElementById("railCount"),last=document.getElementById("railLast");
+    if(count) count.textContent="已产生 "+n+" 条事件（只追加，不覆盖）";
+    if(last&&n) last.textContent="最近："+state.events[n-1].event_type;
+  }
+  function renderAll() {renderOutput();renderSpine();renderBridge();renderRail();renderHooks.forEach(function(fn){fn();});}
+  function onRender(fn) {renderHooks.push(fn);fn();}
+  return {hydrate:hydrate,isHosted:isHosted,getInteractionResult:snapshot,getState:function(){return state;},getMastery:function(){return bridge.server.mastery_probability;},
+    peekOutbox:peekOutbox,drainOutbox:drainOutbox,onOutboxChange:function(fn){bridge.hooks.push(fn);},pushEvent:pushEvent,
+    setHint:setHint,commitAssessment:commitAssessment,setCompleted:setCompleted,applyToolResults:applyToolResults,requestAdvance:requestAdvance,
+    aggregate:aggregate,onRender:onRender,refresh:renderAll,HINT_DEP:HINT_DEP,STAGE_CN:STAGE_CN};
+}
 
-  return {
-    /* ── 输入：宿主 Agent 注入 Runtime 上下文 ── */
-    hydrate: hydrate,
-    isHosted: isHosted,
-    /* ── 输出：契约对象 ── */
-    getInteractionResult: getInteractionResult,
-    /* ── 输出：待执行的 MCP 调用队列 ── */
-    peekOutbox: peekOutbox,
-    drainOutbox: drainOutbox,
-    onOutboxChange: onOutboxChange,
-    pushEvent: pushEvent,
-    setHint: setHint,
-    commitAssessment: commitAssessment,
-    setCompleted: setCompleted,
-    aggregate: aggregate,
-    getState: getState,
-    getMastery: getMastery,
-    onRender: onRender,
-    refresh: renderAll,
-    HINT_DEP: HINT_DEP,
-    STAGE_CN: STAGE_CN
-  };
-})();
+window.LEAP = createLeapBridge({"example_id":"free-fall","subject":"physics","node":{ node_id: "physics.mechanics.free_fall", title: "自由落体运动", unit_tag: "free-fall" }});
 
 /* ══════════════════════════════════════════════════════════════
    页面交互 · 物理 Free Fall
@@ -1168,7 +1095,7 @@ window.LEAP = (function () {
   (function checkpoint() {
     var opts = document.querySelectorAll("#cp .opt");
     var fb = $("cpFb");
-    var done = false;
+    var tries = 0;
     Array.prototype.forEach.call(opts, function (b) {
       b.addEventListener("click", function () {
         Array.prototype.forEach.call(opts, function (x) { x.setAttribute("aria-pressed", "false"); });
@@ -1176,14 +1103,11 @@ window.LEAP = (function () {
         var ok = b.dataset.v === "ok";
         fb.innerHTML = (ok ? "<b>正确。</b> " : "<b>再想一想。</b> ") + b.dataset.why;
         fb.classList.add("is-on");
-        if (!done) {
-          done = true;
-          window.LEAP.pushEvent("attempt_submitted", {
-            item_id: "cp-01", answer: b.textContent.trim(), hint_level: 0,
-            response_time: 0, attempt_index: 1, predicted_performance: null,
-            error_type: ok ? "none" : "misconception"
-          });
-        }
+        window.LEAP.pushEvent("attempt_submitted", {
+          item_id: "cp-01", answer: b.textContent.trim(), hint_level: 0,
+          response_time: 0, attempt_index: ++tries, predicted_performance: null,
+          error_type: ok ? "none" : "misconception"
+        });
       });
     });
   })();
@@ -1291,6 +1215,9 @@ window.LEAP = (function () {
     $("roH").textContent = st.curH.toFixed(1);
     $("roV").textContent = st.curV.toFixed(1);
     $("roT").textContent = sim.t.toFixed(2);
+    $("fallScrub").value = String(Math.round(sim.t / sim.tTotal * 1000));
+    $("fallScrubStatus").textContent = (sim.t/sim.tTotal*100).toFixed(1) + "%：t=" + sim.t.toFixed(3) + "s，s=" + st.fallen.toFixed(3) + "m，距地=" + st.curH.toFixed(3) + "m；速率=" + st.curV.toFixed(3) + "m/s" + (sim.t >= sim.tTotal ? "（首次碰地前的瞬时值，模型在此结束）。" : "。");
+    document.dispatchEvent(new CustomEvent("leap-fall-frame", {detail:{h:sim.h,g:sim.g,t:sim.t,tTotal:sim.tTotal,fallen:st.fallen,speed:st.curV,height:st.curH}}));
   }
   function updatePlayBtn() { $("btnPlay").textContent = sim.playing ? "暂停" : "播放"; }
   function frame(ts) {
@@ -1303,6 +1230,7 @@ window.LEAP = (function () {
     if (sim.playing) sim.raf = requestAnimationFrame(frame);
   }
   function play() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { step(); return; }
     if (sim.playing) return;
     if (sim.t >= sim.tTotal) sim.t = 0;
     sim.last = 0; sim.playing = true; updatePlayBtn();
@@ -1318,13 +1246,16 @@ window.LEAP = (function () {
   function stopPlay2() { pause(); }
   $("btnReset").addEventListener("click", reset);
 
+  $("fallScrub").addEventListener("input", function(){pause();sim.t=sim.tTotal*Number(this.value)/1000;draw();});
+  $("fallScrub").addEventListener("change",function(){window.LEAP.pushEvent("reflection_recorded",{item_id:"fall-time-explorer",answer:"progress="+this.value+" t="+sim.t+" displacement="+curState().fallen,hint_level:0});});
   /* 滑块实时同步 */
   function onSlider() {
+    pause();
     sim.h = parseFloat($("hSlider").value);
     sim.g = parseFloat($("gSlider").value);
     $("hVal").textContent = sim.h;
     $("gVal").textContent = sim.g;
-    recompute(); draw();
+    sim.t = 0; recompute(); draw();
   }
   $("hSlider").addEventListener("input", onSlider);
   $("gSlider").addEventListener("input", onSlider);
@@ -1337,7 +1268,7 @@ window.LEAP = (function () {
 
   document.addEventListener("keydown", function (e) {
     var t = e.target.tagName;
-    if (t === "INPUT" || t === "TEXTAREA") return;
+    if (/^(INPUT|TEXTAREA|SELECT|BUTTON|SUMMARY|A)$/.test(t)) return;
     if (e.key === "ArrowRight") { pause(); step(); e.preventDefault(); }
     else if (e.key === "ArrowLeft") { pause(); sim.t = Math.max(0, sim.t - sim.tTotal / 24); draw(); e.preventDefault(); }
     else if (e.key === " " || e.code === "Space") { togglePlay(); e.preventDefault(); }
@@ -1375,7 +1306,7 @@ window.LEAP = (function () {
       box.innerHTML = '<span class="micro">④ 完整答案</span><p>' + HINTS[4].h + '</p><pre>' + esc(HINTS[4].c) + '</pre>';
       body.appendChild(box);
       $("verify").hidden = false;
-      $("verify").scrollIntoView({ behavior: "smooth", block: "center" });
+      $("verify").scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
       return;
     }
     box.innerHTML = '<span class="micro">' + HINTS[lv].t + '</span><p>' + HINTS[lv].h + '</p>' +
@@ -1424,17 +1355,19 @@ window.LEAP = (function () {
   Q1.tTrue = Math.sqrt(2 * Q1.h / Q1.g);
   Q1.vTrue = Math.sqrt(2 * Q1.h * Q1.g);
 
-  function num(x) {
-    x = String(x).trim().replace(/,/g, "").replace(/，/g, "");
-    var m = x.match(/-?\d+(\.\d+)?/);
-    return m ? parseFloat(m[0]) : NaN;
+
+  function num(x, expectedUnit) {
+    var raw=String(x).trim().replace(/\s+/g,"");
+    if(expectedUnit==="time") raw=raw.replace(/(?:s|秒)$/i,"");
+    else if(expectedUnit==="speed") raw=raw.replace(/(?:m\/s|m·s⁻¹|米\/秒|米每秒)$/i,"");
+    return /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(raw)?Number(raw):NaN;
   }
 
   var q1Tried = 0;
   $("btnSubmitQ1").addEventListener("click", function () {
     var aT = $("ansT").value, aV = $("ansV").value;
-    var tA = num(aT), vA = num(aV);
-    if (isNaN(tA) && isNaN(vA)) { flashQ1("两个空都还空着。先用 t = √(2h/g) 算出时间，再用 v = g·t 算速度。", "warn"); return; }
+    var tA = num(aT,"time"), vA = num(aV,"speed");
+    if (isNaN(tA) && isNaN(vA)) { flashQ1("请输入有效的完整数值：时间用 s 或秒，速率用 m/s；不要混入其他单位或表达式。先用 t = √(2H/g)，再用 V=gT。", "warn"); return; }
     q1Tried++;
     var tT = Q1.tTrue, vT = Q1.vTrue;
     function within(a, b) { return Math.abs(a - b) / b <= 0.02; }
@@ -1480,7 +1413,7 @@ window.LEAP = (function () {
         else why = "公式用错了。正确关系：t = √(2h/g)，v = g·t（或 √(2gh)）。";
         fb2 = why;
       } else {
-        fb2 = "公式方向是对的（用了 t = √(2h/g)），但中间一步算错了——再核对 2h/g 的数值与开方：2h/g = " + (2 * Q1.h / Q1.g).toFixed(3) + "，开方后约 " + tT.toFixed(2) + " s。";
+        fb2 = "数值接近正确结果，但单凭数字还不能确定你的公式或过程正确。请核对 T²=2H/g=" + (2 * Q1.h / Q1.g).toFixed(3) + "s²，再取非负平方根，得到约 " + tT.toFixed(2) + "s；速率单位应为m/s。";
       }
       f2 = fb2;
       f3 = (!tOk) ? "先单独算 t：t = √(2×45/9.8) = √9.18 ≈ 3.03 s，再算 v = 9.8 × 3.03 ≈ 29.7 m/s。" :
@@ -1500,7 +1433,7 @@ window.LEAP = (function () {
       assessor_type: "rule"
     });
     if (tOk && vOk && !S.ui_state.answer_revealed) window.LEAP.setCompleted("q1", "solved_without_reveal");
-    if (tOk && vOk) { $("verify").hidden = true; }
+    if (tOk && vOk && !S.ui_state.answer_revealed) { $("verify").hidden = true; }
   });
   $("btnClearQ1").addEventListener("click", function () {
     $("ansT").value = ""; $("ansV").value = "";
@@ -1538,8 +1471,8 @@ window.LEAP = (function () {
     rows.forEach(function (r) {
       var d = document.createElement("div");
       d.className = "score-row";
-      d.innerHTML = '<span class="score-key">' + r.k + '<b style="color:' + r.c + '">' + r.v.toFixed(2) + '</b></span>' +
-        '<span class="score-track"><span class="score-fill" data-k="' + r.k + '" style="width:' + (r.v * 100) + '%"></span></span>';
+      d.innerHTML = '<span class="score-key">' + r.k + '<b style="color:' + r.c + '">' + (typeof r.v === "number" ? r.v.toFixed(2) : "未评估") + '</b></span>' +
+        '<span class="score-track"><span class="score-fill" data-k="' + r.k + '" style="width:' + ((typeof r.v === "number" ? r.v : 0) * 100) + '%"></span></span>';
       host.appendChild(d);
     });
   }
@@ -1550,8 +1483,9 @@ window.LEAP = (function () {
   var V = { h: 80, g: 10 };
   V.tTrue = Math.sqrt(2 * V.h / V.g);
   V.vTrue = Math.sqrt(2 * V.h * V.g);
+  var verifyTries = 0;
   $("btnVerify").addEventListener("click", function () {
-    var tA = num($("ansT2").value), vA = num($("ansV2").value);
+    var tA = num($("ansT2").value,"time"), vA = num($("ansV2").value,"speed");
     var exp = $("verifyInput").value.trim();
     var tOk = !isNaN(tA) && Math.abs(tA - V.tTrue) / V.tTrue <= 0.02;
     var vOk = !isNaN(vA) && Math.abs(vA - V.vTrue) / V.vTrue <= 0.02;
@@ -1560,27 +1494,14 @@ window.LEAP = (function () {
       fb.innerHTML = "先把变式题的 t 与 v 都填好再提交。";
       fb.style.color = "var(--warn)"; fb.classList.add("is-on"); return;
     }
-    var correctness = (tOk ? 0.5 : 0) + (vOk ? 0.5 : 0);
-    var hitReason = /(√(2h\/g)|2h\/g|2\s*×\s*80|2\*80|关系|公式|开方|根号)/.test(exp) || exp.length >= 8;
-    var transfer = Math.min(1, correctness * 0.6 + (hitReason ? 0.4 : 0.1));
-    var ok = tOk && vOk && hitReason;
-    fb.innerHTML = ok
-      ? "<b>就对了。</b> h = 80 m、g = 10 时，t = √(160/10) = √16 = 4.00 s，v = 10 × 4 = 40.0 m/s。你抓住的是「同一套关系换一组数」，而不是背答案。"
-      : "<b>还差一点。</b> 答案应为 t = 4.00 s、v = 40.0 m/s（t = √(2h/g)，v = g·t）。请连同计算思路一并说明为什么这样算。";
-    fb.style.color = ok ? "var(--ok)" : "var(--ink-2)";
+    fb.textContent = (tOk && vOk ? "数值与变式结果一致：T=4s、V=40m/s。" : "数值需核对：T=√(2×80/10)=4s，V=10×4=40m/s。") + "原始数字与解释已记录，待宿主语义审核；本页不根据关键词或字数判断推理，也不因此结束验证。";
+    fb.style.color = "var(--ink-2)";
     fb.classList.add("is-on");
     window.LEAP.pushEvent("attempt_submitted", {
       item_id: "q1-verify", answer: "t:" + $("ansT2").value.trim() + " v:" + $("ansV2").value.trim() + " | " + exp,
-      hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: 1,
-      predicted_performance: null, error_type: ok ? "none" : "reasoning_error"
+      hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: ++verifyTries,
+      predicted_performance: null
     });
-    window.LEAP.commitAssessment({
-      item_id: "q1-verify", correctness: transfer, conceptual_understanding: transfer,
-      reasoning_quality: transfer, application: 0.8, transfer: transfer,
-      error_type: ok ? "none" : "reasoning_error", misconception: "",
-      feedback: ok ? "后置验证通过。" : "后置验证未通过。", assessor_type: "hybrid"
-    });
-    if (ok) window.LEAP.setCompleted("q1", "post_verification_passed");
   });
 
   /* ── 7. 输出控制台折叠 ─────────────────────────────────── */
@@ -1599,6 +1520,43 @@ window.LEAP = (function () {
   window.LEAP.refresh();
   setLadderState();
 })();
+
+(function(){
+  "use strict";
+  var $=function(id){return document.getElementById(id);},axis="down",step=0,highlight=false;
+  var state={h:50,g:9.8,t:0,tTotal:Math.sqrt(100/9.8),fallen:0,speed:0,height:50};
+  function record(id,answer){window.LEAP.pushEvent("reflection_recorded",{item_id:id,answer:answer,hint_level:0,response_time:0,attempt_index:1});}
+  function view(){
+    var q=state.tTotal?state.t/state.tTotal:0,px=70+590*q,py=245-190*q;
+    $("fallArea").setAttribute("d","M70 245 L"+px+" 245 L"+px+" "+py+" Z");
+    $("fallVelocityPoint").setAttribute("cx",px);$("fallVelocityPoint").setAttribute("cy",py);$("fallTimeGuide").setAttribute("d","M"+px+" 245 V"+py);
+    $("fallMaxT").textContent="T="+state.tTotal.toFixed(2)+" s";$("fallMaxV").textContent="V="+(state.g*state.tTotal).toFixed(2)+" m/s";
+    $("fallAreaLabel").textContent="三角形面积 s="+state.fallen.toFixed(2)+" m";$("fallVelocitySVG").dataset.time=state.t.toFixed(6);$("fallVelocitySVG").dataset.area=state.fallen.toFixed(6);
+    $("axisBall").setAttribute("cy",55+170*q*q);$("axisVelocityArrow").setAttribute("transform","translate(0,"+(110*q*q)+")");
+    $("axisPositionLabel").textContent="s="+state.fallen.toFixed(2)+" m；距地="+state.height.toFixed(2)+" m";
+    var signed=axis==="up"?-state.speed:state.speed;
+    $("fallAxisResult").dataset.axis=axis;$("fallAxisResult").dataset.velocity=signed.toFixed(6);
+    $("fallAxisResult").textContent=axis==="down"?"释放点向下正：a=+"+state.g+"m/s²，v="+signed.toFixed(2)+"m/s，s="+state.fallen.toFixed(2)+"m；当前距地"+state.height.toFixed(2)+"m。":"地面向上正：a=−"+state.g+"m/s²，v_y="+signed.toFixed(2)+"m/s，y="+state.height.toFixed(2)+"m；速率仍为"+state.speed.toFixed(2)+"m/s。";
+    $("axisDown").setAttribute("aria-pressed",String(axis==="down"));$("axisUp").setAttribute("aria-pressed",String(axis==="up"));
+  }
+  document.addEventListener("leap-fall-frame",function(e){state=e.detail;view();});
+  $("axisDown").addEventListener("click",function(){axis="down";view();record("fall-axis","down");});$("axisUp").addEventListener("click",function(){axis="up";view();record("fall-axis","up");});
+  var steps=["第1/6步：只受重力，v₀=0，向下正，a=g 恒定。","第2/6步：g=(v−0)/t → v=gt；速度每秒增加g，图上是过原点的直线。","第3/6步：平均速度=(0+gt)/2；s=v̄t=½gt²，对应直线下三角形面积。","第4/6步：由t=v/g代入位移式：s=v²/(2g) → v²=2gs。","第5/6步：落地s=H，因此T²=2H/g；时间T≥0，取T=√(2H/g)。","第6/6步：H=45、g=9.8时T≈3.03046s，V≈29.69848m/s；代回½gT²=45m，V²=882。"];
+  function renderSteps(){var f=$("fallStepStatus");f.textContent=steps[step];f.dataset.step=step;$("fallPrev").disabled=step===0;$("fallNext").disabled=step===5;$("fallArea").setAttribute("stroke-width",highlight?"4":"1");$("fallArea").style.fill=highlight?"var(--accent-wash)":"var(--surface-sunk)";$("fallAreaLabel").style.fontWeight=highlight?"700":"400";}
+  $("fallPrev").addEventListener("click",function(){step=Math.max(0,step-1);renderSteps();record("fall-derivation","step="+step);});$("fallNext").addEventListener("click",function(){step=Math.min(5,step+1);renderSteps();record("fall-derivation","step="+step);});$("fallReset").addEventListener("click",function(){step=0;renderSteps();record("fall-derivation","reset");});
+  $("fallHighlight").addEventListener("click",function(){highlight=!highlight;this.setAttribute("aria-pressed",String(highlight));renderSteps();record("fall-graph","highlight="+highlight);});
+  $("fallCompare").addEventListener("click",function(){var show=$("fallComparison").hidden;$("fallComparison").hidden=!show;this.setAttribute("aria-expanded",String(show));record("fall-graph","compare="+show);});
+  function mass(mode){var air=mode==="air";$("dragArrows").setAttribute("opacity",air?"1":"0");$("massStatus").dataset.model=mode;$("massStatus").textContent=air?"空气中还有向上阻力，F合=mg−F阻，所以a可能小于g且随速率变化。仅凭质量不能算落地时间；此图只说明条件变化。":"真空中mg=ma，m>0可同除，得到a=g。同高同初速同时释放，两者落地时间相同。";$("massVacuum").setAttribute("aria-pressed",String(!air));$("massAir").setAttribute("aria-pressed",String(air));record("fall-model",mode);}
+  $("massVacuum").addEventListener("click",function(){mass("vacuum");});$("massAir").addEventListener("click",function(){mass("air");});
+  function number(raw,unit){var s=String(raw).trim().replace(/\s/g,"");if(unit)s=s.replace(/m$/i,"");if(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(s))return Number(s);var m=s.match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+))\/([+-]?(?:\d+(?:\.\d*)?|\.\d+))$/);return m&&Number(m[2])!==0?Number(m[1])/Number(m[2]):NaN;}
+  function grade(id,raw,score,feedbackId,message,isTransfer){var f=$(feedbackId);f.textContent=message;f.dataset.ok=String(score===1);window.LEAP.pushEvent("attempt_submitted",{item_id:id,answer:raw,hint_level:0,response_time:0,attempt_index:1,error_type:score===1?"none":"reasoning_error"});window.LEAP.commitAssessment({item_id:id,correctness:score,conceptual_understanding:score,reasoning_quality:0,application:score,transfer:isTransfer?score:0,error_type:score===1?"none":"reasoning_error",feedback:message,assessor_type:"rule"});}
+  $("fallExerciseCheck").addEventListener("click",function(){var raw=$("fallExercise").value,ok=Math.abs(number(raw,true)-25)<1e-9;grade("fall-last-second",raw,ok?1:0,"fallExerciseFeedback",ok?"数值正确：T=3s，最后一秒s(3)−s(2)=45−20=25m。请再对照自己的区间推导。":"应先求T=3s，再算s(3)−s(2)。最后一秒是2到3s，而不是0到1s。",false);});
+  $("fallTransferCheck").addEventListener("click",function(){var a=$("fallTransferTime").value,b=$("fallTransferSpeed").value,score=(Math.abs(number(a)-.5)<1e-9?.5:0)+(Math.abs(number(b)-2)<1e-9?.5:0);grade("fall-ratio",a+" | "+b,score,"fallTransferFeedback",score===1?"两项数值关系正确：固定H，T∝1/√g，V∝√g；所以g变4倍，T变1/2倍，V变2倍。":"固定H：T′/T=1/√4=1/2，V′/V=√4=2。两项分开核对，不能把g的倍率直接给T。",true);});
+  $("fallBoundaryCheck").addEventListener("click",function(){var raw=$("fallBoundary").value,ok=raw==="still";grade("fall-zero-g",raw,ok?1:0,"fallBoundaryFeedback",ok?"正确：g=0、v₀=0时v=0、s=0，物体不会自行落地；不能除以0。":"此处高度为10m而非0。没有加速度且初速度0，物体保持静止；√(2H/g)不能用于g=0。",false);});
+  document.querySelectorAll(".lesson-block details").forEach(function(d,i){d.addEventListener("toggle",function(){if(d.open)record("fall-reading-"+i,d.querySelector("summary").textContent.trim());});});
+  view();renderSteps();
+})();
+
 </script>
 </body>
 </html>

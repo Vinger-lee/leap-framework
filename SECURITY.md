@@ -1,3 +1,22 @@
+---
+title: Security Policy
+tags:
+- leap
+- engineering
+aliases:
+- Security Policy guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP Security Policy foundations definitions workflow`
+> Extension: `LEAP Security Policy failure cases examples comparison`
+> Advanced: `LEAP Security Policy invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # Security Policy
 
 ## Supported versions
@@ -74,3 +93,15 @@ auditable:
 
 Test fixtures that deliberately contain synthetic secrets must carry one of these markers,
 otherwise the scanner flags its own samples.
+
+> [!note]- Reading and verification sequence: LEAP Security Policy
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[CONTRIBUTING]] · [[Knowledge_Index]] · [[README]] · [[README_CN]]

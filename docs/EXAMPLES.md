@@ -1,8 +1,27 @@
+---
+title: Examples
+tags:
+- leap
+- engineering
+aliases:
+- Examples guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP Examples foundations definitions workflow`
+> Extension: `LEAP Examples failure cases examples comparison`
+> Advanced: `LEAP Examples invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # Examples
 
-**Language**: English ｜ Chinese version: see [`../examples/README_CN.md`](../examples/README_CN.md)
+**Language**: English ｜ Chinese version: see [[examples/README_CN|../examples/README_CN.md]]
 
-Five single-file teaching pages. They are **reference implementations**, not the product: each one
+Eight single-file teaching pages. They are **reference implementations**, not the product: each one
 shows how a real teaching page talks to the LEAP runtime.
 
 | # | Directory | Subject |
@@ -12,6 +31,9 @@ shows how a real teaching page talks to the LEAP runtime.
 | 3 | [`examples/03-cs-osi-model/`](../examples/03-cs-osi-model/) | Computer science — OSI model |
 | 4 | [`examples/04-physics-free-fall/`](../examples/04-physics-free-fall/) | Physics — free fall |
 | 5 | [`examples/05-logic-flowchart/`](../examples/05-logic-flowchart/) | Logic — flowcharts |
+| 6 | `examples/06-statistics-probability/` | Statistics — conditional probability |
+| 7 | `examples/07-chemistry-stoichiometry/` | Chemistry — stoichiometry |
+| 8 | `examples/08-electronics-ohms-law/` | Electronics — Ohm law |
 
 ## What every page must do
 
@@ -24,7 +46,7 @@ shows how a real teaching page talks to the LEAP runtime.
 ## The host bridge
 
 A page that only renders is a closed simulation. Each page demonstrates the real two-way
-interface — see [`_shared/leap-bridge.md`](../examples/_shared/leap-bridge.md).
+interface — see [[examples/_shared/leap-bridge|_shared/leap-bridge.md]].
 
 **In** — `LEAP.hydrate(context)` accepts the object returned by `get_teaching_context`:
 
@@ -77,3 +99,15 @@ The runtime check needs `playwright` and a Chromium build (`--chromium <path>`),
 
 > The visual design system itself is maintained by the project author separately and is not part
 > of this repository; every page here follows it.
+
+> [!note]- Reading and verification sequence: LEAP Examples
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]]

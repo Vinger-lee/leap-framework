@@ -1,3 +1,22 @@
+---
+title: LEAP 宿主桥接契约（Host Bridge）
+tags:
+- leap
+- engineering
+aliases:
+- LEAP 宿主桥接契约（Host Bridge） guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP LEAP 宿主桥接契约（Host Bridge） foundations definitions workflow`
+> Extension: `LEAP LEAP 宿主桥接契约（Host Bridge） failure cases examples comparison`
+> Advanced: `LEAP LEAP 宿主桥接契约（Host Bridge） invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # LEAP 宿主桥接契约（Host Bridge）
 
 > 本文件定义教学网页与 **LEAP Runtime** 之间的双向接口。
@@ -46,7 +65,7 @@ window.LEAP.hydrate(ctx);
 
 调用后 `ui_state.mode` 由 `"demo"` 变为 `"hosted"`，页面顶部的免责说明同步改为"本页状态由 LEAP Runtime 注入"。
 
-**未调用 `hydrate()` 时页面保持 `demo` 模式**。掌握度和证据阶段保留初始占位值，不得在 demo 中自行升级。本地评分始终标记 `assessment.provisional = true`，表示尚未获得 Runtime 确认；hosted 模式也不能自动确认一份新评分。
+**未调用 `hydrate()` 时页面保持 `demo` 模式**。掌握度和证据阶段保留null 未评估值，不得在 demo 中自行升级。本地评分始终标记 `assessment.provisional = true`，表示尚未获得 Runtime 确认；hosted 模式也不能自动确认一份新评分。
 
 ---
 
@@ -66,6 +85,8 @@ for (const call of calls) {
   const result = await mcp.call(call.tool, resolvePlaceholders(call.args, results));
   results[call.call_id] = result;
 }
+window.LEAP.applyToolResults(results); // 用匹配回执确认本次评分
+window.LEAP.hydrate(await mcp.call("get_teaching_context", {session_id, node_id}));
 ```
 
 配套方法：
@@ -74,6 +95,8 @@ for (const call of calls) {
 |---|---|
 | `LEAP.peekOutbox()` | 只读查看队列，不清空 |
 | `LEAP.onOutboxChange(fn)` | 订阅队列变化（`fn(call, size)`） |
+| `LEAP.applyToolResults(results)` | 按 call_id 验证 submit/commit 回执关联；快照本身不确认本次评分 |
+| `LEAP.requestAdvance()` | 入队 advance_unit，成功的当前节点回执才设置 completed |
 | `LEAP.isHosted()` | 是否已注入宿主上下文 |
 
 ---
@@ -91,7 +114,7 @@ for (const call of calls) {
 | `hint_used` / `answer_revealed` | 不单独产生调用，提示级别通过下一次 `attempt` 的 `hint_level` 提交 |
 | `item_completed` | `check_advance_unit(session_id, node_id)`；仅表示本地活动结束，宿主须读取 guard，允许后才能提议 `advance_unit` |
 
-出题前宿主须完成来源校准，并用 `save_assessment_item` 登记每个 `item_id`。后置验证是新的作答，必须产生自己的 `submit_attempt`；不能只记录 `reflection_recorded` 再给上一条 attempt 提交分数。自由文本评分由宿主语义审阅，Runtime 不替宿主判断数学推理。
+出题前宿主须完成来源校准，用 `save_teaching_package` 登记完整 Markdown 与 HTML 正文对，再用 `save_assessment_item` 登记每个 `item_id`。后置验证是新的作答，必须产生自己的 `submit_attempt`；不能只记录 `reflection_recorded` 再给上一条 attempt 提交分数。自由文本评分由宿主语义审阅，Runtime 不替宿主判断数学推理。
 
 `commitAssessment()` 额外产生一条 `commit_assessment`，其 `attempt_id` 用**引用占位符**指向前面那条 `submit_attempt`：
 
@@ -102,8 +125,8 @@ for (const call of calls) {
   "args": {
     "attempt_id": "{{call_1.attempt_id}}",
     "raw_answer": "def factorial(n): ...",
-    "correctness": 0.9,
-    "assessor_type": "model"
+    "correctness": 1,
+    "assessor_type": "rule"
   }
 }
 ```
@@ -144,12 +167,12 @@ for (const call of calls) {
 
 | ❌ 禁止 | ✅ 应改为 |
 |---|---|
-| 自行推算 `mastery_probability` 并当作真值展示 | 只显示 `hydrate()` 注入的值；demo 保留初始占位值，明确未接入 |
+| 自行推算 `mastery_probability` 并当作真值展示 | 只显示 `hydrate()` 注入的值；demo 保留null 未评估值，明确未接入 |
 | 自行决定 `evidence_stage` 升级 | 以 Runtime 返回值回填 |
 | 自行判定单元能否推进 | 产生 `advance_unit` 调用，由 State Guard 裁决 |
 | `commit_assessment` 不带 `raw_answer` | `raw_answer` 必须非空（§22.8：原始作答不可丢弃） |
-| 把 `mastery_probability` 放进 `commit_assessment` 入参 | 只提交多维评分，掌握度由 Runtime 算（§10.2‑1） |
-| 只把结果打在页面上、不产生调用 | 每次交互都要入队对应的 MCP 调用 |
+| 把 `mastery_probability` 放进 `commit_assessment` 入参 | 客观题只提交已观察的正确性；其他维度需相应证据，掌握度由 Runtime 算（§10.2‑1） |
+| 只把结果打在页面上、不产生调用 | 作答、反思和本地结束动作入队；图示浏览和提示保留事件记录 |
 
 ---
 
@@ -174,10 +197,22 @@ python scripts/verify_mcp_bridge.py
 - 同名 `.runtime.json` 明确列出操作与断言，缺失清单不得通过；只对已声明路径负责
 - 真实 stdio 进程接收页面的作答、评分、guard 检查，并从临时数据库回填状态
 
-查看队列使用 `peekOutbox()`。`drainOutbox()` 会取走队列，执行方应保存结果并处理失败和依赖；参考桥接没有持久确认/重试协议。单纯注入模拟上下文不能称为真实 MCP 联调。完整质量流程见 [content-quality.md](../../docs/content-quality.md)。
+查看队列使用 `peekOutbox()`。`drainOutbox()` 会取走队列，执行方应保存结果并处理失败和依赖；共享桥接保存本次页面生命周期内的调用账本与回执，逐题引用原始 attempt，并拒绝旧节点回执改变当前评分或完成状态；刷新浏览器的持久重试由宿主负责。第一章配方提供带事件日志恢复的本地同步 CLI。单纯注入模拟上下文不能称为真实 MCP 联调。完整质量流程见 [[docs/content-quality|content-quality.md]]。
 
 若页面缺少桥接，用下面这条命令补齐（幂等，已打过会跳过）：
 
 ```bash
 python scripts/apply_leap_bridge.py --all
 ```
+
+> [!note]- Reading and verification sequence: LEAP LEAP 宿主桥接契约（Host Bridge）
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[docs/EXAMPLES]] · [[docs/teaching-delivery]] · [[docs/teaching-upgrade-plan]]

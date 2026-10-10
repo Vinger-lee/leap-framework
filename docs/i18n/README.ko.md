@@ -1,24 +1,43 @@
+---
+title: 🎓 LEAP Framework
+tags:
+- leap
+- engineering
+aliases:
+- 🎓 LEAP Framework guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP 🎓 LEAP Framework foundations definitions workflow`
+> Extension: `LEAP 🎓 LEAP Framework failure cases examples comparison`
+> Advanced: `LEAP 🎓 LEAP Framework invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # 🎓 LEAP Framework
 
 <p align="center">
   <img src="https://img.shields.io/github/stars/Vinger-lee/leap-framework?style=social" alt="Stars">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-59%20tools-22bb33" alt="MCP Tools">
+  <img src="https://img.shields.io/badge/MCP-62%20tools-22bb33" alt="MCP Tools">
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
   <b>🤖 AI 에이전트에 프롬프트가 아닌 진짜 튜터링 엔진을 제공하세요.</b>
 </p>
 
 <p align="center">
-  <a href="../../README.md">English</a> ·
-  <a href="../../README_CN.md">中文</a> ·
-  <a href="README.ja.md">日本語</a> ·
-  <a href="README.ko.md">한국어</a> ·
-  <a href="README.fr.md">Français</a> ·
-  <a href="README.es.md">Español</a> ·
-  <a href="README.ru.md">Русский</a> ·
-  <a href="README.ar.md">العربية</a>
+  [[README|English]] ·
+  [[README_CN|中文]] ·
+  [[docs/i18n/README.ja|日本語]] ·
+  [[docs/i18n/README.ko|한국어]] ·
+  [[docs/i18n/README.fr|Français]] ·
+  [[docs/i18n/README.es|Español]] ·
+  [[docs/i18n/README.ru|Русский]] ·
+  [[docs/i18n/README.ar|العربية]]
 </p>
 
 ---
@@ -85,7 +104,7 @@ State Guard는 상태 전이를 승인할 수 있는 유일한 컴포넌트입�
 
 ## 🔧 MCP 도구
 
-stdio를 통해 59개 도구를 제공합니다.
+stdio를 통해 62개 도구를 제공합니다.
 
 | 그룹 | 예시 |
 |---|---|
@@ -113,14 +132,26 @@ stdio를 통해 59개 도구를 제공합니다.
 
 ## 📚 더 보기
 
-- [아키텍처](../../docs/ARCHITECTURE.md)
-- [호스트 에이전트 통합 가이드](../../docs/INTEGRATION.md)
-- [예시 페이지](../../docs/EXAMPLES.md)
-- [다국어 지원](../../docs/LOCALIZATION.md)
-- [English README](../../README.md) · [中文说明](../../README_CN.md)
+- [[docs/ARCHITECTURE|아키텍처]]
+- [[docs/INTEGRATION|호스트 에이전트 통합 가이드]]
+- [[docs/EXAMPLES|예시 페이지]]
+- [[docs/LOCALIZATION|다국어 지원]]
+- [[README|English README]] · [[README_CN|中文说明]]
 
 > 공식 프레임워크 설계 문서와 비주얼 디자인 시스템은 프로젝트 저자가 별도로 관리하며 이 저장소에는 포함되지 않습니다.
 
 ## 📄 라이선스
 
 [MIT](../../LICENSE) © Vinger-lee
+
+> [!note]- Reading and verification sequence: LEAP 🎓 LEAP Framework
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ru]]

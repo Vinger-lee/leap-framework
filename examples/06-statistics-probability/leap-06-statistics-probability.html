@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>条件概率、基率与独立性：看见分母</title><style>
+/* ══════════════════════════════════════════════════════════════
+   LEAP 视觉设计系统 v1.0 · 令牌层
+   规范来源：LEAP_视觉设计理念_给Gemini.md §4
+   ══════════════════════════════════════════════════════════════ */
+:root{
+  --paper:#FAF9F6; --surface:#FFFFFF; --surface-sunk:#F3F1EC; --surface-mute:#EDEAE3;
+  --ink:#191B20; --ink-2:#565E6B; --ink-3:#8A909C;
+  --hairline:#E8E4DC; --rule:#D8D3C9;
+  --accent:#2B4AC4; --accent-deep:#1E3699; --accent-wash:#EDF0FD;
+  --ok:#2E7D5B; --ok-wash:#EAF4EF;
+  --warn:#B3861A; --warn-wash:#FBF3E0;
+  --err:#B4432F; --err-wash:#FBEDEA;
+  --hint-1:#E4C77C; --hint-2:#D4A43C; --hint-3:#B3861A; --hint-4:#7A7F8A;
+  --ev-estimated:#9AA1AD; --ev-practiced:#4C7BD9; --ev-demonstrated:#2E8B84;
+  --ev-retained:#4C8B3F; --ev-transferred:#B3861A;
+
+  --font-display:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",Georgia,serif;
+  --font-sans:"Noto Sans SC","PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+
+  --fs-display:32px; --fs-h2:22px; --fs-h3:17px; --fs-body:15.5px;
+  --fs-small:13px; --fs-micro:11.5px; --fs-mono:12px;
+
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px;
+  --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px; --s-16:64px; --s-20:80px;
+  --r-xs:3px; --r-sm:6px; --r-md:8px; --r-lg:10px; --r-xl:12px; --r-2xl:16px; --r-pill:999px;
+
+  --sh-1:0 1px 2px rgba(25,27,32,.05);
+  --sh-2:0 2px 8px -2px rgba(25,27,32,.10);
+  --sh-3:0 16px 40px -24px rgba(25,27,32,.28);
+
+  --t-1:120ms; --t-2:200ms; --t-3:320ms; --t-4:520ms;
+  --ease-out:cubic-bezier(.16,.84,.32,1); --ease-inout:cubic-bezier(.4,0,.2,1);
+
+  --page-max:1280px; --page-pad:80px;
+  --read-col:680px; --side-col:380px; --col-gap:60px; --zone-gap:64px;
+}
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-sans);font-size:var(--fs-body);line-height:1.78;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3{margin:0;font-family:var(--font-display);font-weight:600;line-height:1.35}
+p{margin:0}
+code,kbd,pre{font-family:var(--font-mono)}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--r-xs)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:absolute;left:-9999px;top:0;z-index:50;background:var(--accent);color:#fff;padding:10px 16px;border-radius:0 0 var(--r-md) 0}
+.skip:focus{left:0}
+
+.wrap{max-width:var(--page-max);margin:0 auto;padding:0 var(--page-pad)}
+.micro{font-family:var(--font-mono);font-size:var(--fs-micro);font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);line-height:1.4}
+.micro--accent{color:var(--accent)}
+
+/* ── 进度脊柱 ───────────────────────────────────────────── */
+.spine{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--hairline)}
+.spine-in{max-width:var(--page-max);margin:0 auto;padding:14px var(--page-pad);display:flex;align-items:center;gap:var(--s-8);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.brand-mark{width:12px;height:12px;border-radius:var(--r-xs);background:var(--accent);flex:0 0 auto}
+.brand-name{font-family:var(--font-mono);font-weight:700;font-size:15px;letter-spacing:.06em}
+.brand-node{font-size:var(--fs-small);color:var(--ink-2);font-weight:500}
+.spine-ev{flex:0 0 auto}
+.ev-track{display:flex;gap:6px;margin-top:6px}
+.ev-seg{width:34px;height:10px;border-radius:5px;background:var(--hairline);transition:background var(--t-4) var(--ease-out)}
+.ev-seg.is-on[data-stage="estimated"]{background:var(--ev-estimated)}
+.ev-seg.is-on[data-stage="practiced"]{background:var(--ev-practiced)}
+.ev-seg.is-on[data-stage="demonstrated"]{background:var(--ev-demonstrated)}
+.ev-seg.is-on[data-stage="retained"]{background:var(--ev-retained)}
+.ev-seg.is-on[data-stage="transferred"]{background:var(--ev-transferred)}
+.spine-hop{display:flex;align-items:baseline;gap:10px;flex:0 0 auto}
+.spine-name{font-size:13px;font-weight:500;color:var(--ev-practiced);transition:color var(--t-2) var(--ease-inout)}
+.spine-mas{flex:0 0 auto}
+.mas-row{display:flex;align-items:center;gap:10px;margin-top:6px}
+.mas-track{width:110px;height:8px;border-radius:4px;background:var(--hairline);overflow:hidden}
+.mas-fill{height:100%;width:62%;background:var(--accent);border-radius:4px;transition:width var(--t-4) var(--ease-out)}
+.mas-val{font-family:var(--font-mono);font-size:13px;font-weight:500}
+.spine-rev{flex:0 0 auto;margin-left:auto}
+.spine-rev .val{display:block;margin-top:4px;font-size:12.5px;font-weight:500;color:var(--warn)}
+.spine-note{max-width:var(--page-max);margin:0 auto;padding:0 var(--page-pad) 8px;font-size:11px;color:var(--ink-3)}
+
+/* ── Zone 骨架 ──────────────────────────────────────────── */
+.zone{padding-top:var(--s-16)}
+.zone + .zone{padding-top:var(--s-16)}
+.zone-head{display:block;padding-bottom:var(--s-3)}
+.zone-title{font-size:var(--fs-display);font-weight:700;line-height:1.3;letter-spacing:-.01em;margin-top:var(--s-3)}
+.zone-goal{margin-top:var(--s-3);font-size:14.5px;color:var(--ink-2);max-width:760px}
+.zone-meta{margin-top:var(--s-2);font-size:12.5px;font-weight:500;color:var(--ink-3)}
+.zone-rule{height:1px;background:var(--hairline);margin-top:var(--s-4)}
+.zone-body{padding-top:var(--s-8)}
+
+.cols{display:grid;grid-template-columns:minmax(0,var(--read-col)) var(--side-col);gap:var(--col-gap);align-items:start}
+.col-main > * + *{margin-top:var(--s-6)}
+.side{display:grid;gap:var(--s-10)}
+
+/* ── 阅读列 ─────────────────────────────────────────────── */
+.quote{background:var(--surface-sunk);border-left:3px solid var(--accent);padding:14px 16px;border-radius:0 var(--r-md) var(--r-md) 0;font-size:14.5px;line-height:1.7}
+.terms{list-style:none;padding:0;margin:0;display:grid;gap:var(--s-3)}
+.terms li{font-size:14.5px;color:var(--ink-2);line-height:1.7}
+.terms b{color:var(--ink);font-weight:600}
+
+/* ── 侧栏卡 ─────────────────────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.card--err{background:var(--err-wash);border-left:3px solid var(--err)}
+.card--sunk{background:var(--surface-sunk);border:none}
+.card > .micro{display:block;margin-bottom:var(--s-4)}
+.card--err > .micro{color:var(--err)}
+.card-body{font-size:13px;line-height:1.7}
+.formula{font-family:var(--font-mono);font-size:15px;font-weight:500;line-height:1.9;display:block}
+.formula--base{color:var(--ok)}
+.card-foot{margin-top:var(--s-3);font-size:var(--fs-micro);color:var(--ink-3);line-height:1.6}
+.reqs{list-style:none;padding:0;margin:0;display:grid;gap:var(--s-3)}
+.reqs li{position:relative;padding-left:18px;font-size:12.5px;color:var(--ink-2);line-height:1.6}
+.reqs li::before{content:"";position:absolute;left:0;top:.42em;width:6px;height:6px;border-radius:2px;background:var(--accent)}
+.reqs li[data-kind="transfer"]::before{background:var(--warn)}
+
+/* ── 理解检查 ───────────────────────────────────────────── */
+.cp{margin-top:var(--s-6);background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.cp-q{margin-top:var(--s-4);font-size:15px;font-weight:600;line-height:1.6}
+.cp-opts{display:grid;gap:var(--s-2);margin-top:var(--s-4)}
+.opt{display:block;width:100%;text-align:left;padding:9px 16px;min-height:38px;background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-md);cursor:pointer;font-size:14px;color:var(--ink-2);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout)}
+.opt:hover{border-color:var(--rule);background:#fff}
+.opt[aria-pressed="true"][data-v="ok"]{background:var(--ok-wash);border:1.5px solid var(--ok);color:var(--ok);font-weight:600}
+.opt[aria-pressed="true"][data-v="bad"]{background:var(--err-wash);border:1.5px solid var(--err);color:var(--err);font-weight:600}
+.cp-rule{height:1px;background:var(--hairline);margin-top:var(--s-5)}
+.cp-fb{margin-top:var(--s-4);font-size:12.5px;line-height:1.65;color:var(--ink-2);display:none}
+.cp-fb.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+.cp-fb b{color:var(--ok)}
+
+/* ── Stage ──────────────────────────────────────────────── */
+.stage{background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-2xl);padding:var(--s-5) var(--s-6) var(--s-6)}
+.stage-title{margin-top:6px;font-size:14px;font-weight:600}
+.stage-grid{display:grid;grid-template-columns:252px minmax(0,1fr);gap:var(--s-5);margin-top:var(--s-4)}
+.tube-label{font-family:var(--font-mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;color:var(--ink-3)}
+.tube-wrap{display:flex;flex-direction:column;gap:6px}
+.tube{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);height:232px;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;overflow:hidden}
+.tf{display:flex;align-items:center;height:40px;padding:0 12px;border-radius:var(--r-sm);font-family:var(--font-mono);font-size:12px;font-weight:500;border:1px solid transparent;transition:background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout),border-color var(--t-2) var(--ease-inout),transform var(--t-2) var(--ease-out);animation:push var(--t-3) var(--ease-out) both}
+.tf[data-s="active"]{background:var(--accent);color:#fff}
+.tf[data-s="waiting"]{background:var(--accent-wash);color:var(--ink-2)}
+.tf[data-s="base"]{background:var(--ok-wash);color:var(--ok);border:1.5px solid var(--ok)}
+.tf[data-s="done"]{background:var(--surface-sunk);color:var(--ink-3)}
+@keyframes push{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.stage-side{display:grid;gap:var(--s-3);align-content:start}
+.step-panel{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s-5)}
+.step-text{margin-top:var(--s-3);font-size:13px;line-height:1.7;min-height:66px}
+.step-count{margin-top:var(--s-3);font-family:var(--font-mono);font-size:11.5px;font-weight:500;color:var(--ink-3)}
+.legend{font-size:11.5px;color:var(--ink-3)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:1px}
+.stage-ctrl{display:flex;align-items:center;gap:var(--s-3);flex-wrap:wrap;margin-top:var(--s-4)}
+.kbd-hint{margin-left:auto;font-size:var(--fs-micro);color:var(--ink-3)}
+
+/* ── 按钮 ───────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 18px;border-radius:var(--r-md);border:1px solid transparent;background:var(--surface);cursor:pointer;font-size:13.5px;font-weight:500;color:var(--ink-2);transition:background var(--t-1) var(--ease-inout),border-color var(--t-1) var(--ease-inout),color var(--t-1) var(--ease-inout),transform var(--t-1) var(--ease-out)}
+.btn:hover{background:var(--surface-sunk)}
+.btn:active{transform:translateY(1px)}
+.btn--primary{background:var(--accent);color:#fff;font-weight:600}
+.btn--primary:hover{background:var(--accent-deep)}
+.btn--outline{border-color:var(--rule)}
+.btn--outline:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-wash)}
+.btn--ghost{color:var(--ink-3);background:transparent}
+.btn--ghost:hover{background:var(--surface-sunk);color:var(--ink-2)}
+.btn--sm{height:32px;padding:0 14px;font-size:12.5px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn-row{display:flex;gap:var(--s-3);flex-wrap:wrap;align-items:center}
+
+/* ── 任务块 ─────────────────────────────────────────────── */
+.task{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-2xl);padding:var(--s-6)}
+.task-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.task-title{font-size:var(--fs-h3);font-weight:600}
+.task-id{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.08em}
+.task-lead{margin-top:var(--s-3);font-size:13.5px;color:var(--ink-2);line-height:1.7}
+.task-lead + .task-lead{margin-top:var(--s-2)}
+.note{margin-top:var(--s-4);padding:12px 14px;border-radius:var(--r-md);background:var(--surface-sunk);font-size:12px;color:var(--ink-3);line-height:1.65}
+.note--warn{background:var(--warn-wash);color:#8A6A2A}
+
+/* 代码填空 */
+.code{position:relative;margin-top:var(--s-4);background:var(--surface-mute);border-radius:var(--r-lg);padding:var(--s-5);font-family:var(--font-mono);font-size:13px;line-height:2.1;overflow-x:auto}
+.code-line{white-space:pre;display:flex;align-items:center;gap:0;flex-wrap:nowrap}
+.tok-kw{color:var(--accent)}
+.tok-fn{color:#7A4BB8}
+.tok-num{color:var(--ok)}
+.tok-cmt{color:var(--ink-3)}
+.blank{font-family:var(--font-mono);font-size:12.5px;background:#fff;border:1px solid var(--rule);border-bottom-width:2px;border-radius:var(--r-sm);padding:2px 10px;min-width:170px;color:var(--ink);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.blank:focus{outline:none;border-color:var(--accent);background:var(--accent-wash)}
+.blank[data-state="ok"]{border-color:var(--ok);background:var(--ok-wash);color:var(--ok)}
+.blank[data-state="bad"]{border-color:var(--err);background:var(--err-wash);color:var(--err)}
+.blank[data-state="hint"]{border-color:var(--warn);background:var(--warn-wash)}
+
+/* 代码运行器 */
+.runner{margin-top:var(--s-4);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s-4)}
+.editor{display:block;width:100%;min-height:150px;background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:var(--s-4);font-family:var(--font-mono);font-size:12.5px;line-height:1.75;resize:vertical;tab-size:4}
+.editor:focus{outline:none;border-color:var(--accent)}
+.term{background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:var(--s-4);font-family:var(--font-mono);font-size:12px;line-height:1.7;height:150px;overflow:auto;white-space:pre-wrap;color:var(--ink-2)}
+.term .ok{color:var(--ok)}
+.term .err{color:var(--err);font-weight:600}
+.term .dim{color:var(--ink-3)}
+.run-ctrl{display:flex;gap:var(--s-3);align-items:center;margin-top:var(--s-4);flex-wrap:wrap}
+.num-in{width:64px;height:34px;padding:0 10px;background:#fff;border:1px solid var(--rule);border-radius:var(--r-md);font-family:var(--font-mono);font-size:12.5px}
+
+/* 拖拽匹配 */
+.match{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s-6);margin-top:var(--s-4)}
+.match-col-h{margin-bottom:var(--s-3)}
+.stage-slots{display:grid;gap:var(--s-3)}
+.slot{min-height:56px;border:1px dashed var(--rule);border-radius:var(--r-md);padding:8px 10px;background:var(--surface);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.slot.is-over{border:1.5px solid var(--accent);background:var(--accent-wash)}
+.slot[data-state="ok"]{border:1.5px solid var(--ok);background:var(--ok-wash)}
+.slot[data-state="bad"]{border:1.5px solid var(--err);background:var(--err-wash)}
+.slot-label{font-size:12.5px;font-weight:600;color:var(--ink)}
+.chips{display:grid;gap:var(--s-3);align-content:start}
+.chip{display:block;width:100%;text-align:left;min-height:36px;padding:8px 14px;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);font-size:12.5px;line-height:1.5;cursor:grab;transition:transform var(--t-1) var(--ease-out),box-shadow var(--t-1) var(--ease-out),border-color var(--t-1) var(--ease-inout)}
+.chip:hover{border-color:var(--rule)}
+.chip.is-sel{border-color:var(--accent);background:var(--accent-wash);box-shadow:var(--sh-2)}
+.chip.is-drag{transform:scale(1.02);box-shadow:var(--sh-2)}
+.chip[data-state="ok"]{border-color:var(--ok);background:var(--ok-wash)}
+.chip[data-state="bad"]{border-color:var(--err);background:var(--err-wash)}
+.slot .chip{margin:0}
+.match-fb{margin-top:var(--s-4);font-size:12.5px;line-height:1.7;display:none}
+.match-fb.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+
+/* ── 提示阶梯 ───────────────────────────────────────────── */
+.ladder{margin-top:var(--s-8)}
+.ladder-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.ladder-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s-6);align-items:end;margin-top:var(--s-5);border-bottom:1px solid var(--rule);padding-bottom:0}
+.ladder-step{display:flex;flex-direction:column;justify-content:space-between;gap:var(--s-3);padding:14px 16px;border-radius:var(--r-lg);border:1px solid transparent;cursor:pointer;text-align:left;transition:transform var(--t-2) var(--ease-out),border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.ladder-step[data-h="1"]{height:60px}
+.ladder-step[data-h="2"]{height:76px}
+.ladder-step[data-h="3"]{height:96px}
+.ladder-step[data-h="4"]{height:112px}
+.ladder-step .ls-t{font-size:13.5px;font-weight:600;line-height:1.4}
+.ladder-step .ls-s{font-size:11px;line-height:1.4}
+.ladder-step[data-state="used"][data-h="1"]{background:var(--hint-1)}
+.ladder-step[data-state="used"][data-h="2"]{background:var(--hint-2)}
+.ladder-step[data-state="used"] .ls-t{color:var(--ink)}
+.ladder-step[data-state="used"] .ls-s{color:#3F3210}
+.ladder-step[data-state="avail"]{background:var(--warn-wash);border:1.5px solid var(--warn)}
+.ladder-step[data-state="avail"] .ls-t{color:var(--warn)}
+.ladder-step[data-state="avail"] .ls-s{color:#8A6A2A}
+.ladder-step[data-state="locked"]{background:var(--surface-sunk);border:1px solid var(--hairline)}
+.ladder-step[data-state="locked"] .ls-t{color:var(--ink-2)}
+.ladder-step[data-state="locked"] .ls-s{color:var(--ink-3)}
+.ladder-step:hover{transform:translateY(-2px)}
+.ladder-note{margin-top:var(--s-3);font-size:12px;color:var(--ink-3)}
+.hint-body{margin-top:var(--s-4);display:grid;gap:var(--s-4)}
+.hint-card{background:var(--surface);border:1px solid var(--hairline);border-left:3px solid var(--hint-1);border-radius:0 var(--r-lg) var(--r-lg) 0;padding:var(--s-5)}
+.hint-card[data-lv="2"]{border-left-color:var(--hint-2)}
+.hint-card[data-lv="3"]{border-left-color:var(--hint-3)}
+.hint-card[data-lv="4"]{border-left-color:var(--hint-4)}
+.hint-card .micro{display:block;margin-bottom:var(--s-3)}
+.hint-card p{font-size:13.5px;line-height:1.75;color:var(--ink-2)}
+.hint-card pre{margin:var(--s-3) 0 0;background:var(--surface-mute);border-radius:var(--r-md);padding:var(--s-4);font-size:12.5px;line-height:1.8;overflow-x:auto}
+.confirm{margin-top:var(--s-3);padding:var(--s-5);border-radius:var(--r-lg);background:var(--warn-wash);border:1.5px solid var(--warn)}
+.confirm p{font-size:13px;line-height:1.7;color:#8A6A2A;margin-bottom:var(--s-4)}
+.verify{margin-top:var(--s-6);background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.verify textarea{display:block;width:100%;min-height:72px;margin-top:var(--s-4);background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s-4);font-size:13px;line-height:1.7;resize:vertical}
+.verify textarea:focus{outline:none;border-color:var(--accent)}
+
+/* ── 反馈面板 ───────────────────────────────────────────── */
+.result{display:grid;grid-template-columns:minmax(0,1fr) var(--side-col);gap:var(--col-gap);margin-top:var(--s-16);align-items:start}
+.fb{position:relative;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6);overflow:hidden}
+.fb-bar{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);transition:background var(--t-2) var(--ease-inout)}
+.fb-badge{display:inline-block;padding:3px 12px;border-radius:var(--r-pill);background:var(--surface-sunk);font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--ink-3);transition:background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout)}
+.fb-badge[data-t="ok"]{background:var(--ok-wash);color:var(--ok)}
+.fb-badge[data-t="warn"]{background:var(--warn-wash);color:var(--warn)}
+.fb-badge[data-t="err"]{background:var(--err-wash);color:var(--err)}
+.fb-sec{margin-top:var(--s-5)}
+.fb-sec h4{margin:0 0 4px;font-family:var(--font-sans);font-size:12.5px;font-weight:600}
+.fb-sec p{font-size:13px;line-height:1.65;color:var(--ink-2)}
+.fb-s1 h4{color:var(--ok)} .fb-s2 h4{color:var(--warn)} .fb-s3 h4{color:var(--accent)}
+.score{background:var(--surface-sunk);border-radius:var(--r-xl);padding:var(--s-6)}
+.score-rows{margin-top:var(--s-5);display:grid;gap:var(--s-4)}
+.score-row{display:grid;grid-template-columns:minmax(0,1fr) 136px;gap:var(--s-4);align-items:center}
+.score-key{font-size:11.5px;font-weight:500;color:var(--ink-2)}
+.score-key b{font-family:var(--font-mono);font-weight:600;margin-left:6px}
+.score-track{height:7px;border-radius:4px;background:var(--hairline);overflow:hidden}
+.score-fill{height:100%;width:0;border-radius:4px;background:var(--accent);transition:width var(--t-4) var(--ease-out)}
+.score-fill[data-k="correctness"]{background:var(--ok)}
+.score-fill[data-k="reasoning_quality"]{background:var(--warn)}
+
+/* ── 证据轨 ─────────────────────────────────────────────── */
+.rail{margin-top:var(--s-16)}
+.rail-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.rail-track{position:relative;height:2px;background:var(--hairline);margin-top:var(--s-5)}
+.rail-dots{position:absolute;inset:0}
+.rail-dot{position:absolute;top:-3px;width:8px;height:8px;border-radius:4px;transition:transform var(--t-3) var(--ease-out);animation:pop var(--t-3) var(--ease-out) both}
+.rail-dot--last{width:12px;height:12px;top:-5px;border-radius:6px;box-shadow:0 0 0 3px var(--paper),0 0 0 4px var(--accent-wash)}
+@keyframes pop{from{transform:scale(.4)}to{transform:scale(1)}}
+.rail-foot{display:flex;justify-content:space-between;gap:var(--s-4);margin-top:var(--s-4);font-size:11.5px;color:var(--ink-3);flex-wrap:wrap}
+
+/* ── 输出控制台 ─────────────────────────────────────────── */
+.console{margin-top:var(--s-8)}
+.console-bar{display:flex;align-items:center;gap:var(--s-4);width:100%;min-height:46px;padding:0 var(--s-5);background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-lg);cursor:pointer;text-align:left;transition:background var(--t-1) var(--ease-inout)}
+.console-bar:hover{background:var(--surface-mute)}
+.console-bar .cb-t{font-size:12.5px;font-weight:500;color:var(--ink-2)}
+.console-bar .cb-a{margin-left:auto;font-size:12px;font-weight:500;color:var(--accent);white-space:nowrap}
+.console-json{display:none;margin-top:var(--s-3);background:var(--surface-mute);border-radius:var(--r-lg);padding:var(--s-5);max-height:420px;overflow:auto}
+.console-json.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+#leap-interaction-output{margin:0;font-size:11.5px;line-height:1.65;color:var(--ink-2);white-space:pre}
+.foot{margin-top:var(--s-16);padding:var(--s-8) 0 var(--s-16);border-top:1px solid var(--hairline);font-size:11.5px;color:var(--ink-3);line-height:1.8}
+
+/* ── 响应式 ─────────────────────────────────────────────── */
+@media (max-width:1199px){
+  :root{--page-pad:48px;--page-max:776px}
+  .cols{grid-template-columns:minmax(0,1fr)}
+  .side{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .result{grid-template-columns:minmax(0,1fr)}
+  .stage-grid{grid-template-columns:minmax(0,1fr)}
+  .runner{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:899px){
+  :root{--page-pad:32px;--page-gap:40px;--col-gap:40px}
+  .spine-rev{margin-left:0}
+  .match{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:600px){
+  :root{--page-pad:20px;--fs-display:23px;--fs-h2:19px;--fs-h3:16px;--fs-body:15px;--zone-gap:48px}
+  .spine-in{gap:var(--s-5);padding:12px 20px}
+  .brand-node{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mas-track{width:80px}
+  .ev-seg{width:18px;height:7px}
+  .ladder-steps{grid-template-columns:minmax(0,1fr);gap:var(--s-3);border-bottom:none}
+  .ladder-step{height:auto!important;min-height:48px;flex-direction:row;align-items:center;justify-content:flex-start;gap:var(--s-4)}
+  .btn{height:36px;padding:0 14px}
+  .code{font-size:11.5px}
+  .blank{min-width:120px;font-size:11.5px}
+}
+
+/* ── 宿主桥接条（LEAP_HOST_BRIDGE）──────────────────── */
+  .bridge-strip{display:flex;align-items:center;justify-content:space-between;gap:var(--s-4);
+    min-height:46px;padding:var(--s-3) var(--s-5);margin-bottom:var(--s-3);
+    background:var(--accent-wash);border:1px solid var(--hairline);border-radius:var(--r-lg)}
+  .bs-l{display:flex;flex-direction:column;gap:var(--s-1);min-width:0}
+  .bs-t{font-size:var(--fs-small);color:var(--ink-2)}
+  .bs-btn{flex:0 0 auto;height:32px;padding:0 var(--s-4);border:1px solid var(--rule);
+    border-radius:var(--r-md);background:var(--surface);color:var(--accent);
+    font:500 12.5px/1 var(--font-sans);cursor:pointer;transition:background var(--t-2) var(--ease-out)}
+  .bs-btn:hover{background:var(--accent-wash)}
+  .bs-btn:disabled{color:var(--ink-3);background:var(--surface-sunk);cursor:default}
+  .bridge-out{margin:0 0 var(--s-3);padding:var(--s-5);background:var(--surface-mute);
+    border:1px solid var(--hairline);border-radius:var(--r-lg);
+    font:400 var(--fs-mono)/1.6 var(--font-mono);color:var(--ink-2);
+    white-space:pre-wrap;word-break:break-all;max-height:320px;overflow:auto}
+
+
+/* Spacious teaching layout: the reading column absorbs available PC width. */
+:root{--page-max:1800px;--page-pad:clamp(20px,3vw,48px);--side-col:420px;--col-gap:32px}
+.cols{grid-template-columns:minmax(0,1fr) var(--side-col);gap:32px}
+.col-main,.side,.stage,.task,.console,.zone-body,.result>*,.cols>*{min-width:0}
+.col-main p,.col-main li{max-width:100%;overflow-wrap:anywhere}
+.zone-goal{max-width:1040px}.resource-panel{margin:20px 0 32px;padding:20px 24px;background:var(--surface);border:1px solid var(--hairline);border-radius:12px}
+.resource-panel p+p{margin-top:8px}.resource-panel b{color:var(--accent)}
+.teach-table{width:100%;border-collapse:collapse;background:var(--surface);font-size:13px;line-height:1.75}
+.teach-table th,.teach-table td{padding:12px;text-align:left;vertical-align:top;border:1px solid var(--hairline);overflow-wrap:anywhere}
+.teach-table th{background:var(--surface-sunk)}.table-scroll{max-width:100%;overflow-x:auto;border-radius:8px}
+.callout{padding:16px 20px;border-left:3px solid var(--warn);background:var(--warn-wash);border-radius:0 8px 8px 0}
+.teach-heading{font-size:var(--fs-h2);margin-top:32px}.steps-list{padding-left:24px;line-height:1.85}.steps-list li+li{margin-top:8px}
+.concept-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.concept-grid>*{min-width:0}
+.concept-grid h3{font-size:var(--fs-h3);margin-bottom:12px}.concept-grid p{font-size:14px}
+.network-fig{display:block;width:100%;height:auto;max-height:260px}.network-fig text{font-family:var(--font-sans);fill:var(--ink);font-size:14px}
+.network-fig .net-node{fill:var(--surface);stroke:var(--rule);stroke-width:1.5}.network-fig .current{fill:var(--accent-wash);stroke:var(--accent);stroke-width:2}
+.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px 0}.field-grid label{display:grid;gap:6px;font-size:13px}
+.field-grid input,.field-grid select,select.blank{width:100%;min-width:0;padding:8px 12px;border:1px solid var(--rule);border-radius:6px;background:var(--surface)}
+.task textarea{width:100%;min-height:140px;resize:vertical;padding:12px;border:1px solid var(--rule);border-radius:8px;background:var(--surface-sunk);margin-top:16px;line-height:1.78}
+.practice-note{margin-top:12px;font-size:13px;color:var(--ink-2)}.stage-ctrl:focus-visible{outline:2px solid var(--accent);outline-offset:6px}
+.stage-grid{grid-template-columns:252px minmax(0,1fr)}.bridge-strip{flex-wrap:wrap}.bridge-out{max-width:100%}
+.verify select{max-width:100%}.summary-read{font-size:13px;color:var(--ink-2)}
+@media(max-width:1100px){:root{--page-max:1800px;--page-pad:clamp(20px,3vw,48px);--col-gap:32px}.cols{grid-template-columns:minmax(0,1fr)}.side{grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))}.result{grid-template-columns:minmax(0,1fr)}}
+@media(min-width:1101px) and (max-width:1199px){:root{--page-max:1800px;--page-pad:clamp(20px,3vw,48px)}.cols{grid-template-columns:minmax(0,1fr) 420px}.side{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:700px){.concept-grid,.field-grid,.stage-grid{grid-template-columns:minmax(0,1fr)}.table-scroll{font-size:12px}.teach-table th,.teach-table td{padding:8px}.resource-panel{padding:16px}.task,.stage,.cp,.card{padding:20px}.network-fig text{font-size:16px}.zone{padding-top:48px}}
+.prob-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin-top:24px}.prob-controls label{display:grid;gap:12px;font-size:14px;font-weight:600}.prob-controls input{width:100%;accent-color:var(--accent)}
+.prob-controls output{font-family:var(--font-mono);color:var(--accent);font-size:17px}.prob-controls small{font-size:12px;color:var(--ink-2);font-weight:400}
+.prob-results{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:24px 0}.prob-result{padding:16px;background:var(--surface);border:1px solid var(--hairline);border-radius:8px}.prob-result strong{font-family:var(--font-mono);font-size:20px;display:block;color:var(--accent)}.prob-result span{font-size:12.5px;color:var(--ink-2)}
+.prob-svg{display:block;width:100%;height:auto;margin:20px 0;background:var(--surface);border-radius:8px}.prob-svg text{font-family:var(--font-sans);fill:var(--ink);font-size:15px}.prob-svg .prob-line{fill:none;stroke:var(--rule);stroke-width:2}.prob-svg .prob-node{fill:var(--surface-sunk);stroke:var(--hairline)}.prob-svg .true-node{fill:var(--ok-wash);stroke:var(--ok)}.prob-svg .false-node{fill:var(--warn-wash);stroke:var(--warn)}
+.frequency-table .focus-cell{background:var(--accent-wash);box-shadow:inset 0 0 0 2px var(--accent)}.frequency-table td[data-cell]{font-family:var(--font-mono);font-size:16px}.frequency-table td[data-cell] strong{color:var(--accent)}
+.freq-buttons{display:flex;flex-wrap:wrap;gap:12px;margin:20px 0}.freq-buttons .btn[aria-pressed="true"]{background:var(--accent);color:#fff}.math-block{font-size:18px;padding:16px;background:var(--surface-sunk);border-radius:8px;overflow:auto}.math-block math{font-family:serif}.ratio-reading{font-size:15px;color:var(--ink);margin:16px 0;font-weight:600}.boundary-note{margin:16px 0;padding:16px;background:var(--warn-wash);border-left:3px solid var(--warn);font-size:14px}
+.step-instruction{min-height:80px;padding:20px;background:var(--surface);border:1px solid var(--hairline);border-radius:8px;margin-top:20px}.step-instruction strong{display:block;font-size:16px;color:var(--accent)}
+.stats-mcq{margin:24px 0;padding:24px;background:var(--surface-sunk);border-radius:10px}.stats-mcq .cp-fb{display:block}.practice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px}.practice-grid>*{min-width:0}
+.statistics-layout .result{margin-top:32px}.statistics-layout .task+.task{margin-top:32px}.prob-svg .focus-branch{stroke:var(--accent);stroke-width:3}.objective-fb{margin-top:16px;font-size:14px;min-height:30px}.stats-score{margin:32px 0;padding:20px;background:var(--surface);border:1px solid var(--hairline);border-radius:12px}
+@media(max-width:900px){.prob-controls{grid-template-columns:minmax(0,1fr)}.prob-results{grid-template-columns:repeat(2,minmax(0,1fr))}.practice-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:500px){.prob-result strong{font-size:17px}.prob-svg text{font-size:17px}.prob-results{gap:12px}.frequency-table td[data-cell]{font-size:14px}.stats-mcq{padding:16px}.field-grid{grid-template-columns:minmax(0,1fr)}}
+</style></head><body><a class="skip" href="#teaching">跳到教学内容</a><header class="spine">
+  <div class="spine-in">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">LEAP</span>
+      <span class="brand-node">统计 · 条件概率 · 基率与分母</span>
+    </div>
+
+    <div class="spine-ev">
+      <div class="micro" id="evLabel">EVIDENCE STAGE · 证据阶段</div>
+      <div class="ev-track" id="evTrack" role="img" aria-label="证据阶段轨道，当前为 estimated 仅估计">
+        <span class="ev-seg" data-stage="estimated"></span>
+        <span class="ev-seg" data-stage="practiced"></span>
+        <span class="ev-seg" data-stage="demonstrated"></span>
+        <span class="ev-seg" data-stage="retained"></span>
+        <span class="ev-seg" data-stage="transferred"></span>
+      </div>
+    </div>
+    <div class="spine-hop"><span class="spine-name" id="evName">estimated · 仅估计</span></div>
+
+    <div class="spine-mas">
+      <div class="micro">MASTERY · 掌握度</div>
+      <div class="mas-row">
+        <div class="mas-track"><div class="mas-fill" id="masFill"></div></div>
+        <span class="mas-val" id="masVal">0.48</span>
+      </div>
+    </div>
+
+    <div class="spine-rev">
+      <div class="micro">NEXT REVIEW</div>
+      <span class="val">待宿主安排</span>
+    </div>
+  </div>
+
+  <p class="spine-note" id="spineNote">本页尚未连接 Runtime；掌握度与证据阶段保持初始占位值，作答评分仅为待核验反馈。</p>
+</header>
+<main class="wrap statistics-layout">
+<section class="zone" id="teaching" aria-labelledby="z1t">
+  <div class="zone-head"><div class="micro micro--accent">01 · TEACHING · 教学内容</div><h1 class="zone-title" id="z1t">条件概率：先看分母，再看基率</h1>
+    <p class="zone-goal">用四格表、频数条和概率树把“已知”变成可见的样本范围，区分 P(A|B) 与 P(B|A)，判断独立性，并解释阳性结果为何受基率影响。</p>
+    <p class="zone-meta">建议 35–50 分钟 · 先修：分数、百分比、集合交集与补集的直觉</p><div class="zone-rule"></div></div>
+  <div class="resource-panel" aria-label="分层学习资源搜索关键词"><div class="micro micro--accent">LEARNING RESOURCES · 搜索关键词</div>
+    <p><b>核心 / 必看：</b>“条件概率 自然频数 四格表”“P A given B 分母”“贝叶斯公式 基率忽视 筛查阳性”。</p>
+    <p><b>拓展 / 辅助：</b>“概率树 全概率公式 敏感度 特异度”“独立事件 与 互斥事件 区别”“医学筛查 阳性预测值”。</p>
+    <p><b>进阶 / 深入：</b>“Bayes odds likelihood ratio”“conditional probability zero probability events”“selection bias conditional independence”。</p>
+    <p class="summary-read">可复制到 B 站、课程平台或搜索引擎检索。这里提供检索关键词，不声称某条视频已经核验；优先选择能说明四格人数及分母、而不是只背公式的课程。</p>
+  </div>
+  <div class="zone-body"><div class="cols"><div class="col-main">
+    <h2 class="teach-heading" style="margin-top:0">先修：事件、交集与同一总体</h2>
+    <p>事件 A 是“有病”，事件 B 是“检测阳性”。A∩B 是“有病且阳性”；Ā 是“无病”，B̄ 是“阴性”。四种组合互不重叠，合起来覆盖总体。下面使用同一总体的 10,000 人，默认模型把随机选人视为等可能；不能把来自不同人群的分子与分母随意拼在一起。</p>
+    <div class="quote">条件概率把观察范围缩小到“条件已成立”的人群。P(A|B) 读作“已知 B，A 的概率”；竖线右边是条件，所以分母必须是 B 的全部人数。</div>
+    <h2 class="teach-heading">1. 三个概率，各回答不同问题</h2>
+    <div class="table-scroll"><table class="teach-table"><thead><tr><th>符号</th><th>具体问题</th><th>对应分母</th></tr></thead><tbody>
+      <tr><td>P(A)</td><td>随机选一人，有病的概率是多少？这是基率/患病率。</td><td>所有人</td></tr>
+      <tr><td>P(B|A)</td><td>只看有病者，检测阳性的比例是多少？这是敏感度。</td><td>所有有病者</td></tr>
+      <tr><td>P(A|B)</td><td>只看阳性者，真正有病的比例是多少？这是阳性预测值。</td><td>所有阳性者：真阳性 + 假阳性</td></tr>
+    </tbody></table></div>
+    <div class="math-block" aria-label="条件概率公式：A 交 B 的概率除以 B 的概率，要求 B 的概率大于零"><math display="block"><mrow><mi>P</mi><mo>(</mo><mi>A</mi><mo>|</mo><mi>B</mi><mo>)</mo><mo>=</mo><mfrac><mrow><mi>P</mi><mo>(</mo><mi>A</mi><mo>∩</mo><mi>B</mi><mo>)</mo></mrow><mrow><mi>P</mi><mo>(</mo><mi>B</mi><mo>)</mo></mrow></mfrac><mo>,</mo><mspace width="1em"/><mi>P</mi><mo>(</mo><mi>B</mi><mo>)</mo><mo>&gt;</mo><mn>0</mn></mrow></math></div>
+    <p><b>注意方向：</b>P(A|B) 和 P(B|A) 有相同交集，却使用不同分母。只有满足额外数值关系时才可能相等；“检测对病人的敏感度高”不能直接推出“阳性者有病的概率高”。</p>
+    <h2 class="teach-heading">2. 完整频数推导：1% 基率，90% 敏感度，9% 假阳性率</h2>
+    <ol class="steps-list"><li>10,000 人中，有病 100、无病 9,900。</li><li>有病者 90% 阳性：真阳性 90，假阴性 10。</li><li>无病者 9% 阳性：假阳性 891，真阴性 9,009。</li><li>阳性者总数 90+891=981；因此 P(A|B)=90/981=10/109≈9.17%。</li><li>敏感度 P(B|A)=90/100=90%；两者分母是 981 与 100，不能互换。</li></ol>
+    <p>这些人数是<b>给定概率模型对应的频数/期望人数</b>，用于理解比例，不代表已经观察到的真实病例。这里滑块使用整数百分比，固定 10,000 人，使四格计数为整数。真实样本会有随机波动，参数还可能随人群而变。</p>
+    <div class="callout"><b>特异度与假阳性率：</b>特异度 P(B̄|Ā)=1−P(B|Ā)。本例假阳性率 9%，特异度 91%。它们的条件都是“无病”，不是“所有阳性”，也不是“所有人”。</div>
+    <h2 class="teach-heading">3. 从四格表得到全概率与贝叶斯公式</h2>
+    <p>B 的人数来自有病与无病两个互斥分支，所以先把两条路径相乘，再相加：P(B)=P(B|A)P(A)+P(B|Ā)P(Ā)。把这一结果用作条件概率的分母，得到贝叶斯公式。</p>
+    <div class="math-block" aria-label="贝叶斯公式"><math display="block"><mrow><mi>P</mi><mo>(</mo><mi>A</mi><mo>|</mo><mi>B</mi><mo>)</mo><mo>=</mo><mfrac><mrow><mi>P</mi><mo>(</mo><mi>B</mi><mo>|</mo><mi>A</mi><mo>)</mo><mi>P</mi><mo>(</mo><mi>A</mi><mo>)</mo></mrow><mrow><mi>P</mi><mo>(</mo><mi>B</mi><mo>|</mo><mi>A</mi><mo>)</mo><mi>P</mi><mo>(</mo><mi>A</mi><mo>)</mo><mo>+</mo><mi>P</mi><mo>(</mo><mi>B</mi><mo>|</mo><mover><mi>A</mi><mo>¯</mo></mover><mo>)</mo><mi>P</mi><mo>(</mo><mover><mi>A</mi><mo>¯</mo></mover><mo>)</mo></mrow></mfrac></mrow></math></div>
+    <p>保持敏感度 90%、假阳性率 9%，把基率从 1% 改为 10%：真阳性 900，假阳性 810，阳性总数 1,710，P(A|B)=900/1710=10/19≈52.63%。同一检测参数，应用在人群中不同基率，阳性预测值不同。</p>
+    <h2 class="teach-heading">4. 独立、互斥与零分母</h2>
+    <p><b>独立</b>表示知道一个事件不改变另一个事件的概率，通用定义是 P(A∩B)=P(A)P(B)。若 P(B)&gt;0，可等价写为 P(A|B)=P(A)。在两个健康状态分支都有正概率时，敏感度等于假阳性率意味着检测结果不区分有病与无病。</p>
+    <p><b>互斥</b>表示不能同时发生，即 A∩B 为空。若 P(A)、P(B) 均大于 0，互斥会使 P(A∩B)=0 而 P(A)P(B)&gt;0，因此它们不独立。独立也不等于因果无关，统计关联也不等于因果作用。</p>
+    <div class="boundary-note"><b>边界：</b>P(B)=0 时，本页的离散比例 P(A|B) 无定义，不能填 0、1 或“永远独立所以随便取”。若 P(A)=0，P(B|A) 也无定义；若全员阳性，则 P(A|B)=P(A)。若基率 0% 或 100%，某个健康分支没有人，滑块可设定反事实分支参数，但当前总体不能据此计算该空组的条件概率。通用乘积定义仍能判断退化独立性。</div>
+    <div class="cp" id="cp"><div class="micro micro--accent">CHECKPOINT · 理解检查</div><p class="cp-q">想算“已知阳性时有病的概率”，四格表应该用哪一组人数作分母？</p><div class="cp-opts" role="group" aria-label="条件概率分母理解检查">
+      <button class="opt" type="button" data-v="ok" data-why="你做对了条件范围：只看阳性者，所以分母是真阳性+假阳性。下一步在表中高亮阳性列。" aria-pressed="false">A. 所有阳性者：有病阳性 + 无病阳性</button>
+      <button class="opt" type="button" data-v="bad" data-why="你注意到了有病人数；卡在把条件方向换成了 P(B|A)。P(A|B) 的右边是 B，下一步先圈出所有阳性者。" aria-pressed="false">B. 所有有病者：有病阳性 + 有病阴性</button>
+      <button class="opt" type="button" data-v="bad" data-why="你用了总体的范围；卡在忽略“已知阳性”。分母所有人对应联合概率 P(A∩B)，下一步把样本范围缩到 B。" aria-pressed="false">C. 所有人</button>
+    </div><p class="cp-fb" id="cpFb" role="status" aria-live="polite"></p></div>
+  </div><aside class="side" aria-label="条件概率学习辅助">
+    <div class="card"><span class="micro">READ THE CONDITION · 分母规则</span><p class="card-body">把“已知 B”翻译为“只在 B 的那一列内抽人”。先说出谁有资格进入分母，再找其中满足 A 的人。</p></div>
+    <div class="card card--err"><span class="micro">BASE-RATE NEGLECT · 基率忽视</span><p class="card-body">90% 敏感度告诉你真阳性占病人的比例；低基率的人群里无病人数很多，少量的假阳性率也可能带来大量假阳性。</p></div>
+    <div class="card card--sunk"><span class="micro">NOT A DIAGNOSIS · 模型适用范围</span><p class="card-body">本例是教学用假想检测，不是实际诊断建议。现实检测参数会受人群、阈值、取样和验证方法影响；个体风险也不必等于总体基率。</p></div>
+    <div class="card"><span class="micro">LEARNING GOALS · 学习目标</span><ul class="reqs"><li>用同一总体填全 2×2 表。</li><li>区分条件方向与联合概率。</li><li>从自然频数推导贝叶斯比例。</li><li>判断独立与零分母边界。</li><li>用证据解释基率变化。</li></ul><p class="card-foot">离散答案可作本地核对；文字解释需由宿主语义审阅，分数保持待核验。</p></div>
+  </aside></div></div>
+</section>
+
+<section class="zone" id="practice" aria-labelledby="z2t"><div class="zone-head"><div class="micro micro--accent">02 · PRACTICE · 交互练习</div><h2 class="zone-title" id="z2t">用人数看见“已知”的范围</h2><p class="zone-goal">参数探索 → 分步分母选择 → 离散计算 → 概念边界 → 语义解释。探索滑块会更新演示，不作为作答证据；提交按钮才记录答案。</p><div class="zone-rule"></div></div><div class="zone-body">
+  <div class="stage"><div class="micro">STAGE · CONDITIONAL PROBABILITY CALCULATOR</div><h3 class="stage-title">固定 10,000 人的筛查模型</h3>
+    <div class="prob-controls"><label>基率 P(A)<output id="priorValue" for="prior">1%</output><input type="range" id="prior" min="0" max="100" step="1" value="1" aria-label="基率百分比"><small>总体中有病的人占比</small></label>
+      <label>敏感度设定 P(B|A)<output id="sensitivityValue" for="sensitivity">90%</output><input type="range" id="sensitivity" min="0" max="100" step="1" value="90" aria-label="敏感度百分比"><small>若病人组非空，组内阳性比例</small></label>
+      <label>假阳性率设定 P(B|Ā)<output id="falsePositiveValue" for="falsePositive">9%</output><input type="range" id="falsePositive" min="0" max="100" step="1" value="9" aria-label="假阳性率百分比"><small>若无病组非空，组内阳性比例</small></label></div>
+    <div class="freq-buttons"><button class="btn btn--outline" id="presetRare" type="button">稀有事件：1% / 90% / 9%</button><button class="btn btn--outline" id="presetCommon" type="button">基率变为 10%</button><button class="btn btn--outline" id="presetIndependent" type="button">独立：两组阳性率都为 30%</button><button class="btn btn--outline" id="presetZero" type="button">零阳性：检查分母边界</button></div>
+    <div class="prob-results" aria-live="polite"><div class="prob-result"><strong id="posteriorValue">9.17%</strong><span>P(A|B) · 阳性者中的有病率</span></div><div class="prob-result"><strong id="inverseValue">90.00%</strong><span>P(B|A) · 病人中的阳性率</span></div><div class="prob-result"><strong id="positiveValue">9.81%</strong><span>P(B) · 全体中的阳性率</span></div><div class="prob-result"><strong id="specificityValue">91.00%</strong><span>P(B̄|Ā) · 特异度</span></div></div>
+    <div class="table-scroll"><table class="teach-table frequency-table" id="frequencyTable" aria-label="两种健康状态与两种检测结果的四格频数表"><caption>同一总体 10,000 人；点击下方条件按钮高亮分母范围</caption><thead><tr><th>模型频数</th><th>B：阳性</th><th>B̄：阴性</th><th>行合计</th></tr></thead><tbody>
+      <tr><th>A：有病</th><td data-cell="tp" id="tpCount">90</td><td data-cell="fn" id="fnCount">10</td><td id="diseaseCount">100</td></tr>
+      <tr><th>Ā：无病</th><td data-cell="fp" id="fpCount">891</td><td data-cell="tn" id="tnCount">9009</td><td id="healthyCount">9900</td></tr>
+      <tr><th>列合计</th><td id="positiveCount">981</td><td id="negativeCount">9019</td><td id="populationCount">10000</td></tr></tbody></table></div>
+    <div class="freq-buttons" role="group" aria-label="选择概率的条件范围"><button class="btn btn--outline" type="button" data-condition="positive" aria-pressed="true">只看 B 阳性者 · P(A|B)</button><button class="btn btn--outline" type="button" data-condition="disease" aria-pressed="false">只看 A 病人 · P(B|A)</button><button class="btn btn--outline" type="button" data-condition="all" aria-pressed="false">看全体 · P(A)</button><button class="btn btn--outline" type="button" data-condition="negative" aria-pressed="false">只看阴性者 · P(A|B̄)</button></div>
+    <p class="ratio-reading" id="ratioReading" role="status" aria-live="polite"></p>
+    <svg class="prob-svg" id="frequencySvg" viewBox="0 0 900 145" role="img" aria-labelledby="frequencyTitle frequencyDesc"><title id="frequencyTitle">条件范围内的比例频数条</title><desc id="frequencyDesc">每次选择条件后，用条形宽度表示分母范围内满足目标的人数比例。</desc><text x="20" y="28" id="frequencyLabel"></text><rect x="20" y="45" width="860" height="45" rx="4" fill="#E8E4DC"/><rect id="frequencyNumerator" x="20" y="45" width="80" height="45" rx="4" fill="#2B4AC4"/><text x="20" y="125" id="frequencyCaption"></text></svg>
+    <svg class="prob-svg" id="probabilityTree" viewBox="0 0 1050 290" role="img" aria-labelledby="treeTitle treeDesc"><title id="treeTitle">从总体分到健康状态再分到检测结果的概率树</title><desc id="treeDesc">每条路径的频数与四格表一致。首先分有病与无病，再分别分阳性与阴性。</desc>
+      <path class="prob-line" d="M190 145L360 75 M190 145L360 220 M565 75L755 35 M565 75L755 105 M565 220L755 185 M565 220L755 255"/>
+      <rect class="prob-node" x="10" y="105" width="180" height="75" rx="6"/><text x="25" y="135">总体 N=10,000</text><text x="25" y="160">先分健康状态</text>
+      <rect class="prob-node" x="360" y="38" width="205" height="75" rx="6"/><text x="375" y="65" id="treeDisease"></text><text x="375" y="92" id="treePrior"></text>
+      <rect class="prob-node" x="360" y="183" width="205" height="75" rx="6"/><text x="375" y="210" id="treeHealthy"></text><text x="375" y="237" id="treeComplement"></text>
+      <rect class="true-node" data-leaf="tp" x="755" y="8" width="280" height="52" rx="6"/><text x="770" y="30" id="treeTp"></text><text x="770" y="50" id="treeSensitivity"></text>
+      <rect class="prob-node" data-leaf="fn" x="755" y="78" width="280" height="52" rx="6"/><text x="770" y="109" id="treeFn"></text>
+      <rect class="false-node" data-leaf="fp" x="755" y="158" width="280" height="52" rx="6"/><text x="770" y="180" id="treeFp"></text><text x="770" y="200" id="treeFalsePositive"></text>
+      <rect class="prob-node" data-leaf="tn" x="755" y="228" width="280" height="52" rx="6"/><text x="770" y="259" id="treeTn"></text>
+    </svg>
+    <p class="boundary-note" id="probabilityBoundary" role="status" aria-live="polite"></p><p id="independenceReading" class="ratio-reading"></p>
+    <div class="step-instruction" id="probabilityStep" role="status" aria-live="polite"></div><div class="stage-ctrl"><button class="btn btn--outline" id="probPrev" type="button">上一步推导</button><button class="btn btn--primary" id="probNext" type="button">下一步推导</button><button class="btn btn--ghost" id="probReset" type="button">推导归零</button><span class="kbd-hint" id="probStepCount">步骤 1 / 6</span></div>
+    <p class="practice-note">精确计算使用未四舍五入的整数人数；显示的百分比保留两位小数。0 分母明确显示“无定义”，不替换成 0。</p>
+  </div>
+
+  <div class="task" style="margin-top:32px"><div class="task-head"><span class="task-id">Q1 · FOUNDATION</span><h3 class="task-title">入门：为两个方向选择正确分母</h3></div><p class="task-lead">固定题目，不随上方滑块变化：1,000 人中 20 人有病；其中 18 人阳性、2 人阴性。980 人无病；其中 98 人阳性、882 人阴性。用整数频数填空，不必填写小数百分比。</p>
+    <div class="field-grid"><label>P(A|B) 的分子：有病且阳性人数<input id="q1Numerator" type="number" min="0" step="1" aria-label="条件概率分子人数"></label><label>P(A|B) 的分母：所有阳性人数<input id="q1Denominator" type="number" min="0" step="1" aria-label="阳性条件分母人数"></label><label>P(B|A) 的分母：所有有病人数<input id="q1InverseDenominator" type="number" min="0" step="1" aria-label="有病条件分母人数"></label></div>
+    <button class="btn btn--primary" id="btnSubmitQ1" type="button">提交三项频数</button><p class="objective-fb" id="q1Fb" role="status" aria-live="polite"></p>
+  </div>
+  <div class="practice-grid" style="margin-top:32px">
+    <div class="task stats-mcq" data-item="stats-q2"><div class="task-head"><span class="task-id">Q2 · INDEPENDENCE</span><h3 class="task-title">进阶：独立性判断</h3></div><p class="task-lead">已知 P(A)=0.2，P(B)=0.5，P(A∩B)=0.1。A 与 B 是否独立？</p><div class="cp-opts" role="group" aria-label="独立性判断选项">
+      <button class="opt" data-value="independent" type="button" aria-pressed="false">独立，因为 0.1=0.2×0.5</button><button class="opt" data-value="exclusive" type="button" aria-pressed="false">互斥，因为它们是不同事件</button><button class="opt" data-value="unequal" type="button" aria-pressed="false">不独立，因为 P(A)≠P(B)</button></div><p class="cp-fb" role="status" aria-live="polite"></p></div>
+    <div class="task stats-mcq" data-item="stats-q3"><div class="task-head"><span class="task-id">Q3 · BOUNDARY</span><h3 class="task-title">边界：零概率条件</h3></div><p class="task-lead">离散总体中 P(B)=0。用本课的比例定义能否计算 P(A|B)？</p><div class="cp-opts" role="group" aria-label="零分母边界选项">
+      <button class="opt" data-value="zero" type="button" aria-pressed="false">等于 0，因为没有阳性者</button><button class="opt" data-value="undefined" type="button" aria-pressed="false">无定义，因为分母为 0</button><button class="opt" data-value="one" type="button" aria-pressed="false">等于 1，因为阳性者无反例</button></div><p class="cp-fb" role="status" aria-live="polite"></p></div>
+  </div>
+  <div class="task"><div class="task-head"><span class="task-id">Q4 · SEMANTIC TRANSFER</span><h3 class="task-title">迁移：向同伴解释“90% 敏感度”</h3></div><p class="task-lead">同伴说：“这个检测敏感度 90%，所以阳性后有病概率就是 90%。”用 1% 基率、90% 敏感度、9% 假阳性率的四格人数解释这句话；再说明基率改成 10% 时结论如何变化，以及保持检测参数固定的假设为何需要说明。</p>
+    <textarea id="semanticAnswer" aria-label="基率与条件方向的推理说明" placeholder="先写两个条件概率各自的分母，再写真阳性/假阳性人数与基率变化。"></textarea><div class="btn-row" style="margin-top:16px"><button class="btn btn--primary" id="btnSubmitSemantic" type="button">提交解释，待语义审阅</button></div><p class="objective-fb" id="semanticFb" role="status" aria-live="polite"></p><p class="practice-note">保存原文，供宿主评估条件方向、人数核对、推导逻辑和假设边界。页面不会用关键词或字数生成语义分数。</p>
+  </div>
+
+  <div class="ladder"><div class="ladder-head"><div class="micro micro--accent">PROGRESSIVE DISCLOSURE · 主动提示与完整解答</div><span class="summary-read">L1 引导 → L2 策略 → L3 部分示范 → L4 完整答案</span></div><div class="ladder-steps" id="ladder" role="group" aria-label="递进提示阶梯">
+    <button class="ladder-step" data-lv="1" data-h="1" type="button" data-state="avail"><span class="ls-t">L1 引导问题</span><span class="ls-s">圈出条件范围</span></button><button class="ladder-step" data-lv="2" data-h="2" type="button" data-state="locked" disabled><span class="ls-t">L2 策略提示</span><span class="ls-s">列出分子分母</span></button><button class="ladder-step" data-lv="3" data-h="3" type="button" data-state="locked" disabled><span class="ls-t">L3 部分示范</span><span class="ls-s">先算一个分支</span></button><button class="ladder-step" data-lv="4" data-h="4" type="button" data-state="locked" disabled><span class="ls-t">L4 完整答案</span><span class="ls-s">二次确认后展开</span></button></div><p class="ladder-note" id="ladderNote">当前提示层级为 0；主动使用提示会保留记录。</p><div class="hint-body" id="hintBody"></div></div>
+  <div class="verify" id="verify" hidden><div class="micro micro--accent">POST-VERIFICATION · 新的客观变式</div><p class="task-lead">1,000 人中 100 人有病，病人中 80 人阳性；无病者中 90 人阳性。要计算 P(A|B)，请填分子和分母人数。看过答案不等于完成，必须重新判断这个新题。</p><div class="field-grid"><label>分子人数<input type="number" id="verifyNumerator" min="0" step="1" aria-label="变式分子人数"></label><label>分母人数<input type="number" id="verifyDenominator" min="0" step="1" aria-label="变式分母人数"></label></div><button class="btn btn--primary" id="btnVerify" type="button">提交变式验证</button><p class="objective-fb" id="verifyFb" role="status" aria-live="polite"></p></div>
+  <div class="stats-score"><span class="micro">LOCAL FEEDBACK · 待核验反馈</span><p id="scoreSummary" class="practice-note">尚未核对离散作答。语义解释不会在本地生成分数。</p><div class="concept-grid" style="margin-top:16px"><div><b>你做对的部分</b><p id="feedbackGood" class="practice-note">提交后逐项指出正确频数或判断。</p></div><div><b>卡在哪里 → 下一步</b><p id="feedbackNext" class="practice-note">先检查条件方向，再检查分母，最后核对算术。</p></div></div><p class="practice-note">overall_score 权重：correctness 0.4 / conceptual_understanding 0.3 / reasoning_quality 0.2 / application 0.1。离散题按明确答案核对，解释题交给宿主评估；所有新评估保持 provisional。</p></div>
+  <div class="rail"><div class="rail-head"><div class="micro">EVIDENCE TRAIL · 本次会话事件</div><span id="railCount" class="summary-read">已产生 0 条事件</span></div><div class="rail-track"><div class="rail-dots" id="railDots"></div></div><div class="rail-foot"><span id="railLast">尚无事件</span><span>作答、提示与验证均保留追加记录</span></div></div>
+</div></section>
+  <!-- ═══ Zone 03 · Agent 数据输出 ═════════════════════════ -->
+  <section class="zone" id="output" aria-labelledby="z3t">
+    <div class="zone-head">
+      <div class="micro micro--accent">03 · AGENT OUTPUT · 数据输出</div>
+      <h2 class="zone-title" id="z3t">交给宿主 Agent 的交互结果</h2>
+      <p class="zone-goal">这一区不是调试信息，而是学习者本次会话的完整档案。宿主 Agent 通过它驱动下一轮教学决策。</p>
+      <div class="zone-rule"></div>
+    </div>
+
+    <div class="zone-body">
+      <div class="bridge-strip" id="bridgeStrip">
+        <div class="bs-l">
+          <span class="micro micro--accent" id="bridgeMode">BRIDGE · 演示模式</span>
+          <span class="bs-t" id="bridgeSummary">未接入宿主 Agent；学习动作会累积为待执行的 MCP 调用。</span>
+        </div>
+        <button class="bs-btn" id="bridgeDrain" type="button">取出调用队列 ▾</button>
+      </div>
+      <pre class="bridge-out" id="bridgeOutbox" hidden></pre>
+      <div class="console">
+        <button class="console-bar" id="consoleBar" type="button" aria-expanded="false" aria-controls="consoleJson">
+          <span class="cb-t" id="consoleSummary">AGENT OUTPUT · 已记录 0 条事件</span>
+          <span class="cb-a" id="consoleAction">展开 JSON ▾</span>
+        </button>
+        <div class="console-json" id="consoleJson">
+          <pre id="leap-interaction-output"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<p class="foot">LEAP 示例 6 · 条件概率与基率 · node_id <code>stats.probability.conditional</code> · unit_tag <code>conditional-probability</code><br>单文件离线运行 · 所有人数属于明确的教学模型 · 自然频数/概率树/四格表同步更新 · 知识稿见本目录 knowledge.md。</p></main><script>/* LEAP_HOST_BRIDGE v3: embed this kernel inline in standalone pages.
+ * Runtime receipts own evidence and completion; local exact checks own feedback.
+ */
+function createLeapBridge(config) {
+  "use strict";
+  var HINT_DEP = [0, 0.25, 0.40, 0.60, 0.85];
+  var STAGE_CN = {estimated:"仅估计",practiced:"练习过",demonstrated:"独立展示",retained:"延迟保持",transferred:"已迁移"};
+  var bridge = {
+    mode: "demo", context: null, server: {mastery_probability:null,evidence_stage:"estimated",hint_dependency:null,next_review_at:null},
+    outbox: [],
+    seq: 0, hooks: [], attempts: {}, ledger: {}, receipts: {}, origins: {}, latestAssessmentCall: null
+  };
+  var state = {
+    leap_version: "2.0", example_id: config.example_id, subject: config.subject,
+    node: config.node, learner: {learner_id:"REPLACE_WITH_LEARNER_ID",session_id:"REPLACE_WITH_SESSION_ID"},
+    events: [], assessment: blankAssessment(),
+    ui_state: {mode:"demo",hosted:false,pending_mcp_calls:0,hint_level:0,hint_dependency:null,
+      answer_revealed:false,completed:false,local_activity_completed:false}
+  };
+  var renderHooks = [], drainWired = false;
+  function nowSec() { return Math.floor(Date.now() / 1000); }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function isHosted() { return bridge.mode === "hosted"; }
+  function blankAssessment() { return {item_id:"",correctness:null,conceptual_understanding:null,reasoning_quality:null,
+    application:null,transfer:null,hint_dependency:null,confidence:null,overall_score:null,error_type:"none",
+    misconception:"",feedback:"尚未评估",evidence_stage:"estimated",assessor_type:"rule",provisional:true}; }
+  function aggregate(d) {
+    var weights = {correctness:0.4,conceptual_understanding:0.3,reasoning_quality:0.2,application:0.1}, sum=0,total=0;
+    Object.keys(weights).forEach(function(k) {if(typeof d[k]==="number" && Number.isFinite(d[k])) {sum+=d[k]*weights[k];total+=weights[k];}});
+    return total ? Math.round(sum/total*100)/100 : null;
+  }
+  function enqueue(tool,args,note) {
+    var call = {call_id:"call_"+(++bridge.seq),tool:tool,args:args||{},status:"pending",created_at:nowSec(),note:note||""};
+    bridge.outbox.push(call); bridge.ledger[call.call_id]=clone(call);
+    bridge.origins[call.call_id]={session_id:state.learner.session_id,node_id:state.node.node_id};
+    bridge.hooks.forEach(function(fn) {fn(clone(call),bridge.outbox.length);});
+    return call;
+  }
+  function enqueueForEvent(ev) {
+    if(ev.event_type === "item_completed") {
+      enqueue("check_advance_unit",{session_id:state.learner.session_id,node_id:state.node.node_id},"检查推进条件；检查通过本身不代表已推进");
+      return;
+    }
+    if(["attempt_submitted","drag_submitted","code_run"].indexOf(ev.event_type)>=0) {
+      var raw=ev.answer==null?"":String(ev.answer), key=ev.item_id||"";
+      var call=enqueue("submit_attempt",{session_id:state.learner.session_id,node_id:state.node.node_id,item_id:key||null,
+        answer:raw,hint_level:typeof ev.hint_level==="number"?ev.hint_level:state.ui_state.hint_level,
+        response_time:typeof ev.response_time==="number"?ev.response_time:null},"保留原始作答与本题 attempt 引用");
+      bridge.attempts[key]={call_id:call.call_id,raw_answer:raw,hint_level:call.args.hint_level,assessor_scope:ev.assessor_scope||"exact_answer"};
+    } else if(ev.event_type==="reflection_recorded") {
+      enqueue("record_reflection",{session_id:state.learner.session_id,node_id:state.node.node_id,reflection:String(ev.answer||"")},"保存反思，不作为正确性评分");
+    }
+  }
+  function pushEvent(event_type,payload) {
+    var ev=Object.assign({event_type:event_type,item_id:""},payload||{},{created_at:nowSec()});
+    state.events.push(ev); enqueueForEvent(ev); renderAll(); return ev;
+  }
+  function setHint(level) {
+    if(!Number.isInteger(level)||level<0||level>4) throw new RangeError("hint level must be 0..4");
+    state.ui_state.hint_level=Math.max(level,state.ui_state.hint_level);
+    if(level===4) state.ui_state.answer_revealed=true;
+    // Local hint usage is separate from the Runtime's historical estimate.
+    state.ui_state.local_hint_dependency=HINT_DEP[state.ui_state.hint_level]; renderAll();
+  }
+  function commitAssessment(item) {
+    var attempt=bridge.attempts[item.item_id];
+    if(!attempt) throw new Error("本题尚未提交作答，不能借用其他题目的 attempt");
+    if(attempt.assessor_scope==="host_semantic_review"||item.assessor_scope==="host_semantic_review") {
+      bridge.latestAssessmentCall=null;
+      state.assessment=Object.assign(blankAssessment(),{item_id:item.item_id,feedback:"原始作答已收集，等待宿主审核论证",evidence_stage:bridge.server.evidence_stage});
+      renderAll(); return clone(state.assessment);
+    }
+    if(typeof item.correctness!=="number"||!Number.isFinite(item.correctness)||item.correctness<0||item.correctness>1) throw new TypeError("Exact checks require an explicit correctness value");
+    // An exact answer does not establish reasoning, concepts, transfer or self-confidence.
+    var value=Math.round(item.correctness*100)/100;
+    var a=Object.assign(blankAssessment(),{item_id:item.item_id,correctness:value,overall_score:value,
+      feedback:item.feedback||"仅核对客观答案",error_type:item.error_type||"none",misconception:item.misconception||"",
+      hint_dependency:HINT_DEP[Math.min(attempt.hint_level,4)],evidence_stage:bridge.server.evidence_stage,provisional:true});
+    state.assessment=a;
+    var call=enqueue("commit_assessment",{attempt_id:"{{"+attempt.call_id+".attempt_id}}",raw_answer:attempt.raw_answer,
+      assessor_type:"rule",correctness:a.correctness,hint_dependency:a.hint_dependency},"仅提交客观正确性；其他维度待相应证据评估");
+    bridge.latestAssessmentCall=call.call_id; renderAll(); return clone(a);
+  }
+  function setCompleted(itemId,reason) {
+    state.ui_state.local_activity_completed=true;
+    pushEvent("item_completed",{item_id:itemId,reason:reason||"local_check_finished"});
+  }
+  function hydrate(ctx) {
+    if(!ctx||typeof ctx!=="object"||ctx.ok===false) throw new TypeError("hydrate requires a successful Runtime context");
+    var sess=ctx.session||{},node=ctx.current_node||ctx.node||{},ks=ctx.knowledge_state||{};
+    var learner=ctx.learner_id||sess.learner_id, sid=ctx.session_id||sess.session_id;
+    if(!learner||!sid||!node.node_id) throw new TypeError("Runtime context needs learner, session and node identifiers");
+    if(sid!==state.learner.session_id||node.node_id!==state.node.node_id) {
+      if(bridge.outbox.length) throw new Error("切换上下文前必须先取走并处理原节点的调用队列");
+      bridge.attempts={}; bridge.latestAssessmentCall=null; state.ui_state.completed=false; state.ui_state.local_activity_completed=false;
+      state.ui_state.hint_level=0; state.ui_state.answer_revealed=false; state.assessment=blankAssessment();
+    }
+    state.learner={learner_id:learner,session_id:sid}; state.node=Object.assign({},state.node,node);
+    bridge.context=clone(ctx); bridge.mode="hosted";
+    bridge.server={mastery_probability:typeof ks.mastery_probability==="number"?ks.mastery_probability:null,
+      evidence_stage:ks.evidence_stage||"estimated",hint_dependency:typeof ks.hint_dependency==="number"?ks.hint_dependency:null,
+      next_review_at:ks.next_review_at||null};
+    state.assessment.evidence_stage=bridge.server.evidence_stage;
+    state.ui_state.hint_dependency=bridge.server.hint_dependency;
+    // A state snapshot does not confirm a particular pending assessment receipt.
+    renderAll(); return snapshot();
+  }
+  function applyToolResults(results) {
+    // Validate the whole batch before changing any receipt or displayed state.
+    var merged=Object.assign({},bridge.receipts,results||{});
+    Object.keys(results||{}).forEach(function(id) {
+      var call=bridge.ledger[id],result=results[id];
+      if(!call) throw new Error("Unknown outbox call receipt: "+id);
+      if(!result||result.ok!==true) return;
+      if(call.tool==="commit_assessment") {
+        var match=/^\{\{(call_\d+)\.attempt_id\}\}$/.exec(call.args.attempt_id);
+        var attemptReceipt=match&&merged[match[1]];
+        if(!attemptReceipt||attemptReceipt.ok!==true||!attemptReceipt.attempt_id||result.attempt_id!==attemptReceipt.attempt_id) throw new Error("Assessment receipt does not match its attempt");
+        if(!result.result_id||typeof result.overall_score!=="number"||!Number.isFinite(result.overall_score)) throw new Error("Incomplete assessment receipt");
+      }
+    });
+    Object.keys(results||{}).forEach(function(id) {
+      var call=bridge.ledger[id], result=results[id];
+      bridge.receipts[id]=clone(result);
+      if(!result||result.ok!==true) return;
+      var origin=bridge.origins[id];
+      if(origin.session_id!==state.learner.session_id||origin.node_id!==state.node.node_id) return;
+      if(call.tool==="commit_assessment" && id===bridge.latestAssessmentCall) {
+        Object.assign(state.assessment,result.scores||{},{overall_score:result.overall_score,provisional:false,result_id:result.result_id});
+        if(result.learner_state) bridge.server=Object.assign({},bridge.server,result.learner_state);
+      }
+      if(call.tool==="advance_unit"&&result.advanced===true&&result.session_id===state.learner.session_id) state.ui_state.completed=true;
+    });
+    state.assessment.evidence_stage=bridge.server.evidence_stage;
+    state.ui_state.hint_dependency=bridge.server.hint_dependency; renderAll(); return snapshot();
+  }
+  function requestAdvance() {
+    var call=enqueue("advance_unit",{session_id:state.learner.session_id,node_id:state.node.node_id},"Runtime State Guard 批准后推进"); renderAll(); return clone(call);
+  }
+  function peekOutbox() {return clone(bridge.outbox);}
+  function drainOutbox() {var out=peekOutbox();bridge.outbox.length=0;renderAll();return out;}
+  function snapshot() {
+    var out=clone(state); out.ui_state.mode=bridge.mode; out.ui_state.hosted=isHosted();out.ui_state.pending_mcp_calls=bridge.outbox.length;
+    out.outbox=peekOutbox();return out;
+  }
+  function renderOutput() {
+    var el=document.getElementById("leap-interaction-output");if(el) el.textContent=JSON.stringify(snapshot(),null,2);
+    var sum=document.getElementById("consoleSummary");if(sum) sum.textContent="AGENT OUTPUT · 已记录 "+state.events.length+" 条事件"+(state.ui_state.completed?" · Runtime 已推进":state.ui_state.local_activity_completed?" · 本地练习已结束，待 Runtime 检查":"");
+  }
+  function renderSpine() {
+    var cur=bridge.server.evidence_stage,stages=Object.keys(STAGE_CN),idx=stages.indexOf(cur);
+    document.querySelectorAll("#evTrack .ev-seg").forEach(function(el,i){el.classList.toggle("is-on",i<=idx);});
+    var name=document.getElementById("evName");if(name) name.textContent=cur+" · "+STAGE_CN[cur];
+    var val=document.getElementById("masVal"),fill=document.getElementById("masFill"),m=bridge.server.mastery_probability;
+    if(val) val.textContent=typeof m==="number"?m.toFixed(2):"未评估";
+    if(fill) fill.style.width=typeof m==="number"?Math.round(m*100)+"%":"0%";
+    var review=document.querySelector(".spine-rev .val"),at=bridge.server.next_review_at;
+    if(review) review.textContent=at?new Date(at*1000).toLocaleString():"尚未安排";
+    var note=document.getElementById("ladderNote");if(note) note.textContent="提示只在主动请求时展开；当前提示层级 "+state.ui_state.hint_level+"。";
+  }
+  function renderBridge() {
+    var mode=document.getElementById("bridgeMode"),sum=document.getElementById("bridgeSummary"),note=document.getElementById("spineNote");
+    if(mode) mode.textContent="BRIDGE · "+(isHosted()?"Runtime 上下文快照":"离线演示");
+    if(sum) sum.textContent="待处理调用 "+bridge.outbox.length+" 条。客观答案反馈需回执确认；论证等待宿主审核。";
+    if(note) note.textContent=isHosted()?"显示最近一次 Runtime 上下文；新作答等待实际调用回执。":"掌握度未评估；离线操作仅收集学习动作。";
+    var button=document.getElementById("bridgeDrain"),pre=document.getElementById("bridgeOutbox");
+    if(button&&!drainWired) {drainWired=true;button.addEventListener("click",function(){if(pre){pre.hidden=!pre.hidden;pre.textContent=JSON.stringify(peekOutbox(),null,2);}});}
+    if(button) button.disabled=!bridge.outbox.length;
+  }
+  function renderRail() {
+    var dots=document.getElementById("railDots"),n=state.events.length;
+    if(dots) {dots.replaceChildren();state.events.forEach(function(e,i){var d=document.createElement("span");d.className="rail-dot";d.style.left=((i+1)/(n+1)*100)+"%";d.title=e.event_type;dots.appendChild(d);});}
+    var count=document.getElementById("railCount"),last=document.getElementById("railLast");
+    if(count) count.textContent="已产生 "+n+" 条事件（只追加，不覆盖）";
+    if(last&&n) last.textContent="最近："+state.events[n-1].event_type;
+  }
+  function renderAll() {renderOutput();renderSpine();renderBridge();renderRail();renderHooks.forEach(function(fn){fn();});}
+  function onRender(fn) {renderHooks.push(fn);fn();}
+  return {hydrate:hydrate,isHosted:isHosted,getInteractionResult:snapshot,getState:function(){return state;},getMastery:function(){return bridge.server.mastery_probability;},
+    peekOutbox:peekOutbox,drainOutbox:drainOutbox,onOutboxChange:function(fn){bridge.hooks.push(fn);},pushEvent:pushEvent,
+    setHint:setHint,commitAssessment:commitAssessment,setCompleted:setCompleted,applyToolResults:applyToolResults,requestAdvance:requestAdvance,
+    aggregate:aggregate,onRender:onRender,refresh:renderAll,HINT_DEP:HINT_DEP,STAGE_CN:STAGE_CN};
+}
+
+window.LEAP = createLeapBridge({"example_id":"conditional-probability","subject":"statistics","node":{ node_id: "stats.probability.conditional", title: "条件概率与基率", unit_tag: "conditional-probability" }});
+(function(){
+  "use strict";
+  var $=function(id){return document.getElementById(id)},LEAP=window.LEAP,S=LEAP.getState(),tries={},starts={},condition="positive",step=0,lastModel=null;
+  function attempt(id,a){var now=performance.now();LEAP.pushEvent("attempt_submitted",{item_id:id,assessor_scope:id.indexOf("semantic")>=0?"host_semantic_review":"exact_answer",answer:typeof a==="string"?a:JSON.stringify(a),hint_level:S.ui_state.hint_level,response_time:Math.max(0,(now-(starts[id]||0))/1000),attempt_index:(tries[id]=(tries[id]||0)+1),predicted_performance:null});starts[id]=now;}
+  function assess(id,c,fb,error){LEAP.commitAssessment({item_id:id,correctness:c,conceptual_understanding:c,reasoning_quality:c,application:c,transfer:0,error_type:error||(c===1?"none":"answer_error"),feedback:fb,assessor_type:"rule"});$("feedbackGood").textContent="明确答案核对："+Math.round(c*100)+"% 的所填项目正确。";$("feedbackNext").textContent=fb;}
+  function pct(p){return p===null?"无定义":(p*100).toFixed(2)+"%"}
+  function model(){var prior=Number($("prior").value)/100,s=Number($("sensitivity").value)/100,f=Number($("falsePositive").value)/100,N=10000,A=Math.round(N*prior),notA=N-A,tp=Math.round(A*s),fn=A-tp,fp=Math.round(notA*f),tn=notA-fp,B=tp+fp,notB=fn+tn;return {N:N,p:prior,s:s,f:f,A:A,notA:notA,tp:tp,fn:fn,fp:fp,tn:tn,B:B,notB:notB,posterior:B?tp/B:null,inverse:A?tp/A:null,specificity:notA?tn/notA:null,negativePosterior:notB?fn/notB:null,independent:Math.abs(tp/N-(A/N)*(B/N))<1e-12};}
+  function chosen(m){if(condition==="positive")return {num:m.tp,den:m.B,label:"P(A|B)：已知阳性，目标为有病",focus:["tp","fp"]};if(condition==="disease")return {num:m.tp,den:m.A,label:"P(B|A)：已知有病，目标为阳性",focus:["tp","fn"]};if(condition==="negative")return {num:m.fn,den:m.notB,label:"P(A|B̄)：已知阴性，目标为有病",focus:["fn","tn"]};return {num:m.A,den:m.N,label:"P(A)：看全体，目标为有病",focus:["tp","fn","fp","tn"]};}
+  function draw(){var m=model();lastModel=m;$("priorValue").textContent=(m.p*100).toFixed(0)+"%";$("sensitivityValue").textContent=(m.s*100).toFixed(0)+"%";$("falsePositiveValue").textContent=(m.f*100).toFixed(0)+"%";
+    $("posteriorValue").textContent=pct(m.posterior);$("inverseValue").textContent=pct(m.inverse);$("positiveValue").textContent=pct(m.B/m.N);$("specificityValue").textContent=pct(m.specificity);
+    ["tp","fn","fp","tn"].forEach(function(k){$(k+"Count").textContent=m[k]});$("diseaseCount").textContent=m.A;$("healthyCount").textContent=m.notA;$("positiveCount").textContent=m.B;$("negativeCount").textContent=m.notB;
+    var c=chosen(m),ratio=c.den?c.num/c.den:null;document.querySelectorAll("#frequencyTable [data-cell]").forEach(function(td){td.classList.toggle("focus-cell",c.focus.indexOf(td.dataset.cell)>=0)});document.querySelectorAll("[data-condition]").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.condition===condition))});
+    $("ratioReading").textContent=c.label+"；分子 "+c.num+"，分母 "+c.den+"，"+(c.den?"比例 "+pct(ratio):"分母为 0，所以条件概率无定义。");$("frequencyLabel").textContent=c.label;$("frequencyNumerator").setAttribute("width",String(c.den?860*ratio:0));$("frequencyCaption").textContent=c.den?"蓝色目标人数 "+c.num+" / 条形代表的条件总人数 "+c.den+" = "+pct(ratio):"没有符合条件的人；不能把空条形解释为概率 0。";$("frequencyDesc").textContent=$("ratioReading").textContent;
+    $("treeDisease").textContent="A 有病："+m.A;$("treePrior").textContent="P(A)="+pct(m.p);$("treeHealthy").textContent="Ā 无病："+m.notA;$("treeComplement").textContent="P(Ā)="+pct(1-m.p);$("treeTp").textContent="A∩B 真阳性："+m.tp;$("treeFn").textContent="A∩B̄ 假阴性："+m.fn;$("treeFp").textContent="Ā∩B 假阳性："+m.fp;$("treeTn").textContent="Ā∩B̄ 真阴性："+m.tn;$("treeSensitivity").textContent=m.A?"P(B|A)="+pct(m.inverse):"A 空组：条件概率无定义";$("treeFalsePositive").textContent=m.notA?"P(B|Ā)="+pct(m.fp/m.notA):"Ā 空组：条件概率无定义";
+    document.querySelectorAll("#probabilityTree [data-leaf]").forEach(function(r){r.classList.toggle("focus-branch",c.focus.indexOf(r.dataset.leaf)>=0)});
+    var bounds=[];if(m.B===0)bounds.push("阳性人数为 0：P(A|B) 无定义，不能置为 0。");if(m.notB===0)bounds.push("阴性人数为 0：P(A|B̄) 无定义。");if(m.A===0)bounds.push("有病组为空：P(B|A) 无定义；敏感度滑块只是空组的假设参数。");if(m.notA===0)bounds.push("无病组为空：P(B|Ā) 与特异度无定义；假阳性率设定不产生当前组条件概率。");$("probabilityBoundary").textContent=bounds.length?bounds.join(" "):"所有相关分母为正；仍需分清“全体”“有病者”和“阳性者”，不能交换两个条件方向。";
+    $("independenceReading").textContent=(m.independent?"独立：":"不独立：")+"P(A∩B)="+(m.tp/m.N).toFixed(4)+"，P(A)P(B)="+((m.A/m.N)*(m.B/m.N)).toFixed(4)+"。"+((m.A===0||m.notA===0)?"这是健康状态退化下的乘积定义判断；空组的条件概率仍无定义。":"知道阳性是否改变基率，可对比 P(A|B) 与 P(A)；只有条件概率定义时才能比较。");
+    var texts=["总体 "+m.N+" 人；先按基率分为有病 "+m.A+" 与无病 "+m.notA+"。","有病分支："+m.A+"×"+pct(m.s)+" = 真阳性 "+m.tp+"，其余假阴性 "+m.fn+"。","无病分支："+m.notA+"×"+pct(m.f)+" = 假阳性 "+m.fp+"，其余真阴性 "+m.tn+"。","把 B 阳性列作为条件范围：真阳性 "+m.tp+" + 假阳性 "+m.fp+" = 阳性总数 "+m.B+"。",m.B?"在这些阳性者中有病的比例 = "+m.tp+"/"+m.B+" = "+pct(m.posterior)+"。":"阳性总数 0，分母为零：P(A|B) 无定义。",m.A?"反向 P(B|A) 用有病总数作分母："+m.tp+"/"+m.A+" = "+pct(m.inverse)+"；不要把它直接当作阳性预测值。":"有病人数 0，反向 P(B|A) 同样无定义。"];
+    $("probabilityStep").textContent="步骤 "+(step+1)+"："+texts[step];$("probStepCount").textContent="步骤 "+(step+1)+" / 6";$("probPrev").disabled=step===0;$("probNext").disabled=step===5;
+  }
+  ["prior","sensitivity","falsePositive"].forEach(function(id){$(id).addEventListener("input",draw)});document.querySelectorAll("[data-condition]").forEach(function(b){b.addEventListener("click",function(){condition=b.dataset.condition;draw()})});
+  function preset(p,s,f){$("prior").value=p;$("sensitivity").value=s;$("falsePositive").value=f;step=0;draw()}
+  $("presetRare").addEventListener("click",function(){preset(1,90,9)});$("presetCommon").addEventListener("click",function(){preset(10,90,9)});$("presetIndependent").addEventListener("click",function(){preset(20,30,30)});$("presetZero").addEventListener("click",function(){preset(10,0,0)});
+  $("probPrev").addEventListener("click",function(){step=Math.max(0,step-1);if(step===3||step===4)condition="positive";if(step===5)condition="disease";draw()});$("probNext").addEventListener("click",function(){step=Math.min(5,step+1);if(step===3||step===4)condition="positive";if(step===5)condition="disease";draw()});$("probReset").addEventListener("click",function(){step=0;draw()});
+  window.ProbabilityDemo={getModel:function(){return JSON.parse(JSON.stringify(lastModel))},setParameters:function(p,s,f){preset(p,s,f)},getView:function(){return {condition:condition,step:step}}};draw();
+  document.querySelectorAll("#cp .opt").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll("#cp .opt").forEach(function(x){x.setAttribute("aria-pressed","false")});b.setAttribute("aria-pressed","true");$("cpFb").textContent=b.dataset.why;$("cpFb").classList.add("is-on");attempt("stats-cp",b.textContent.trim());assess("stats-cp",b.dataset.v==="ok"?1:0,b.dataset.why,b.dataset.v==="ok"?"none":"misconception")})});
+  $("btnSubmitQ1").addEventListener("click",function(){var a={numerator:$("q1Numerator").value,denominator:$("q1Denominator").value,inverse_denominator:$("q1InverseDenominator").value};if(Object.keys(a).some(function(k){return a[k]===""})){ $("q1Fb").textContent="先填三项整数人数。";return}var flags=[Number(a.numerator)===18,Number(a.denominator)===116,Number(a.inverse_denominator)===20],c=flags.filter(Boolean).length/3;attempt("stats-q1",a);var error=c===1?"none":Number(a.denominator)===20||Number(a.denominator)===1000?"misconception":Number(a.numerator)===18?"reasoning_error":"answer_error",text=c===1?"你做对三项：分子 18，P(A|B) 分母 18+98=116，P(B|A) 分母 20。下一步核对为什么分母不同。":"部分正确 "+flags.filter(Boolean).length+"/3；卡在第 "+flags.map(function(x,i){return x?null:i+1}).filter(Boolean).join("、")+" 项。下一步先读竖线右边：阳性者分母为 18+98，病人分母为 20。";$("q1Fb").textContent=text;assess("stats-q1",c,text,error)});
+  var answers={"stats-q2":{value:"independent",correct:"你做对了：0.1=0.2×0.5，满足独立的乘积定义。下一步用 P(A|B)=0.1/0.5=0.2 复核。",wrong:"你已作出判断；卡在独立与互斥或概率相等的区别。下一步计算 0.2×0.5，并与交集 0.1 比较。"},"stats-q3":{value:"undefined",correct:"你做对了：P(B)=0 使离散条件比例分母为零，因此无定义。下一步试试零阳性预设，观察空条件范围。",wrong:"你注意到了没有阳性者；卡在把“无定义”赋值为 0 或 1。下一步写出分子/分母，发现是 0/0 而不是有定义的比例。"}};
+  document.querySelectorAll(".stats-mcq[data-item]").forEach(function(box){box.querySelectorAll(".opt").forEach(function(b){b.addEventListener("click",function(){box.querySelectorAll(".opt").forEach(function(x){x.setAttribute("aria-pressed","false")});b.setAttribute("aria-pressed","true");var id=box.dataset.item,ok=b.dataset.value===answers[id].value,text=ok?answers[id].correct:answers[id].wrong;box.querySelector(".cp-fb").textContent=text;attempt(id,b.textContent.trim());assess(id,ok?1:0,text,ok?"none":"misconception")})})});
+  $("btnSubmitSemantic").addEventListener("click",function(){var raw=$("semanticAnswer").value.trim();if(!raw){$("semanticFb").textContent="先写下你的解释；原文会完整保留。";return}attempt("stats-q4-semantic",raw);$("semanticFb").textContent="已采集解释，待宿主语义审阅。页面没有生成关键词分数、commit_assessment 或完成标记；请检查条件方向、人数核对与参数不变的假设。"});
+  var hint=0,HINTS={1:"L1 引导问题：Q1 竖线右边的人群是谁？Q2 独立的定义是概率相等还是乘积等式？Q3 分母是否为零？Q4 两个条件概率抽人的范围一样吗？",2:"L2 策略提示：先列 A∩B、Ā∩B、A∩B̄、Ā∩B̄，再做列/行合计。Q2 比较联合概率与乘积。Q4 固定 N=10,000，用基率先分健康状态，再分别算阳性者。",3:"L3 部分示范：Q1 交集人数 18；阳性分母来自两个健康组的阳性人数。Q2 的乘积是 0.2×0.5=0.1。Q4 1% 基率给出 100 位病人，其中 90 人阳性；仍需计算 9,900 无病者中的假阳性人数。",4:"L4 完整解答：Q1 分子18；P(A|B) 分母18+98=116，因此18/116=9/58≈15.52%；P(B|A)分母20，所以18/20=90%。Q2 独立，因0.1=0.2×0.5；互斥要求交集概率0。Q3 无定义，P(B)=0 时比例为0/0，不能赋值0或1。Q4：1%基率时真阳性90、假阴性10、假阳性891、真阴性9009，P(A|B)=90/981=10/109≈9.17%，P(B|A)=90/100=90%。基率10%时真阳性900、假阳性810，P(A|B)=900/1710=10/19≈52.63%。这说明两个方向不能互换，阳性预测值取决于基率。比较假设敏感度和假阳性率在人群间保持不变；实际参数可能随人群、阈值和取样条件改变，所以需要重新核验。这里是群体模型，不是对某个个体的直接诊断。"};
+  function ladder(){document.querySelectorAll("#ladder .ladder-step").forEach(function(b){var l=Number(b.dataset.lv);b.disabled=l>hint+1;b.dataset.state=l<=hint?"used":l===hint+1?"avail":"locked"})}
+  function reveal(l){hint=l;LEAP.setHint(l);LEAP.pushEvent(l===4?"answer_revealed":"hint_used",{item_id:"stats-q1",hint_level:l,answer:"",response_time:0});var d=document.createElement("div");d.className="hint-card";d.dataset.lv=l;d.textContent=HINTS[l];$("hintBody").appendChild(d);if(l===4)$("verify").hidden=false;ladder()}
+  document.querySelectorAll("#ladder .ladder-step").forEach(function(b){b.addEventListener("click",function(){var l=Number(b.dataset.lv);if(l!==hint+1)return;if(l<4){reveal(l);return}if($("confirmBox"))return;var d=document.createElement("div");d.className="confirm";d.id="confirmBox";d.innerHTML='<p>完整解答将记录 answer_revealed，且必须再做新的后置验证；不会自动完成或提升 Runtime 的掌握度。</p><div class="btn-row"><button class="btn btn--primary" id="btnConfirmReveal" type="button">我确认，展开完整答案</button><button class="btn btn--ghost" id="btnCancelReveal" type="button">先不展开</button></div>';$("hintBody").appendChild(d);$("btnCancelReveal").addEventListener("click",function(){d.remove()});$("btnConfirmReveal").addEventListener("click",function(){d.remove();reveal(4)})})});ladder();
+  $("btnVerify").addEventListener("click",function(){var a={numerator:$("verifyNumerator").value,denominator:$("verifyDenominator").value};if(!a.numerator||!a.denominator){$("verifyFb").textContent="请填分子与分母整数人数。";return}var c=((Number(a.numerator)===80?1:0)+(Number(a.denominator)===170?1:0))/2,text=c===1?"客观变式通过：80/(80+90)=80/170=8/17≈47.06%。已请求宿主检查这项本地验证结束的证据；语义解释仍需独立审阅。":"部分正确 "+(c*2)+"/2；条件是阳性，分母须含真阳性80与假阳性90。下一步重建阳性列。";attempt("stats-post-verify",a);assess("stats-post-verify",c,text,c===1?"none":"reasoning_error");$("verifyFb").textContent=text;if(c===1)LEAP.setCompleted("stats-post-verify","objective_variant_verified")});
+  LEAP.onRender(function(){var a=LEAP.getState().assessment;$("scoreSummary").textContent=a.item_id?"最近离散核对 "+a.item_id+"；overall_score="+(typeof a.overall_score === "number" ? a.overall_score.toFixed(2) : "未评估")+"；错误类型 "+a.error_type+"；新评分待 Runtime 核验。":"尚未核对离散作答；语义解释不会在本地生成分数。"});
+  $("consoleBar").addEventListener("click",function(){var on=$("consoleJson").classList.toggle("is-on");this.setAttribute("aria-expanded",String(on));$("consoleAction").textContent=on?"收起 JSON ▴":"展开 JSON ▾"});LEAP.refresh();
+})();
+</script></body></html>

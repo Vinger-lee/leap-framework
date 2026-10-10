@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LEAP · 电子电路｜欧姆定律、串并联与功率</title>
+<style>
+:root{
+ --paper:#FAF9F6;--surface:#FFFFFF;--surface-sunk:#F3F1EC;--surface-mute:#EDEAE3;
+ --ink:#191B20;--ink-2:#565E6B;--ink-3:#8A909C;--hairline:#E8E4DC;--rule:#D8D3C9;
+ --accent:#2B4AC4;--accent-deep:#1E3699;--accent-wash:#EDF0FD;
+ --ok:#2E7D5B;--ok-wash:#EAF4EF;--warn:#B3861A;--warn-wash:#FBF3E0;--err:#B4432F;--err-wash:#FBEDEA;
+ --hint-1:#E4C77C;--hint-2:#D4A43C;--hint-3:#B3861A;--hint-4:#7A7F8A;
+ --ev-estimated:#9AA1AD;--ev-practiced:#4C7BD9;--ev-demonstrated:#2E8B84;--ev-retained:#4C8B3F;--ev-transferred:#B3861A;
+ --font-display:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",Georgia,serif;
+ --font-sans:"Noto Sans SC","PingFang SC","Microsoft YaHei",-apple-system,"Segoe UI",sans-serif;
+ --font-mono:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+ --fs-display:32px;--fs-h2:22px;--fs-h3:17px;--fs-body:15.5px;--fs-small:13px;--fs-micro:11.5px;--fs-mono:12px;
+ --s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:20px;--s-6:24px;--s-8:32px;--s-10:40px;--s-12:48px;--s-16:64px;--s-20:80px;
+ --page-max:1800px;--page-pad:clamp(20px,2.5vw,48px);--side-col:420px;--col-gap:32px;
+}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}body{margin:0;background:var(--paper);color:var(--ink);font:var(--fs-body)/1.78 var(--font-sans)}
+h1,h2,h3{font-family:var(--font-display);line-height:1.35;margin:0}h1{font-size:var(--fs-display)}h2{font-size:var(--fs-h2)}h3{font-size:var(--fs-h3)}p{margin:0}a{color:var(--accent);text-underline-offset:3px}button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}code,kbd,pre,.mono{font-family:var(--font-mono)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}button[disabled]{opacity:.45;cursor:not-allowed}[hidden]{display:none!important}.wrap{max-width:var(--page-max);margin:auto;padding:0 var(--page-pad)}.micro{font:600 var(--fs-micro)/1.5 var(--font-mono);letter-spacing:.08em;color:var(--ink-3)}.skip{position:absolute;left:-9999px;top:0;z-index:100;background:var(--accent);color:white;padding:12px}.skip:focus{left:0}
+.spine{background:var(--surface);border-bottom:1px solid var(--hairline)}.spine-in{max-width:var(--page-max);margin:auto;padding:16px var(--page-pad);display:flex;gap:32px;align-items:center;flex-wrap:wrap}.brand{font-weight:700;letter-spacing:.06em}.brand small{display:block;font-size:12px;color:var(--ink-2);font-weight:500;letter-spacing:0}.ev-track{display:flex;gap:5px;margin:7px 0}.ev-seg{width:30px;height:8px;background:var(--hairline);border-radius:4px}.ev-seg.is-on[data-stage="estimated"]{background:var(--ev-estimated)}.ev-seg.is-on[data-stage="practiced"]{background:var(--ev-practiced)}.ev-seg.is-on[data-stage="demonstrated"]{background:var(--ev-demonstrated)}.ev-seg.is-on[data-stage="retained"]{background:var(--ev-retained)}.ev-seg.is-on[data-stage="transferred"]{background:var(--ev-transferred)}.spine-name,.spine-rev .val{font-size:12px;display:block}.mas-row{display:flex;gap:8px;align-items:center}.mas-track{width:110px;height:8px;background:var(--hairline);border-radius:4px;overflow:hidden}.mas-fill{height:100%;width:0;background:var(--accent)}.spine-rev{margin-left:auto}.spine-note{max-width:var(--page-max);margin:auto;padding:0 var(--page-pad) 12px;font-size:11.5px;color:var(--ink-3)}
+.zone{padding-top:48px}.zone-head{border-bottom:1px solid var(--hairline);padding-bottom:20px}.zone-head h1,.zone-head h2{margin-top:10px}.zone-goal{margin-top:12px;color:var(--ink-2)}.zone-meta{font-size:13px;color:var(--ink-3);margin-top:8px}.cols{display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:32px;align-items:start;margin-top:28px}.col-main,.side{min-width:0}.col-main>section+section,.col-main>article+article{margin-top:32px}.side{display:grid;gap:24px}.card,.task,.cp{border:1px solid var(--hairline);border-radius:12px;padding:24px;background:var(--surface)}.card h3,.task h3{margin-bottom:12px}.card p,.card li{font-size:13px;line-height:1.75}.card p+p{margin-top:12px}.card--sunk{background:var(--surface-sunk)}.card--warn{background:var(--warn-wash)}.card--err{background:var(--err-wash)}.section-text p,.section-text details,.section-text ul,.section-text ol{margin-top:14px}.section-text h3{margin-top:22px}.section-text ol,.section-text ul{padding-left:24px}.section-text li+li{margin-top:8px}.formula{padding:12px 16px;background:var(--surface-sunk);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;margin-top:16px;overflow-wrap:anywhere}.formula math{font-size:1.1em}.table-wrap{overflow-x:auto;margin-top:16px}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--hairline);vertical-align:top}th{color:var(--ink-2);font-weight:600;background:var(--surface-sunk)}details{border:1px solid var(--hairline);border-radius:8px;background:var(--surface);padding:12px 16px}summary{cursor:pointer;font-weight:600;font-size:14px}details p{font-size:14px}.resource{margin-top:22px;background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:20px}.resource p{font-size:13px;margin-top:8px}.resource ul{padding-left:22px;margin:10px 0 0;font-size:13px}.resource li+li{margin-top:6px}
+.stage{margin-top:20px;background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:16px;padding:24px}.btn-row,.mode-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.btn-row{margin-top:16px}.btn{min-height:38px;padding:8px 15px;border-radius:6px;background:var(--surface);border:1px solid var(--rule);font-size:13px;font-weight:500;white-space:normal}.btn:hover{border-color:var(--accent);color:var(--accent)}.btn--primary{background:var(--accent);color:white;border-color:var(--accent)}.btn--primary:hover{background:var(--accent-deep);color:white}.btn[aria-pressed="true"]{background:var(--accent-wash);color:var(--accent);border-color:var(--accent)}.stage-layout{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;margin-top:20px}.diagram{width:100%;display:block;background:var(--surface);border:1px solid var(--hairline);border-radius:10px}.diagram text{font-family:var(--font-sans);fill:var(--ink-2)}.wire{fill:none;stroke:var(--ink-2);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.component{fill:var(--surface-sunk);stroke:var(--ink-2);stroke-width:2}.source-line{stroke:var(--accent);stroke-width:4}.current-path{fill:none;stroke:var(--accent);stroke-width:4}.is-highlight .component{fill:var(--accent-wash);stroke:var(--accent);stroke-width:3}.control-grid{display:grid;gap:16px;align-content:start}.control-grid label{display:grid;gap:4px;font-size:13px}.control-grid input[type="range"]{width:100%;accent-color:var(--accent);margin:6px 0}.value-row{display:flex;justify-content:space-between;gap:12px}.result{margin-top:16px;padding:14px;background:var(--surface);border:1px solid var(--hairline);border-radius:8px;font-size:13px;overflow-wrap:anywhere}.result p+p{margin-top:6px}.result[data-boundary="short"],.result[data-boundary="underdetermined"]{background:var(--warn-wash);border-color:var(--hint-1)}.step-text{min-height:80px;margin-top:12px;line-height:1.75;font-size:14px}.step-panel{margin-top:18px;padding:18px;background:var(--surface);border:1px solid var(--hairline);border-radius:10px}.step-status{font:12px var(--font-mono);color:var(--ink-3)}.comparison{margin-top:16px;padding:16px;border:1px solid var(--rule);border-radius:8px;background:var(--surface)}.comparison p+p{margin-top:8px}.power-bars{margin-top:12px}.power-bar{height:12px;margin:4px 0 12px;background:var(--accent);border-radius:4px}.power-bar--2{background:var(--ok)}.small{font-size:13px;color:var(--ink-2)}.cp{margin-top:20px}.cp-q{margin-top:10px;font-weight:600}.cp-opts{display:grid;gap:8px;margin-top:16px}.opt{text-align:left;min-height:42px;border:1px solid var(--hairline);background:var(--surface-sunk);border-radius:7px;padding:10px 14px;font-size:14px}.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-wash)}.feedback{margin-top:14px;padding:14px;border-radius:8px;background:var(--surface-sunk);font-size:13px;line-height:1.75}.feedback p+p{margin-top:6px}.feedback[data-tone="ok"]{background:var(--ok-wash)}.feedback[data-tone="bad"]{background:var(--err-wash)}.task-lead{font-size:14px;color:var(--ink-2);margin-top:10px}.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px}.field-grid label,.text-label{font-size:13px;display:grid;gap:7px;min-width:0}.blank,select,textarea{width:100%;min-width:0;background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:10px 12px}.blank[data-state="ok"]{border-color:var(--ok);background:var(--ok-wash)}.blank[data-state="bad"]{border-color:var(--err);background:var(--err-wash)}textarea{resize:vertical;min-height:100px}.text-label{margin-top:16px}.verify{margin-top:20px;border:1px solid var(--hint-1);background:var(--warn-wash);padding:20px;border-radius:10px}.task details{margin-top:18px}.task-note{font-size:12px;color:var(--ink-3);margin-top:12px}.hint-ladder{display:flex;gap:7px;align-items:flex-end;margin-top:18px}.ladder-step{flex:1;min-width:0;border:1px solid var(--rule);background:var(--surface);border-radius:5px 5px 0 0;padding:10px 5px;font-size:12px;border-top:4px solid var(--hint-1)}.ladder-step[data-lv="1"]{min-height:54px}.ladder-step[data-lv="2"]{min-height:66px;border-top-color:var(--hint-2)}.ladder-step[data-lv="3"]{min-height:78px;border-top-color:var(--hint-3)}.ladder-step[data-lv="4"]{min-height:90px;border-top-color:var(--hint-4)}.ladder-step.is-on{background:var(--surface-sunk);font-weight:600}.hint-panel{margin-top:14px;padding:14px;border:1px solid var(--hairline);border-radius:8px;font-size:13px}.confirm{margin-top:14px;border:1px solid var(--hint-1);border-radius:8px;padding:14px;background:var(--warn-wash)}.evidence-rail{margin-top:36px;padding:18px 0;border-top:1px solid var(--hairline)}.rail-track{position:relative;height:14px;background:var(--hairline);border-radius:7px;margin:10px 0}.rail-dot{position:absolute;top:2px;width:10px;height:10px;border-radius:5px;background:var(--accent)}.rail-label{font-size:12px;color:var(--ink-3)}.console{margin-top:20px;background:var(--surface);border:1px solid var(--hairline);border-radius:10px;overflow:hidden}.console-bar{width:100%;padding:16px 20px;background:var(--surface);border:0;text-align:left;font-size:13px}.console-json{margin:0;border-top:1px solid var(--hairline);padding:18px;max-height:420px;overflow:auto;background:var(--surface-sunk);font:12px/1.6 var(--font-mono);white-space:pre-wrap;overflow-wrap:anywhere}.bridge-outbox{max-height:260px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px}.footer{padding:24px 0 48px;font-size:12px;color:var(--ink-3)}
+@media(max-width:1199px){.cols{grid-template-columns:minmax(0,1fr)}.side{grid-template-columns:repeat(2,minmax(0,1fr))}.spine-rev{margin-left:0}}
+@media(max-width:767px){.stage-layout,.side,.field-grid{grid-template-columns:minmax(0,1fr)}.spine-in{gap:18px}.zone{padding-top:32px}.stage,.task,.cp,.card{padding:18px}.resource{padding:16px}.zone-head h1{font-size:27px}.hint-ladder{gap:5px}th,td{padding:8px}.btn{max-width:100%}.table-wrap{font-size:12px}.step-text{min-height:0}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#teaching">跳到教学内容</a>
+<header class="spine" aria-label="学习进度脊柱">
+ <div class="spine-in">
+  <div class="brand">LEAP<small>电子电路 · 欧姆定律</small></div>
+  <div class="spine-ev"><span class="micro">EVIDENCE STAGE · 证据阶段</span><div class="ev-track" id="evTrack"><span class="ev-seg is-on" data-stage="estimated"></span><span class="ev-seg" data-stage="practiced"></span><span class="ev-seg" data-stage="demonstrated"></span><span class="ev-seg" data-stage="retained"></span><span class="ev-seg" data-stage="transferred"></span></div><span class="spine-name" id="evName">estimated · 仅估计</span></div>
+  <div class="spine-mas"><span class="micro">MASTERY · 掌握度</span><div class="mas-row"><div class="mas-track"><div class="mas-fill" id="masFill"></div></div><span id="masVal">未评估</span></div></div>
+  <div class="spine-rev"><span class="micro">NEXT REVIEW · 下次复习</span><span class="val">尚未安排</span></div>
+ </div>
+ <div class="spine-note" id="spineNote">掌握度未评估；离线操作仅收集学习动作。</div>
+</header>
+<main class="wrap">
+<section class="zone" id="teaching" aria-labelledby="lessonTitle">
+ <div class="zone-head"><span class="micro">01 · TEACHING · 教学内容</span><h1 id="lessonTitle">欧姆定律：从一个电阻到串并联电路</h1><p class="zone-goal">分清跨元件的电压与流过支路的电流，推导等效电阻与电功率，并判断理想模型何时失效。</p><p class="zone-meta">核心 35 分钟 · 扩展 25 分钟 · 难度 2/5 · 先修：比值、分数、单位换算与一元一次方程</p></div>
+ <div class="resource" id="resources"><h2>学习资源 · 按层级检索</h2><p>先按关键词学习，再用下面的电路与练习检验理解。关键词不表示任何视频已被核验。</p><ul><li><b>核心：</b>欧姆定律 电压电流电阻 单位换算 欧姆性电阻</li><li><b>扩展：</b>电阻串联并联 等效电阻 电功率 基尔霍夫电流定律</li><li><b>进阶：</b>非欧姆器件 温度对电阻影响 电源内阻 额定功率</li></ul><p><a href="knowledge.md">完整知识笔记（含推导、反例、所有练习解答与资料证据）</a> · <a href="README_CN.md">主题学习指南</a></p></div>
+ <div class="cols">
+  <div class="col-main section-text">
+   <section id="quantities"><h2>1 · 前置知识：电压、电流、电阻各回答什么</h2><p>电流 I 是每单位时间通过某截面的净电荷量：I=Δq/Δt。单位安培 A=库仑/秒（C/s）。电压 V 是两点之间的电势差，表示每单位电荷对应的电势能差：V=ΔE/Δq，单位伏特 V=焦耳/库仑（J/C）。ΔE 在此指电荷穿过元件时对应的能量变化量；电阻消耗的是电能，电荷仍在闭合电路中流动。</p><p>电压必须说明“哪两个点之间”，电流必须说明“通过哪条支路”。测电阻两端的电压时，电压表并联在两端；测支路电流时，电流表串联在该支路。这里先把电表视为理想仪表：电压表电阻无限大、电流表电阻为零，实际仪表会影响被测电路。</p><p>电阻 R 描述元件对电流的关系。对温度等条件固定的欧姆性电阻，V 与 I 成正比，比例系数 R 保持不变：V=IR；单位欧姆 Ω=V/A。R=V/I 是工作点比值，只有在 I≠0 时能直接相除；要判断是否欧姆性，还须检查一段工作范围内 R 是否基本不变。</p><div class="formula"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>V</mi><mo>=</mo><mi>I</mi><mi>R</mi><mo>,</mo><mspace width="0.7em"/><mi>I</mi><mo>=</mo><mfrac><mi>V</mi><mi>R</mi></mfrac><mo stretchy="false">(</mo><mi>R</mi><mo>&gt;</mo><mn>0</mn><mo stretchy="false">)</mo></mrow></math></div><p>单位先统一：1 mA=0.001 A，1 kΩ=1000 Ω，1 mW=0.001 W。因此 V÷kΩ 的数值单位恰好是 mA。例如 12 V÷1 kΩ=12 mA；若写 12 A，就相差一千倍。</p><details><summary>一分钟自检：24 mA 和 2.5 kΩ 换成基本单位</summary><p>24 mA=24×10⁻³ A=0.024 A；2.5 kΩ=2.5×10³ Ω=2500 Ω。若电流 0.024 A 流过 2500 Ω，V=IR=0.024×2500=60 V。检验 60/2500=0.024 A。</p></details></section>
+   <section id="singleResistor"><h2>2 · 单电阻：公式不是替代推理的口令</h2><p>适用条件先写清：直流稳态、闭合电路、理想电源与导线、固定的正电阻。本课用约定电流方向：在外电路由电源正端流向负端；电子在金属中的净漂移方向通常与之相反。</p><ol><li>标出电阻两端的电压 V。单个电阻直接接在理想电源上时，电阻电压等于电源端电压。</li><li>把 R 换成 Ω，再写 V=IR；在 R&gt;0 时，两边同除 R，得到 I=V/R。</li><li>代入数值与单位；V/Ω=A。把 A 换成 mA，方便读小电流。</li><li>用 V=IR 代回检验，再按 P=VI 求电阻转换电能的速率。</li></ol><p>完整例题：12 V 加在 1 kΩ 电阻上。R=1000 Ω；I=12/1000=0.012 A=12 mA。检验 0.012×1000=12 V。功率 P=12×0.012=0.144 W=144 mW，每秒转换 0.144 J 电能。</p><p>固定 R 时，V 加倍会使 I 加倍；固定 V 时，R 加倍会使 I 减半。不要把两个条件混用。“电压、电流成正比”始终带着电阻保持不变这一前提。</p></section>
+   <section id="circuitLab"><h2>3 · 电路实验台：沿着路径观察约束</h2><p>改变电源电压与两个电阻，比较同一组参数的单电阻、串联与并联。图中电流箭头仅表示约定方向，不模拟电子速度。无连续动画；按钮、滑块与方向键可逐步操作。</p>
+    <div class="stage">
+     <div class="mode-row" role="group" aria-label="选择电路连接方式"><button class="btn" id="modeSingle" aria-pressed="true">单电阻</button><button class="btn" id="modeSeries" aria-pressed="false">串联</button><button class="btn" id="modeParallel" aria-pressed="false">并联</button></div>
+     <div class="stage-layout">
+      <div><svg class="diagram" id="circuitSVG" viewBox="0 0 800 360" role="img" aria-label="可切换的理想直流电阻电路"><title>电路连接、端电压与支路电流</title><defs><marker id="currentArrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#2B4AC4"/></marker></defs><path class="wire" d="M80 155V55H210M280 55H470M80 179V310H470"/><line class="source-line" x1="48" y1="155" x2="112" y2="155"/><line class="source-line" x1="62" y1="179" x2="98" y2="179"/><text x="44" y="139" font-size="21">+</text><text x="115" y="172" id="sourceLabel" font-size="17">12 V</text><line id="switchWire" class="wire" x1="210" y1="55" x2="280" y2="55"/><circle cx="210" cy="55" r="4" fill="#565E6B"/><circle cx="280" cy="55" r="4" fill="#565E6B"/><text x="205" y="29" font-size="14" id="switchLabel">闭合</text><g id="circuitComponents"></g><g id="currentPaths" hidden><path class="current-path" d="M315 55H390" marker-end="url(#currentArrow)"/><path class="current-path" d="M390 310H300" marker-end="url(#currentArrow)"/></g><text x="305" y="91" id="totalCurrentLabel" font-size="17">I=12 mA</text><text x="30" y="343" font-size="13">理想电源 · 理想导线 · 直流稳态</text></svg>
+       <div class="result" id="circuitResult" data-mode="single" data-boundary="finite" aria-live="polite"><p id="eqResistance">等效电阻 R_eq=1000 Ω</p><p id="circuitCurrent">电源总电流 I=12 mA</p><p id="branchValues">R₁：V₁=12 V，I₁=12 mA</p><p id="circuitBoundary">正电阻闭合电路，存在有限稳态解。</p></div>
+      </div>
+      <div class="control-grid"><label for="voltageRange"><span class="value-row"><span>电源电压 V</span><output id="voltageValue" for="voltageRange">12 V</output></span><input id="voltageRange" type="range" min="0" max="24" step="1" value="12" aria-label="电源电压，单位伏特"></label><label for="r1Range"><span class="value-row"><span>电阻 R₁</span><output id="r1Value" for="r1Range">1000 Ω</output></span><input id="r1Range" type="range" min="0" max="4000" step="250" value="1000" aria-label="电阻一，单位欧姆"></label><label for="r2Range"><span class="value-row"><span>电阻 R₂</span><output id="r2Value" for="r2Range">2000 Ω</output></span><input id="r2Range" type="range" min="0" max="4000" step="250" value="2000" aria-label="电阻二，单位欧姆"></label><div class="btn-row"><button class="btn" id="switchToggle" aria-pressed="true">开关：闭合</button><button class="btn" id="currentToggle" aria-pressed="false">高亮电流路径</button><button class="btn" id="powerToggle" aria-pressed="false">显示功率分配</button><button class="btn" id="circuitReset">重置电路</button></div><p class="small">单电阻模式只使用 R₁；R₂ 在串联、并联中参与计算。设置零电阻可探索理想模型边界。</p>
+       <svg class="diagram" id="ivGraph" viewBox="0 0 420 250" role="img" aria-label="当前电阻网络的电源电压与总电流曲线"><title>固定电阻时的 I–V 曲线</title><path d="M55 20V205H395" fill="none" stroke="#8A909C" stroke-width="1.5"/><path id="ivLine" d="M55 205L385 35" fill="none" stroke="#2B4AC4" stroke-width="3"/><circle id="ivPoint" cx="220" cy="120" r="5" fill="#2E7D5B"/><text x="12" y="18" font-size="12">I / mA</text><text x="338" y="238" font-size="12">V / V</text><text x="46" y="222" font-size="11">0</text><text x="370" y="222" font-size="11">24</text><text id="ivTopLabel" x="8" y="40" font-size="11">24</text><text id="ivCaption" x="80" y="20" font-size="12">斜率=1000/R_eq（mA/V）</text></svg>
+       <div id="powerPanel" class="power-bars" hidden><p class="small" id="powerTotal">总功率 P=144 mW</p><p class="small" id="powerR1">P₁=144 mW</p><div id="powerBar1" class="power-bar"></div><p class="small" id="powerR2">P₂=0 mW</p><div id="powerBar2" class="power-bar power-bar--2"></div><p class="small">条形表示各电阻占总功率的比例；电源提供的功率等于本模型电阻功率之和。</p></div>
+      </div>
+     </div>
+     <div class="step-panel"><span class="micro">DERIVATION · 分步推导</span><p id="lawStepStatus" class="step-status" data-step="0">1 / 5 · 物理量与单位</p><p id="lawStepText" class="step-text">电压是两点间每单位电荷的能量差，电流是每秒通过截面的电荷量。先标两点与支路，再把 kΩ、mA 换成 Ω、A。</p><div class="btn-row"><button class="btn" id="lawPrev" disabled>上一步</button><button class="btn btn--primary" id="lawNext">下一步</button><button class="btn" id="lawReset">推导复位</button><button class="btn" id="lawHighlight" aria-pressed="false">高亮元件</button><button class="btn" id="lawCompare" aria-expanded="false">比较正确与错误推理</button></div><div id="lawComparison" class="comparison" hidden><p><b>正确：</b>串联只有一条稳态路径，所以电流相等；并联支路连接同一对节点，所以电压相等。先判连接，再用 V=IR。</p><p><b>错误：</b>把串联电流相加，或把并联电压相加。电流是在分叉节点求和；沿串联路径求和的是电压降。图形“看起来横排或竖排”不能代替节点连接判断。</p></div></div>
+    </div>
+   </section>
+   <section id="seriesLaw"><h2>4 · 串联：同一电流，电压相加</h2><p>先修：理解同一条没有分叉的路径与 V=IR。串联是电流只有一条连续路径穿过每个元件；若中间存在分支，就不能直接套用串联公式。</p><ol><li>稳态时中间节点不持续积累电荷，所以进入与流出的电流相等：I₁=I₂=I。</li><li>沿电源正端到负端经过两个电阻，两段电势差相加：V=V₁+V₂。</li><li>分别用欧姆定律：V₁=IR₁，V₂=IR₂，所以 V=I(R₁+R₂)。</li><li>与 V=IR_eq 比较：R_eq=R₁+R₂；正电阻下 I=V/(R₁+R₂)，V₁=IR₁，V₂=IR₂。</li></ol><p>完整例题：12 V，R₁=1 kΩ，R₂=2 kΩ。R_eq=3000 Ω；I=12/3000=0.004 A=4 mA；V₁=0.004×1000=4 V；V₂=0.004×2000=8 V。检验 V₁+V₂=4+8=12 V，且两电阻电流都为 4 mA。总功率 12×0.004=0.048 W=48 mW。</p><p>串联分压 V₁/V₂=R₁/R₂，来源是两者乘同一电流。这里“电阻越大分得电压越多”只适用于同一串联电流；电压表或负载一旦并接在某电阻上，就改变电路，需要重新求等效电阻。</p></section>
+   <section id="parallelLaw"><h2>5 · 并联：同一电压，电流相加</h2><p>先修：识别节点。同一段理想导线上的点属于同一节点；两个支路连接同一对节点，才是并联。支路的画法与长短不影响这个判断。</p><ol><li>两个电阻都跨接同一对节点，所以 V₁=V₂=V。</li><li>对每个正电阻分别求 I₁=V/R₁，I₂=V/R₂。</li><li>分叉节点不持续积累电荷，所以总电流 I=I₁+I₂=V(1/R₁+1/R₂)。</li><li>与 I=V/R_eq 比较：1/R_eq=1/R₁+1/R₂；两正电阻时 R_eq=R₁R₂/(R₁+R₂)。即使 V=0，也可由网络参数定义 R_eq，不必在该工作点除以 V。</li></ol><p>完整例题：仍用 12 V、1 kΩ 与 2 kΩ。I₁=12/1000=12 mA，I₂=12/2000=6 mA；总电流 18 mA。R_eq=1000×2000/3000=2000/3 Ω≈666.667 Ω；检验 12/(2000/3)=0.018 A。支路功率 144 mW 与 72 mW，总功率 216 mW，等于 12 V×18 mA。</p><p>正电阻并联的等效电阻小于最小支路电阻：1/R_eq 比任何一个 1/Rᵢ 都大，取正数倒数后 R_eq&lt;Rᵢ。固定电源电压时，增加一条正电阻并联支路会增大总电流，但原支路电流保持不变；真实电源存在内阻时，端电压可能下降。</p><div class="table-wrap"><table><thead><tr><th>相同参数：12 V，1 kΩ，2 kΩ</th><th>串联</th><th>并联</th></tr></thead><tbody><tr><td>直接约束</td><td>I₁=I₂</td><td>V₁=V₂</td></tr><tr><td>等效电阻</td><td>3000 Ω</td><td>2000/3 Ω</td></tr><tr><td>电源总电流</td><td>4 mA</td><td>18 mA</td></tr><tr><td>电压或电流分配</td><td>4 V、8 V</td><td>12 mA、6 mA</td></tr><tr><td>总功率</td><td>48 mW</td><td>216 mW</td></tr></tbody></table></div></section>
+   <section id="powerLaw"><h2>6 · 功率：每秒转换多少电能</h2><p>先修：能量与速率。功率 P=ΔE/Δt，单位瓦特 W=J/s。直流稳态、采用电阻吸收功率为正的约定时，把能量按电荷拆开：P=(ΔE/Δq)(Δq/Δt)=VI。电流描述电荷流动，功率描述能量转换，两者不是同一个量。</p><div class="formula"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>P</mi><mo>=</mo><mi>V</mi><mi>I</mi><mo>=</mo><msup><mi>I</mi><mn>2</mn></msup><mi>R</mi><mo>=</mo><mfrac><msup><mi>V</mi><mn>2</mn></msup><mi>R</mi></mfrac></mrow></math></div><p>对正的欧姆性电阻，先将 V=IR 代进 VI，得 P=I²R；或把 I=V/R 代进 VI，得 P=V²/R。后两式含有欧姆性电阻前提，不能直接套在任意非线性元件上。稳态且功率恒定时，时间 t 内的能量 E=Pt。</p><p>完整例题：12 V、1 kΩ。VI=12×0.012=0.144 W；I²R=(0.012)²×1000=0.144 W；V²/R=144/1000=0.144 W，三法一致。工作 10 s，E=0.144×10=1.44 J。若器件额定功率为 0.25 W，144 mW 小于额定值；实际选择还需按厂家温度降额和散热条件留余量。</p><p>固定 V 时，R 加倍会使 P=V²/R 减半；固定 I 时，R 加倍会使 P=I²R 加倍。先写保持不变的条件，才可比较趋势。</p><div class="cp" id="conceptCheckpoint"><span class="micro">CHECKPOINT · 理解检查</span><p class="cp-q">两个正电阻串联，电流穿过第一个电阻后会怎样？</p><div class="cp-opts"><button class="opt" data-choice="consumed" aria-pressed="false">减少，因为电阻消耗了电流</button><button class="opt" data-choice="equal" aria-pressed="false">稳态电流仍相同，电阻把电能转为热</button><button class="opt" data-choice="higher" aria-pressed="false">增加，因为第二个电阻继续推动电荷</button></div><div id="checkpointFeedback" class="feedback" hidden aria-live="polite"></div></div></section>
+   <section id="modelBoundary"><h2>7 · 边界、反例与建模检查</h2><p>欧姆定律是许多材料在一定条件下的经验关系，不是所有元件都服从的普遍自然定律。二极管、LED 的 I–V 曲线通常不满足固定 R 的直线模型；白炽灯丝升温后电阻改变，也不能把不同温度工作点视为同一个固定电阻。</p><div class="table-wrap"><table><thead><tr><th>情况</th><th>本模型的结论</th><th>原因与限制</th></tr></thead><tbody><tr><td>正电阻、V=0、闭合</td><td>I=0，P=0</td><td>V=IR 且 R&gt;0，有限解</td></tr><tr><td>开路</td><td>稳态电源电流为 0</td><td>闭合路径断开；断口仍可能有电压</td></tr><tr><td>R=0、V&gt;0，理想电源直接连接</td><td>没有有限的理想稳态解</td><td>V=I×0 与 V&gt;0 矛盾；不能把 Infinity 当作测量值</td></tr><tr><td>R=0、V=0</td><td>仅用 0=I×0 不能唯一确定 I</td><td>实际阻抗、初始状态与动态过程未建模</td></tr><tr><td>负电阻</td><td>超出本课被动电阻范围</td><td>不在本课参数与公式比较的定义域内</td></tr></tbody></table></div><p>理想导线本身电阻为零，但通常串联着正电阻；不能因此说整条回路是短路。真实短路电流由电源内阻、导线电阻及保护装置等限制，当前实验台不模拟这些量。</p><details><summary>反例：并联电阻能否求算术平均？</summary><p>1 kΩ 与 2 kΩ 的算术平均是 1.5 kΩ，但加一条并联路径只会增大固定端电压下的总电流，等效电阻必须小于 1 kΩ。正确值 2/3 kΩ 满足这一限制；1.5 kΩ 已经被趋势检查否决。</p></details></section>
+  </div>
+  <aside class="side" aria-label="学习要点与提示">
+   <section class="card"><span class="micro">READ THE NODES · 先看节点</span><h3>每个公式都附带条件</h3><p>V=IR：固定条件下的欧姆性电阻。R_eq=R₁+R₂：中间没有分支。1/R_eq=1/R₁+1/R₂：支路连接同一对节点。P=VI：本课直流稳态与被动符号约定。</p><p>串联保留电流；并联保留电压。改变电阻前先写清电源电压还是支路电流保持不变。</p></section>
+   <section class="card card--err"><span class="micro">MISCONCEPTION · 常见误区</span><h3>电阻不消耗电荷</h3><p>电阻把电能转为热；若串联节点一直积累电荷，就不再是本课稳态。同一串联路径的电流保持相同，电压降可因电阻不同而不同。</p><p>把 mA 当 A、把 kΩ 当 Ω、把并联电阻直接相加，都是能用单位与趋势检查发现的错误。</p></section>
+   <section class="card"><span class="micro">HINT LADDER · 主动请求</span><h3>四级提示阶梯</h3><p id="ladderNote">提示只在主动请求时展开；当前提示层级 0。</p><div class="hint-ladder" id="hintLadder"><button class="ladder-step" data-lv="1" aria-label="第一级提示：引导问题">L1<br>引导</button><button class="ladder-step" data-lv="2" disabled aria-label="第二级提示：策略">L2<br>策略</button><button class="ladder-step" data-lv="3" disabled aria-label="第三级提示：部分示范">L3<br>示范</button><button class="ladder-step" data-lv="4" disabled aria-label="第四级提示：完整答案">L4<br>答案</button></div><div class="hint-panel" id="hintPanel" hidden></div><div class="confirm" id="revealConfirm" hidden><p>确认展开基础题完整答案？展开后必须完成新参数的后置验证，并解释电流与能量的区别。</p><div class="btn-row"><button class="btn" id="revealCancel">继续自己尝试</button><button class="btn btn--primary" id="revealAccept">确认展开</button></div></div></section>
+   <section class="card card--sunk"><span class="micro">BRIDGE · 宿主连接</span><h3 id="bridgeMode">BRIDGE · 离线演示</h3><p id="bridgeSummary">待处理调用 0 条。客观答案反馈需回执确认；论证等待宿主审核。</p><button class="btn" id="bridgeDrain" disabled>查看待处理调用</button><pre class="bridge-outbox" id="bridgeOutbox" hidden></pre></section>
+   <section class="card card--warn"><span class="micro">ASSESSMENT · 证据边界</span><h3>答案与论证分别取证</h3><p>答案偏差（answer_error）可客观核对；论证错误（reasoning_error）需审核完整解释；电流被消耗等概念误解（misconception）需结合具体选择或论述证据。</p><p>网页只核对客观答案。说明、反思与后置验证原文送交宿主，待宿主语义审核。尚未评估的维度保持为空，不从关键词推算掌握度。</p></section>
+  </aside>
+ </div>
+</section>
+<section class="zone" id="practice" aria-labelledby="practiceTitle"><div class="zone-head"><span class="micro">02 · PRACTICE · 交互练习</span><h2 id="practiceTitle">先独立作答，再展开解答</h2><p class="zone-goal">练习从单位与单电阻，逐步进入串并联、功率比较、模型边界与理由说明。</p></div>
+ <div class="cols"><div class="col-main">
+  <article class="task" id="baseExercise"><span class="micro">Q1 · 基础计算</span><h3>9 V 与 1.5 kΩ：电流和功率</h3><p class="task-lead">理想电源直接连接正的欧姆性电阻。求电流与功率；空白数值默认分别使用 mA、mW，也可输入 0.006 A、0.054 W 等带单位答案。不要用一句话代替数值字段。</p><div class="field-grid"><label for="currentAnswer">电流 I（默认 mA）<input class="blank" id="currentAnswer" type="text" inputmode="decimal" autocomplete="off" placeholder="数值或带单位的数值"></label><label for="powerAnswer">功率 P（默认 mW）<input class="blank" id="powerAnswer" type="text" inputmode="decimal" autocomplete="off" placeholder="数值或带单位的数值"></label></div><div class="btn-row"><button class="btn btn--primary" id="checkBase">核对基础题</button></div><div class="feedback" id="baseFeedback" hidden aria-live="polite"></div><p class="task-note">两项分别核对，答对一项为部分正确 0.5。基础题完整答案从侧栏提示阶梯主动展开。</p>
+   <div class="verify" id="postVerify" hidden><h3>后置验证：6 V 与 1 kΩ</h3><p class="task-lead">新电阻两端为 6 V、R=1 kΩ。求 I 与 P，再说明“电流穿过电阻后仍相同”与“电阻转换电能”为什么不矛盾。</p><div class="field-grid"><label for="verifyCurrent">电流 I（默认 mA）<input class="blank" id="verifyCurrent" type="text" inputmode="decimal"></label><label for="verifyPower">功率 P（默认 mW）<input class="blank" id="verifyPower" type="text" inputmode="decimal"></label></div><label class="text-label" for="verifyReason">写出推导与电荷、能量的区别<textarea id="verifyReason" placeholder="写出单位换算、计算过程及物理理由"></textarea></label><div class="btn-row"><button class="btn btn--primary" id="submitVerify">提交后置验证</button></div><div class="feedback" id="verifyFeedback" hidden aria-live="polite"></div></div>
+  </article>
+  <article class="task" id="seriesExercise"><span class="micro">Q2 · 串联分压</span><h3>12 V、1 kΩ 与 2 kΩ 串联</h3><p class="task-lead">求电源总电流与 R₂ 两端电压。先写路径约束，再计算。</p><div class="field-grid"><label for="seriesCurrent">总电流（默认 mA）<input class="blank" id="seriesCurrent" type="text" inputmode="decimal"></label><label for="seriesVoltage">R₂ 电压（默认 V）<input class="blank" id="seriesVoltage" type="text" inputmode="decimal"></label></div><div class="btn-row"><button class="btn btn--primary" id="checkSeries">核对串联题</button></div><div class="feedback" id="seriesFeedback" hidden aria-live="polite"></div><details><summary>展开完整解答与检验</summary><p>R_eq=1000+2000=3000 Ω。I=12/3000=0.004 A=4 mA；V₂=IR₂=0.004×2000=8 V。V₁=4 V，V₁+V₂=12 V；两电阻电流均为 4 mA。误写 12 mA 是忽略了另一个串联电阻。</p></details></article>
+  <article class="task" id="parallelExercise"><span class="micro">Q3 · 并联与迁移</span><h3>12 V、1 kΩ 与 2 kΩ 并联</h3><p class="task-lead">求等效电阻与总电流。等效电阻可输入 2000/3 Ω，或误差不超过 0.001 Ω 的小数。总电流默认 mA。</p><div class="field-grid"><label for="parallelResistance">等效电阻（默认 Ω）<input class="blank" id="parallelResistance" type="text" inputmode="decimal"></label><label for="parallelCurrent">总电流（默认 mA）<input class="blank" id="parallelCurrent" type="text" inputmode="decimal"></label></div><div class="btn-row"><button class="btn btn--primary" id="checkParallel">核对并联题</button></div><div class="feedback" id="parallelFeedback" hidden aria-live="polite"></div><label class="text-label" for="parallelReason">增加一个 3 kΩ 并联支路后，原两条支路与总电流怎样变化？为什么？<textarea id="parallelReason" placeholder="注明理想电源端电压固定这一前提"></textarea></label><div class="btn-row"><button class="btn" id="submitParallelReason">提交推导与迁移说明</button></div><div class="feedback" id="parallelReasonFeedback" hidden aria-live="polite"></div><details><summary>展开完整解答与迁移理由</summary><p>1/R_eq=1/1000+1/2000=3/2000，R_eq=2000/3 Ω≈666.667 Ω。I₁=12 mA，I₂=6 mA，总电流 18 mA。增加 3 kΩ 支路后，新支路 I₃=4 mA；理想电源使端电压仍为 12 V，原支路仍是 12 mA、6 mA，总电流变为 22 mA。R_eq=12/0.022=6000/11 Ω≈545.455 Ω，小于原等效电阻。</p></details></article>
+  <article class="task" id="powerExercise"><span class="micro">Q4 · 比较前提</span><h3>电阻加倍，功率怎样变？</h3><p class="task-lead">分别选择：电压固定时，电阻从 R 变为 2R；电流固定时，电阻从 R 变为 2R。这里比较正的欧姆性电阻。</p><div class="field-grid"><label for="powerFixedV">固定 V 时的功率<select id="powerFixedV"><option value="">请选择</option><option value="half">原来的一半</option><option value="same">保持不变</option><option value="double">原来的两倍</option></select></label><label for="powerFixedI">固定 I 时的功率<select id="powerFixedI"><option value="">请选择</option><option value="half">原来的一半</option><option value="same">保持不变</option><option value="double">原来的两倍</option></select></label></div><div class="btn-row"><button class="btn btn--primary" id="checkPower">核对比较题</button></div><div class="feedback" id="powerFeedback" hidden aria-live="polite"></div><details><summary>展开完整推导</summary><p>固定 V：P′=V²/(2R)=P/2。固定 I：P′=I²(2R)=2P。两个公式都成立，但控制条件不同；只说“电阻大功率就大”缺少前提。</p></details></article>
+  <article class="task" id="boundaryExercise"><span class="micro">Q5 · 模型边界</span><h3>零电压、开路与理想短路</h3><p class="task-lead">选出每种情况的准确结论。零电阻指整个负载直接连接理想电源，不能遗漏其他串联电阻。</p><div class="field-grid"><label for="zeroVoltageChoice">V=0，R=1000 Ω，闭合<select id="zeroVoltageChoice"><option value="">请选择</option><option value="zero">I=0，P=0</option><option value="unknown">电流不能确定</option><option value="infinite">电流无限大</option></select></label><label for="openChoice">12 V 电源，开关断开<select id="openChoice"><option value="">请选择</option><option value="zero-current">电流为 0，断口可能有电压</option><option value="zero-voltage">所有两点间电压都为 0</option><option value="same-current">仍有原来的稳态电流</option></select></label><label for="shortChoice">R=0，V=12 V，闭合<select id="shortChoice"><option value="">请选择</option><option value="finite-none">没有有限理想稳态解</option><option value="zero">电流为 0</option><option value="measured-infinity">可测得 Infinity A</option></select></label><label for="zeroZeroChoice">R=0，V=0，闭合<select id="zeroZeroChoice"><option value="">请选择</option><option value="underdetermined">单凭方程不能唯一确定 I</option><option value="unique-zero">方程唯一确定 I=0</option><option value="finite-none">方程对任何 I 都不成立</option></select></label></div><div class="btn-row"><button class="btn btn--primary" id="checkBoundary">核对边界题</button></div><div class="feedback" id="boundaryFeedback" hidden aria-live="polite"></div><details><summary>展开结论与原因</summary><p>正电阻零电压：I=0/R=0，P=0。开路：稳态电源电流为 0，断口可以承担 12 V。零电阻正电压：12=I×0 不存在有限 I。零电阻零电压：0=I×0 对任何有限 I 成立，仅凭此式不能唯一确定电流，不能擅自补成 I=0。</p></details></article>
+ </div><aside class="side"><section class="card"><span class="micro">CHECK YOUR RESULT · 四个自检</span><h3>单位、守恒、趋势、边界</h3><p>单位：V/Ω=A，VI=W。守恒：串联电压降相加，并联支路电流相加。趋势：正电阻并联 R_eq 小于最小支路电阻。边界：除法前检查分母与模型适用条件。</p><p>数值答对只能证明该数值匹配；会不会解释节点、条件与能量，还需要完整推导或迁移证据。</p></section><section class="card card--sunk"><h3>下一次学习</h3><p>把串联分压接上一个负载，重新求等效电阻；再学习真实电源内阻、基尔霍夫电压定律、LED 限流与测量误差。使用知识笔记中的追加题做延迟复习。</p><p><a href="knowledge.md#扩展练习与完整解答">打开笔记中的扩展练习</a></p></section></aside></div>
+</section>
+<section class="zone" aria-labelledby="outputTitle"><div class="zone-head"><span class="micro">03 · AGENT OUTPUT · 学习证据输出</span><h2 id="outputTitle">可检查的作答与事件</h2><p class="zone-goal">本地客观反馈仍待 Runtime 回执确认；解释保持原文，待宿主语义审核。</p></div><div class="evidence-rail"><span class="micro">EVIDENCE TRAIL · 证据轨</span><div class="rail-track" id="railDots"></div><p class="rail-label" id="railCount">已产生 0 条事件（只追加，不覆盖）</p><p class="rail-label" id="railLast">最近：尚无事件</p></div><div class="console"><button class="console-bar" id="consoleBar" aria-expanded="false" aria-controls="consoleJson"><span id="consoleSummary">AGENT OUTPUT · 已记录 0 条事件</span> · 展开数据</button><div id="consoleJson" hidden><pre id="leap-interaction-output" class="console-json"></pre></div></div></section>
+<footer class="footer">LEAP · 欧姆定律教学包 · 无外部运行依赖 · 键盘与减少动态效果均可使用 · <a href="knowledge.md">完整知识笔记</a></footer>
+</main>
+<script>
+/* LEAP_HOST_BRIDGE v3: embed this kernel inline in standalone pages.
+ * Runtime receipts own evidence and completion; local exact checks own feedback.
+ */
+function createLeapBridge(config) {
+  "use strict";
+  var HINT_DEP = [0, 0.25, 0.40, 0.60, 0.85];
+  var STAGE_CN = {estimated:"仅估计",practiced:"练习过",demonstrated:"独立展示",retained:"延迟保持",transferred:"已迁移"};
+  var bridge = {
+    mode: "demo", context: null, server: {mastery_probability:null,evidence_stage:"estimated",hint_dependency:null,next_review_at:null},
+    outbox: [],
+    seq: 0, hooks: [], attempts: {}, ledger: {}, receipts: {}, origins: {}, latestAssessmentCall: null
+  };
+  var state = {
+    leap_version: "2.0", example_id: config.example_id, subject: config.subject,
+    node: config.node, learner: {learner_id:"REPLACE_WITH_LEARNER_ID",session_id:"REPLACE_WITH_SESSION_ID"},
+    events: [], assessment: blankAssessment(),
+    ui_state: {mode:"demo",hosted:false,pending_mcp_calls:0,hint_level:0,hint_dependency:null,
+      answer_revealed:false,completed:false,local_activity_completed:false}
+  };
+  var renderHooks = [], drainWired = false;
+  function nowSec() { return Math.floor(Date.now() / 1000); }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function isHosted() { return bridge.mode === "hosted"; }
+  function blankAssessment() { return {item_id:"",correctness:null,conceptual_understanding:null,reasoning_quality:null,
+    application:null,transfer:null,hint_dependency:null,confidence:null,overall_score:null,error_type:"none",
+    misconception:"",feedback:"尚未评估",evidence_stage:"estimated",assessor_type:"rule",provisional:true}; }
+  function aggregate(d) {
+    var weights = {correctness:0.4,conceptual_understanding:0.3,reasoning_quality:0.2,application:0.1}, sum=0,total=0;
+    Object.keys(weights).forEach(function(k) {if(typeof d[k]==="number" && Number.isFinite(d[k])) {sum+=d[k]*weights[k];total+=weights[k];}});
+    return total ? Math.round(sum/total*100)/100 : null;
+  }
+  function enqueue(tool,args,note) {
+    var call = {call_id:"call_"+(++bridge.seq),tool:tool,args:args||{},status:"pending",created_at:nowSec(),note:note||""};
+    bridge.outbox.push(call); bridge.ledger[call.call_id]=clone(call);
+    bridge.origins[call.call_id]={session_id:state.learner.session_id,node_id:state.node.node_id};
+    bridge.hooks.forEach(function(fn) {fn(clone(call),bridge.outbox.length);});
+    return call;
+  }
+  function enqueueForEvent(ev) {
+    if(ev.event_type === "item_completed") {
+      enqueue("check_advance_unit",{session_id:state.learner.session_id,node_id:state.node.node_id},"检查推进条件；检查通过本身不代表已推进");
+      return;
+    }
+    if(["attempt_submitted","drag_submitted","code_run"].indexOf(ev.event_type)>=0) {
+      var raw=ev.answer==null?"":String(ev.answer), key=ev.item_id||"";
+      var call=enqueue("submit_attempt",{session_id:state.learner.session_id,node_id:state.node.node_id,item_id:key||null,
+        answer:raw,hint_level:typeof ev.hint_level==="number"?ev.hint_level:state.ui_state.hint_level,
+        response_time:typeof ev.response_time==="number"?ev.response_time:null},"保留原始作答与本题 attempt 引用");
+      bridge.attempts[key]={call_id:call.call_id,raw_answer:raw,hint_level:call.args.hint_level,assessor_scope:ev.assessor_scope||"exact_answer"};
+    } else if(ev.event_type==="reflection_recorded") {
+      enqueue("record_reflection",{session_id:state.learner.session_id,node_id:state.node.node_id,reflection:String(ev.answer||"")},"保存反思，不作为正确性评分");
+    }
+  }
+  function pushEvent(event_type,payload) {
+    var ev=Object.assign({event_type:event_type,item_id:""},payload||{},{created_at:nowSec()});
+    state.events.push(ev); enqueueForEvent(ev); renderAll(); return ev;
+  }
+  function setHint(level) {
+    if(!Number.isInteger(level)||level<0||level>4) throw new RangeError("hint level must be 0..4");
+    state.ui_state.hint_level=Math.max(level,state.ui_state.hint_level);
+    if(level===4) state.ui_state.answer_revealed=true;
+    // Local hint usage is separate from the Runtime's historical estimate.
+    state.ui_state.local_hint_dependency=HINT_DEP[state.ui_state.hint_level]; renderAll();
+  }
+  function commitAssessment(item) {
+    var attempt=bridge.attempts[item.item_id];
+    if(!attempt) throw new Error("本题尚未提交作答，不能借用其他题目的 attempt");
+    if(attempt.assessor_scope==="host_semantic_review"||item.assessor_scope==="host_semantic_review") {
+      bridge.latestAssessmentCall=null;
+      state.assessment=Object.assign(blankAssessment(),{item_id:item.item_id,feedback:"原始作答已收集，等待宿主审核论证",evidence_stage:bridge.server.evidence_stage});
+      renderAll(); return clone(state.assessment);
+    }
+    if(typeof item.correctness!=="number"||!Number.isFinite(item.correctness)||item.correctness<0||item.correctness>1) throw new TypeError("Exact checks require an explicit correctness value");
+    // An exact answer does not establish reasoning, concepts, transfer or self-confidence.
+    var value=Math.round(item.correctness*100)/100;
+    var a=Object.assign(blankAssessment(),{item_id:item.item_id,correctness:value,overall_score:value,
+      feedback:item.feedback||"仅核对客观答案",error_type:item.error_type||"none",misconception:item.misconception||"",
+      hint_dependency:HINT_DEP[Math.min(attempt.hint_level,4)],evidence_stage:bridge.server.evidence_stage,provisional:true});
+    state.assessment=a;
+    var call=enqueue("commit_assessment",{attempt_id:"{{"+attempt.call_id+".attempt_id}}",raw_answer:attempt.raw_answer,
+      assessor_type:"rule",correctness:a.correctness,hint_dependency:a.hint_dependency},"仅提交客观正确性；其他维度待相应证据评估");
+    bridge.latestAssessmentCall=call.call_id; renderAll(); return clone(a);
+  }
+  function setCompleted(itemId,reason) {
+    state.ui_state.local_activity_completed=true;
+    pushEvent("item_completed",{item_id:itemId,reason:reason||"local_check_finished"});
+  }
+  function hydrate(ctx) {
+    if(!ctx||typeof ctx!=="object"||ctx.ok===false) throw new TypeError("hydrate requires a successful Runtime context");
+    var sess=ctx.session||{},node=ctx.current_node||ctx.node||{},ks=ctx.knowledge_state||{};
+    var learner=ctx.learner_id||sess.learner_id, sid=ctx.session_id||sess.session_id;
+    if(!learner||!sid||!node.node_id) throw new TypeError("Runtime context needs learner, session and node identifiers");
+    if(sid!==state.learner.session_id||node.node_id!==state.node.node_id) {
+      if(bridge.outbox.length) throw new Error("切换上下文前必须先取走并处理原节点的调用队列");
+      bridge.attempts={}; bridge.latestAssessmentCall=null; state.ui_state.completed=false; state.ui_state.local_activity_completed=false;
+      state.ui_state.hint_level=0; state.ui_state.answer_revealed=false; state.assessment=blankAssessment();
+    }
+    state.learner={learner_id:learner,session_id:sid}; state.node=Object.assign({},state.node,node);
+    bridge.context=clone(ctx); bridge.mode="hosted";
+    bridge.server={mastery_probability:typeof ks.mastery_probability==="number"?ks.mastery_probability:null,
+      evidence_stage:ks.evidence_stage||"estimated",hint_dependency:typeof ks.hint_dependency==="number"?ks.hint_dependency:null,
+      next_review_at:ks.next_review_at||null};
+    state.assessment.evidence_stage=bridge.server.evidence_stage;
+    state.ui_state.hint_dependency=bridge.server.hint_dependency;
+    // A state snapshot does not confirm a particular pending assessment receipt.
+    renderAll(); return snapshot();
+  }
+  function applyToolResults(results) {
+    // Validate the whole batch before changing any receipt or displayed state.
+    var merged=Object.assign({},bridge.receipts,results||{});
+    Object.keys(results||{}).forEach(function(id) {
+      var call=bridge.ledger[id],result=results[id];
+      if(!call) throw new Error("Unknown outbox call receipt: "+id);
+      if(!result||result.ok!==true) return;
+      if(call.tool==="commit_assessment") {
+        var match=/^\{\{(call_\d+)\.attempt_id\}\}$/.exec(call.args.attempt_id);
+        var attemptReceipt=match&&merged[match[1]];
+        if(!attemptReceipt||attemptReceipt.ok!==true||!attemptReceipt.attempt_id||result.attempt_id!==attemptReceipt.attempt_id) throw new Error("Assessment receipt does not match its attempt");
+        if(!result.result_id||typeof result.overall_score!=="number"||!Number.isFinite(result.overall_score)) throw new Error("Incomplete assessment receipt");
+      }
+    });
+    Object.keys(results||{}).forEach(function(id) {
+      var call=bridge.ledger[id], result=results[id];
+      bridge.receipts[id]=clone(result);
+      if(!result||result.ok!==true) return;
+      var origin=bridge.origins[id];
+      if(origin.session_id!==state.learner.session_id||origin.node_id!==state.node.node_id) return;
+      if(call.tool==="commit_assessment" && id===bridge.latestAssessmentCall) {
+        Object.assign(state.assessment,result.scores||{},{overall_score:result.overall_score,provisional:false,result_id:result.result_id});
+        if(result.learner_state) bridge.server=Object.assign({},bridge.server,result.learner_state);
+      }
+      if(call.tool==="advance_unit"&&result.advanced===true&&result.session_id===state.learner.session_id) state.ui_state.completed=true;
+    });
+    state.assessment.evidence_stage=bridge.server.evidence_stage;
+    state.ui_state.hint_dependency=bridge.server.hint_dependency; renderAll(); return snapshot();
+  }
+  function requestAdvance() {
+    var call=enqueue("advance_unit",{session_id:state.learner.session_id,node_id:state.node.node_id},"Runtime State Guard 批准后推进"); renderAll(); return clone(call);
+  }
+  function peekOutbox() {return clone(bridge.outbox);}
+  function drainOutbox() {var out=peekOutbox();bridge.outbox.length=0;renderAll();return out;}
+  function snapshot() {
+    var out=clone(state); out.ui_state.mode=bridge.mode; out.ui_state.hosted=isHosted();out.ui_state.pending_mcp_calls=bridge.outbox.length;
+    out.outbox=peekOutbox();return out;
+  }
+  function renderOutput() {
+    var el=document.getElementById("leap-interaction-output");if(el) el.textContent=JSON.stringify(snapshot(),null,2);
+    var sum=document.getElementById("consoleSummary");if(sum) sum.textContent="AGENT OUTPUT · 已记录 "+state.events.length+" 条事件"+(state.ui_state.completed?" · Runtime 已推进":state.ui_state.local_activity_completed?" · 本地练习已结束，待 Runtime 检查":"");
+  }
+  function renderSpine() {
+    var cur=bridge.server.evidence_stage,stages=Object.keys(STAGE_CN),idx=stages.indexOf(cur);
+    document.querySelectorAll("#evTrack .ev-seg").forEach(function(el,i){el.classList.toggle("is-on",i<=idx);});
+    var name=document.getElementById("evName");if(name) name.textContent=cur+" · "+STAGE_CN[cur];
+    var val=document.getElementById("masVal"),fill=document.getElementById("masFill"),m=bridge.server.mastery_probability;
+    if(val) val.textContent=typeof m==="number"?m.toFixed(2):"未评估";
+    if(fill) fill.style.width=typeof m==="number"?Math.round(m*100)+"%":"0%";
+    var review=document.querySelector(".spine-rev .val"),at=bridge.server.next_review_at;
+    if(review) review.textContent=at?new Date(at*1000).toLocaleString():"尚未安排";
+    var note=document.getElementById("ladderNote");if(note) note.textContent="提示只在主动请求时展开；当前提示层级 "+state.ui_state.hint_level+"。";
+  }
+  function renderBridge() {
+    var mode=document.getElementById("bridgeMode"),sum=document.getElementById("bridgeSummary"),note=document.getElementById("spineNote");
+    if(mode) mode.textContent="BRIDGE · "+(isHosted()?"Runtime 上下文快照":"离线演示");
+    if(sum) sum.textContent="待处理调用 "+bridge.outbox.length+" 条。客观答案反馈需回执确认；论证等待宿主审核。";
+    if(note) note.textContent=isHosted()?"显示最近一次 Runtime 上下文；新作答等待实际调用回执。":"掌握度未评估；离线操作仅收集学习动作。";
+    var button=document.getElementById("bridgeDrain"),pre=document.getElementById("bridgeOutbox");
+    if(button&&!drainWired) {drainWired=true;button.addEventListener("click",function(){if(pre){pre.hidden=!pre.hidden;pre.textContent=JSON.stringify(peekOutbox(),null,2);}});}
+    if(button) button.disabled=!bridge.outbox.length;
+  }
+  function renderRail() {
+    var dots=document.getElementById("railDots"),n=state.events.length;
+    if(dots) {dots.replaceChildren();state.events.forEach(function(e,i){var d=document.createElement("span");d.className="rail-dot";d.style.left=((i+1)/(n+1)*100)+"%";d.title=e.event_type;dots.appendChild(d);});}
+    var count=document.getElementById("railCount"),last=document.getElementById("railLast");
+    if(count) count.textContent="已产生 "+n+" 条事件（只追加，不覆盖）";
+    if(last&&n) last.textContent="最近："+state.events[n-1].event_type;
+  }
+  function renderAll() {renderOutput();renderSpine();renderBridge();renderRail();renderHooks.forEach(function(fn){fn();});}
+  function onRender(fn) {renderHooks.push(fn);fn();}
+  return {hydrate:hydrate,isHosted:isHosted,getInteractionResult:snapshot,getState:function(){return state;},getMastery:function(){return bridge.server.mastery_probability;},
+    peekOutbox:peekOutbox,drainOutbox:drainOutbox,onOutboxChange:function(fn){bridge.hooks.push(fn);},pushEvent:pushEvent,
+    setHint:setHint,commitAssessment:commitAssessment,setCompleted:setCompleted,applyToolResults:applyToolResults,requestAdvance:requestAdvance,
+    aggregate:aggregate,onRender:onRender,refresh:renderAll,HINT_DEP:HINT_DEP,STAGE_CN:STAGE_CN};
+}
+
+window.LEAP=createLeapBridge({example_id:"ohms-law",subject:"electronics",node:{node_id:"electronics.dc.ohms-law",title:"欧姆定律、串并联与功率",unit_tag:"electronics-dc-foundations"}});
+(function(){
+ "use strict";
+ var L=window.LEAP,$=function(id){return document.getElementById(id);};
+ var lab={mode:"single",closed:true,currentHighlight:false,powerVisible:false,componentHighlight:false,step:0};
+ var tries={},itemHints={},modeButtons={single:$("modeSingle"),series:$("modeSeries"),parallel:$("modeParallel")};
+ function fmt(n){return Number.isFinite(n)?String(Math.round(n*1000)/1000):"未确定";}
+ function reflect(item,answer){L.pushEvent("reflection_recorded",{item_id:item,answer:answer,hint_level:L.getState().ui_state.hint_level});}
+ function model(){
+  var V=Number($("voltageRange").value),r1=Number($("r1Range").value),r2=Number($("r2Range").value),req;
+  if(lab.mode==="single")req=r1;else if(lab.mode==="series")req=r1+r2;else req=r1===0||r2===0?0:r1*r2/(r1+r2);
+  var m={V:V,r1:r1,r2:r2,req:req,I:null,i1:null,i2:null,v1:null,v2:null,p1:null,p2:null,P:null,boundary:"finite"};
+  if(!lab.closed){Object.assign(m,{I:0,i1:0,i2:0,v1:0,v2:0,p1:0,p2:0,P:0,boundary:"open"});return m;}
+  if(req===0){m.boundary=V===0?"underdetermined":"short";return m;}
+  m.I=V/req;
+  if(lab.mode==="single"){m.i1=m.I;m.i2=0;m.v1=V;m.v2=0;}
+  else if(lab.mode==="series"){m.i1=m.i2=m.I;m.v1=m.I*r1;m.v2=m.I*r2;}
+  else{m.v1=m.v2=V;m.i1=V/r1;m.i2=V/r2;}
+  m.p1=m.v1*m.i1;m.p2=m.v2*m.i2;m.P=V*m.I;return m;
+ }
+ function component(x,y,h,label,voltage,current){return '<path class="wire" d="M'+x+' 55V'+y+'M'+x+' '+(y+h)+'V310"/><rect class="component" x="'+(x-19)+'" y="'+y+'" width="38" height="'+h+'" rx="3"/><text x="'+(x+32)+'" y="'+(y+20)+'" font-size="15">'+label+'</text><text x="'+(x+32)+'" y="'+(y+44)+'" font-size="13">'+voltage+'</text><text x="'+(x+32)+'" y="'+(y+65)+'" font-size="13">'+current+'</text>';}
+ function renderCircuit(){
+  var m=model(),finite=m.I!==null;$("voltageValue").textContent=fmt(m.V)+" V";$("r1Value").textContent=fmt(m.r1)+" Ω";$("r2Value").textContent=fmt(m.r2)+" Ω";
+  $("r2Range").disabled=lab.mode==="single";
+  Object.keys(modeButtons).forEach(function(n){modeButtons[n].setAttribute("aria-pressed",String(lab.mode===n));});
+  $("switchToggle").setAttribute("aria-pressed",String(lab.closed));$("switchToggle").textContent="开关："+(lab.closed?"闭合":"断开");
+  $("switchWire").setAttribute("y2",lab.closed?"55":"25");$("switchLabel").textContent=lab.closed?"闭合":"断开";$("sourceLabel").textContent=fmt(m.V)+" V";
+  $("currentToggle").setAttribute("aria-pressed",String(lab.currentHighlight));$("currentPaths").toggleAttribute("hidden",!(lab.currentHighlight&&finite&&m.I>0));
+  $("lawHighlight").setAttribute("aria-pressed",String(lab.componentHighlight));$("circuitSVG").classList.toggle("is-highlight",lab.componentHighlight);
+  var v1=finite?fmt(m.v1)+" V":"电压待定",v2=finite?fmt(m.v2)+" V":"电压待定",i1=finite?fmt(m.i1*1000)+" mA":"电流待定",i2=finite?fmt(m.i2*1000)+" mA":"电流待定",svg;
+  if(lab.mode==="single")svg=component(470,110,130,"R₁="+m.r1+" Ω",v1,i1);
+  else if(lab.mode==="series")svg='<path class="wire" d="M470 55V88M470 158V204M470 274V310"/><rect class="component" x="451" y="88" width="38" height="70" rx="3"/><rect class="component" x="451" y="204" width="38" height="70" rx="3"/><text x="506" y="111" font-size="15">R₁='+m.r1+' Ω</text><text x="506" y="137" font-size="13">'+v1+'；'+i1+'</text><text x="506" y="227" font-size="15">R₂='+m.r2+' Ω</text><text x="506" y="253" font-size="13">'+v2+'；'+i2+'</text>';
+  else svg='<path class="wire" d="M470 55H605M470 310H605"/>'+component(390,110,130,"R₁="+m.r1+" Ω",v1,i1)+component(605,110,130,"R₂="+m.r2+" Ω",v2,i2)+'<circle cx="390" cy="55" r="4" fill="#565E6B"/><circle cx="390" cy="310" r="4" fill="#565E6B"/>';
+  $("circuitComponents").innerHTML=svg;
+  $("totalCurrentLabel").textContent=finite?"I="+fmt(m.I*1000)+" mA":"I 无唯一有限值";
+  $("circuitResult").dataset.mode=lab.mode;$("circuitResult").dataset.boundary=m.boundary;$("circuitResult").dataset.current=finite?String(m.I):"";$("circuitResult").dataset.resistance=String(m.req);
+  $("eqResistance").textContent="等效负载电阻 R_eq="+fmt(m.req)+" Ω";
+  $("circuitCurrent").textContent=finite?"电源总电流 I="+fmt(m.I*1000)+" mA":"电源总电流：当前理想方程不能给出唯一有限值。";
+  $("branchValues").textContent=finite?"R₁：V₁="+fmt(m.v1)+" V，I₁="+fmt(m.i1*1000)+" mA"+(lab.mode!=="single"?"；R₂：V₂="+fmt(m.v2)+" V，I₂="+fmt(m.i2*1000)+" mA":""):"先检查零电阻与电源约束，再谈支路计算。";
+  $("circuitBoundary").textContent=m.boundary==="open"?"开路：稳态电源电流为 0；断口电压="+fmt(m.V)+" V。":m.boundary==="short"?"理想短路：V>0 但 R_eq=0，V=IR 不存在有限稳态解；真实内阻未建模。":m.boundary==="underdetermined"?"零电压与零等效电阻：0=I×0 不能唯一确定 I；不要计算 0/0。":"闭合的正等效电阻网络，存在有限稳态解。";
+  var upper=m.req>0?Math.max(10,Math.ceil((24/m.req*1000)/10)*10):10,slope=lab.closed&&m.req>0?1000/m.req:!lab.closed?0:null;
+  $("ivGraph").dataset.slope=slope===null?"":String(slope);$("ivTopLabel").textContent=fmt(upper);$("ivLine").toggleAttribute("hidden",slope===null);$("ivPoint").toggleAttribute("hidden",!finite);
+  if(slope!==null)$("ivLine").setAttribute("d","M55 205L385 "+fmt(205-170*(24*slope)/upper));
+  if(finite){$("ivPoint").setAttribute("cx",String(55+330*m.V/24));$("ivPoint").setAttribute("cy",String(205-170*m.I*1000/upper));}
+  $("ivCaption").textContent=slope===null?"理想边界：无可绘制的有限 I–V 直线":lab.closed?"斜率="+fmt(slope)+" mA/V":"开路：源电流为 0，断口电压可改变";
+  $("powerToggle").setAttribute("aria-pressed",String(lab.powerVisible));$("powerPanel").hidden=!lab.powerVisible;
+  $("powerTotal").textContent=finite?"总功率 P="+fmt(m.P*1000)+" mW":"功率：没有有限稳态电流，暂不计算。";
+  $("powerR1").textContent=finite?"P₁="+fmt(m.p1*1000)+" mW":"P₁ 未确定";$("powerR2").textContent=finite?"P₂="+fmt(m.p2*1000)+" mW":"P₂ 未确定";
+  $("powerBar1").style.width=finite&&m.P>0?m.p1/m.P*100+"%":"0%";$("powerBar2").style.width=finite&&m.P>0?m.p2/m.P*100+"%":"0%";
+ }
+ function logLab(){var m=model();reflect("circuit-exploration","mode="+lab.mode+"; closed="+lab.closed+"; V="+m.V+" V; R1="+m.r1+" Ω; R2="+m.r2+" Ω; boundary="+m.boundary);}
+ Object.keys(modeButtons).forEach(function(n){modeButtons[n].addEventListener("click",function(){lab.mode=n;renderCircuit();logLab();});});
+ ["voltageRange","r1Range","r2Range"].forEach(function(id){$(id).addEventListener("input",renderCircuit);$(id).addEventListener("change",logLab);});
+ $("switchToggle").addEventListener("click",function(){lab.closed=!lab.closed;renderCircuit();logLab();});
+ $("currentToggle").addEventListener("click",function(){lab.currentHighlight=!lab.currentHighlight;renderCircuit();reflect("circuit-path","current_highlight="+lab.currentHighlight);});
+ $("powerToggle").addEventListener("click",function(){lab.powerVisible=!lab.powerVisible;renderCircuit();reflect("power-exploration","power_visible="+lab.powerVisible);});
+ $("circuitReset").addEventListener("click",function(){Object.assign(lab,{mode:"single",closed:true,currentHighlight:false,powerVisible:false,componentHighlight:false});$("voltageRange").value="12";$("r1Range").value="1000";$("r2Range").value="2000";renderCircuit();logLab();});
+ var stepTitles=["物理量与单位","单电阻欧姆定律","串联电压相加","并联电流相加","能量与功率"],stepTexts=[
+  "电压是两点间每单位电荷的能量差，电流是每秒通过截面的电荷量。先标两点与支路，再把 kΩ、mA 换成 Ω、A。",
+  "固定条件下 V=IR。在 R>0 时两边同除 R，得 I=V/R。例：12 V÷1000 Ω=0.012 A=12 mA；代回 IR 得 12 V。",
+  "串联节点无分叉且稳态不积累电荷，所以 I₁=I₂=I。V=V₁+V₂=IR₁+IR₂=I(R₁+R₂)，因此 R_eq=R₁+R₂。",
+  "并联支路跨同一对节点，所以 V₁=V₂=V。I=I₁+I₂=V/R₁+V/R₂，因此 1/R_eq=1/R₁+1/R₂（正电阻）。",
+  "P=ΔE/Δt=(ΔE/Δq)(Δq/Δt)=VI。对正欧姆性电阻，代入 V=IR 得 P=I²R，代入 I=V/R 得 P=V²/R。电荷未被消耗，电能被转换。"
+ ];
+ function renderStep(){ $("lawStepStatus").dataset.step=String(lab.step);$("lawStepStatus").textContent=(lab.step+1)+" / 5 · "+stepTitles[lab.step];$("lawStepText").textContent=stepTexts[lab.step];$("lawPrev").disabled=lab.step===0;$("lawNext").disabled=lab.step===4; }
+ function moveStep(d){lab.step=Math.max(0,Math.min(4,lab.step+d));if(lab.step===1)lab.mode="single";if(lab.step===2)lab.mode="series";if(lab.step===3)lab.mode="parallel";renderStep();renderCircuit();reflect("law-derivation","step="+lab.step+"; "+stepTexts[lab.step]);}
+ $("lawPrev").addEventListener("click",function(){moveStep(-1);});$("lawNext").addEventListener("click",function(){moveStep(1);});$("lawReset").addEventListener("click",function(){lab.step=0;renderStep();reflect("law-derivation","reset_to_step_0");});
+ $("lawHighlight").addEventListener("click",function(){lab.componentHighlight=!lab.componentHighlight;renderCircuit();reflect("law-highlight","component_highlight="+lab.componentHighlight);});
+ $("lawCompare").addEventListener("click",function(){var show=$("lawComparison").hidden;$("lawComparison").hidden=!show;$("lawCompare").setAttribute("aria-expanded",String(show));reflect("law-comparison","comparison_visible="+show);});
+ function feedback(id,tone,good,stuck,next){var box=$(id);box.hidden=false;box.dataset.tone=tone;box.replaceChildren();["你做对的："+good,"卡在："+stuck,"下一步："+next].forEach(function(t){var p=document.createElement("p");p.textContent=t;box.appendChild(p);});}
+ function nextTry(id){tries[id]=(tries[id]||0)+1;return tries[id];}
+ function objective(id,raw,score,note,error,hint){L.pushEvent("attempt_submitted",{item_id:id,answer:raw,hint_level:hint==null?(itemHints[id]||0):hint,retries:nextTry(id)});return L.commitAssessment({item_id:id,correctness:score,feedback:note,error_type:error||"none"});}
+ document.querySelectorAll("[data-choice]").forEach(function(button){button.addEventListener("click",function(){var ok=button.dataset.choice==="equal";document.querySelectorAll("[data-choice]").forEach(function(b){b.setAttribute("aria-pressed",String(b===button));});objective("checkpoint-current",button.textContent,ok?1:0,ok?"稳态串联电流相等；电阻转换电能。":"用电荷守恒区分电流与能量。",ok?"none":"misconception",0);feedback("checkpointFeedback",ok?"ok":"bad","已对稳态串联情境作出选择。",ok?"本题选项正确。":"电流不会被串联电阻逐个消耗，也不会在无源电阻中被增加。","沿路径检查电荷守恒，再把能量变化写成电压降。");});});
+ var units={current:{"":0.001,mA:0.001,A:1,"毫安":0.001,"安培":1},power:{"":0.001,mW:0.001,W:1,"毫瓦":0.001,"瓦":1},voltage:{"":1,V:1,mV:0.001,"伏":1,"伏特":1},resistance:{"":1,"Ω":1,"Ω":1,"ohm":1,"ohms":1,"kΩ":1000,"kΩ":1000,"欧姆":1,"千欧":1000}};
+ function quantity(raw,kind){
+  var s=String(raw).trim(),m=/^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)(?:\s*\/\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?))?\s*([A-Za-zΩΩ\u4e00-\u9fff]*)$/.exec(s);
+  if(!m||!Object.prototype.hasOwnProperty.call(units[kind],m[3]))return null;
+  var n=Number(m[1]);if(m[2]!==undefined){var den=Number(m[2]);if(!Number.isFinite(den)||den===0)return null;n/=den;}n*=units[kind][m[3]];return Number.isFinite(n)?n:null;
+ }
+ function near(n,v,tol){return n!==null&&Math.abs(n-v)<=tol;}
+ function numericPair(item,ids,kinds,expected,tol,fb,correctNote,wrongNote){
+  var raw=ids.map(function(id){return $(id).value;}),checks=ids.map(function(id,i){var ok=near(quantity(raw[i],kinds[i]),expected[i],tol[i]);$(id).dataset.state=ok?"ok":"bad";return ok;}),score=(Number(checks[0])+Number(checks[1]))/2;
+  objective(item,JSON.stringify({field_ids:ids,answers:raw}),score,score===1?correctNote:wrongNote,score===1?"none":"answer_error");
+  feedback(fb,score===1?"ok":"bad",checks.map(function(ok,i){return ok?ids[i]+" 数值与单位匹配":null;}).filter(Boolean).join("；")||"已提交两个原始数值字段。",score===1?"两项客观答案均匹配。":score===0.5?"部分正确；另一项数值或单位需要修改。":"两项尚未匹配；检查单位与连接方式。",score===1?"代回公式并说明成立条件；数值核对不等于论证审核。":wrongNote);
+  return score;
+ }
+ $("checkBase").addEventListener("click",function(){var score=numericPair("q1",["currentAnswer","powerAnswer"],["current","power"],[0.006,0.054],[1e-9,1e-9],"baseFeedback","I=6 mA，P=54 mW。","先把 1.5 kΩ 换为 1500 Ω；I=V/R，P=VI。完整答案可主动请求提示。");if(score===1&&!L.getState().ui_state.answer_revealed)L.setCompleted("q1","objective_base_check_finished");if(L.getState().ui_state.answer_revealed)$("postVerify").hidden=false;});
+ $("checkSeries").addEventListener("click",function(){numericPair("q2-series",["seriesCurrent","seriesVoltage"],["current","voltage"],[0.004,8],[1e-9,1e-6],"seriesFeedback","总电流 4 mA，R₂ 电压 8 V。","先求 R₁+R₂，再求共同电流；V₂=IR₂。");});
+ $("checkParallel").addEventListener("click",function(){numericPair("q3-parallel",["parallelResistance","parallelCurrent"],["resistance","current"],[2000/3,0.018],[0.001,1e-9],"parallelFeedback","R_eq=2000/3 Ω，总电流 18 mA。","同节点电压为 12 V；先求两个支路电流，再相加；并联 R_eq 小于 1000 Ω。");});
+ $("submitParallelReason").addEventListener("click",function(){var raw=$("parallelReason").value;if(!raw.trim()){feedback("parallelReasonFeedback","bad","已找到迁移说明入口。","尚未写下解释。","写出理想电源前提、支路电流与总电流的变化。");return;}L.pushEvent("attempt_submitted",{item_id:"q3-transfer-reason",answer:raw,assessor_scope:"host_semantic_review",hint_level:itemHints["q3-parallel"]||0,retries:nextTry("q3-transfer-reason")});feedback("parallelReasonFeedback","ok","原始解释已完整收集。","待宿主语义审核；本地没有给论证评分。","用节点电压不变、支路电流相加检查你的推导。");});
+ $("checkPower").addEventListener("click",function(){var values=[$("powerFixedV").value,$("powerFixedI").value],score=(Number(values[0]==="half")+Number(values[1]==="double"))/2;objective("q4-power",JSON.stringify({fixed_voltage:values[0],fixed_current:values[1]}),score,"分别用 P=V²/R 与 P=I²R 比较。",score===1?"none":"answer_error");feedback("powerFeedback",score===1?"ok":"bad","已区分两个控制条件。",score===1?"两个客观选项均匹配。":score===0.5?"部分正确；另一个控制条件需重新代入。":"趋势尚未匹配。","把 R 换成 2R，写出 P′/P，再解释为何不同。");});
+ $("checkBoundary").addEventListener("click",function(){var ids=["zeroVoltageChoice","openChoice","shortChoice","zeroZeroChoice"],correct=["zero","zero-current","finite-none","underdetermined"],raw={},n=0;ids.forEach(function(id,i){raw[id]=$(id).value;if(raw[id]===correct[i])n++;});objective("q5-boundaries",JSON.stringify(raw),n/4,"四种边界应分别处理；不能把 0/0 或 Infinity 当成有限测量答案。",n===4?"none":"answer_error");feedback("boundaryFeedback",n===4?"ok":"bad","四项中 "+n+" 项结论匹配。",n===4?"四种理想边界均已区分。":"还有边界结论需修改。","把 V=IR 写出来；开路另用连续路径条件，不把零电阻当作开路。");});
+ var hintMessages=["","先问：1.5 kΩ 等于多少 Ω？电流穿过哪条路径，电压跨在哪两端？","策略：统一单位，先写 I=V/R，再写 P=VI。电流答案默认 mA，功率答案默认 mW。","部分示范：R=1500 Ω；I=9/1500 A。把 A 换为 mA，再用 9 V 乘这个安培数求 W。","完整答案：I=9/1500=0.006 A=6 mA；P=9×0.006=0.054 W=54 mW。检验 IR=0.006×1500=9 V。现在完成 6 V、1 kΩ 的后置验证并解释电荷与能量。"];
+ function revealHint(level){itemHints.q1=Math.max(itemHints.q1||0,level);L.setHint(level);L.pushEvent(level===4?"answer_revealed":"hint_used",{item_id:"q1",hint_level:level,answer:hintMessages[level]});$("hintPanel").hidden=false;$("hintPanel").textContent=hintMessages[level];document.querySelectorAll(".ladder-step").forEach(function(b){var lv=Number(b.dataset.lv);b.disabled=lv>Math.min(level+1,4);b.classList.toggle("is-on",lv<=level);});if(level===4)$("postVerify").hidden=false;}
+ document.querySelectorAll(".ladder-step").forEach(function(b){b.addEventListener("click",function(){var lv=Number(b.dataset.lv);if(lv===4)$("revealConfirm").hidden=false;else revealHint(lv);});});
+ $("revealCancel").addEventListener("click",function(){$("revealConfirm").hidden=true;});$("revealAccept").addEventListener("click",function(){$("revealConfirm").hidden=true;revealHint(4);});
+ $("submitVerify").addEventListener("click",function(){var raw={current:$("verifyCurrent").value,power:$("verifyPower").value,explanation:$("verifyReason").value};if(!raw.current.trim()||!raw.power.trim()||!raw.explanation.trim()){feedback("verifyFeedback","bad","已进入新参数的后置验证。","数值或解释仍为空。","填写两项数值与完整解释后再提交。");return;}var c=near(quantity(raw.current,"current"),0.006,1e-9),p=near(quantity(raw.power,"power"),0.036,1e-9);$("verifyCurrent").dataset.state=c?"ok":"bad";$("verifyPower").dataset.state=p?"ok":"bad";L.pushEvent("attempt_submitted",{item_id:"q1-post-verification",answer:JSON.stringify(raw),assessor_scope:"host_semantic_review",hint_level:L.getState().ui_state.hint_level,retries:nextTry("q1-post-verification")});feedback("verifyFeedback",c&&p?"ok":"bad","两项数值与解释原文已收集。",c&&p?"数值核对匹配；解释待宿主语义审核。":"数值尚未全部匹配；解释也待宿主语义审核。","独立说明电荷守恒与能量转换；此提交不会自行确认完成或掌握度。");});
+ [["seriesExercise","q2-series"],["parallelExercise","q3-parallel"],["powerExercise","q4-power"],["boundaryExercise","q5-boundaries"]].forEach(function(pair){var detail=document.getElementById(pair[0]).querySelector("details");detail.addEventListener("toggle",function(){if(!detail.open)return;itemHints[pair[1]]=4;L.pushEvent("answer_revealed",{item_id:pair[1],hint_level:4,answer:detail.textContent.trim()});});});
+ $("consoleBar").addEventListener("click",function(){var show=$("consoleJson").hidden;$("consoleJson").hidden=!show;$("consoleBar").setAttribute("aria-expanded",String(show));});
+ L.refresh();renderStep();renderCircuit();
+})();
+</script>
+</body>
+</html>

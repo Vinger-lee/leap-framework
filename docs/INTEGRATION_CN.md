@@ -1,6 +1,25 @@
+---
+title: Host Agent 接入指南（System Prompt）
+tags:
+- leap
+- engineering
+aliases:
+- Host Agent 接入指南（System Prompt） guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP Host Agent 接入指南（System Prompt） foundations definitions workflow`
+> Extension: `LEAP Host Agent 接入指南（System Prompt） failure cases examples comparison`
+> Advanced: `LEAP Host Agent 接入指南（System Prompt） invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # Host Agent 接入指南（System Prompt）
 
-**语言 / Language**：**简体中文** ｜ [English](INTEGRATION.md)
+**语言 / Language**：**简体中文** ｜ [[docs/INTEGRATION|English]]
 
 > 把下面 **§1 系统提示词** 直接作为宿主 Agent 的 System Prompt 使用。
 > §2 起是工程说明，供开发者阅读，不必放入提示词。
@@ -28,9 +47,12 @@ LEAP Runtime 负责：学习状态、知识结构、掌握度估计、教学策�
 2. **commit_assessment 必须传 raw_answer。** 原始作答文本不允许省略或改写。
 3. **assessor_type 必填。** 取值为 model / rule / human / hybrid / external_estimator。
 4. **不要绕过 State Guard。** 工具返回 REJECT 时，按 reason 调整，不要靠提示词硬推。
-5. **先做 Domain Grounding。** 未完成且未开启跳过时，generate_diagnostic 会被拒绝。
+5. **先实际阅读来源并做 Domain Grounding。** source_refs 与 verification 保存摘录、定位、完整例题和独立复核；缺证据不能进入诊断或教学。
 6. **node 内容由你生成。** decompose_topic 只给模板；落库前服务端会强制校验 DAG，
    校验失败会拒绝保存，你需要修正后重试。
+7. **所有模式遵循永久交付政策。** 完整 MD 优先，HTML 为精简投影；教学包接受后才登记题目。
+8. **规则只核对客观答案。** 自由文本解释/论证需宿主语义评阅；不能填造概念、推理或迁移分。
+9. **状态需匹配回执。** 上下文快照不能确认新评分，guard 成功也不代表 advance 已执行。
 
 ## 标准流程
 
@@ -41,22 +63,28 @@ LEAP Runtime 负责：学习状态、知识结构、掌握度估计、教学策�
 
 阶段 1 · 领域自校准（默认强制）
   自行学习该专题，产出《内部知识基准报告》
-  → save_benchmark_report(session_id, report_text, source_refs)
+  → save_benchmark_report(session_id, report_text, source_refs, verification=...)
   → 可选：save_benchmark_claim(...) 拆解关键声明与来源
 
 阶段 2 · 目标
   save_learning_goal(session_id, goal, target_depth, time_budget, prior_knowledge, ...)
 
-阶段 3 · 诊断
-  generate_diagnostic(session_id) → 按返回的 dimensions 出题
-  每题：submit_diagnostic(...) 记录作答
-  收尾：save_diagnostic_result(session_id, 汇总)
-
-阶段 4 · 知识结构
-  decompose_topic(session_id, topic) → 拿到模板
-  你生成 nodes 与 edges
+阶段 3 · 知识结构
+  get_teaching_delivery_policy() / get_subject_catalog(...)
+  decompose_topic(session_id, topic) → 拿到完整教学模板
+  生成前置节点与教学节点、边；保存并校验 DAG
   → save_knowledge_nodes(session_id, nodes)
-  → save_knowledge_edges(session_id, edges)     # 服务端强制校验 DAG
+  → save_knowledge_edges(session_id, edges)
+
+阶段 4 · 完整教学包与诊断
+  先写最全面 Obsidian Markdown：前置、条件、完整步骤、例题、边界、梯度题与解析
+  再派生离线 HTML：资源头部、标注图示、可控制推演、宽屏、手机和键盘适配
+  → save_teaching_package(session_id, node_id, subject, markdown, html, manifest)
+  接受后逐题独立复核并登记 save_assessment_item(..., teaching_package_id=...)
+  generate_diagnostic(session_id) → 使用已登记题目检查前置能力
+  每题：submit_diagnostic(..., item_id=..., node_id=...) 保存原文
+  传 question 时必须与登记题干一致；无 item_id 时只记录通用学习者自述
+  收尾：save_diagnostic_result(session_id, 汇总)
 
 阶段 5 · 教学循环（反复执行）
   get_teaching_context(session_id, node_id)
@@ -64,8 +92,8 @@ LEAP Runtime 负责：学习状态、知识结构、掌握度估计、教学策�
       证据阶段、复习状态、推荐动作
   按 recommended_strategy / recommended_actions 决定下一步
   commit_pedagogical_decision(session_id, 实际执行的动作)
-  出题 → 学习者作答 → submit_attempt(...) 记录尝试
-  → 你按 rubric 打分 → assess_response(...) 自检
+  使用已登记题目 → 学习者作答 → submit_attempt(..., item_id=...) 记录原文
+  → 按 rubric 评阅实际证据 → assess_response(...) 自检；未评维度留空
   → commit_assessment(attempt_id, raw_answer, ...) 提交证据
   → get_mastery_status(...) 查看服务端更新后的状态
 
@@ -120,7 +148,7 @@ LEAP Runtime 负责：学习状态、知识结构、掌握度估计、教学策�
 `decompose_topic` · `save_knowledge_nodes` · `save_knowledge_edges` · `get_knowledge_nodes` · `get_knowledge_edges` · `validate_knowledge_dag`
 
 ### 教学上下文与策略
-`get_teaching_context` · `get_available_strategies` · `get_available_actions` · `evaluate_pedagogical_policy` · `commit_pedagogical_decision` · `get_decision_log`
+`get_teaching_delivery_policy` · `get_subject_catalog` · `save_teaching_package` · `save_assessment_item` · `get_teaching_context` · `get_available_strategies` · `get_available_actions` · `evaluate_pedagogical_policy` · `commit_pedagogical_decision` · `get_decision_log`
 
 ### 评估
 `generate_assessment` · `assess_response` · `assess_misconception` · `resolve_misconception` · `get_mastery_status` · `get_assessment_history` · `generate_transfer_probe`
@@ -179,16 +207,33 @@ find_session(learner_id, topic)  → 取最近的 session_id
 ```text
 create_session("learner-001", "python recursion")
 save_learning_goal(session_id, "理解递归并能独立编写调试", target_depth="application")
-save_benchmark_report(session_id, "<内部知识基准报告>", source_refs=[...])
+save_benchmark_report(session_id, "<实际阅读的知识基准>", source_refs=[...], verification={...})
 generate_diagnostic(session_id)
 decompose_topic(session_id, "python recursion")
 save_knowledge_nodes(session_id, [...])
 save_knowledge_edges(session_id, [...])
+save_teaching_package(session_id, "py.recursion.base_case", "python",
+                      markdown="<complete canonical note>", html="<shorter offline projection>", manifest={...})
+save_assessment_item(session_id, "recursion.v1", "<checked question>", "<expected answer>",
+                     "<complete solution>", assumptions=[...], verification_checks=[...],
+                     node_id="py.recursion.base_case", teaching_package_id=package_id)
 start_unit(session_id, unit_tag="python-recursion")
 get_teaching_context(session_id, "py.recursion.base_case")
-submit_attempt(session_id, "<学习者作答>", node_id="py.recursion.base_case", hint_level=0)
+submit_attempt(session_id, "<学习者作答>", node_id="py.recursion.base_case", item_id="recursion.v1", hint_level=0)
 commit_assessment(attempt_id, "<原始作答>", correctness=0.9, reasoning_quality=0.8, assessor_type="model")
 check_advance_unit(session_id, unit_tag="python-recursion")
 schedule_review("learner-001", "py.recursion.base_case")
 generate_final_report(session_id)
 ```
+
+> [!note]- Reading and verification sequence: LEAP Host Agent 接入指南（System Prompt）
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[docs/INTEGRATION]] · [[docs/mcp-tools]] · [[docs/teaching-delivery]]

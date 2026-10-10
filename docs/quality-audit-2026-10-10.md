@@ -1,3 +1,22 @@
+---
+title: 2026-10-10 使用反馈与交付物审计
+tags:
+- leap
+- engineering
+aliases:
+- 2026-10-10 使用反馈与交付物审计 guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP 2026-10-10 使用反馈与交付物审计 foundations definitions workflow`
+> Extension: `LEAP 2026-10-10 使用反馈与交付物审计 failure cases examples comparison`
+> Advanced: `LEAP 2026-10-10 使用反馈与交付物审计 invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # 2026-10-10 使用反馈与交付物审计
 
 核验对象：修改前的仓库 HEAD `2568667`，以及用户提供的 `leap-math1-ch01-functions-limits.html`。原交付物保留不动；本次审查没有声称查阅最新考试大纲。下面的数学结论来自定义、推导和明确反例。
@@ -69,7 +88,7 @@
 
 本次仍不能证明任何 Agent 内部“真的学会了”某领域；可做的是要求可审阅来源和复核记录，并拒绝证据不足的流程。宿主在 Runtime 外生成的文件、不带 item_id 的旧通用作答、显式允许跳过的会话依然需要调用方遵守质量流程。不能将这些限制隐去后承诺“不会再出错”。
 
-## 本次验证记录
+## 第一轮修复的历史验证记录（59工具版本）
 
 - Python 测试：273 passed，1 skipped。跳过原因是公开仓库不包含外部设计文档。
 - 五个示例浏览器验证：199/199 项通过，包含 34 个明确声明的场景；不等于所有可能交互或全部学科内容已获验证。
@@ -78,3 +97,35 @@
 - 工具参考生成检查、共享/打包 schema 一致性、桥接完整性和 Git 空白检查通过。
 
 旧会话只有文字报告时需要补齐证据；带 item_id 的新作答需要先登记题目。这是有意收紧的接入行为，不会自动修复旧交付物，也不会自动给宿主安装或注册 MCP。
+
+## 2026-10-11 全局教学升级复验
+
+当前升级为62个真实注册工具：新增永久交付政策、11学科目录和完整教学包登记。所有回包携带政策，所有教学模式保持同一交付规则；题目与教学正文依赖接受后的实际Markdown/HTML包。完整工具参考从注册函数生成，并同步中英文接入流程。诊断题不再自动登记未经复核的临时题干。
+
+五个原示例已重写，新增概率统计、化学计量与欧姆定律示例，共八个。每页包含前置、条件、完整演算、误解修正、反例、梯度练习、迁移及可控图示；全仓Markdown具备Obsidian元数据、资源头部、根路径双链与反向索引。Markdown内容门禁核对真实静态HTML文本，而非代码长度或作者自报的覆盖率。未核验视频使用分层精确检索词。
+
+最后交互复核额外定位并修复递归匹配题未初始化、已放置卡片无法重排，以及卡片点击冒泡导致重排立即撤回的问题。浏览器明确覆盖空提交、原生拖拽、全错后的修正、键盘放置与清空；不能再用页面加载成功代替这些路径的检查。120帧模拟上限测试使用确实需要121帧的合法输入，且深度拒绝不被解释为无限递归证明。
+
+验证记录：
+
+- Python：293 passed、1 skipped；唯一跳过仍是公开仓库不存在外部设计文档的比对。
+- 八页浏览器：509/509项通过，197个声明场景；另包含逐题引用、未观察维度、错误回执、跨节点回执、语义作答、状态快照和完成权限的共用负向检查。
+- 八个Markdown/HTML包实际静态正文覆盖均为100%，并含Markdown额外推导；1440/1920横向利用率达标，375px无整页溢出。
+- 隐私扫描P0/P1/P2均为0。OSI中的RFC5737文档地址保留；扫描器区分文档地址与真实公网地址，并有相邻地址回归用例。
+- 第一章正式交付包含4单元、12教学链、32题。真实MCP制作执行55次调用并登记4个教学包；测试副本执行198次页面队列调用、99次原始作答、95次客观评估。28正确与64错误客观提交均核对，额外验证无效数值 `1/0` 的页面拒绝、有效错答及正确重试的真实MCP回传；宿主数值核对器也有无效输入回归测试。4证明题仅记录原文，不编造语义成绩。正式学习数据库作答仍为0。
+
+第一章程序验证含36项精确恒等式、边界和数值自洽检查；数值检查没有被称为证明。2028官方大纲尚未取得，内容按基础微积分组织并保留来源定位与原始快照。仍不能证明任意Agent内在“学会了”领域，也不能保证生成内容永无错误。WorkBuddy连接器安装/信任未被本次stdio联调替代。
+
+复現配方与验证入口：[[curricula/math1-2028-ch01/README]]、[[docs/teaching-delivery]]、[[docs/teaching-upgrade-plan]]。
+
+> [!note]- Reading and verification sequence: LEAP 2026-10-10 使用反馈与交付物审计
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[docs/teaching-upgrade-plan]]

@@ -61,6 +61,7 @@ jobs:
       - run: pip install -e ".[dev,examples]"
       - run: python -m playwright install --with-deps chromium
       - run: python scripts/generate_tool_reference.py --check
+      - run: python scripts/verify_teaching_repository.py --json teaching-verification.json
       - run: python scripts/verify_example_runtime.py --all --json runtime-verification.json
       - run: python scripts/verify_mcp_bridge.py
       - uses: actions/upload-artifact@v4

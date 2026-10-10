@@ -40,7 +40,13 @@
         "math",
         "computer-science",
         "physics",
-        "logic"
+        "logic",
+        "statistics",
+        "chemistry",
+        "electronics",
+        "biology",
+        "economics",
+        "language"
       ]
     },
     "node": {
@@ -166,43 +172,67 @@
           "type": "string"
         },
         "correctness": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1
         },
         "conceptual_understanding": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1
         },
         "reasoning_quality": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1
         },
         "application": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1
         },
         "transfer": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1
         },
         "hint_dependency": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1,
           "description": "提示依赖度，越高表示越依赖提示"
         },
         "confidence": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1
         },
         "overall_score": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1,
           "description": "加权综合分；默认权重 correctness 0.4 / conceptual_understanding 0.3 / reasoning_quality 0.2 / application 0.1，transfer 与 hint_dependency 不参与聚合（对齐文档 §10.3-1）"
@@ -249,7 +279,7 @@
         },
         "provisional": {
           "type": "boolean",
-          "description": "true means the local assessment has not been confirmed by Runtime; demo never promotes mastery or evidence_stage. Hosted mode alone does not confirm a new assessment."
+          "description": "Feedback has no corresponding successful Runtime assessment receipt. It never grants authority to change mastery, evidence stage or completion."
         }
       }
     },
@@ -314,7 +344,7 @@
             "demo",
             "hosted"
           ],
-          "description": "demo = 未接入宿主，掌握度为本地演示值；hosted = 已通过 LEAP.hydrate() 注入 Runtime 上下文"
+          "description": "demo: offline collection; hosted: a Runtime context snapshot was loaded, not evidence of a persistent connection"
         },
         "hosted": {
           "type": "boolean",
@@ -326,7 +356,10 @@
           "description": "outbox 中待执行的调用条数"
         },
         "hint_dependency": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1,
           "description": "当前提示依赖（hosted 下由 Runtime 注入）。对齐设计理念 M9：提示依赖必须对学习者可见，不得只藏在 JSON 里"
@@ -342,7 +375,11 @@
         },
         "completed": {
           "type": "boolean",
-          "description": "本示例任务是否已完成（含完整答案后的后置验证）"
+          "description": "True only when an explicit successful Runtime advance/complete receipt confirms completion; local answer reveal or correctness cannot set it."
+        },
+        "local_activity_completed": {
+          "type": "boolean",
+          "description": "Local exercise action ended; never equals authoritative Runtime unit completion."
         }
       }
     }

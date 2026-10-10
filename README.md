@@ -1,3 +1,22 @@
+---
+title: 🎓 LEAP Framework
+tags:
+- leap
+- engineering
+aliases:
+- 🎓 LEAP Framework guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP 🎓 LEAP Framework foundations definitions workflow`
+> Extension: `LEAP 🎓 LEAP Framework failure cases examples comparison`
+> Advanced: `LEAP 🎓 LEAP Framework invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # 🎓 LEAP Framework
 
 <p align="center">
@@ -6,22 +25,22 @@
   <img src="https://img.shields.io/github/v/release/Vinger-lee/leap-framework" alt="Release">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-59%20tools-22bb33" alt="MCP Tools">
-  <img src="https://img.shields.io/badge/tests-260%20passing-22bb33" alt="Tests">
+  <img src="https://img.shields.io/badge/MCP-62%20tools-22bb33" alt="MCP Tools">
+  [![Tests](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml)
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
   <b>🤖 Give your AI agent a real tutoring engine — not just a prompt.</b>
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> ·
-  <a href="README_CN.md">中文</a> ·
-  <a href="docs/i18n/README.ja.md">日本語</a> ·
-  <a href="docs/i18n/README.ko.md">한국어</a> ·
-  <a href="docs/i18n/README.fr.md">Français</a> ·
-  <a href="docs/i18n/README.es.md">Español</a> ·
-  <a href="docs/i18n/README.ru.md">Русский</a> ·
-  <a href="docs/i18n/README.ar.md">العربية</a>
+  [[README|English]] ·
+  [[README_CN|中文]] ·
+  [[docs/i18n/README.ja|日本語]] ·
+  [[docs/i18n/README.ko|한국어]] ·
+  [[docs/i18n/README.fr|Français]] ·
+  [[docs/i18n/README.es|Español]] ·
+  [[docs/i18n/README.ru|Русский]] ·
+  [[docs/i18n/README.ar|العربية]]
 </p>
 
 ---
@@ -61,7 +80,7 @@ pip install -e ".[dev]"
 Run the test suite:
 
 ```bash
-pytest -q        # 260 passed
+pytest -q        # inspect the current test result
 ```
 
 Start the MCP server:
@@ -123,7 +142,7 @@ complementary long-term evidence dimensions.
 
 ## 🔧 MCP tools
 
-59 tools over stdio, grouped by domain:
+62 tools over stdio, grouped by domain:
 
 | Group | Examples |
 |---|---|
@@ -135,15 +154,18 @@ complementary long-term evidence dimensions.
 | Retention | `schedule_review`, `get_due_reviews`, `submit_review` |
 | State Guard | `start_unit`, `check_advance_unit`, `advance_unit`, `rollback_unit` |
 | Evidence | `save_benchmark_report`, `get_evidence`, `validate_claim` |
+| Teaching delivery | `get_teaching_delivery_policy`, `get_subject_catalog`, `save_teaching_package` |
 | Artifacts | `save_artifact`, `get_obsidian_structure`, `get_web_component_spec` |
 | Reflection | `record_reflection` |
 | Reporting | `generate_final_report`, `get_learning_metrics` |
 
-The table shows examples, not the complete catalog. The [generated tool reference](docs/mcp-tools.md) lists every registered tool and its exact parameters; CI checks it against the MCP catalog.
+The table shows examples, not the complete catalog. The [[docs/mcp-tools|generated tool reference]] lists every registered tool and its exact parameters; CI checks it against the MCP catalog.
 
 Domain Grounding now requires source locators, excerpts, linked claims, checked examples and limitations in `save_benchmark_report(verification=...)`. Text alone remains pending; teaching entry points are guarded too. Hosts must read sources themselves and register checked questions with `save_assessment_item` before delivery. Free-text reasoning needs host semantic review: LEAP validates submitted records and estimates state; it does not prove subject-matter correctness.
 
-See the [content-quality and integration workflow](docs/content-quality.md) and [audit of the reported delivery](docs/quality-audit-2026-10-10.md). Browser scenario checks and real MCP integration checks are separate from content review.
+See the [[docs/content-quality|content-quality and integration workflow]] and [[docs/quality-audit-2026-10-10|audit of the reported delivery]]. Browser scenario checks and real MCP integration checks are separate from content review.
+
+Every mode uses the permanent depth, controllable diagrams, wide layout, complete Obsidian source and precise resource policy. Register the actual Markdown/HTML pair with `save_teaching_package` before registering questions. See [[docs/teaching-delivery]], the 11-domain catalog in [[docs/subject-knowledge-map]], and the reproducible calculus chapter in [[curricula/math1-2028-ch01/README]].
 
 ## 🧩 Pluggable by design
 
@@ -183,7 +205,7 @@ may override:
 
 ## 📚 Examples
 
-Five single-page teaching demos, each verified statically and in headless Chromium:
+Eight single-page teaching demos, each verified statically and in headless Chromium:
 
 | Example | Subject |
 |---|---|
@@ -192,6 +214,9 @@ Five single-page teaching demos, each verified statically and in headless Chromi
 | `examples/03-cs-osi-model/` | Computer science — OSI model |
 | `examples/04-physics-free-fall/` | Physics — free fall |
 | `examples/05-logic-flowchart/` | Logic — flowcharts |
+| `examples/06-statistics-probability/` | Statistics — conditional probability |
+| `examples/07-chemistry-stoichiometry/` | Chemistry — stoichiometry |
+| `examples/08-electronics-ohms-law/` | Electronics — Ohm law |
 
 Every page is a **reference implementation**: zero CDN, zero network requests, and it demonstrates
 the real page ↔ runtime bridge — `LEAP.hydrate(context)` for state in, `LEAP.drainOutbox()` for
@@ -216,18 +241,20 @@ leap-framework/
 │   ├── storage/             # SQLite schema + migrations
 │   ├── tools/               # tool implementations
 │   └── specs/               # Obsidian / web component specs
-├── examples/                # five teaching pages + shared specs
+├── examples/                # eight teaching pages + shared specs
 ├── docs/                    # architecture, integration, i18n
 ├── scripts/                 # verifiers, scanner, auditors
-└── tests/                   # 260 tests
+└── tests/                   # inspect the current test result
 ```
 
 ## 🔍 Quality gates
 
 ```bash
-pytest -q                                        # 260 tests
+pytest -q                                        # inspect the current test result
 python scripts/security_scan.py --root .         # secrets & PII (CI gate)
 python scripts/verify_example.py --all           # example static compliance
+python scripts/verify_teaching_repository.py     # canonical notes, reciprocal links and full paired bodies
+python scripts/verify_mcp_bridge.py              # actual stdio Runtime + shipped page
 python scripts/verify_example_runtime.py --all   # example runtime compliance
 python scripts/spec_coverage.py                  # spec vs. code coverage
 python scripts/apply_leap_bridge.py --check      # host-bridge completeness
@@ -244,14 +271,14 @@ test that asserts the index and full history contain zero such files.
 
 | Document | Contents |
 |---|---|
-| [`README_CN.md`](README_CN.md) | 中文说明 |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Architecture and design decisions |
-| [`docs/INTEGRATION.md`](docs/INTEGRATION.md) | Host-agent integration guide |
-| [`docs/EXAMPLES.md`](docs/EXAMPLES.md) | The five teaching pages and their contract |
+| [[README_CN|README_CN.md]] | 中文说明 |
+| [[docs/ARCHITECTURE|docs/ARCHITECTURE.md]] | Architecture and design decisions |
+| [[docs/INTEGRATION|docs/INTEGRATION.md]] | Host-agent integration guide |
+| [[docs/EXAMPLES|docs/EXAMPLES.md]] | The eight teaching pages and their contract |
 | [`docs/i18n/`](docs/i18n/) | Translations |
-| [`CHANGELOG.md`](CHANGELOG.md) | Release history |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to contribute |
-| [`SECURITY.md`](SECURITY.md) | Reporting a vulnerability |
+| [[CHANGELOG|CHANGELOG.md]] | Release history |
+| [[CONTRIBUTING|CONTRIBUTING.md]] | How to contribute |
+| [[SECURITY|SECURITY.md]] | Reporting a vulnerability |
 
 > The authoritative framework design specification and visual design system are maintained by the
 > project author separately and are **not** part of this repository. The implementation here
@@ -259,8 +286,20 @@ test that asserts the index and full history contain zero such files.
 
 ## 🤝 Contributing
 
-Issues and pull requests are welcome. Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) first.
+Issues and pull requests are welcome. Please read [[CONTRIBUTING|CONTRIBUTING.md]] first.
 
 ## 📄 License
 
 [MIT](LICENSE) © Vinger-lee
+
+> [!note]- Reading and verification sequence: LEAP 🎓 LEAP Framework
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[README_CN]] · [[docs/ARCHITECTURE]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]]

@@ -239,6 +239,14 @@ class TestSecurityScanner:
         ids = self._rule_ids(tmp_path, "real.md", "contact: alice@acme-corp.com\n")
         assert "PII004" in ids
 
+    def test_documentation_ipv4_blocks_are_not_real_hosts(self, tmp_path):
+        content = "192.0.2.10\n198.51.100.20\n203.0.113.30\n"
+        assert "NET002" not in self._rule_ids(tmp_path, "network.md", content)
+
+    def test_documentation_ipv4_exception_preserves_nearby_hosts(self, tmp_path):
+        for index, address in enumerate(("192.0.3.10", "198.51.101.20", "203.0.114.30")):
+            assert "NET002" in self._rule_ids(tmp_path, f"host{index}.md", address + "\n")
+
     def test_inline_allow_marker_suppresses_a_line(self, tmp_path):
         content = (
             'FAKE = "sk-abcdefghijklmnopqrstuvwx"  # security-scan: allow\n'

@@ -68,13 +68,10 @@ def _guard(fn: Callable[..., Any]) -> Callable[..., Any]:
         except ToolError as exc:
             return exc.as_dict()
         except FileNotFoundError as exc:
-            return {"ok": False, "error": {"code": "not_found", "message": str(exc), "details": {}}}
+            return ToolError("not_found", str(exc)).as_dict()
         except Exception as exc:  # pragma: no cover - defensive boundary
             logger.exception("tool %s failed", fn.__name__)
-            return {
-                "ok": False,
-                "error": {"code": "internal_error", "message": str(exc), "details": {"tool": fn.__name__}},
-            }
+            return ToolError("internal_error", str(exc), {"tool": fn.__name__}).as_dict()
 
     return wrapper
 
@@ -104,6 +101,14 @@ def build_server() -> MCPServer:
             "the truth of supplied mathematical answers. mastery_probability is "
             "computed server-side from evidence you submit via commit_assessment - never "
             "send your own probability. Always pass raw_answer when committing an assessment."
+            " Permanent delivery policy 3.0 applies to every subject and learning mode: fetch "
+            "get_teaching_delivery_policy; teach prerequisites and principles with complete explained "
+            "steps, worked checks, misconceptions, boundaries, contrasts and graduated transfer. "
+            "Write the full Obsidian Markdown knowledge source before a shorter interactive offline "
+            "HTML projection; both need verified relevant videos or precise core/extension/advanced "
+            "search keywords at the top, reciprocal wikilinks, meaningful labeled controllable "
+            "visualizations, wide desktop and mobile layouts. Register both bodies through "
+            "save_teaching_package and verify every interaction. Never reduce these rules for core_only."
         ),
     )
 
@@ -226,7 +231,12 @@ def build_server() -> MCPServer:
         response_time: float | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Record one diagnostic answer as a learner attempt."""
+        """Record a diagnostic answer under the same grounding and item gates as submit_attempt.
+
+        Supplied questions require a registered item_id matching the question;
+        register its canonical teaching package first. Without an item, only a
+        general learner self-report is supported; it is not a registered quiz.
+        """
         return get_service().submit_diagnostic(
             session_id, answer, item_id=item_id, node_id=node_id, question=question,
             hint_level=hint_level, response_time=response_time, request_id=request_id,
@@ -428,15 +438,19 @@ def build_server() -> MCPServer:
         solution: str, assumptions: list[str], verification_checks: list[dict],
         node_id: str | None = None, source_ids: list[str] | None = None,
         rejected_answers: list[dict] | None = None, assessor_scope: str = "host_semantic_review",
+        teaching_package_id: str | None = None,
     ) -> dict:
         """Register a checked item before delivery. Supply conditions, solution and independent checks.
 
         Runtime checks structure only. The host must verify content, options,
-        counterexamples and free-text reasoning. Item IDs are immutable.
+        counterexamples and free-text reasoning. Item IDs are immutable. Register
+        the canonical lesson via save_teaching_package first; supply its id or
+        use the latest accepted package for this session/node.
         """
         return get_service().save_assessment_item(
             session_id, item_id, question, expected_answer, solution, assumptions, verification_checks,
             node_id=node_id, source_ids=source_ids, rejected_answers=rejected_answers, assessor_scope=assessor_scope,
+            teaching_package_id=teaching_package_id,
         )
 
     # -- 22.7 Retention -----------------------------------------------------
@@ -698,6 +712,40 @@ def build_server() -> MCPServer:
         )
 
     # -- 22.10 Artifact -----------------------------------------------------
+
+    @server.tool()
+    @_guard
+    def get_teaching_delivery_policy() -> dict:
+        """Get mandatory teaching depth, visuals, wide layout, full Markdown and resource rules.
+
+        Applies to every subject, tool, mode and future generation. Write canonical
+        Obsidian Markdown first and register both bodies via save_teaching_package.
+        """
+        return get_service().get_teaching_delivery_policy()
+
+    @server.tool()
+    @_guard
+    def get_subject_catalog(subject: str | None = None) -> dict:
+        """Get starter subject modules, prerequisite graph and canonical knowledge note paths.
+
+        Optional subject filters the catalog. The catalog is extensible; policy
+        applies equally to subjects not yet represented in shipped examples.
+        """
+        return get_service().get_subject_catalog(subject)
+
+    @server.tool()
+    @_guard
+    def save_teaching_package(
+        session_id: str, node_id: str, subject: str, markdown: str, html: str,
+        manifest: dict, request_id: str | None = None,
+    ) -> dict:
+        """Validate and store canonical Markdown and projected HTML with teaching records.
+
+        Supply actual complete bodies, resources, teaching_points, html_segments,
+        markdown_extensions and source_ids. Missing depth or coverage is rejected.
+        Accepted records are structurally checked, not semantically certified.
+        """
+        return get_service().save_teaching_package(session_id, node_id, subject, markdown, html, manifest, request_id=request_id)
     @server.tool()
     @_guard
     def save_artifact(
@@ -710,7 +758,11 @@ def build_server() -> MCPServer:
         version: str = "1",
         request_id: str | None = None,
     ) -> dict:
-        """Save a learning artefact (HTML, Markdown, chart, code, report...)."""
+        """Save a learning artefact (HTML, Markdown, chart, code, report...).
+
+        Teaching HTML/Markdown require metadata.teaching_package_id from an
+        accepted save_teaching_package call. Full bodies are validated there.
+        """
         return get_service().save_artifact(
             learner_id, session_id, artifact_type, path_or_uri=path_or_uri,
             content=content, metadata=metadata, version=version, request_id=request_id,

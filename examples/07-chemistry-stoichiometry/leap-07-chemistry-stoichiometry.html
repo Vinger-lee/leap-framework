@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>化学计量：配平与限制反应物</title><style>
+/* ══════════════════════════════════════════════════════════════
+   LEAP 视觉设计系统 v1.0 · 令牌层
+   规范来源：LEAP_视觉设计理念_给Gemini.md §4
+   ══════════════════════════════════════════════════════════════ */
+:root{
+  --paper:#FAF9F6; --surface:#FFFFFF; --surface-sunk:#F3F1EC; --surface-mute:#EDEAE3;
+  --ink:#191B20; --ink-2:#565E6B; --ink-3:#8A909C;
+  --hairline:#E8E4DC; --rule:#D8D3C9;
+  --accent:#2B4AC4; --accent-deep:#1E3699; --accent-wash:#EDF0FD;
+  --ok:#2E7D5B; --ok-wash:#EAF4EF;
+  --warn:#B3861A; --warn-wash:#FBF3E0;
+  --err:#B4432F; --err-wash:#FBEDEA;
+  --hint-1:#E4C77C; --hint-2:#D4A43C; --hint-3:#B3861A; --hint-4:#7A7F8A;
+  --ev-estimated:#9AA1AD; --ev-practiced:#4C7BD9; --ev-demonstrated:#2E8B84;
+  --ev-retained:#4C8B3F; --ev-transferred:#B3861A;
+
+  --font-display:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",Georgia,serif;
+  --font-sans:"Noto Sans SC","PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+
+  --fs-display:32px; --fs-h2:22px; --fs-h3:17px; --fs-body:15.5px;
+  --fs-small:13px; --fs-micro:11.5px; --fs-mono:12px;
+
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px;
+  --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px; --s-16:64px; --s-20:80px;
+  --r-xs:3px; --r-sm:6px; --r-md:8px; --r-lg:10px; --r-xl:12px; --r-2xl:16px; --r-pill:999px;
+
+  --sh-1:0 1px 2px rgba(25,27,32,.05);
+  --sh-2:0 2px 8px -2px rgba(25,27,32,.10);
+  --sh-3:0 16px 40px -24px rgba(25,27,32,.28);
+
+  --t-1:120ms; --t-2:200ms; --t-3:320ms; --t-4:520ms;
+  --ease-out:cubic-bezier(.16,.84,.32,1); --ease-inout:cubic-bezier(.4,0,.2,1);
+
+  --page-max:1280px; --page-pad:80px;
+  --read-col:680px; --side-col:380px; --col-gap:60px; --zone-gap:64px;
+}
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-sans);font-size:var(--fs-body);line-height:1.78;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3{margin:0;font-family:var(--font-display);font-weight:600;line-height:1.35}
+p{margin:0}
+code,kbd,pre{font-family:var(--font-mono)}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--r-xs)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:absolute;left:-9999px;top:0;z-index:50;background:var(--accent);color:#fff;padding:10px 16px;border-radius:0 0 var(--r-md) 0}
+.skip:focus{left:0}
+
+.wrap{max-width:var(--page-max);margin:0 auto;padding:0 var(--page-pad)}
+.micro{font-family:var(--font-mono);font-size:var(--fs-micro);font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);line-height:1.4}
+.micro--accent{color:var(--accent)}
+
+/* ── 进度脊柱 ───────────────────────────────────────────── */
+.spine{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--hairline)}
+.spine-in{max-width:var(--page-max);margin:0 auto;padding:14px var(--page-pad);display:flex;align-items:center;gap:var(--s-8);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.brand-mark{width:12px;height:12px;border-radius:var(--r-xs);background:var(--accent);flex:0 0 auto}
+.brand-name{font-family:var(--font-mono);font-weight:700;font-size:15px;letter-spacing:.06em}
+.brand-node{font-size:var(--fs-small);color:var(--ink-2);font-weight:500}
+.spine-ev{flex:0 0 auto}
+.ev-track{display:flex;gap:6px;margin-top:6px}
+.ev-seg{width:34px;height:10px;border-radius:5px;background:var(--hairline);transition:background var(--t-4) var(--ease-out)}
+.ev-seg.is-on[data-stage="estimated"]{background:var(--ev-estimated)}
+.ev-seg.is-on[data-stage="practiced"]{background:var(--ev-practiced)}
+.ev-seg.is-on[data-stage="demonstrated"]{background:var(--ev-demonstrated)}
+.ev-seg.is-on[data-stage="retained"]{background:var(--ev-retained)}
+.ev-seg.is-on[data-stage="transferred"]{background:var(--ev-transferred)}
+.spine-hop{display:flex;align-items:baseline;gap:10px;flex:0 0 auto}
+.spine-name{font-size:13px;font-weight:500;color:var(--ev-practiced);transition:color var(--t-2) var(--ease-inout)}
+.spine-mas{flex:0 0 auto}
+.mas-row{display:flex;align-items:center;gap:10px;margin-top:6px}
+.mas-track{width:110px;height:8px;border-radius:4px;background:var(--hairline);overflow:hidden}
+.mas-fill{height:100%;width:62%;background:var(--accent);border-radius:4px;transition:width var(--t-4) var(--ease-out)}
+.mas-val{font-family:var(--font-mono);font-size:13px;font-weight:500}
+.spine-rev{flex:0 0 auto;margin-left:auto}
+.spine-rev .val{display:block;margin-top:4px;font-size:12.5px;font-weight:500;color:var(--warn)}
+.spine-note{max-width:var(--page-max);margin:0 auto;padding:0 var(--page-pad) 8px;font-size:11px;color:var(--ink-3)}
+
+/* ── Zone 骨架 ──────────────────────────────────────────── */
+.zone{padding-top:var(--s-16)}
+.zone + .zone{padding-top:var(--s-16)}
+.zone-head{display:block;padding-bottom:var(--s-3)}
+.zone-title{font-size:var(--fs-display);font-weight:700;line-height:1.3;letter-spacing:-.01em;margin-top:var(--s-3)}
+.zone-goal{margin-top:var(--s-3);font-size:14.5px;color:var(--ink-2);max-width:760px}
+.zone-meta{margin-top:var(--s-2);font-size:12.5px;font-weight:500;color:var(--ink-3)}
+.zone-rule{height:1px;background:var(--hairline);margin-top:var(--s-4)}
+.zone-body{padding-top:var(--s-8)}
+
+.cols{display:grid;grid-template-columns:minmax(0,var(--read-col)) var(--side-col);gap:var(--col-gap);align-items:start}
+.col-main > * + *{margin-top:var(--s-6)}
+.side{display:grid;gap:var(--s-10)}
+
+/* ── 阅读列 ─────────────────────────────────────────────── */
+.quote{background:var(--surface-sunk);border-left:3px solid var(--accent);padding:14px 16px;border-radius:0 var(--r-md) var(--r-md) 0;font-size:14.5px;line-height:1.7}
+.terms{list-style:none;padding:0;margin:0;display:grid;gap:var(--s-3)}
+.terms li{font-size:14.5px;color:var(--ink-2);line-height:1.7}
+.terms b{color:var(--ink);font-weight:600}
+
+/* ── 侧栏卡 ─────────────────────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.card--err{background:var(--err-wash);border-left:3px solid var(--err)}
+.card--sunk{background:var(--surface-sunk);border:none}
+.card > .micro{display:block;margin-bottom:var(--s-4)}
+.card--err > .micro{color:var(--err)}
+.card-body{font-size:13px;line-height:1.7}
+.formula{font-family:var(--font-mono);font-size:15px;font-weight:500;line-height:1.9;display:block}
+.formula--base{color:var(--ok)}
+.card-foot{margin-top:var(--s-3);font-size:var(--fs-micro);color:var(--ink-3);line-height:1.6}
+.reqs{list-style:none;padding:0;margin:0;display:grid;gap:var(--s-3)}
+.reqs li{position:relative;padding-left:18px;font-size:12.5px;color:var(--ink-2);line-height:1.6}
+.reqs li::before{content:"";position:absolute;left:0;top:.42em;width:6px;height:6px;border-radius:2px;background:var(--accent)}
+.reqs li[data-kind="transfer"]::before{background:var(--warn)}
+
+/* ── 理解检查 ───────────────────────────────────────────── */
+.cp{margin-top:var(--s-6);background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.cp-q{margin-top:var(--s-4);font-size:15px;font-weight:600;line-height:1.6}
+.cp-opts{display:grid;gap:var(--s-2);margin-top:var(--s-4)}
+.opt{display:block;width:100%;text-align:left;padding:9px 16px;min-height:38px;background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-md);cursor:pointer;font-size:14px;color:var(--ink-2);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout)}
+.opt:hover{border-color:var(--rule);background:#fff}
+.opt[aria-pressed="true"][data-v="ok"]{background:var(--ok-wash);border:1.5px solid var(--ok);color:var(--ok);font-weight:600}
+.opt[aria-pressed="true"][data-v="bad"]{background:var(--err-wash);border:1.5px solid var(--err);color:var(--err);font-weight:600}
+.cp-rule{height:1px;background:var(--hairline);margin-top:var(--s-5)}
+.cp-fb{margin-top:var(--s-4);font-size:12.5px;line-height:1.65;color:var(--ink-2);display:none}
+.cp-fb.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+.cp-fb b{color:var(--ok)}
+
+/* ── Stage ──────────────────────────────────────────────── */
+.stage{background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-2xl);padding:var(--s-5) var(--s-6) var(--s-6)}
+.stage-title{margin-top:6px;font-size:14px;font-weight:600}
+.stage-grid{display:grid;grid-template-columns:252px minmax(0,1fr);gap:var(--s-5);margin-top:var(--s-4)}
+.tube-label{font-family:var(--font-mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;color:var(--ink-3)}
+.tube-wrap{display:flex;flex-direction:column;gap:6px}
+.tube{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);height:232px;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;overflow:hidden}
+.tf{display:flex;align-items:center;height:40px;padding:0 12px;border-radius:var(--r-sm);font-family:var(--font-mono);font-size:12px;font-weight:500;border:1px solid transparent;transition:background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout),border-color var(--t-2) var(--ease-inout),transform var(--t-2) var(--ease-out);animation:push var(--t-3) var(--ease-out) both}
+.tf[data-s="active"]{background:var(--accent);color:#fff}
+.tf[data-s="waiting"]{background:var(--accent-wash);color:var(--ink-2)}
+.tf[data-s="base"]{background:var(--ok-wash);color:var(--ok);border:1.5px solid var(--ok)}
+.tf[data-s="done"]{background:var(--surface-sunk);color:var(--ink-3)}
+@keyframes push{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.stage-side{display:grid;gap:var(--s-3);align-content:start}
+.step-panel{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s-5)}
+.step-text{margin-top:var(--s-3);font-size:13px;line-height:1.7;min-height:66px}
+.step-count{margin-top:var(--s-3);font-family:var(--font-mono);font-size:11.5px;font-weight:500;color:var(--ink-3)}
+.legend{font-size:11.5px;color:var(--ink-3)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:1px}
+.stage-ctrl{display:flex;align-items:center;gap:var(--s-3);flex-wrap:wrap;margin-top:var(--s-4)}
+.kbd-hint{margin-left:auto;font-size:var(--fs-micro);color:var(--ink-3)}
+
+/* ── 按钮 ───────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 18px;border-radius:var(--r-md);border:1px solid transparent;background:var(--surface);cursor:pointer;font-size:13.5px;font-weight:500;color:var(--ink-2);transition:background var(--t-1) var(--ease-inout),border-color var(--t-1) var(--ease-inout),color var(--t-1) var(--ease-inout),transform var(--t-1) var(--ease-out)}
+.btn:hover{background:var(--surface-sunk)}
+.btn:active{transform:translateY(1px)}
+.btn--primary{background:var(--accent);color:#fff;font-weight:600}
+.btn--primary:hover{background:var(--accent-deep)}
+.btn--outline{border-color:var(--rule)}
+.btn--outline:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-wash)}
+.btn--ghost{color:var(--ink-3);background:transparent}
+.btn--ghost:hover{background:var(--surface-sunk);color:var(--ink-2)}
+.btn--sm{height:32px;padding:0 14px;font-size:12.5px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn-row{display:flex;gap:var(--s-3);flex-wrap:wrap;align-items:center}
+
+/* ── 任务块 ─────────────────────────────────────────────── */
+.task{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-2xl);padding:var(--s-6)}
+.task-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.task-title{font-size:var(--fs-h3);font-weight:600}
+.task-id{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.08em}
+.task-lead{margin-top:var(--s-3);font-size:13.5px;color:var(--ink-2);line-height:1.7}
+.task-lead + .task-lead{margin-top:var(--s-2)}
+.note{margin-top:var(--s-4);padding:12px 14px;border-radius:var(--r-md);background:var(--surface-sunk);font-size:12px;color:var(--ink-3);line-height:1.65}
+.note--warn{background:var(--warn-wash);color:#8A6A2A}
+
+/* 代码填空 */
+.code{position:relative;margin-top:var(--s-4);background:var(--surface-mute);border-radius:var(--r-lg);padding:var(--s-5);font-family:var(--font-mono);font-size:13px;line-height:2.1;overflow-x:auto}
+.code-line{white-space:pre;display:flex;align-items:center;gap:0;flex-wrap:nowrap}
+.tok-kw{color:var(--accent)}
+.tok-fn{color:#7A4BB8}
+.tok-num{color:var(--ok)}
+.tok-cmt{color:var(--ink-3)}
+.blank{font-family:var(--font-mono);font-size:12.5px;background:#fff;border:1px solid var(--rule);border-bottom-width:2px;border-radius:var(--r-sm);padding:2px 10px;min-width:170px;color:var(--ink);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.blank:focus{outline:none;border-color:var(--accent);background:var(--accent-wash)}
+.blank[data-state="ok"]{border-color:var(--ok);background:var(--ok-wash);color:var(--ok)}
+.blank[data-state="bad"]{border-color:var(--err);background:var(--err-wash);color:var(--err)}
+.blank[data-state="hint"]{border-color:var(--warn);background:var(--warn-wash)}
+
+/* 代码运行器 */
+.runner{margin-top:var(--s-4);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s-4)}
+.editor{display:block;width:100%;min-height:150px;background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:var(--s-4);font-family:var(--font-mono);font-size:12.5px;line-height:1.75;resize:vertical;tab-size:4}
+.editor:focus{outline:none;border-color:var(--accent)}
+.term{background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:var(--s-4);font-family:var(--font-mono);font-size:12px;line-height:1.7;height:150px;overflow:auto;white-space:pre-wrap;color:var(--ink-2)}
+.term .ok{color:var(--ok)}
+.term .err{color:var(--err);font-weight:600}
+.term .dim{color:var(--ink-3)}
+.run-ctrl{display:flex;gap:var(--s-3);align-items:center;margin-top:var(--s-4);flex-wrap:wrap}
+.num-in{width:64px;height:34px;padding:0 10px;background:#fff;border:1px solid var(--rule);border-radius:var(--r-md);font-family:var(--font-mono);font-size:12.5px}
+
+/* 拖拽匹配 */
+.match{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s-6);margin-top:var(--s-4)}
+.match-col-h{margin-bottom:var(--s-3)}
+.stage-slots{display:grid;gap:var(--s-3)}
+.slot{min-height:56px;border:1px dashed var(--rule);border-radius:var(--r-md);padding:8px 10px;background:var(--surface);transition:border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.slot.is-over{border:1.5px solid var(--accent);background:var(--accent-wash)}
+.slot[data-state="ok"]{border:1.5px solid var(--ok);background:var(--ok-wash)}
+.slot[data-state="bad"]{border:1.5px solid var(--err);background:var(--err-wash)}
+.slot-label{font-size:12.5px;font-weight:600;color:var(--ink)}
+.chips{display:grid;gap:var(--s-3);align-content:start}
+.chip{display:block;width:100%;text-align:left;min-height:36px;padding:8px 14px;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);font-size:12.5px;line-height:1.5;cursor:grab;transition:transform var(--t-1) var(--ease-out),box-shadow var(--t-1) var(--ease-out),border-color var(--t-1) var(--ease-inout)}
+.chip:hover{border-color:var(--rule)}
+.chip.is-sel{border-color:var(--accent);background:var(--accent-wash);box-shadow:var(--sh-2)}
+.chip.is-drag{transform:scale(1.02);box-shadow:var(--sh-2)}
+.chip[data-state="ok"]{border-color:var(--ok);background:var(--ok-wash)}
+.chip[data-state="bad"]{border-color:var(--err);background:var(--err-wash)}
+.slot .chip{margin:0}
+.match-fb{margin-top:var(--s-4);font-size:12.5px;line-height:1.7;display:none}
+.match-fb.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+
+/* ── 提示阶梯 ───────────────────────────────────────────── */
+.ladder{margin-top:var(--s-8)}
+.ladder-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.ladder-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s-6);align-items:end;margin-top:var(--s-5);border-bottom:1px solid var(--rule);padding-bottom:0}
+.ladder-step{display:flex;flex-direction:column;justify-content:space-between;gap:var(--s-3);padding:14px 16px;border-radius:var(--r-lg);border:1px solid transparent;cursor:pointer;text-align:left;transition:transform var(--t-2) var(--ease-out),border-color var(--t-2) var(--ease-inout),background var(--t-2) var(--ease-inout)}
+.ladder-step[data-h="1"]{height:60px}
+.ladder-step[data-h="2"]{height:76px}
+.ladder-step[data-h="3"]{height:96px}
+.ladder-step[data-h="4"]{height:112px}
+.ladder-step .ls-t{font-size:13.5px;font-weight:600;line-height:1.4}
+.ladder-step .ls-s{font-size:11px;line-height:1.4}
+.ladder-step[data-state="used"][data-h="1"]{background:var(--hint-1)}
+.ladder-step[data-state="used"][data-h="2"]{background:var(--hint-2)}
+.ladder-step[data-state="used"] .ls-t{color:var(--ink)}
+.ladder-step[data-state="used"] .ls-s{color:#3F3210}
+.ladder-step[data-state="avail"]{background:var(--warn-wash);border:1.5px solid var(--warn)}
+.ladder-step[data-state="avail"] .ls-t{color:var(--warn)}
+.ladder-step[data-state="avail"] .ls-s{color:#8A6A2A}
+.ladder-step[data-state="locked"]{background:var(--surface-sunk);border:1px solid var(--hairline)}
+.ladder-step[data-state="locked"] .ls-t{color:var(--ink-2)}
+.ladder-step[data-state="locked"] .ls-s{color:var(--ink-3)}
+.ladder-step:hover{transform:translateY(-2px)}
+.ladder-note{margin-top:var(--s-3);font-size:12px;color:var(--ink-3)}
+.hint-body{margin-top:var(--s-4);display:grid;gap:var(--s-4)}
+.hint-card{background:var(--surface);border:1px solid var(--hairline);border-left:3px solid var(--hint-1);border-radius:0 var(--r-lg) var(--r-lg) 0;padding:var(--s-5)}
+.hint-card[data-lv="2"]{border-left-color:var(--hint-2)}
+.hint-card[data-lv="3"]{border-left-color:var(--hint-3)}
+.hint-card[data-lv="4"]{border-left-color:var(--hint-4)}
+.hint-card .micro{display:block;margin-bottom:var(--s-3)}
+.hint-card p{font-size:13.5px;line-height:1.75;color:var(--ink-2)}
+.hint-card pre{margin:var(--s-3) 0 0;background:var(--surface-mute);border-radius:var(--r-md);padding:var(--s-4);font-size:12.5px;line-height:1.8;overflow-x:auto}
+.confirm{margin-top:var(--s-3);padding:var(--s-5);border-radius:var(--r-lg);background:var(--warn-wash);border:1.5px solid var(--warn)}
+.confirm p{font-size:13px;line-height:1.7;color:#8A6A2A;margin-bottom:var(--s-4)}
+.verify{margin-top:var(--s-6);background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6)}
+.verify textarea{display:block;width:100%;min-height:72px;margin-top:var(--s-4);background:var(--surface-mute);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s-4);font-size:13px;line-height:1.7;resize:vertical}
+.verify textarea:focus{outline:none;border-color:var(--accent)}
+
+/* ── 反馈面板 ───────────────────────────────────────────── */
+.result{display:grid;grid-template-columns:minmax(0,1fr) var(--side-col);gap:var(--col-gap);margin-top:var(--s-16);align-items:start}
+.fb{position:relative;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:var(--s-6);overflow:hidden}
+.fb-bar{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);transition:background var(--t-2) var(--ease-inout)}
+.fb-badge{display:inline-block;padding:3px 12px;border-radius:var(--r-pill);background:var(--surface-sunk);font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--ink-3);transition:background var(--t-2) var(--ease-inout),color var(--t-2) var(--ease-inout)}
+.fb-badge[data-t="ok"]{background:var(--ok-wash);color:var(--ok)}
+.fb-badge[data-t="warn"]{background:var(--warn-wash);color:var(--warn)}
+.fb-badge[data-t="err"]{background:var(--err-wash);color:var(--err)}
+.fb-sec{margin-top:var(--s-5)}
+.fb-sec h4{margin:0 0 4px;font-family:var(--font-sans);font-size:12.5px;font-weight:600}
+.fb-sec p{font-size:13px;line-height:1.65;color:var(--ink-2)}
+.fb-s1 h4{color:var(--ok)} .fb-s2 h4{color:var(--warn)} .fb-s3 h4{color:var(--accent)}
+.score{background:var(--surface-sunk);border-radius:var(--r-xl);padding:var(--s-6)}
+.score-rows{margin-top:var(--s-5);display:grid;gap:var(--s-4)}
+.score-row{display:grid;grid-template-columns:minmax(0,1fr) 136px;gap:var(--s-4);align-items:center}
+.score-key{font-size:11.5px;font-weight:500;color:var(--ink-2)}
+.score-key b{font-family:var(--font-mono);font-weight:600;margin-left:6px}
+.score-track{height:7px;border-radius:4px;background:var(--hairline);overflow:hidden}
+.score-fill{height:100%;width:0;border-radius:4px;background:var(--accent);transition:width var(--t-4) var(--ease-out)}
+.score-fill[data-k="correctness"]{background:var(--ok)}
+.score-fill[data-k="reasoning_quality"]{background:var(--warn)}
+
+/* ── 证据轨 ─────────────────────────────────────────────── */
+.rail{margin-top:var(--s-16)}
+.rail-head{display:flex;align-items:baseline;gap:var(--s-3);flex-wrap:wrap}
+.rail-track{position:relative;height:2px;background:var(--hairline);margin-top:var(--s-5)}
+.rail-dots{position:absolute;inset:0}
+.rail-dot{position:absolute;top:-3px;width:8px;height:8px;border-radius:4px;transition:transform var(--t-3) var(--ease-out);animation:pop var(--t-3) var(--ease-out) both}
+.rail-dot--last{width:12px;height:12px;top:-5px;border-radius:6px;box-shadow:0 0 0 3px var(--paper),0 0 0 4px var(--accent-wash)}
+@keyframes pop{from{transform:scale(.4)}to{transform:scale(1)}}
+.rail-foot{display:flex;justify-content:space-between;gap:var(--s-4);margin-top:var(--s-4);font-size:11.5px;color:var(--ink-3);flex-wrap:wrap}
+
+/* ── 输出控制台 ─────────────────────────────────────────── */
+.console{margin-top:var(--s-8)}
+.console-bar{display:flex;align-items:center;gap:var(--s-4);width:100%;min-height:46px;padding:0 var(--s-5);background:var(--surface-sunk);border:1px solid var(--hairline);border-radius:var(--r-lg);cursor:pointer;text-align:left;transition:background var(--t-1) var(--ease-inout)}
+.console-bar:hover{background:var(--surface-mute)}
+.console-bar .cb-t{font-size:12.5px;font-weight:500;color:var(--ink-2)}
+.console-bar .cb-a{margin-left:auto;font-size:12px;font-weight:500;color:var(--accent);white-space:nowrap}
+.console-json{display:none;margin-top:var(--s-3);background:var(--surface-mute);border-radius:var(--r-lg);padding:var(--s-5);max-height:420px;overflow:auto}
+.console-json.is-on{display:block;animation:rise var(--t-3) var(--ease-out) both}
+#leap-interaction-output{margin:0;font-size:11.5px;line-height:1.65;color:var(--ink-2);white-space:pre}
+.foot{margin-top:var(--s-16);padding:var(--s-8) 0 var(--s-16);border-top:1px solid var(--hairline);font-size:11.5px;color:var(--ink-3);line-height:1.8}
+
+/* ── 响应式 ─────────────────────────────────────────────── */
+@media (max-width:1199px){
+  :root{--page-pad:48px;--page-max:776px}
+  .cols{grid-template-columns:minmax(0,1fr)}
+  .side{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .result{grid-template-columns:minmax(0,1fr)}
+  .stage-grid{grid-template-columns:minmax(0,1fr)}
+  .runner{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:899px){
+  :root{--page-pad:32px;--page-gap:40px;--col-gap:40px}
+  .spine-rev{margin-left:0}
+  .match{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:600px){
+  :root{--page-pad:20px;--fs-display:23px;--fs-h2:19px;--fs-h3:16px;--fs-body:15px;--zone-gap:48px}
+  .spine-in{gap:var(--s-5);padding:12px 20px}
+  .brand-node{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mas-track{width:80px}
+  .ev-seg{width:18px;height:7px}
+  .ladder-steps{grid-template-columns:minmax(0,1fr);gap:var(--s-3);border-bottom:none}
+  .ladder-step{height:auto!important;min-height:48px;flex-direction:row;align-items:center;justify-content:flex-start;gap:var(--s-4)}
+  .btn{height:36px;padding:0 14px}
+  .code{font-size:11.5px}
+  .blank{min-width:120px;font-size:11.5px}
+}
+
+/* ── 宿主桥接条（LEAP_HOST_BRIDGE）──────────────────── */
+  .bridge-strip{display:flex;align-items:center;justify-content:space-between;gap:var(--s-4);
+    min-height:46px;padding:var(--s-3) var(--s-5);margin-bottom:var(--s-3);
+    background:var(--accent-wash);border:1px solid var(--hairline);border-radius:var(--r-lg)}
+  .bs-l{display:flex;flex-direction:column;gap:var(--s-1);min-width:0}
+  .bs-t{font-size:var(--fs-small);color:var(--ink-2)}
+  .bs-btn{flex:0 0 auto;height:32px;padding:0 var(--s-4);border:1px solid var(--rule);
+    border-radius:var(--r-md);background:var(--surface);color:var(--accent);
+    font:500 12.5px/1 var(--font-sans);cursor:pointer;transition:background var(--t-2) var(--ease-out)}
+  .bs-btn:hover{background:var(--accent-wash)}
+  .bs-btn:disabled{color:var(--ink-3);background:var(--surface-sunk);cursor:default}
+  .bridge-out{margin:0 0 var(--s-3);padding:var(--s-5);background:var(--surface-mute);
+    border:1px solid var(--hairline);border-radius:var(--r-lg);
+    font:400 var(--fs-mono)/1.6 var(--font-mono);color:var(--ink-2);
+    white-space:pre-wrap;word-break:break-all;max-height:320px;overflow:auto}
+
+
+/* Spacious teaching layout: the reading column absorbs available PC width. */
+:root{--page-max:1800px;--page-pad:clamp(20px,3vw,48px);--side-col:420px;--col-gap:32px}
+.cols{grid-template-columns:minmax(0,1fr) var(--side-col);gap:32px}
+.col-main,.side,.stage,.task,.console,.zone-body,.result>*,.cols>*{min-width:0}
+.col-main p,.col-main li{max-width:100%;overflow-wrap:anywhere}
+.zone-goal{max-width:1040px}.resource-panel{margin:20px 0 32px;padding:20px 24px;background:var(--surface);border:1px solid var(--hairline);border-radius:12px}
+.resource-panel p+p{margin-top:8px}.resource-panel b{color:var(--accent)}
+.teach-table{width:100%;border-collapse:collapse;background:var(--surface);font-size:13px;line-height:1.75}
+.teach-table th,.teach-table td{padding:12px;text-align:left;vertical-align:top;border:1px solid var(--hairline);overflow-wrap:anywhere}
+.teach-table th{background:var(--surface-sunk)}.table-scroll{max-width:100%;overflow-x:auto;border-radius:8px}
+.callout{padding:16px 20px;border-left:3px solid var(--warn);background:var(--warn-wash);border-radius:0 8px 8px 0}
+.teach-heading{font-size:var(--fs-h2);margin-top:32px}.steps-list{padding-left:24px;line-height:1.85}.steps-list li+li{margin-top:8px}
+.concept-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.concept-grid>*{min-width:0}
+.concept-grid h3{font-size:var(--fs-h3);margin-bottom:12px}.concept-grid p{font-size:14px}
+.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px 0}.field-grid label{display:grid;gap:6px;font-size:13px}
+.field-grid input,.field-grid select,select.blank{width:100%;min-width:0;padding:8px 12px;border:1px solid var(--rule);border-radius:6px;background:var(--surface)}
+.task textarea{width:100%;min-height:140px;resize:vertical;padding:12px;border:1px solid var(--rule);border-radius:8px;background:var(--surface-sunk);margin-top:16px;line-height:1.78}
+.practice-note{margin-top:12px;font-size:13px;color:var(--ink-2)}.stage-ctrl:focus-visible{outline:2px solid var(--accent);outline-offset:6px}
+.stage-grid{grid-template-columns:252px minmax(0,1fr)}.bridge-strip{flex-wrap:wrap}.bridge-out{max-width:100%}
+.verify select{max-width:100%}.summary-read{font-size:13px;color:var(--ink-2)}
+@media(max-width:1100px){:root{--page-max:1800px;--page-pad:clamp(20px,3vw,48px);--col-gap:32px}.cols{grid-template-columns:minmax(0,1fr)}.side{grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))}.result{grid-template-columns:minmax(0,1fr)}}
+@media(min-width:1101px) and (max-width:1199px){:root{--page-max:1800px;--page-pad:clamp(20px,3vw,48px)}.cols{grid-template-columns:minmax(0,1fr) 420px}.side{grid-template-columns:minmax(0,1fr)}}
+.chem-equation{padding:20px;background:var(--surface-sunk);font-size:24px;line-height:1.7;text-align:center;border-radius:8px;margin:20px 0}.chem-equation math{font-size:24px}.boundary-note{margin:16px 0;padding:16px;background:var(--warn-wash);border-left:3px solid var(--warn);font-size:14px}.chem-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-top:20px}.chem-controls label{display:grid;gap:10px;font-size:14px}.chem-controls output{font:600 17px var(--font-mono);color:var(--accent)}.chem-controls input[type=range]{width:100%;accent-color:var(--accent)}
+.chem-svg{display:block;width:100%;height:auto;background:var(--surface);border:1px solid var(--hairline);border-radius:12px;margin:20px 0}.chem-svg text{font-family:var(--font-sans);fill:var(--ink);font-size:16px}.molecule-h{fill:var(--accent-wash);stroke:var(--accent);stroke-width:1.5}.molecule-o{fill:var(--warn-wash);stroke:var(--warn);stroke-width:1.5}.molecule-bond{stroke:var(--rule);stroke-width:2}.chem-legend{display:flex;gap:20px;flex-wrap:wrap;font-size:13px}.chem-legend i{display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:-1px;border-radius:50%}
+.chem-values{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:20px 0}.chem-value{padding:16px;background:var(--surface);border:1px solid var(--hairline);border-radius:8px;min-width:0}.chem-value strong{display:block;font:600 20px var(--font-mono);color:var(--accent)}.chem-value span{font-size:12px;color:var(--ink-2)}
+.atom-inventory{padding:16px;background:var(--ok-wash);border:1px solid var(--ok);border-radius:8px;font-size:14px;margin-top:16px}.chem-formula{font-size:18px;padding:16px;background:var(--surface-sunk);overflow:auto;border-radius:8px;margin:16px 0}.coeff-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:20px 0}.coeff-row input{width:64px;padding:8px;border:1px solid var(--rule);border-radius:6px;background:#fff}.coeff-row span{font-size:20px}.objective-fb{margin-top:16px;min-height:30px;font-size:14px}.chem-stage-note{min-height:56px;padding:16px;background:var(--surface);border:1px solid var(--hairline);border-radius:8px}.chem-calculator input{width:100%}.chem-mcq{margin-top:24px}.chem-mcq .cp-fb{display:block}.chem-score{margin-top:32px;padding:20px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface)}
+@media(max-width:800px){.chem-values{grid-template-columns:repeat(2,minmax(0,1fr))}.chem-controls{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:500px){.chem-equation,.chem-equation math{font-size:19px}.chem-value strong{font-size:17px}.chem-values{gap:12px}.chem-svg text{font-size:18px}}
+</style></head><body><a class="skip" href="#teaching">跳到教学内容</a><header class="spine">
+  <div class="spine-in">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">LEAP</span>
+      <span class="brand-node">化学 · 配平 · 限制反应物</span>
+    </div>
+
+    <div class="spine-ev">
+      <div class="micro" id="evLabel">EVIDENCE STAGE · 证据阶段</div>
+      <div class="ev-track" id="evTrack" role="img" aria-label="证据阶段轨道，当前为 estimated 仅估计">
+        <span class="ev-seg" data-stage="estimated"></span>
+        <span class="ev-seg" data-stage="practiced"></span>
+        <span class="ev-seg" data-stage="demonstrated"></span>
+        <span class="ev-seg" data-stage="retained"></span>
+        <span class="ev-seg" data-stage="transferred"></span>
+      </div>
+    </div>
+    <div class="spine-hop"><span class="spine-name" id="evName">estimated · 仅估计</span></div>
+
+    <div class="spine-mas">
+      <div class="micro">MASTERY · 掌握度</div>
+      <div class="mas-row">
+        <div class="mas-track"><div class="mas-fill" id="masFill"></div></div>
+        <span class="mas-val" id="masVal">未评估</span>
+      </div>
+    </div>
+
+    <div class="spine-rev">
+      <div class="micro">NEXT REVIEW</div>
+      <span class="val">待宿主安排</span>
+    </div>
+  </div>
+
+  <p class="spine-note" id="spineNote">本页尚未连接 Runtime；掌握度与证据阶段保持初始占位值，作答评分仅为待核验反馈。</p>
+</header>
+<main class="wrap">
+<section class="zone" id="teaching" aria-labelledby="z1t"><div class="zone-head"><div class="micro micro--accent">01 · TEACHING · 教学内容</div><h1 class="zone-title" id="z1t">配平与限制反应物：从粒子比例到理论产量</h1><p class="zone-goal">守恒核对化学式，先把质量换成 mol，再比较每种反应物可支持多少“反应份数”，推导产物与剩余量。</p><p class="zone-meta">建议 35–50 分钟 · 先修：分子式下标、元素符号、比值和单位换算</p><div class="zone-rule"></div></div>
+<div class="resource-panel" aria-label="分层化学计量资源关键词"><div class="micro micro--accent">LEARNING RESOURCES · 搜索关键词</div><p><b>核心 / 必看：</b>“化学方程式 配平 系数 下标 区别”“物质的量 mol 摩尔质量 n m M”“限制反应物 化学计量”。</p><p><b>拓展 / 辅助：</b>“粒子模型 配平 原子守恒”“理论产量 实际产量 百分产率”“反应物过量 n 除以 系数”。</p><p><b>进阶 / 深入：</b>“OpenStax Chemistry 2e 4.1 balancing equations”“OpenStax 4.4 reaction yields”“reaction extent limiting reagent”“BIPM mole Avogadro constant”。</p><p class="summary-read">可复制到 B 站、公开课平台或搜索引擎检索；不是已核验视频推荐。优先选择明确区分系数与下标、mol 与 g，并能推导剩余反应物的材料。</p></div>
+<div class="zone-body"><div class="cols"><div class="col-main">
+  <h2 class="teach-heading" style="margin-top:0">先修：化学式、系数与单位</h2><p>H₂ 是每个氢分子含 2 个氢原子，O₂ 是每个氧分子含 2 个氧原子；H₂O 每个水分子含 2 个氢原子和 1 个氧原子。<b>下标</b>是物质组成的一部分；<b>系数</b>表示有多少个这种粒子或多少 mol。2H₂ 表示两个 H₂ 分子或 2 mol H₂，不是一个含 4 个氢原子的 H₄ 分子。</p>
+  <div class="concept-grid"><div class="card"><h3>物质的量 n / mol</h3><p>1 mol 含精确的 6.02214076×10²³ 个指定实体，必须说明是原子、分子、离子等哪种实体。1 mol H₂ 分子包含 2 mol H 原子，但二者不是同一种计数对象。</p></div><div class="card"><h3>摩尔质量 M / g·mol⁻¹</h3><p>质量 m 与物质的量 n 满足 n=m/M。不同物质 1 mol 的质量一般不同。本例为学校近似：H₂ 2.00、O₂ 32.0、H₂O 18.0 g/mol；采用这些近似统一计算。</p></div></div>
+  <div class="chem-formula" aria-label="物质的量等于质量除以摩尔质量"><math display="block"><mrow><mi>n</mi><mo>=</mo><mfrac><mi>m</mi><mi>M</mi></mfrac><mspace width="1em"/><mo>(</mo><mi>mol</mi><mo>=</mo><mfrac><mi>g</mi><mrow><mi>g</mi><mo>/</mo><mi>mol</mi></mrow></mfrac><mo>)</mo></mrow></math></div>
+  <h2 class="teach-heading">1. 配平只改系数，不改下标</h2><p>正确化学方程式必须让每种元素在两边的原子总数相同。本课观察水的生成，物质的化学式已经给定；配平调整前面的系数。</p><div class="chem-equation"><math display="block"><mrow><mn>2</mn><msub><mi>H</mi><mn>2</mn></msub><mo>+</mo><msub><mi>O</mi><mn>2</mn></msub><mo>→</mo><mn>2</mn><msub><mi>H</mi><mn>2</mn></msub><mi>O</mi></mrow></math></div>
+  <ol class="steps-list"><li>未配平 H₂+O₂→H₂O：H 左2右2，O 左2右1。</li><li>为匹配氧，在 H₂O 前写2：H₂+O₂→2H₂O，此时 H 左2右4。</li><li>为匹配氢，在 H₂ 前写2：2H₂+O₂→2H₂O，H 左4右4、O 左2右2。</li><li>系数2:1:2是最简正整数比。4:2:4也守恒，但还可整体约分为2:1:2。</li></ol>
+  <div class="callout"><b>不能改成别的物质：</b>把 H₂O 下标改成 H₂O₂ 会换成过氧化氢；把 H₂ 改成 H 也换了所指实体。配平不靠改变化学式制造“数字相等”。对离子反应还需守恒电荷，本页只覆盖给定中性分子方程。</div>
+  <h2 class="teach-heading">2. 系数比是粒子数/mol 比，不是质量比</h2><p>2H₂+O₂→2H₂O 表示消耗2个 H₂分子与1个 O₂分子生成2个水分子，或消耗2 mol H₂与1 mol O₂生成2 mol H₂O。使用本例摩尔质量，质量为4.00 g : 32.0 g : 36.0 g，即1:8:9，<b>不是2:1:2克</b>。</p><p>宏观量可有小数 mol；离散小球不能分成半个分子。下方粒子演示使用整数分子数，宏观计算器使用连续 mol，两者共享比例但不混用计数尺度。</p>
+  <h2 class="teach-heading">3. 限制反应物：比较 n/系数</h2><p>若理想反应按2:1消耗氢/氧，每一“反应份”消耗2 mol H₂、1 mol O₂。给定 n(H₂)、n(O₂)，比较 n(H₂)/2 与 n(O₂)/1；较小值限制最多可发生多少份反应。若相等，两者恰按化学计量消耗，没有唯一更早耗尽的一方。</p><div class="chem-formula" aria-label="反应份数取氢物质的量除二与氧物质的量的最小值"><math display="block"><mrow><mi>ξ</mi><mo>=</mo><mi>min</mi><mo>(</mo><mfrac><mrow><mi>n</mi><mo>(</mo><msub><mi>H</mi><mn>2</mn></msub><mo>)</mo></mrow><mn>2</mn></mfrac><mo>,</mo><mi>n</mi><mo>(</mo><msub><mi>O</mi><mn>2</mn></msub><mo>)</mo><mo>)</mo></mrow></math></div>
+  <p>生成水 n(H₂O)=2ξ；剩余氢=n(H₂)−2ξ，剩余氧=n(O₂)−ξ；最后用 m=nM 换回 g。不能只比原始质量大小，也不能只比 mol 数大小，必须先除以各自消耗系数。</p>
+  <h2 class="teach-heading">4. 完整例子：6.00 g H₂ 与 32.0 g O₂</h2><ol class="steps-list"><li>换 mol：氢6/2=3 mol，氧32/32=1 mol。</li><li>比较份数：氢3/2=1.5 mol，氧1/1=1 mol；氧限制，ξ=1 mol。</li><li>水2ξ=2 mol，质量2×18=36 g。</li><li>消耗氢2 mol，剩1 mol=2 g；氧消耗1 mol，剩0。</li><li>质量核对：初始6+32=38 g；产物36+剩余氢2=38 g。不能只拿产物水的质量与全部初始质量比较。</li></ol>
+  <h2 class="teach-heading">5. 理论产量与模型边界</h2><p>理论产量按给定配平方程和反应物量，在反应按所写路径完全进行的理想条件下计算。实际产量可能因反应不完全、平衡、动力学限制、副反应或收集损失而小于理论值；知道系数比不能推出反应必定开始、瞬间完成、或无能量变化。</p><p>百分产率=实际产量/理论产量×100%，要求理论产量&gt;0且计量对象一致。本例先假设100%转化与回收；不会把理论水量当作实验实测。若没有任一必要反应物，理论产物可为0，此时百分产率的比值无定义。</p><div class="boundary-note">本页是给定方程的化学计量教学示意，不模拟碰撞、键断裂过程、速率、温度、点火或实验操作。小球靠“反应份数”重排以保持原子计数，不是实际反应机理动画。</div>
+  <div class="cp" id="cp"><div class="micro micro--accent">CHECKPOINT · 理解检查</div><p class="cp-q">方程系数2:1:2直接表示哪种比例？</p><div class="cp-opts" role="group" aria-label="系数比例理解检查"><button class="opt" type="button" data-value="moles" aria-pressed="false">A. 指定粒子数或 mol 的比例；质量还要乘各自摩尔质量</button><button class="opt" type="button" data-value="grams" aria-pressed="false">B. 任意情况下都是2 g H₂、1 g O₂生成2 g H₂O</button></div><p class="cp-fb" id="cpFb" role="status" aria-live="polite"></p></div>
+</div><aside class="side" aria-label="化学计量提示"><div class="card"><span class="micro">WORKFLOW · 推导路线</span><ol class="steps-list"><li>化学式给定，守恒配平。</li><li>质量除以摩尔质量。</li><li>比较n/消耗系数。</li><li>按ξ算产物与剩余。</li><li>用质量与原子总量复核。</li></ol></div><div class="card card--err"><span class="micro">MISCONCEPTION · 容易混淆</span><p class="card-body">少克数不一定限制；少mol也不一定限制。系数表示消耗比例，需要比较每种反应物能支持的反应份数。</p></div><div class="card card--sunk"><span class="micro">IDEAL MODEL · 适用边界</span><p class="card-body">固定配平方程、纯反应物、给定摩尔质量、反应完全、无副反应且全回收。实际情形需更多化学与实验信息。</p></div><div class="card"><span class="micro">SUCCESS CRITERIA · 学习目标</span><ul class="reqs"><li>正确区分下标与系数。</li><li>核对元素原子守恒。</li><li>算对限制物、理论量与剩余量。</li><li>解释mol比与质量比区别。</li><li>说明理论模型与实际产量边界。</li></ul></div></aside></div></div></section>
+
+<section class="zone" id="practice" aria-labelledby="z2t"><div class="zone-head"><div class="micro micro--accent">02 · PRACTICE · 交互练习</div><h2 class="zone-title" id="z2t">看原子守恒，再算可反应的份数</h2><p class="zone-goal">先操作整数粒子示意，再操作宏观计算器。探索工具不产生作答证据，固定练习的提交按钮才保存答案。</p><div class="zone-rule"></div></div><div class="zone-body">
+<div class="stage"><div class="micro">STAGE · PARTICLE STOICHIOMETRY</div><h3 class="stage-title">整数分子示意：每份 2H₂ + 1O₂ → 2H₂O</h3><div class="chem-controls"><label>初始 H₂ 分子数<output id="hydrogenCount" for="hydrogenParticles">6</output><input id="hydrogenParticles" type="range" min="0" max="12" step="1" value="6" aria-label="初始氢分子数"></label><label>初始 O₂ 分子数<output id="oxygenCount" for="oxygenParticles">2</output><input id="oxygenParticles" type="range" min="0" max="8" step="1" value="2" aria-label="初始氧分子数"></label></div>
+<svg class="chem-svg" id="particleSvg" viewBox="0 0 1000 390" role="img" aria-labelledby="particleTitle particleDesc"><title id="particleTitle">氢氧水分子粒子示意</title><desc id="particleDesc">分子总量变化，氢和氧原子总数守恒。不是实际反应机理。</desc><text x="24" y="30">剩余 H₂</text><text x="360" y="30">剩余 O₂</text><text x="680" y="30">已生成 H₂O</text><path d="M330 15V370 M650 15V370" stroke="#E8E4DC"/><g id="hydrogenMolecules"></g><g id="oxygenMolecules"></g><g id="waterMolecules"></g></svg>
+<div class="chem-legend"><span><i style="background:#EDF0FD;border:1px solid #2B4AC4"></i>H 原子</span><span><i style="background:#FBF3E0;border:1px solid #B3861A"></i>O 原子</span><span>小球计数只表示整数分子，不表示 mol 或克数。</span></div><div class="chem-values"><div class="chem-value"><strong id="particleExtent">0 / 2</strong><span>已发生 / 最多反应份数</span></div><div class="chem-value"><strong id="remainingH">6</strong><span>剩余 H₂ 分子</span></div><div class="chem-value"><strong id="remainingO">2</strong><span>剩余 O₂ 分子</span></div><div class="chem-value"><strong id="formedWater">0</strong><span>已生成 H₂O 分子</span></div></div><p class="atom-inventory" id="atomInventory" role="status" aria-live="polite"></p><p class="chem-stage-note" id="particleStatus" role="status" aria-live="polite"></p><div class="stage-ctrl"><button class="btn btn--primary" id="particlePlay" type="button">播放</button><button class="btn btn--outline" id="particleNext" type="button">反应一份</button><button class="btn btn--outline" id="particlePrev" type="button">上一步</button><button class="btn btn--ghost" id="particleReset" type="button">恢复初始粒子</button></div><p class="practice-note">最大完整份数=min(⌊H₂分子数/2⌋, O₂分子数)。若只有1个H₂，虽然有氢原子，也无法组成一整份本示意反应；宏观mol计算不使用这个整数向下取整。</p></div>
+
+<div class="task chem-calculator" style="margin-top:32px"><div class="task-head"><span class="task-id">EXPLORE · REACTION CALCULATOR</span><h3 class="task-title">宏观反应计算器：g → mol → 份数 → g</h3></div><p class="task-lead">给定M(H₂)=2.00、M(O₂)=32.0、M(H₂O)=18.0 g/mol。只接受0–10,000 g有限非负输入；用给定学校近似计算理论结果。</p><div class="field-grid"><label>初始H₂质量 / g<input id="calcHydrogen" type="number" min="0" max="10000" step="any" value="6" aria-label="计算器氢质量"></label><label>初始O₂质量 / g<input id="calcOxygen" type="number" min="0" max="10000" step="any" value="32" aria-label="计算器氧质量"></label></div><div class="btn-row"><button class="btn btn--primary" id="calculateReaction" type="button">计算理论量</button><button class="btn btn--outline" id="calcPresetHydrogen" type="button">氢限制：4 g / 64 g</button><button class="btn btn--outline" id="calcPresetBalanced" type="button">恰好：4 g / 32 g</button></div><div class="chem-values"><div class="chem-value"><strong id="calcLimit">O₂</strong><span>限制反应物 / 化学计量情况</span></div><div class="chem-value"><strong id="calcExtent">1 mol</strong><span>理想反应份数ξ</span></div><div class="chem-value"><strong id="calcWater">36 g</strong><span>理论水质量</span></div><div class="chem-value"><strong id="calcExcess">2 g H₂</strong><span>剩余反应物</span></div></div><p id="calculationSteps" class="chem-stage-note" role="status" aria-live="polite"></p><p id="massInventory" class="atom-inventory" role="status" aria-live="polite"></p><p id="calculationError" class="objective-fb" role="status" aria-live="polite"></p></div>
+
+<div class="task" style="margin-top:32px"><div class="task-head"><span class="task-id">Q1 · BALANCE</span><h3 class="task-title">入门：填最简正整数系数</h3></div><p class="task-lead">化学式固定为H₂、O₂、H₂O；只修改它们前面的系数。要求最简正整数比。</p><div class="coeff-row"><input id="coefficientH" type="number" min="1" max="20" step="1" aria-label="氢系数"><span>H₂ +</span><input id="coefficientO" type="number" min="1" max="20" step="1" aria-label="氧系数"><span>O₂ →</span><input id="coefficientWater" type="number" min="1" max="20" step="1" aria-label="水系数"><span>H₂O</span></div><button class="btn btn--primary" id="submitBalance" type="button">核对原子与最简比</button><p id="balanceFb" class="objective-fb" role="status" aria-live="polite"></p></div>
+<div class="task" style="margin-top:32px"><div class="task-head"><span class="task-id">Q2 · LIMITING REACTANT</span><h3 class="task-title">应用：6.00 g氢与32.0 g氧</h3></div><p class="task-lead">题目固定，不随工具变化；按本课摩尔质量和理想假设，选择限制物、填理论水质量与剩余氢质量。</p><div class="field-grid"><label>限制反应物<select id="answerLimit" aria-label="限制反应物选择"><option value="">请选择</option><option value="H2">H₂</option><option value="O2">O₂</option><option value="both">两者恰好按化学计量耗尽</option></select></label><label>理论H₂O质量 / g<input id="answerWater" type="number" min="0" step="any" aria-label="理论水质量答案"></label><label>剩余H₂质量 / g<input id="answerExcess" type="number" min="0" step="any" aria-label="剩余氢质量答案"></label></div><button class="btn btn--primary" id="submitLimiting" type="button">提交三项结果</button><p id="limitingFb" class="objective-fb" role="status" aria-live="polite"></p></div>
+<div class="task chem-mcq" data-item="chem-q3" style="margin-top:32px"><div class="task-head"><span class="task-id">Q3 · CONCEPT</span><h3 class="task-title">辨析：2:1:2是否等于质量比？</h3></div><p class="task-lead">对2H₂+O₂→2H₂O，使用给定摩尔质量，下面哪句准确？</p><div class="cp-opts" role="group" aria-label="质量比例辨析选项"><button class="opt" type="button" data-value="mass" aria-pressed="false">A. 系数直接说明2 g氢、1 g氧生成2 g水</button><button class="opt" type="button" data-value="moles" aria-pressed="false">B. mol比2:1:2；质量比4:32:36，约成1:8:9</button><button class="opt" type="button" data-value="subscript" aria-pressed="false">C. 可以改H₂O下标，让左右原子数字相等即可</button></div><p class="cp-fb" role="status" aria-live="polite"></p></div>
+<div class="task" style="margin-top:32px"><div class="task-head"><span class="task-id">Q4 · SEMANTIC REASONING</span><h3 class="task-title">迁移：解释为什么要比较n/系数</h3></div><p class="task-lead">同伴说：“哪种反应物的克数少，哪种就先用完；只要配平，就一定产生理论量。”用本课6 g/32 g例子反驳或修正这两点，说明单位换算、消耗比例、剩余量与至少两个理想模型假设。</p><textarea id="chemicalReasoning" aria-label="化学计量推理说明" placeholder="把g转mol，再按消耗系数比较；最后说明理论值需要哪些条件。"></textarea><button class="btn btn--primary" id="submitReasoning" type="button">提交解释，待语义审阅</button><p class="objective-fb" id="reasoningFb" role="status" aria-live="polite"></p><p class="practice-note">保存完整推理供宿主评估；不能因为出现“mol、守恒、限制反应物”等词就给正确分数。</p></div>
+<div class="ladder"><div class="ladder-head"><div class="micro micro--accent">PROGRESSIVE DISCLOSURE · 逐级主动提示</div></div><div class="ladder-steps" id="ladder" role="group" aria-label="化学计量提示阶梯"><button class="ladder-step" data-lv="1" data-h="1" type="button" data-state="avail"><span class="ls-t">L1 引导</span><span class="ls-s">先看原子与单位</span></button><button class="ladder-step" data-lv="2" data-h="2" type="button" disabled><span class="ls-t">L2 策略</span><span class="ls-s">比较反应份数</span></button><button class="ladder-step" data-lv="3" data-h="3" type="button" disabled><span class="ls-t">L3 部分示范</span><span class="ls-s">示范换算</span></button><button class="ladder-step" data-lv="4" data-h="4" type="button" disabled><span class="ls-t">L4 完整答案</span><span class="ls-s">需二次确认</span></button></div><p class="ladder-note" id="ladderNote">当前提示层级0。</p><div class="hint-body" id="hintBody"></div></div>
+<div class="verify" id="verify" hidden><div class="micro micro--accent">POST-VERIFICATION · 新变式</div><p class="task-lead">新题：4.00 g H₂与64.0 g O₂，摩尔质量不变，按理想反应。选限制物，填理论水质量及剩余氧质量。</p><div class="field-grid"><label>限制物<select id="verifyLimit" aria-label="变式限制物"><option value="">请选择</option><option value="H2">H₂</option><option value="O2">O₂</option><option value="both">两者恰好</option></select></label><label>水 / g<input id="verifyWater" type="number" min="0" step="any" aria-label="变式水质量"></label><label>剩余O₂ / g<input id="verifyExcess" type="number" min="0" step="any" aria-label="变式剩余氧质量"></label></div><button class="btn btn--primary" id="submitVerify" type="button">提交新变式</button><p class="objective-fb" id="verifyFb" role="status" aria-live="polite"></p></div>
+<div class="chem-score"><span class="micro">LOCAL FEEDBACK · 客观核对与待核验状态</span><p id="scoreSummary" class="practice-note">尚未评估。论证、迁移与自信不从客观正确性推算。</p><p id="feedbackNext" class="practice-note">你做对的部分、卡在哪里和下一步会在提交后逐项显示。</p></div>
+<div class="rail"><div class="rail-head"><div class="micro">EVIDENCE TRAIL · 本次会话事件</div><span class="summary-read" id="railCount">尚无事件</span></div><div class="rail-track"><div class="rail-dots" id="railDots"></div></div><div class="rail-foot"><span id="railLast">尚无事件</span></div></div>
+</div></section>
+<section class="zone" id="output" aria-labelledby="z3t">
+    <div class="zone-head">
+      <div class="micro micro--accent">03 · AGENT OUTPUT · 数据输出</div>
+      <h2 class="zone-title" id="z3t">交给宿主 Agent 的交互结果</h2>
+      <p class="zone-goal">这一区不是调试信息，而是学习者本次会话的完整档案。宿主 Agent 通过它驱动下一轮教学决策。</p>
+      <div class="zone-rule"></div>
+    </div>
+
+    <div class="zone-body">
+      <div class="bridge-strip" id="bridgeStrip">
+        <div class="bs-l">
+          <span class="micro micro--accent" id="bridgeMode">BRIDGE · 演示模式</span>
+          <span class="bs-t" id="bridgeSummary">未接入宿主 Agent；学习动作会累积为待执行的 MCP 调用。</span>
+        </div>
+        <button class="bs-btn" id="bridgeDrain" type="button">取出调用队列 ▾</button>
+      </div>
+      <pre class="bridge-out" id="bridgeOutbox" hidden></pre>
+      <div class="console">
+        <button class="console-bar" id="consoleBar" type="button" aria-expanded="false" aria-controls="consoleJson">
+          <span class="cb-t" id="consoleSummary">AGENT OUTPUT · 已记录 0 条事件</span>
+          <span class="cb-a" id="consoleAction">展开 JSON ▾</span>
+        </button>
+        <div class="console-json" id="consoleJson">
+          <pre id="leap-interaction-output"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<p class="foot">LEAP 示例7 · 化学计量 · node_id <code>chem.stoichiometry.limiting</code> · unit_tag <code>stoichiometry</code><br>离线单文件 · 给定方程的理想计量模型 · 学校近似摩尔质量 · 教学知识稿与来源见本目录。</p></main><script>/* LEAP_HOST_BRIDGE v3: embed this kernel inline in standalone pages.
+ * Runtime receipts own evidence and completion; local exact checks own feedback.
+ */
+function createLeapBridge(config) {
+  "use strict";
+  var HINT_DEP = [0, 0.25, 0.40, 0.60, 0.85];
+  var STAGE_CN = {estimated:"仅估计",practiced:"练习过",demonstrated:"独立展示",retained:"延迟保持",transferred:"已迁移"};
+  var bridge = {
+    mode: "demo", context: null, server: {mastery_probability:null,evidence_stage:"estimated",hint_dependency:null,next_review_at:null},
+    outbox: [],
+    seq: 0, hooks: [], attempts: {}, ledger: {}, receipts: {}, origins: {}, latestAssessmentCall: null
+  };
+  var state = {
+    leap_version: "2.0", example_id: config.example_id, subject: config.subject,
+    node: config.node, learner: {learner_id:"REPLACE_WITH_LEARNER_ID",session_id:"REPLACE_WITH_SESSION_ID"},
+    events: [], assessment: blankAssessment(),
+    ui_state: {mode:"demo",hosted:false,pending_mcp_calls:0,hint_level:0,hint_dependency:null,
+      answer_revealed:false,completed:false,local_activity_completed:false}
+  };
+  var renderHooks = [], drainWired = false;
+  function nowSec() { return Math.floor(Date.now() / 1000); }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function isHosted() { return bridge.mode === "hosted"; }
+  function blankAssessment() { return {item_id:"",correctness:null,conceptual_understanding:null,reasoning_quality:null,
+    application:null,transfer:null,hint_dependency:null,confidence:null,overall_score:null,error_type:"none",
+    misconception:"",feedback:"尚未评估",evidence_stage:"estimated",assessor_type:"rule",provisional:true}; }
+  function aggregate(d) {
+    var weights = {correctness:0.4,conceptual_understanding:0.3,reasoning_quality:0.2,application:0.1}, sum=0,total=0;
+    Object.keys(weights).forEach(function(k) {if(typeof d[k]==="number" && Number.isFinite(d[k])) {sum+=d[k]*weights[k];total+=weights[k];}});
+    return total ? Math.round(sum/total*100)/100 : null;
+  }
+  function enqueue(tool,args,note) {
+    var call = {call_id:"call_"+(++bridge.seq),tool:tool,args:args||{},status:"pending",created_at:nowSec(),note:note||""};
+    bridge.outbox.push(call); bridge.ledger[call.call_id]=clone(call);
+    bridge.origins[call.call_id]={session_id:state.learner.session_id,node_id:state.node.node_id};
+    bridge.hooks.forEach(function(fn) {fn(clone(call),bridge.outbox.length);});
+    return call;
+  }
+  function enqueueForEvent(ev) {
+    if(ev.event_type === "item_completed") {
+      enqueue("check_advance_unit",{session_id:state.learner.session_id,node_id:state.node.node_id},"检查推进条件；检查通过本身不代表已推进");
+      return;
+    }
+    if(["attempt_submitted","drag_submitted","code_run"].indexOf(ev.event_type)>=0) {
+      var raw=ev.answer==null?"":String(ev.answer), key=ev.item_id||"";
+      var call=enqueue("submit_attempt",{session_id:state.learner.session_id,node_id:state.node.node_id,item_id:key||null,
+        answer:raw,hint_level:typeof ev.hint_level==="number"?ev.hint_level:state.ui_state.hint_level,
+        response_time:typeof ev.response_time==="number"?ev.response_time:null},"保留原始作答与本题 attempt 引用");
+      bridge.attempts[key]={call_id:call.call_id,raw_answer:raw,hint_level:call.args.hint_level,assessor_scope:ev.assessor_scope||"exact_answer"};
+    } else if(ev.event_type==="reflection_recorded") {
+      enqueue("record_reflection",{session_id:state.learner.session_id,node_id:state.node.node_id,reflection:String(ev.answer||"")},"保存反思，不作为正确性评分");
+    }
+  }
+  function pushEvent(event_type,payload) {
+    var ev=Object.assign({event_type:event_type,item_id:""},payload||{},{created_at:nowSec()});
+    state.events.push(ev); enqueueForEvent(ev); renderAll(); return ev;
+  }
+  function setHint(level) {
+    if(!Number.isInteger(level)||level<0||level>4) throw new RangeError("hint level must be 0..4");
+    state.ui_state.hint_level=Math.max(level,state.ui_state.hint_level);
+    if(level===4) state.ui_state.answer_revealed=true;
+    // Local hint usage is separate from the Runtime's historical estimate.
+    state.ui_state.local_hint_dependency=HINT_DEP[state.ui_state.hint_level]; renderAll();
+  }
+  function commitAssessment(item) {
+    var attempt=bridge.attempts[item.item_id];
+    if(!attempt) throw new Error("本题尚未提交作答，不能借用其他题目的 attempt");
+    if(attempt.assessor_scope==="host_semantic_review"||item.assessor_scope==="host_semantic_review") {
+      bridge.latestAssessmentCall=null;
+      state.assessment=Object.assign(blankAssessment(),{item_id:item.item_id,feedback:"原始作答已收集，等待宿主审核论证",evidence_stage:bridge.server.evidence_stage});
+      renderAll(); return clone(state.assessment);
+    }
+    if(typeof item.correctness!=="number"||!Number.isFinite(item.correctness)||item.correctness<0||item.correctness>1) throw new TypeError("Exact checks require an explicit correctness value");
+    // An exact answer does not establish reasoning, concepts, transfer or self-confidence.
+    var value=Math.round(item.correctness*100)/100;
+    var a=Object.assign(blankAssessment(),{item_id:item.item_id,correctness:value,overall_score:value,
+      feedback:item.feedback||"仅核对客观答案",error_type:item.error_type||"none",misconception:item.misconception||"",
+      hint_dependency:HINT_DEP[Math.min(attempt.hint_level,4)],evidence_stage:bridge.server.evidence_stage,provisional:true});
+    state.assessment=a;
+    var call=enqueue("commit_assessment",{attempt_id:"{{"+attempt.call_id+".attempt_id}}",raw_answer:attempt.raw_answer,
+      assessor_type:"rule",correctness:a.correctness,hint_dependency:a.hint_dependency},"仅提交客观正确性；其他维度待相应证据评估");
+    bridge.latestAssessmentCall=call.call_id; renderAll(); return clone(a);
+  }
+  function setCompleted(itemId,reason) {
+    state.ui_state.local_activity_completed=true;
+    pushEvent("item_completed",{item_id:itemId,reason:reason||"local_check_finished"});
+  }
+  function hydrate(ctx) {
+    if(!ctx||typeof ctx!=="object"||ctx.ok===false) throw new TypeError("hydrate requires a successful Runtime context");
+    var sess=ctx.session||{},node=ctx.current_node||ctx.node||{},ks=ctx.knowledge_state||{};
+    var learner=ctx.learner_id||sess.learner_id, sid=ctx.session_id||sess.session_id;
+    if(!learner||!sid||!node.node_id) throw new TypeError("Runtime context needs learner, session and node identifiers");
+    if(sid!==state.learner.session_id||node.node_id!==state.node.node_id) {
+      if(bridge.outbox.length) throw new Error("切换上下文前必须先取走并处理原节点的调用队列");
+      bridge.attempts={}; bridge.latestAssessmentCall=null; state.ui_state.completed=false; state.ui_state.local_activity_completed=false;
+      state.ui_state.hint_level=0; state.ui_state.answer_revealed=false; state.assessment=blankAssessment();
+    }
+    state.learner={learner_id:learner,session_id:sid}; state.node=Object.assign({},state.node,node);
+    bridge.context=clone(ctx); bridge.mode="hosted";
+    bridge.server={mastery_probability:typeof ks.mastery_probability==="number"?ks.mastery_probability:null,
+      evidence_stage:ks.evidence_stage||"estimated",hint_dependency:typeof ks.hint_dependency==="number"?ks.hint_dependency:null,
+      next_review_at:ks.next_review_at||null};
+    state.assessment.evidence_stage=bridge.server.evidence_stage;
+    state.ui_state.hint_dependency=bridge.server.hint_dependency;
+    // A state snapshot does not confirm a particular pending assessment receipt.
+    renderAll(); return snapshot();
+  }
+  function applyToolResults(results) {
+    // Validate the whole batch before changing any receipt or displayed state.
+    var merged=Object.assign({},bridge.receipts,results||{});
+    Object.keys(results||{}).forEach(function(id) {
+      var call=bridge.ledger[id],result=results[id];
+      if(!call) throw new Error("Unknown outbox call receipt: "+id);
+      if(!result||result.ok!==true) return;
+      if(call.tool==="commit_assessment") {
+        var match=/^\{\{(call_\d+)\.attempt_id\}\}$/.exec(call.args.attempt_id);
+        var attemptReceipt=match&&merged[match[1]];
+        if(!attemptReceipt||attemptReceipt.ok!==true||!attemptReceipt.attempt_id||result.attempt_id!==attemptReceipt.attempt_id) throw new Error("Assessment receipt does not match its attempt");
+        if(!result.result_id||typeof result.overall_score!=="number"||!Number.isFinite(result.overall_score)) throw new Error("Incomplete assessment receipt");
+      }
+    });
+    Object.keys(results||{}).forEach(function(id) {
+      var call=bridge.ledger[id], result=results[id];
+      bridge.receipts[id]=clone(result);
+      if(!result||result.ok!==true) return;
+      var origin=bridge.origins[id];
+      if(origin.session_id!==state.learner.session_id||origin.node_id!==state.node.node_id) return;
+      if(call.tool==="commit_assessment" && id===bridge.latestAssessmentCall) {
+        Object.assign(state.assessment,result.scores||{},{overall_score:result.overall_score,provisional:false,result_id:result.result_id});
+        if(result.learner_state) bridge.server=Object.assign({},bridge.server,result.learner_state);
+      }
+      if(call.tool==="advance_unit"&&result.advanced===true&&result.session_id===state.learner.session_id) state.ui_state.completed=true;
+    });
+    state.assessment.evidence_stage=bridge.server.evidence_stage;
+    state.ui_state.hint_dependency=bridge.server.hint_dependency; renderAll(); return snapshot();
+  }
+  function requestAdvance() {
+    var call=enqueue("advance_unit",{session_id:state.learner.session_id,node_id:state.node.node_id},"Runtime State Guard 批准后推进"); renderAll(); return clone(call);
+  }
+  function peekOutbox() {return clone(bridge.outbox);}
+  function drainOutbox() {var out=peekOutbox();bridge.outbox.length=0;renderAll();return out;}
+  function snapshot() {
+    var out=clone(state); out.ui_state.mode=bridge.mode; out.ui_state.hosted=isHosted();out.ui_state.pending_mcp_calls=bridge.outbox.length;
+    out.outbox=peekOutbox();return out;
+  }
+  function renderOutput() {
+    var el=document.getElementById("leap-interaction-output");if(el) el.textContent=JSON.stringify(snapshot(),null,2);
+    var sum=document.getElementById("consoleSummary");if(sum) sum.textContent="AGENT OUTPUT · 已记录 "+state.events.length+" 条事件"+(state.ui_state.completed?" · Runtime 已推进":state.ui_state.local_activity_completed?" · 本地练习已结束，待 Runtime 检查":"");
+  }
+  function renderSpine() {
+    var cur=bridge.server.evidence_stage,stages=Object.keys(STAGE_CN),idx=stages.indexOf(cur);
+    document.querySelectorAll("#evTrack .ev-seg").forEach(function(el,i){el.classList.toggle("is-on",i<=idx);});
+    var name=document.getElementById("evName");if(name) name.textContent=cur+" · "+STAGE_CN[cur];
+    var val=document.getElementById("masVal"),fill=document.getElementById("masFill"),m=bridge.server.mastery_probability;
+    if(val) val.textContent=typeof m==="number"?m.toFixed(2):"未评估";
+    if(fill) fill.style.width=typeof m==="number"?Math.round(m*100)+"%":"0%";
+    var review=document.querySelector(".spine-rev .val"),at=bridge.server.next_review_at;
+    if(review) review.textContent=at?new Date(at*1000).toLocaleString():"尚未安排";
+    var note=document.getElementById("ladderNote");if(note) note.textContent="提示只在主动请求时展开；当前提示层级 "+state.ui_state.hint_level+"。";
+  }
+  function renderBridge() {
+    var mode=document.getElementById("bridgeMode"),sum=document.getElementById("bridgeSummary"),note=document.getElementById("spineNote");
+    if(mode) mode.textContent="BRIDGE · "+(isHosted()?"Runtime 上下文快照":"离线演示");
+    if(sum) sum.textContent="待处理调用 "+bridge.outbox.length+" 条。客观答案反馈需回执确认；论证等待宿主审核。";
+    if(note) note.textContent=isHosted()?"显示最近一次 Runtime 上下文；新作答等待实际调用回执。":"掌握度未评估；离线操作仅收集学习动作。";
+    var button=document.getElementById("bridgeDrain"),pre=document.getElementById("bridgeOutbox");
+    if(button&&!drainWired) {drainWired=true;button.addEventListener("click",function(){if(pre){pre.hidden=!pre.hidden;pre.textContent=JSON.stringify(peekOutbox(),null,2);}});}
+    if(button) button.disabled=!bridge.outbox.length;
+  }
+  function renderRail() {
+    var dots=document.getElementById("railDots"),n=state.events.length;
+    if(dots) {dots.replaceChildren();state.events.forEach(function(e,i){var d=document.createElement("span");d.className="rail-dot";d.style.left=((i+1)/(n+1)*100)+"%";d.title=e.event_type;dots.appendChild(d);});}
+    var count=document.getElementById("railCount"),last=document.getElementById("railLast");
+    if(count) count.textContent="已产生 "+n+" 条事件（只追加，不覆盖）";
+    if(last&&n) last.textContent="最近："+state.events[n-1].event_type;
+  }
+  function renderAll() {renderOutput();renderSpine();renderBridge();renderRail();renderHooks.forEach(function(fn){fn();});}
+  function onRender(fn) {renderHooks.push(fn);fn();}
+  return {hydrate:hydrate,isHosted:isHosted,getInteractionResult:snapshot,getState:function(){return state;},getMastery:function(){return bridge.server.mastery_probability;},
+    peekOutbox:peekOutbox,drainOutbox:drainOutbox,onOutboxChange:function(fn){bridge.hooks.push(fn);},pushEvent:pushEvent,
+    setHint:setHint,commitAssessment:commitAssessment,setCompleted:setCompleted,applyToolResults:applyToolResults,requestAdvance:requestAdvance,
+    aggregate:aggregate,onRender:onRender,refresh:renderAll,HINT_DEP:HINT_DEP,STAGE_CN:STAGE_CN};
+}
+
+window.LEAP = createLeapBridge({example_id:"chemistry-stoichiometry",subject:"chemistry",node:{node_id:"chem.stoichiometry.limiting",title:"配平与限制反应物",unit_tag:"stoichiometry"}});
+(function(){
+  "use strict";
+  var $=function(id){return document.getElementById(id)},LEAP=window.LEAP,tries={},started=performance.now(),particleStep=0,timer=null,calc=null,NS="http://www.w3.org/2000/svg";
+  function attempt(id,a){LEAP.pushEvent("attempt_submitted",{item_id:id,answer:typeof a==="string"?a:JSON.stringify(a),hint_level:LEAP.getState().ui_state.hint_level,assessor_scope:id.indexOf("semantic")>=0?"host_semantic_review":"exact_answer",response_time:(performance.now()-started)/1000,attempt_index:(tries[id]=(tries[id]||0)+1),predicted_performance:null})}
+  function assess(id,c,text,error){LEAP.commitAssessment({item_id:id,correctness:c,error_type:error||(c===1?"none":"answer_error"),feedback:text});$("feedbackNext").textContent=text}
+  function num(v){return Number(v.toFixed(6)).toString()}
+  function particle(){var h=Number($("hydrogenParticles").value),o=Number($("oxygenParticles").value),max=Math.min(Math.floor(h/2),o),s=Math.min(particleStep,max);return {initialH:h,initialO:o,max:max,step:s,remainingH:h-2*s,remainingO:o-s,water:2*s,hydrogenAtoms:2*h,oxygenAtoms:2*o,playing:timer!==null}}
+  function atom(g,x,y,type){var c=document.createElementNS(NS,"circle");c.setAttribute("cx",x);c.setAttribute("cy",y);c.setAttribute("r",type==="h"?12:15);c.setAttribute("class",type==="h"?"molecule-h":"molecule-o");g.appendChild(c);var t=document.createElementNS(NS,"text");t.setAttribute("x",x);t.setAttribute("y",y+5);t.setAttribute("text-anchor","middle");t.style.fontSize="12px";t.textContent=type.toUpperCase();g.appendChild(t)}
+  function molecule(host,i,type){var g=document.createElementNS(NS,"g"),col=i%3,row=Math.floor(i/3),x=Number(host.dataset.offset||0)+55+col*96,y=73+row*70;if(type==="water"){var bond=document.createElementNS(NS,"path");bond.setAttribute("d","M"+(x-22)+" "+(y+16)+"L"+x+" "+y+"L"+(x+22)+" "+(y+16));bond.setAttribute("class","molecule-bond");g.appendChild(bond);atom(g,x,y,"o");atom(g,x-23,y+18,"h");atom(g,x+23,y+18,"h")}else{var bond=document.createElementNS(NS,"path");bond.setAttribute("d","M"+(x-14)+" "+y+"H"+(x+14));bond.setAttribute("class","molecule-bond");g.appendChild(bond);atom(g,x-14,y,type);atom(g,x+14,y,type)}host.appendChild(g)}
+  $("hydrogenMolecules").dataset.offset=0;$("oxygenMolecules").dataset.offset=334;$("waterMolecules").dataset.offset=654;
+  function drawParticle(){var m=particle();particleStep=m.step;$("hydrogenCount").textContent=m.initialH;$("oxygenCount").textContent=m.initialO;["hydrogenMolecules","oxygenMolecules","waterMolecules"].forEach(function(id){$(id).replaceChildren()});for(var i=0;i<m.remainingH;i++)molecule($("hydrogenMolecules"),i,"h");for(var j=0;j<m.remainingO;j++)molecule($("oxygenMolecules"),j,"o");for(var k=0;k<m.water;k++)molecule($("waterMolecules"),k,"water");$("particleExtent").textContent=m.step+" / "+m.max;$("remainingH").textContent=m.remainingH;$("remainingO").textContent=m.remainingO;$("formedWater").textContent=m.water;
+    var H=2*m.remainingH+2*m.water,O=2*m.remainingO+m.water;$("atomInventory").textContent="原子核对：H初始 "+m.hydrogenAtoms+" = 当前 "+H+"；O初始 "+m.oxygenAtoms+" = 当前 "+O+"。分子总数可改变，元素原子总数保留。";$("particleDesc").textContent="剩余H₂ "+m.remainingH+"、O₂ "+m.remainingO+"，生成水 "+m.water+"；H原子"+H+"，O原子"+O+"。";$("particleStatus").textContent=m.step===m.max?(m.max===0?"缺少足够的一整份反应物，当前示意不能再反应；这不是反应速率判断。":"已完成最多完整份数；若还有单个H₂，也不能拿半个分子组成下一份。"):"下一份会消耗2个H₂和1个O₂，生成2个H₂O。小球重排仅展示计数，不表示真实碰撞或机理。";$("particleNext").disabled=m.step===m.max;$("particlePrev").disabled=m.step===0;$("particlePlay").disabled=m.max===0;}
+  function stop(){if(timer!==null){clearInterval(timer);timer=null}$("particlePlay").textContent="播放"}
+  function advance(d){var m=particle();particleStep=Math.max(0,Math.min(m.max,m.step+d));drawParticle();if(particleStep===m.max)stop()}
+  ["hydrogenParticles","oxygenParticles"].forEach(function(id){$(id).addEventListener("input",function(){stop();particleStep=0;drawParticle()})});$("particleNext").addEventListener("click",function(){stop();advance(1)});$("particlePrev").addEventListener("click",function(){stop();advance(-1)});$("particleReset").addEventListener("click",function(){stop();particleStep=0;drawParticle()});$("particlePlay").addEventListener("click",function(){if(timer!==null){stop();return}var m=particle();if(m.step===m.max)particleStep=0;$("particlePlay").textContent="暂停";timer=setInterval(function(){advance(1)},750);drawParticle()});drawParticle();
+  function calculate(){var rawH=$("calcHydrogen").value,rawO=$("calcOxygen").value,h=Number(rawH),o=Number(rawO);if(rawH===""||rawO===""||!Number.isFinite(h)||!Number.isFinite(o)||h<0||o<0||h>10000||o>10000){$("calculationError").textContent="输入需为0–10,000 g有限非负质量；未计算，不生成新结果。";return false}var nh=h/2,no=o/32,hshare=nh/2,oshare=no,xi=Math.min(hshare,oshare),rh=Math.max(0,nh-2*xi),ro=Math.max(0,no-xi),w=2*xi*18,limit=hshare<oshare?"H2":hshare>oshare?"O2":"both";calc={massH:h,massO:o,molesH:nh,molesO:no,hydrogenShare:hshare,oxygenShare:oshare,extent:xi,waterMass:w,remainingHMass:rh*2,remainingOMass:ro*32,limit:limit};$("calculationError").textContent="";$("calcLimit").textContent=limit==="H2"?"H₂":limit==="O2"?"O₂":"两者恰好";$("calcExtent").textContent=num(xi)+" mol";$("calcWater").textContent=num(w)+" g";$("calcExcess").textContent=calc.remainingHMass?num(calc.remainingHMass)+" g H₂":calc.remainingOMass?num(calc.remainingOMass)+" g O₂":"无剩余";$("calculationSteps").textContent="H₂: "+num(h)+"/2="+num(nh)+" mol，再除系数2得 "+num(hshare)+" mol；O₂: "+num(o)+"/32="+num(no)+" mol，除系数1得 "+num(oshare)+" mol。ξ="+num(xi)+" mol；水2ξ="+num(2*xi)+" mol。";$("massInventory").textContent="质量核对：初始 "+num(h+o)+" g = 水 "+num(w)+" + 剩余H₂ "+num(calc.remainingHMass)+" + 剩余O₂ "+num(calc.remainingOMass)+" g。"+(xi===0?"理论水0；若再计算实际/理论百分产率，分母0所以无定义。":"理论量依赖完全转化与全回收假设。");return true}
+  $("calculateReaction").addEventListener("click",calculate);$("calcPresetHydrogen").addEventListener("click",function(){$("calcHydrogen").value=4;$("calcOxygen").value=64;calculate()});$("calcPresetBalanced").addEventListener("click",function(){$("calcHydrogen").value=4;$("calcOxygen").value=32;calculate()});calculate();
+  window.ChemistryDemo={getParticleState:function(){return particle()},getCalculation:function(){return JSON.parse(JSON.stringify(calc))},setParticles:function(h,o){stop();$("hydrogenParticles").value=h;$("oxygenParticles").value=o;particleStep=0;drawParticle()},setMasses:function(h,o){$("calcHydrogen").value=h;$("calcOxygen").value=o;return calculate()}};
+  document.querySelectorAll("#cp .opt").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll("#cp .opt").forEach(function(x){x.setAttribute("aria-pressed","false")});b.setAttribute("aria-pressed","true");var ok=b.dataset.value==="moles",text=ok?"你认对了系数含义；mol比例2:1:2还要乘各自摩尔质量得到4:32:36克。下一步核对质量守恒。":"你认出了2:1:2；卡在把mol比当作克数比。下一步分别乘2、32、18 g/mol核对。";$("cpFb").textContent=text;$("cpFb").classList.add("is-on");attempt("chem-cp",b.textContent.trim());assess("chem-cp",ok?1:0,text,ok?"none":"misconception")})});
+  $("submitBalance").addEventListener("click",function(){var raw={H2:$("coefficientH").value,O2:$("coefficientO").value,H2O:$("coefficientWater").value},a=Number(raw.H2),b=Number(raw.O2),c=Number(raw.H2O);if(Object.keys(raw).some(function(k){return raw[k]===""})||![a,b,c].every(function(v){return Number.isInteger(v)&&v>=1&&v<=20})){ $("balanceFb").textContent="请填1–20的正整数系数，不修改下标。";return}var atoms=a===c&&2*b===c,minimal=a===2&&b===1&&c===2,score=minimal?1:atoms?0.5:0,text=minimal?"你做对了：2:1:2最简且守恒，H左右4、O左右2。下一步把这个mol比转成质量比。":atoms?"原子守恒这部分正确；卡在未约成最简正整数比。下一步整体约分为2:1:2；不要修改下标。":"卡在原子守恒：H左"+(2*a)+"右"+(2*c)+"，O左"+(2*b)+"右"+c+"。下一步先匹配O，再补齐H；只改系数。";attempt("chem-q1",raw);assess("chem-q1",score,text,minimal?"none":atoms?"reasoning_error":"answer_error");$("balanceFb").textContent=text});
+  function objective(id,fields,expected,fbid){var a={};fields.forEach(function(f){a[f]=$ (f).value});if(fields.some(function(f){return a[f]===""})){ $(fbid).textContent="先选限制物并填写两项质量。";return false}var flags=fields.map(function(f,i){return typeof expected[i]==="number"?Number(a[f])===expected[i]:a[f]===expected[i]}),score=flags.filter(Boolean).length/3,text=score===1?"你做对三项。下一步用初始质量=水+剩余物核对，并解释限制物来自n/系数比较。":"部分正确 "+flags.filter(Boolean).length+"/3；卡在第 "+flags.map(function(v,i){return v?null:i+1}).filter(Boolean).join("、")+"项。下一步先g→mol，再除消耗系数，最后计算水与剩余量。";attempt(id,a);assess(id,score,text,score===1?"none":flags[0]?"answer_error":"reasoning_error");$(fbid).textContent=text;return score===1}
+  $("submitLimiting").addEventListener("click",function(){objective("chem-q2",["answerLimit","answerWater","answerExcess"],["O2",36,2],"limitingFb")});
+  document.querySelectorAll(".chem-mcq .opt").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll(".chem-mcq .opt").forEach(function(x){x.setAttribute("aria-pressed","false")});b.setAttribute("aria-pressed","true");var ok=b.dataset.value==="moles",text=ok?"你做对了：mol比2:1:2，质量4:32:36=1:8:9，且4+32=36守恒。下一步把这些单位用于限制物计算。":"你选了一个关系；卡在把系数当克数或修改下标。下一步保留化学式，再用mol×摩尔质量得到g。";document.querySelector(".chem-mcq .cp-fb").textContent=text;attempt("chem-q3",b.textContent.trim());assess("chem-q3",ok?1:0,text,ok?"none":"misconception")})});
+  $("submitReasoning").addEventListener("click",function(){var raw=$("chemicalReasoning").value.trim();if(!raw){$("reasoningFb").textContent="先写下完整推理，说明单位、份数和模型假设。";return}attempt("chem-q4-semantic",raw);$("reasoningFb").textContent="原文已采集，待宿主语义审阅。未生成关键词评分、commit_assessment或完成标记。"});
+  var level=0,HINTS={1:"L1 引导：Q1 两边每种元素的原子数是多少？Q2 输入是g还是mol？Q3 系数与下标分别改变什么？Q4 理论量假设了哪些实际条件？",2:"L2 策略：配平先匹配O再匹配H，只改系数；质量除摩尔质量得到mol，分别除以2与1得到可支持反应份数，取较小。算水时乘系数2和18 g/mol，剩余量从初始减去消耗。",3:"L3 部分示范：H₂+O₂→2H₂O已经匹配O，但H还需配平。6 g H₂/2 g/mol=3 mol，32 g O₂/32 g/mol=1 mol；接下来比较3/2与1/1。",4:"L4 完整解答：Q1 2:1:2；4:2:4也守恒但非最简，应整体约分。Q2 n(H₂)=3 mol、n(O₂)=1 mol；份数1.5与1，故O₂限制，ξ=1 mol；水2 mol×18=36 g，剩H₂1 mol×2=2 g、O₂0。Q3 mol比2:1:2；质量4:32:36=1:8:9，不是2:1:2克。Q4 克数少不等于限制物：本例6 g H₂更轻却过量，32 g O₂限制，因为n/系数比较是1.5与1。配平仅表达元素守恒和化学计量关系，不保证速率、反应完全或100%收集；理论36 g水假设固定反应路径、纯物质、完全转化、无副反应且全回收，实际需核验这些条件。"};
+  function ladder(){document.querySelectorAll("#ladder .ladder-step").forEach(function(b){var l=Number(b.dataset.lv);b.disabled=l>level+1;b.dataset.state=l<=level?"used":l===level+1?"avail":"locked"})}
+  function reveal(l){level=l;LEAP.setHint(l);LEAP.pushEvent(l===4?"answer_revealed":"hint_used",{item_id:"chem-q1",hint_level:l,answer:""});var d=document.createElement("div");d.className="hint-card";d.dataset.lv=l;d.textContent=HINTS[l];$("hintBody").appendChild(d);if(l===4)$("verify").hidden=false;ladder()}
+  document.querySelectorAll("#ladder .ladder-step").forEach(function(b){b.addEventListener("click",function(){var l=Number(b.dataset.lv);if(l!==level+1)return;if(l<4){reveal(l);return}if($("confirmBox"))return;var d=document.createElement("div");d.className="confirm";d.id="confirmBox";d.innerHTML='<p>确认展开完整答案后，会记录hint_level=4；仍须做新的变式，不会自动提升掌握度或完成Runtime节点。</p><div class="btn-row"><button id="confirmReveal" class="btn btn--primary" type="button">我确认，展开完整答案</button><button id="cancelReveal" class="btn btn--ghost" type="button">先不展开</button></div>';$("hintBody").appendChild(d);$("cancelReveal").addEventListener("click",function(){d.remove()});$("confirmReveal").addEventListener("click",function(){d.remove();reveal(4)})})});ladder();
+  $("submitVerify").addEventListener("click",function(){if(objective("chem-post-verify",["verifyLimit","verifyWater","verifyExcess"],["H2",36,32],"verifyFb")){LEAP.setCompleted("chem-post-verify","exact_variant_checked");$("verifyFb").textContent="新题客观核对通过：H₂限制，水36 g，剩O₂32 g；本地活动结束，已请求Runtime检查。"}});
+  LEAP.onRender(function(){var a=LEAP.getState().assessment;$("scoreSummary").textContent=a.correctness===null?"尚未核对客观正确性；论证、概念、迁移与自信需独立证据。":"最近 "+a.item_id+" 客观正确性="+num(a.correctness)+"；其他维度未评估；待Runtime回执核验。"});$("consoleBar").addEventListener("click",function(){var open=$("consoleJson").classList.toggle("is-on");this.setAttribute("aria-expanded",String(open));$("consoleAction").textContent=open?"收起JSON ▴":"展开JSON ▾"});LEAP.refresh();
+})();
+</script></body></html>

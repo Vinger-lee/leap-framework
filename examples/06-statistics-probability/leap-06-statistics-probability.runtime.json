@@ -1,0 +1,139 @@
+[
+  {
+    "name": "default natural frequencies and conditional directions are mathematically correct",
+    "steps": [],
+    "assertions": [
+      "window.ProbabilityDemo.getModel().tp === 90 && window.ProbabilityDemo.getModel().fp === 891 && window.ProbabilityDemo.getModel().fn === 10 && window.ProbabilityDemo.getModel().tn === 9009",
+      "Math.abs(window.ProbabilityDemo.getModel().posterior - 10/109) < 1e-12 && window.ProbabilityDemo.getModel().inverse === 0.9",
+      "document.querySelector('#posteriorValue').textContent === '9.17%' && document.querySelector('#positiveCount').textContent === '981'",
+      "document.querySelectorAll('#frequencyTable .focus-cell').length === 2 && document.querySelector('#tpCount').classList.contains('focus-cell') && document.querySelector('#fpCount').classList.contains('focus-cell')"
+    ]
+  },
+  {
+    "name": "sliders update table tree strip and probabilities without manufacturing attempts",
+    "steps": [
+      {"action": "evaluate", "script": "const s=document.querySelector('#prior'); s.value=10; s.dispatchEvent(new Event('input',{bubbles:true}));"}
+    ],
+    "assertions": [
+      "window.ProbabilityDemo.getModel().tp === 900 && window.ProbabilityDemo.getModel().fp === 810 && Math.abs(window.ProbabilityDemo.getModel().posterior - 10/19) < 1e-12",
+      "document.querySelector('#treeTp').textContent.includes('900') && document.querySelector('#treeFp').textContent.includes('810') && document.querySelector('#posteriorValue').textContent === '52.63%'",
+      "Math.abs(Number(document.querySelector('#frequencyNumerator').getAttribute('width')) - 860*10/19) < 1e-9",
+      "window.LEAP.getInteractionResult().events.length === 0"
+    ]
+  },
+  {
+    "name": "changing conditional direction uses disease denominator and negative filter uses negative total",
+    "steps": [
+      {"action": "click", "selector": "[data-condition='disease']"},
+      {"action": "evaluate", "script": "window.__diseaseText=document.querySelector('#ratioReading').textContent; window.__diseaseFocus=Array.from(document.querySelectorAll('#frequencyTable .focus-cell')).map(x=>x.dataset.cell);"},
+      {"action": "click", "selector": "[data-condition='negative']"}
+    ],
+    "assertions": [
+      "window.__diseaseText.includes('分母 100') && window.__diseaseText.includes('90.00%') && window.__diseaseFocus.includes('fn') && !window.__diseaseFocus.includes('fp')",
+      "document.querySelector('#ratioReading').textContent.includes('分子 10') && document.querySelector('#ratioReading').textContent.includes('分母 9019')",
+      "document.querySelector('#fnCount').classList.contains('focus-cell') && document.querySelector('#tnCount').classList.contains('focus-cell')"
+    ]
+  },
+  {
+    "name": "all four preset models respect row column and population sums",
+    "steps": [
+      {"action": "evaluate", "script": "window.__presetChecks=[]; for(const id of ['presetRare','presetCommon','presetIndependent','presetZero']){document.getElementById(id).click();const m=window.ProbabilityDemo.getModel();window.__presetChecks.push(m.tp+m.fn===m.A && m.fp+m.tn===m.notA && m.tp+m.fp===m.B && m.fn+m.tn===m.notB && m.A+m.notA===m.N && m.B+m.notB===m.N);}"}
+    ],
+    "assertions": ["window.__presetChecks.length === 4 && window.__presetChecks.every(Boolean)"]
+  },
+  {
+    "name": "zero positive group is undefined and never NaN Infinity or probability zero",
+    "steps": [{"action":"click","selector":"#presetZero"}],
+    "assertions": [
+      "window.ProbabilityDemo.getModel().posterior === null && document.querySelector('#posteriorValue').textContent === '无定义'",
+      "document.querySelector('#probabilityBoundary').textContent.includes('阳性人数为 0') && document.querySelector('#ratioReading').textContent.includes('无定义')",
+      "!document.querySelector('#practice').textContent.includes('NaN') && !document.querySelector('#practice').textContent.includes('Infinity')"
+    ]
+  },
+  {
+    "name": "zero and one priors and all-positive negative-group boundary are correctly distinguished",
+    "steps": [{"action":"evaluate","script":"window.ProbabilityDemo.setParameters(0,90,9);window.__zero=window.ProbabilityDemo.getModel();window.__zeroText=document.querySelector('#inverseValue').textContent;window.ProbabilityDemo.setParameters(100,90,9);window.__one=window.ProbabilityDemo.getModel();window.__specificity=document.querySelector('#specificityValue').textContent;window.ProbabilityDemo.setParameters(10,100,100);document.querySelector('[data-condition=negative]').click();"}],
+    "assertions": [
+      "window.__zero.inverse === null && window.__zero.posterior === 0 && window.__zero.independent === true && window.__zeroText === '无定义'",
+      "window.__one.posterior === 1 && window.__one.specificity === null && window.__specificity === '无定义'",
+      "window.ProbabilityDemo.getModel().negativePosterior === null && document.querySelector('#ratioReading').textContent.includes('分母 0') && document.querySelector('#ratioReading').textContent.includes('无定义')"
+    ]
+  },
+  {
+    "name": "independence preset conveys equality of condition and prior with general product definition",
+    "steps": [{"action":"click","selector":"#presetIndependent"}],
+    "assertions": [
+      "window.ProbabilityDemo.getModel().independent === true && Math.abs(window.ProbabilityDemo.getModel().posterior - window.ProbabilityDemo.getModel().p) < 1e-12",
+      "document.querySelector('#independenceReading').textContent.startsWith('独立：') && document.querySelector('#independenceReading').textContent.includes('0.0600')"
+    ]
+  },
+  {
+    "name": "all stepwise explanations advance reverse and reset without changing model",
+    "steps": [{"action":"evaluate","script":"window.__initial=JSON.stringify(window.ProbabilityDemo.getModel());for(let i=0;i<5;i++)document.querySelector('#probNext').click();window.__lastStep=window.ProbabilityDemo.getView();window.__lastText=document.querySelector('#probabilityStep').textContent;for(let i=0;i<5;i++)document.querySelector('#probPrev').click();document.querySelector('#probNext').click();document.querySelector('#probReset').click();"}],
+    "assertions": [
+      "window.__lastStep.step === 5 && window.__lastStep.condition === 'disease' && window.__lastText.includes('分母')",
+      "window.ProbabilityDemo.getView().step === 0 && JSON.stringify(window.ProbabilityDemo.getModel()) === window.__initial && document.querySelector('#probPrev').disabled === true"
+    ]
+  },
+  {
+    "name": "wrong and corrected checkpoint are both preserved and referenced in pending calls",
+    "steps": [{"action":"click","selector":"#cp .opt[data-v='bad'] >> nth=0"},{"action":"click","selector":"#cp .opt[data-v='ok']"}],
+    "assertions": [
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='stats-cp' && e.event_type==='attempt_submitted').length === 2",
+      "window.LEAP.getInteractionResult().assessment.correctness === 1 && window.LEAP.peekOutbox().filter(c=>c.tool==='submit_attempt').length === 2",
+      "window.LEAP.getInteractionResult().ui_state.mode === 'demo' && window.LEAP.getInteractionResult().assessment.provisional === true && window.LEAP.getInteractionResult().assessment.evidence_stage === 'estimated'"
+    ]
+  },
+  {
+    "name": "foundation objective assigns partial credit and recognizes inverse-direction misconception",
+    "steps": [{"action":"fill","selector":"#q1Numerator","value":"18"},{"action":"fill","selector":"#q1Denominator","value":"20"},{"action":"fill","selector":"#q1InverseDenominator","value":"20"},{"action":"click","selector":"#btnSubmitQ1"}],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.item_id === 'stats-q1' && window.LEAP.getInteractionResult().assessment.correctness === 0.67 && window.LEAP.getInteractionResult().assessment.error_type === 'misconception'",
+      "window.LEAP.getInteractionResult().events.some(e=>e.answer.includes('inverse_denominator') && e.answer.includes('18'))"
+    ]
+  },
+  {
+    "name": "foundation exact answer and revised multiple choices create every attempt",
+    "steps": [{"action":"fill","selector":"#q1Numerator","value":"18"},{"action":"fill","selector":"#q1Denominator","value":"116"},{"action":"fill","selector":"#q1InverseDenominator","value":"20"},{"action":"click","selector":"#btnSubmitQ1"},{"action":"click","selector":"[data-item='stats-q2'] [data-value='exclusive']"},{"action":"click","selector":"[data-item='stats-q2'] [data-value='independent']"},{"action":"click","selector":"[data-item='stats-q3'] [data-value='zero']"},{"action":"click","selector":"[data-item='stats-q3'] [data-value='undefined']"}],
+    "assertions": [
+      "window.LEAP.getInteractionResult().events.filter(e=>e.event_type==='attempt_submitted').length === 5",
+      "window.LEAP.getInteractionResult().assessment.item_id === 'stats-q3' && window.LEAP.getInteractionResult().assessment.correctness === 1",
+      "window.LEAP.peekOutbox().filter(c=>c.tool==='commit_assessment').every(c=>c.args.raw_answer.length>0 && c.args.attempt_id.includes('call_') && !('mastery_probability' in c.args))"
+    ]
+  },
+  {
+    "name": "semantic explanation collects full raw answer without rule scoring or local completion",
+    "steps": [{"action":"fill","selector":"#semanticAnswer","value":"P(A|B) 和 P(B|A) 的分母不同。我认为90/981约为90%，其中分母是所有人，这个解释应由宿主发现其错误。"},{"action":"click","selector":"#btnSubmitSemantic"}],
+    "assertions": [
+      "window.LEAP.getInteractionResult().events.some(e=>e.item_id==='stats-q4-semantic' && e.answer.includes('这个解释应由宿主发现其错误'))",
+      "window.LEAP.peekOutbox().filter(c=>c.tool==='submit_attempt').length === 1 && !window.LEAP.peekOutbox().some(c=>c.tool==='commit_assessment')",
+      "window.LEAP.getInteractionResult().ui_state.completed === false && document.querySelector('#semanticFb').textContent.includes('语义')"
+    ]
+  },
+  {
+    "name": "full answer cannot be skipped cancel preserves state and reveal requires a new objective verification",
+    "steps": [{"action":"evaluate","script":"window.__locked=document.querySelector('#ladder [data-lv=\"4\"]').disabled;"},{"action":"click","selector":"#ladder [data-lv='1']"},{"action":"click","selector":"#ladder [data-lv='2']"},{"action":"click","selector":"#ladder [data-lv='3']"},{"action":"click","selector":"#ladder [data-lv='4']"},{"action":"click","selector":"#btnCancelReveal"},{"action":"evaluate","script":"window.__cancel=!window.LEAP.getInteractionResult().ui_state.answer_revealed;"},{"action":"click","selector":"#ladder [data-lv='4']"},{"action":"click","selector":"#btnConfirmReveal"}],
+    "assertions": [
+      "window.__locked === true && window.__cancel === true && window.LEAP.getInteractionResult().ui_state.hint_level === 4",
+      "window.LEAP.getInteractionResult().ui_state.answer_revealed === true && window.LEAP.getInteractionResult().ui_state.completed === false && document.querySelector('#verify').hidden === false",
+      "document.querySelector('#hintBody').textContent.includes('9/58') && document.querySelector('#hintBody').textContent.includes('52.63%')"
+    ]
+  },
+  {
+    "name": "post-verification has its own attempt and new exact denominator before guard request",
+    "steps": [{"action":"click","selector":"#ladder [data-lv='1']"},{"action":"click","selector":"#ladder [data-lv='2']"},{"action":"click","selector":"#ladder [data-lv='3']"},{"action":"click","selector":"#ladder [data-lv='4']"},{"action":"click","selector":"#btnConfirmReveal"},{"action":"fill","selector":"#verifyNumerator","value":"80"},{"action":"fill","selector":"#verifyDenominator","value":"100"},{"action":"click","selector":"#btnVerify"},{"action":"evaluate","script":"window.__wrong=!window.LEAP.getInteractionResult().ui_state.completed;"},{"action":"fill","selector":"#verifyDenominator","value":"170"},{"action":"click","selector":"#btnVerify"}],
+    "assertions": [
+      "window.__wrong === true && window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='stats-post-verify' && e.event_type==='attempt_submitted').length === 2",
+      "window.LEAP.getInteractionResult().assessment.correctness === 1 && window.LEAP.peekOutbox().some(c=>c.tool==='check_advance_unit') && !window.LEAP.peekOutbox().some(c=>c.tool==='advance_unit')"
+    ]
+  },
+  {
+    "name": "queue preview is read-only output toggles and drain returns copy then empties pending queue",
+    "steps": [{"action":"click","selector":"#cp .opt[data-v='ok']"},{"action":"evaluate","script":"window.__pending=window.LEAP.peekOutbox().length;const copy=window.LEAP.peekOutbox();copy.length=0;"},{"action":"click","selector":"#bridgeDrain"},{"action":"click","selector":"#consoleBar"},{"action":"evaluate","script":"window.__preview=window.LEAP.peekOutbox().length;window.__output=JSON.parse(document.querySelector('#leap-interaction-output').textContent);window.__drained=window.LEAP.drainOutbox();"}],
+    "assertions": [
+      "window.__pending > 0 && window.__preview === window.__pending && window.__drained.length === window.__pending && window.LEAP.peekOutbox().length === 0",
+      "window.__output.subject === 'statistics' && document.querySelector('#consoleBar').getAttribute('aria-expanded') === 'true'",
+      "JSON.parse(document.querySelector('#leap-interaction-output').textContent).ui_state.pending_mcp_calls === 0"
+    ]
+  }
+]

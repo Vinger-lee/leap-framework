@@ -1,0 +1,154 @@
+[
+  {
+    "name": "default particles and macroscopic model use distinct scales and correct arithmetic",
+    "steps": [],
+    "assertions": [
+      "window.ChemistryDemo.getParticleState().initialH === 6 && window.ChemistryDemo.getParticleState().initialO === 2 && window.ChemistryDemo.getParticleState().max === 2 && window.ChemistryDemo.getParticleState().water === 0",
+      "window.ChemistryDemo.getCalculation().molesH === 3 && window.ChemistryDemo.getCalculation().molesO === 1 && window.ChemistryDemo.getCalculation().extent === 1 && window.ChemistryDemo.getCalculation().limit === 'O2'",
+      "window.ChemistryDemo.getCalculation().waterMass === 36 && window.ChemistryDemo.getCalculation().remainingHMass === 2 && window.ChemistryDemo.getCalculation().remainingOMass === 0",
+      "window.LEAP.getInteractionResult().subject === 'chemistry' && window.LEAP.getInteractionResult().assessment.correctness === null && window.LEAP.getInteractionResult().ui_state.completed === false"
+    ]
+  },
+  {
+    "name": "every particle slider combination conserves atoms over every reaction batch",
+    "steps": [{"action":"evaluate","script":"window.__particleChecks=[];for(let h=0;h<=12;h++)for(let o=0;o<=8;o++){window.ChemistryDemo.setParticles(h,o);let m=window.ChemistryDemo.getParticleState();let valid=m.max===Math.min(Math.floor(h/2),o);for(let s=0;s<=m.max;s++){m=window.ChemistryDemo.getParticleState();valid=valid&&(2*m.remainingH+2*m.water===2*h)&&(2*m.remainingO+m.water===2*o)&&m.water===2*s&&m.remainingH>=0&&m.remainingO>=0;if(s<m.max)document.querySelector('#particleNext').click();}window.__particleChecks.push(valid);}"}],
+    "assertions": [
+      "window.__particleChecks.length === 117 && window.__particleChecks.every(Boolean)",
+      "window.LEAP.getInteractionResult().events.length === 0 && window.LEAP.peekOutbox().length === 0"
+    ]
+  },
+  {
+    "name": "particle step forward backward and reset use reversible counted states",
+    "steps": [{"action":"click","selector":"#particleNext"},{"action":"evaluate","script":"window.__one=window.ChemistryDemo.getParticleState();"},{"action":"click","selector":"#particleNext"},{"action":"evaluate","script":"window.__two=window.ChemistryDemo.getParticleState();"},{"action":"click","selector":"#particlePrev"},{"action":"evaluate","script":"window.__back=window.ChemistryDemo.getParticleState();"},{"action":"click","selector":"#particleReset"}],
+    "assertions": [
+      "window.__one.remainingH === 4 && window.__one.remainingO === 1 && window.__one.water === 2",
+      "window.__two.remainingH === 2 && window.__two.remainingO === 0 && window.__two.water === 4",
+      "window.__back.step === 1 && window.__back.water === 2 && window.ChemistryDemo.getParticleState().step === 0 && document.querySelector('#particlePrev').disabled === true"
+    ]
+  },
+  {
+    "name": "particle playback pause and slider change clear old reaction progress",
+    "steps": [{"action":"click","selector":"#particlePlay"},{"action":"evaluate","script":"window.__playing=window.ChemistryDemo.getParticleState().playing;"},{"action":"click","selector":"#particlePlay"},{"action":"evaluate","script":"window.__paused=!window.ChemistryDemo.getParticleState().playing; const slider=document.querySelector('#hydrogenParticles'); slider.value=1;slider.dispatchEvent(new Event('input',{bubbles:true}));"}],
+    "assertions": [
+      "window.__playing === true && window.__paused === true && window.ChemistryDemo.getParticleState().step === 0 && window.ChemistryDemo.getParticleState().max === 0",
+      "document.querySelector('#particlePlay').disabled === true && document.querySelector('#particleNext').disabled === true && document.querySelector('#hydrogenCount').textContent === '1'"
+    ]
+  },
+  {
+    "name": "molecular drawing represents each remaining and produced particle with appropriate atoms",
+    "steps": [{"action":"click","selector":"#particleNext"}],
+    "assertions": [
+      "document.querySelectorAll('#hydrogenMolecules circle').length === 8 && document.querySelectorAll('#oxygenMolecules circle').length === 2 && document.querySelectorAll('#waterMolecules circle').length === 6",
+      "document.querySelector('#atomInventory').textContent.includes('H初始 12 = 当前 12') && document.querySelector('#atomInventory').textContent.includes('O初始 4 = 当前 4')"
+    ]
+  },
+  {
+    "name": "macroscopic presets distinguish hydrogen limiting from exact stoichiometric amounts",
+    "steps": [{"action":"click","selector":"#calcPresetHydrogen"},{"action":"evaluate","script":"window.__h=window.ChemistryDemo.getCalculation();"},{"action":"click","selector":"#calcPresetBalanced"}],
+    "assertions": [
+      "window.__h.limit === 'H2' && window.__h.waterMass === 36 && window.__h.remainingOMass === 32 && window.__h.remainingHMass === 0",
+      "window.ChemistryDemo.getCalculation().limit === 'both' && window.ChemistryDemo.getCalculation().waterMass === 36 && window.ChemistryDemo.getCalculation().remainingOMass === 0",
+      "document.querySelector('#calcLimit').textContent === '两者恰好' && document.querySelector('#calcExcess').textContent === '无剩余'"
+    ]
+  },
+  {
+    "name": "macroscopic arithmetic conserves mass for noninteger moles without integer particle rounding",
+    "steps": [{"action":"evaluate","script":"window.__massChecks=[];for(const [h,o] of [[1,8],[0,32],[6,0],[0,0],[3.5,14],[4,64],[6,32],[20,20],[10000,9999]]){window.ChemistryDemo.setMasses(h,o);const c=window.ChemistryDemo.getCalculation();window.__massChecks.push(Math.abs(c.waterMass+c.remainingHMass+c.remainingOMass-h-o)<1e-8 && c.extent===Math.min(h/4,o/32) && c.remainingHMass>=0 && c.remainingOMass>=0);}window.ChemistryDemo.setMasses(1,8);"}],
+    "assertions": [
+      "window.__massChecks.length === 9 && window.__massChecks.every(Boolean)",
+      "window.ChemistryDemo.getCalculation().extent === 0.25 && window.ChemistryDemo.getCalculation().waterMass === 9 && window.ChemistryDemo.getCalculation().limit === 'both'"
+    ]
+  },
+  {
+    "name": "negative empty and out-of-range masses are rejected and zero theoretical yield is explained",
+    "steps": [{"action":"fill","selector":"#calcHydrogen","value":"-1"},{"action":"click","selector":"#calculateReaction"},{"action":"evaluate","script":"window.__negative=document.querySelector('#calculationError').textContent;"},{"action":"fill","selector":"#calcHydrogen","value":""},{"action":"click","selector":"#calculateReaction"},{"action":"evaluate","script":"window.__empty=document.querySelector('#calculationError').textContent;window.__large=window.ChemistryDemo.setMasses(10001,32);window.ChemistryDemo.setMasses(0,32);"}],
+    "assertions": [
+      "window.__negative.includes('有限非负') && window.__empty.includes('未计算') && window.__large === false",
+      "window.ChemistryDemo.getCalculation().waterMass === 0 && window.ChemistryDemo.getCalculation().remainingOMass === 32 && document.querySelector('#massInventory').textContent.includes('分母0所以无定义')",
+      "window.LEAP.getInteractionResult().events.length === 0"
+    ]
+  },
+  {
+    "name": "coefficient checkpoint preserves wrong and corrected attempts without inferred dimensions",
+    "steps": [{"action":"click","selector":"#cp [data-value='grams']"},{"action":"click","selector":"#cp [data-value='moles']"}],
+    "assertions": [
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='chem-cp').length === 2 && window.LEAP.getInteractionResult().assessment.correctness === 1",
+      "window.LEAP.getInteractionResult().assessment.reasoning_quality === null && window.LEAP.getInteractionResult().assessment.transfer === null && window.LEAP.getInteractionResult().assessment.confidence === null",
+      "window.LEAP.getInteractionResult().assessment.provisional === true && window.LEAP.getInteractionResult().assessment.evidence_stage === 'estimated'"
+    ]
+  },
+  {
+    "name": "balancing rejects incomplete and fractional coefficients then identifies conservation failure",
+    "steps": [{"action":"click","selector":"#submitBalance"},{"action":"evaluate","script":"window.__emptyEvents=window.LEAP.getInteractionResult().events.length;"},{"action":"fill","selector":"#coefficientH","value":"1.5"},{"action":"fill","selector":"#coefficientO","value":"1"},{"action":"fill","selector":"#coefficientWater","value":"2"},{"action":"click","selector":"#submitBalance"},{"action":"evaluate","script":"window.__fractionEvents=window.LEAP.getInteractionResult().events.length;"},{"action":"fill","selector":"#coefficientH","value":"1"},{"action":"click","selector":"#submitBalance"}],
+    "assertions": [
+      "window.__emptyEvents === 0 && window.__fractionEvents === 0 && window.LEAP.getInteractionResult().assessment.correctness === 0",
+      "document.querySelector('#balanceFb').textContent.includes('H左2右4') && window.LEAP.getInteractionResult().events.length === 1"
+    ]
+  },
+  {
+    "name": "balanced multiple coefficients receive partial credit until simplified to canonical ratio",
+    "steps": [{"action":"fill","selector":"#coefficientH","value":"4"},{"action":"fill","selector":"#coefficientO","value":"2"},{"action":"fill","selector":"#coefficientWater","value":"4"},{"action":"click","selector":"#submitBalance"},{"action":"evaluate","script":"window.__partial=window.LEAP.getInteractionResult().assessment.correctness;"},{"action":"fill","selector":"#coefficientH","value":"2"},{"action":"fill","selector":"#coefficientO","value":"1"},{"action":"fill","selector":"#coefficientWater","value":"2"},{"action":"click","selector":"#submitBalance"}],
+    "assertions": [
+      "window.__partial === 0.5 && window.LEAP.getInteractionResult().assessment.correctness === 1",
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='chem-q1').length === 2 && document.querySelector('#balanceFb').textContent.includes('H左右4')"
+    ]
+  },
+  {
+    "name": "limiting calculation partial credit can be corrected with a new own attempt",
+    "steps": [{"action":"evaluate","script":"document.querySelector('#answerLimit').value='H2';"},{"action":"fill","selector":"#answerWater","value":"36"},{"action":"fill","selector":"#answerExcess","value":"2"},{"action":"click","selector":"#submitLimiting"},{"action":"evaluate","script":"window.__partial=window.LEAP.getInteractionResult().assessment.correctness;document.querySelector('#answerLimit').value='O2';"},{"action":"click","selector":"#submitLimiting"}],
+    "assertions": [
+      "window.__partial === 0.67 && window.LEAP.getInteractionResult().assessment.correctness === 1 && window.LEAP.getInteractionResult().assessment.error_type === 'none'",
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='chem-q2').length === 2 && window.LEAP.peekOutbox().filter(c=>c.tool==='commit_assessment').every(c=>c.args.raw_answer.includes('answerLimit'))"
+    ]
+  },
+  {
+    "name": "concept choice records both subscript misconception and mass-ratio correction",
+    "steps": [{"action":"click","selector":".chem-mcq [data-value='subscript']"},{"action":"click","selector":".chem-mcq [data-value='moles']"}],
+    "assertions": [
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='chem-q3').length === 2 && window.LEAP.getInteractionResult().assessment.correctness === 1",
+      "document.querySelector('.chem-mcq .cp-fb').textContent.includes('1:8:9')"
+    ]
+  },
+  {
+    "name": "semantic reasoning stays collected even if a local assessment is requested later",
+    "steps": [{"action":"fill","selector":"#chemicalReasoning","value":"mol 系数 守恒 限制反应物：因为H2克数少所以H2限制，32g氧不反应。这些关键词包含错误推理。"},{"action":"click","selector":"#submitReasoning"},{"action":"evaluate","script":"window.LEAP.commitAssessment({item_id:'chem-q4-semantic',correctness:1,assessor_scope:'host_semantic_review'})"}],
+    "assertions": [
+      "window.LEAP.peekOutbox().filter(c=>c.tool==='submit_attempt').length === 1 && !window.LEAP.peekOutbox().some(c=>c.tool==='commit_assessment')",
+      "window.LEAP.getInteractionResult().events.some(e=>e.item_id==='chem-q4-semantic' && e.answer.includes('错误推理') && e.assessor_scope==='host_semantic_review')",
+      "window.LEAP.getInteractionResult().assessment.correctness === null && window.LEAP.getInteractionResult().ui_state.completed === false"
+    ]
+  },
+  {
+    "name": "full answer cannot be skipped and cancellation does not reveal it",
+    "steps": [{"action":"evaluate","script":"window.__locked=document.querySelector('#ladder [data-lv=\"4\"]').disabled"},{"action":"click","selector":"#ladder [data-lv='1']"},{"action":"click","selector":"#ladder [data-lv='2']"},{"action":"click","selector":"#ladder [data-lv='3']"},{"action":"click","selector":"#ladder [data-lv='4']"},{"action":"click","selector":"#cancelReveal"},{"action":"evaluate","script":"window.__cancel=window.LEAP.getInteractionResult().ui_state.answer_revealed===false"},{"action":"click","selector":"#ladder [data-lv='4']"},{"action":"click","selector":"#confirmReveal"}],
+    "assertions": [
+      "window.__locked === true && window.__cancel === true && window.LEAP.getInteractionResult().ui_state.hint_level === 4",
+      "window.LEAP.getInteractionResult().ui_state.answer_revealed === true && window.LEAP.getInteractionResult().ui_state.completed === false && document.querySelector('#verify').hidden === false && document.querySelector('#hintBody').textContent.includes('36 g')"
+    ]
+  },
+  {
+    "name": "new verification must submit its own correct limiting product and leftover before local guard request",
+    "steps": [{"action":"click","selector":"#ladder [data-lv='1']"},{"action":"click","selector":"#ladder [data-lv='2']"},{"action":"click","selector":"#ladder [data-lv='3']"},{"action":"click","selector":"#ladder [data-lv='4']"},{"action":"click","selector":"#confirmReveal"},{"action":"evaluate","script":"document.querySelector('#verifyLimit').value='H2';"},{"action":"fill","selector":"#verifyWater","value":"36"},{"action":"fill","selector":"#verifyExcess","value":"0"},{"action":"click","selector":"#submitVerify"},{"action":"evaluate","script":"window.__wrong=window.LEAP.getInteractionResult().ui_state.local_activity_completed===false;"},{"action":"fill","selector":"#verifyExcess","value":"32"},{"action":"click","selector":"#submitVerify"}],
+    "assertions": [
+      "window.__wrong === true && window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='chem-post-verify' && e.event_type==='attempt_submitted').length === 2",
+      "window.LEAP.getInteractionResult().assessment.correctness === 1 && window.LEAP.getInteractionResult().ui_state.local_activity_completed === true && window.LEAP.getInteractionResult().ui_state.completed === false",
+      "window.LEAP.peekOutbox().some(c=>c.tool==='check_advance_unit') && !window.LEAP.peekOutbox().some(c=>c.tool==='advance_unit')"
+    ]
+  },
+  {
+    "name": "item-specific bridge refuses unsubmitted item and never borrows another raw answer",
+    "steps": [{"action":"click","selector":"#cp [data-value='moles']"},{"action":"evaluate","script":"try{window.LEAP.commitAssessment({item_id:'unsubmitted',correctness:1});window.__refused=false}catch(e){window.__refused=true}window.LEAP.pushEvent('attempt_submitted',{item_id:'other-item',answer:'other answer'});window.LEAP.commitAssessment({item_id:'chem-cp',correctness:1});"}],
+    "assertions": [
+      "window.__refused === true && window.LEAP.peekOutbox().filter(c=>c.tool==='commit_assessment').slice(-1)[0].args.raw_answer.includes('mol')",
+      "!window.LEAP.peekOutbox().filter(c=>c.tool==='commit_assessment').slice(-1)[0].args.raw_answer.includes('other answer')"
+    ]
+  },
+  {
+    "name": "preview and JSON show pending calls without discarding them then drain refreshes state",
+    "steps": [{"action":"click","selector":"#cp [data-value='moles']"},{"action":"evaluate","script":"window.__count=window.LEAP.peekOutbox().length"},{"action":"click","selector":"#bridgeDrain"},{"action":"click","selector":"#consoleBar"},{"action":"evaluate","script":"window.__preview=window.LEAP.peekOutbox().length;window.__json=JSON.parse(document.querySelector('#leap-interaction-output').textContent);window.__drained=window.LEAP.drainOutbox()"}],
+    "assertions": [
+      "window.__preview === window.__count && window.__drained.length === window.__count && window.LEAP.peekOutbox().length === 0",
+      "window.__json.subject === 'chemistry' && document.querySelector('#consoleBar').getAttribute('aria-expanded') === 'true' && JSON.parse(document.querySelector('#leap-interaction-output').textContent).ui_state.pending_mcp_calls === 0"
+    ]
+  }
+]

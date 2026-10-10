@@ -34,7 +34,9 @@ class ToolError(Exception):
         self.details = dict(details or {})
 
     def as_dict(self) -> dict:
-        return {"ok": False, "error": {"code": self.code, "message": self.message, "details": self.details}}
+        from leap.runtime.delivery import delivery_policy
+        return {"ok": False, "error": {"code": self.code, "message": self.message, "details": self.details},
+                "teaching_delivery_policy": delivery_policy()}
 
 
 def json_dumps(value: Any) -> str:
@@ -245,7 +247,8 @@ class LeapToolMixin:
     # -- response envelope -------------------------------------------------
     @staticmethod
     def ok(**payload: Any) -> dict:
-        return {"ok": True, **payload}
+        from leap.runtime.delivery import delivery_policy
+        return {"ok": True, **payload, "teaching_delivery_policy": delivery_policy()}
 
     def new_request_id(self) -> str:
         return new_request_id()

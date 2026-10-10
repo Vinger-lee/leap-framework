@@ -1,3 +1,22 @@
+---
+title: 🎓 LEAP Framework
+tags:
+- leap
+- engineering
+aliases:
+- 🎓 LEAP Framework guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP 🎓 LEAP Framework foundations definitions workflow`
+> Extension: `LEAP 🎓 LEAP Framework failure cases examples comparison`
+> Advanced: `LEAP 🎓 LEAP Framework invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # 🎓 LEAP Framework
 
 <p align="center">
@@ -6,22 +25,22 @@
   <img src="https://img.shields.io/github/v/release/Vinger-lee/leap-framework" alt="Release">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-59%20tools-22bb33" alt="MCP 工具">
-  <img src="https://img.shields.io/badge/tests-260%20passing-22bb33" alt="测试">
+  <img src="https://img.shields.io/badge/MCP-62%20tools-22bb33" alt="MCP 工具">
+  [![Tests](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml)
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
   <b>🤖 给你的 AI Agent 一套真正的教学引擎 —— 而不只是一段提示词。</b>
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> ·
-  <a href="README_CN.md">中文</a> ·
-  <a href="docs/i18n/README.ja.md">日本語</a> ·
-  <a href="docs/i18n/README.ko.md">한국어</a> ·
-  <a href="docs/i18n/README.fr.md">Français</a> ·
-  <a href="docs/i18n/README.es.md">Español</a> ·
-  <a href="docs/i18n/README.ru.md">Русский</a> ·
-  <a href="docs/i18n/README.ar.md">العربية</a>
+  [[README|English]] ·
+  [[README_CN|中文]] ·
+  [[docs/i18n/README.ja|日本語]] ·
+  [[docs/i18n/README.ko|한국어]] ·
+  [[docs/i18n/README.fr|Français]] ·
+  [[docs/i18n/README.es|Español]] ·
+  [[docs/i18n/README.ru|Русский]] ·
+  [[docs/i18n/README.ar|العربية]]
 </p>
 
 ---
@@ -60,7 +79,7 @@ pip install -e ".[dev]"
 运行测试：
 
 ```bash
-pytest -q        # 260 passed
+pytest -q        # inspect the current test result
 ```
 
 启动 MCP Server：
@@ -117,7 +136,7 @@ State Guard 是唯一有权批准状态迁移的组件。当工具返回 `REJECT
 
 ## 🔧 MCP 工具
 
-59 个工具，走 stdio，按领域分组：
+62 个工具，走 stdio，按领域分组：
 
 | 分组 | 示例 |
 |---|---|
@@ -129,15 +148,18 @@ State Guard 是唯一有权批准状态迁移的组件。当工具返回 `REJECT
 | 保持 | `schedule_review`、`get_due_reviews`、`submit_review` |
 | 状态守卫 | `start_unit`、`check_advance_unit`、`advance_unit`、`rollback_unit` |
 | 证据 | `save_benchmark_report`、`get_evidence`、`validate_claim` |
+| 教学交付 | `get_teaching_delivery_policy`、`get_subject_catalog`、`save_teaching_package` |
 | 工件 | `save_artifact`、`get_obsidian_structure`、`get_web_component_spec` |
 | 反思 | `record_reflection` |
 | 报告 | `generate_final_report`、`get_learning_metrics` |
 
-上表只列示例；[自动生成的完整工具参考](docs/mcp-tools.md) 包含全部注册工具与准确参数，并由 CI 核对。
+上表只列示例；[[docs/mcp-tools|自动生成的完整工具参考]] 包含全部注册工具与准确参数，并由 CI 核对。
 
 领域校准现在要求 `save_benchmark_report(verification=...)` 提供来源定位、摘录、关联论断、复核例题和不确定性；仅保存文字报告会保持 pending，教学入口也受门禁约束。宿主必须自行阅读资料，出题前用 `save_assessment_item` 登记题目条件、答案、推导与独立检查。自由文本推理必须由宿主做语义评估：LEAP 检查记录并估计学习状态，不能证明学科答案正确。
 
-参见[内容质量与真实联调流程](docs/content-quality.md)及[本次交付物审计](docs/quality-audit-2026-10-10.md)。浏览器场景、真实 MCP 联调、内容审校分别验收。
+参见[[docs/content-quality|内容质量与真实联调流程]]及[[docs/quality-audit-2026-10-10|本次交付物审计]]。浏览器场景、真实 MCP 联调、内容审校分别验收。
+
+所有模式永久执行完整教学、可控图示、宽屏、完整 Obsidian 原始知识源和头部精准资源规则。先登记实际 Markdown/HTML 正文对 `save_teaching_package`，再登记题目；规范详见 [[docs/teaching-delivery]]。学科目录包含11类领域，八个示例配有完整知识笔记与行为清单。2028数一第一章生成配方见 [[curricula/math1-2028-ch01/README]]。
 
 ## 🧩 可插拔设计
 
@@ -175,7 +197,7 @@ State Guard 是唯一有权批准状态迁移的组件。当工具返回 `REJECT
 
 ## 📚 示例
 
-五个单文件教学页面，均通过静态检查与 headless Chromium 运行时校验：
+八个单文件教学页面，均通过静态检查与 headless Chromium 运行时校验：
 
 | 示例 | 学科 |
 |---|---|
@@ -184,6 +206,9 @@ State Guard 是唯一有权批准状态迁移的组件。当工具返回 `REJECT
 | `examples/03-cs-osi-model/` | 计算机基础 —— OSI 模型 |
 | `examples/04-physics-free-fall/` | 物理 —— 自由落体 |
 | `examples/05-logic-flowchart/` | 逻辑 —— 流程图 |
+| `examples/06-statistics-probability/` | 统计 —— 条件概率 |
+| `examples/07-chemistry-stoichiometry/` | 化学 —— 化学计量 |
+| `examples/08-electronics-ohms-law/` | 电路 —— 欧姆定律 |
 
 每个页面都是**参考实现**：零 CDN、零网络请求，并演示真实的"页面 ↔ 运行时"桥接 ——
 `LEAP.hydrate(context)` 注入状态，`LEAP.drainOutbox()` 取出待执行的 MCP 调用。
@@ -207,18 +232,20 @@ leap-framework/
 │   ├── storage/             # SQLite schema + 迁移
 │   ├── tools/               # 工具实现
 │   └── specs/               # Obsidian / web 组件规范
-├── examples/                # 五个教学页面 + 共享规范
+├── examples/                # 八个教学页面 + 共享规范
 ├── docs/                    # 架构、接入、多语言
 ├── scripts/                 # 校验器、扫描器、审计器
-└── tests/                   # 260 项测试
+└── tests/                   # inspect the current test result
 ```
 
 ## 🔍 质量门禁
 
 ```bash
-pytest -q                                        # 260 项测试
+pytest -q                                        # inspect the current test result
 python scripts/security_scan.py --root .         # 密钥与个人信息（CI 门禁）
 python scripts/verify_example.py --all           # 示例静态规范符合性
+python scripts/verify_teaching_repository.py     # canonical notes, reciprocal links and full paired bodies
+python scripts/verify_mcp_bridge.py              # actual stdio Runtime + shipped page
 python scripts/verify_example_runtime.py --all   # 示例运行时符合性
 python scripts/spec_coverage.py                  # 规范覆盖率
 python scripts/apply_leap_bridge.py --check      # 宿主桥接完整性
@@ -234,22 +261,34 @@ AI 助手工作区（`.workbuddy*/`、`.claude*/`、`.cursor*/`、`agent-state/`
 
 | 文档 | 内容 |
 |---|---|
-| [`README.md`](README.md) | English |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | 架构与设计决策 |
-| [`docs/INTEGRATION.md`](docs/INTEGRATION.md) | 宿主 Agent 接入指南 |
-| [`docs/EXAMPLES.md`](docs/EXAMPLES.md) | 五个教学页面及其契约 |
+| [[README|README.md]] | English |
+| [[docs/ARCHITECTURE|docs/ARCHITECTURE.md]] | 架构与设计决策 |
+| [[docs/INTEGRATION|docs/INTEGRATION.md]] | 宿主 Agent 接入指南 |
+| [[docs/EXAMPLES|docs/EXAMPLES.md]] | 八个教学页面及其契约 |
 | [`docs/i18n/`](docs/i18n/) | 多语言翻译 |
-| [`CHANGELOG.md`](CHANGELOG.md) | 版本历史 |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md) | 如何参与贡献 |
-| [`SECURITY.md`](SECURITY.md) | 漏洞报告方式 |
+| [[CHANGELOG|CHANGELOG.md]] | 版本历史 |
+| [[CONTRIBUTING|CONTRIBUTING.md]] | 如何参与贡献 |
+| [[SECURITY|SECURITY.md]] | 漏洞报告方式 |
 
 > 权威的框架设计文档与视觉设计规范由项目作者另行维护，**不包含在本仓库**。
 > 本仓库的实现遵循这些文档。
 
 ## 🤝 参与贡献
 
-欢迎提交 issue 与 pull request。请先阅读 [`CONTRIBUTING.md`](CONTRIBUTING.md)。
+欢迎提交 issue 与 pull request。请先阅读 [[CONTRIBUTING|CONTRIBUTING.md]]。
 
 ## 📄 许可证
 
 [MIT](LICENSE) © Vinger-lee
+
+> [!note]- Reading and verification sequence: LEAP 🎓 LEAP Framework
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[README]] · [[curricula/math1-2028-ch01/README]] · [[docs/ARCHITECTURE_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]] · [[docs/teaching-upgrade-plan]] · [[examples/01-python-recursion/knowledge]] · [[examples/05-logic-flowchart/knowledge]]

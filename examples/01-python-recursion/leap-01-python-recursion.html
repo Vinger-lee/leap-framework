@@ -348,6 +348,28 @@ button,input,textarea{font:inherit;color:inherit}
     white-space:pre-wrap;word-break:break-all;max-height:320px;overflow:auto}
 
 </style>
+<style id="lesson-layout">
+:root{--page-max:1800px;--page-pad:clamp(20px,2.5vw,48px);--read-col:minmax(0,1fr);--side-col:420px;--col-gap:32px}
+.cols{grid-template-columns:var(--read-col) var(--side-col)}
+.col-main,.side,.stage-grid>* ,.runner>* ,.result>*{min-width:0}
+.resource-band{margin-top:32px;padding:24px;border:1px solid var(--hairline);border-radius:12px;background:var(--surface)}
+.resource-band h2{font-size:20px}.resource-band p{margin-top:10px}.resource-band a{color:var(--accent)}
+.resource-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:16px}
+.resource-grid strong{display:block}.resource-grid code{display:block;margin-top:8px;white-space:normal;overflow-wrap:anywhere}
+.lesson-block{margin:32px 0;padding:24px;border:1px solid var(--hairline);border-radius:12px;background:var(--surface)}
+.lesson-block h2{font-size:23px}.lesson-block h3{font-size:18px;margin:24px 0 10px}.lesson-block p{margin:12px 0}.lesson-block li{margin:8px 0}
+.lesson-block pre{white-space:pre-wrap;overflow-wrap:anywhere;padding:18px;background:var(--surface-sunk);border-radius:8px;font-size:13px}
+.lesson-block details{margin:14px 0;border:1px solid var(--rule);border-radius:8px;padding:12px 16px}.lesson-block summary{cursor:pointer;font-weight:600}
+.lesson-table-wrap{overflow:auto;margin:18px 0}.lesson-table{width:100%;border-collapse:collapse;font-size:14px}.lesson-table th,.lesson-table td{padding:10px 12px;border:1px solid var(--hairline);text-align:left;vertical-align:top}.lesson-table th{background:var(--surface-sunk)}
+.trace-controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:16px 0}.trace-controls input{width:76px;padding:6px}.trace-controls select{max-width:100%;padding:7px;background:var(--surface);color:var(--ink);border:1px solid var(--rule)}
+.trace-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}.trace-code{margin:0;list-style:none;padding:16px;background:var(--surface-sunk);border-radius:8px;font:13px/1.8 var(--font-mono)}.trace-code li{margin:0;padding:8px;white-space:pre-wrap;overflow-wrap:anywhere}.trace-code li[data-active="true"]{background:var(--accent-wash);box-shadow:inset 3px 0 var(--accent);font-weight:700}
+.trace-svg{width:100%;height:auto;display:block;background:var(--surface-sunk);border-radius:8px}.trace-svg text{font-family:var(--font-sans);fill:var(--ink);font-size:14px}.trace-frame rect{fill:var(--surface);stroke:var(--rule)}.trace-frame[data-active="true"] rect{fill:var(--accent-wash);stroke:var(--accent);stroke-width:3}
+.trace-state{font-family:var(--font-mono);padding:12px;border:1px solid var(--rule);border-radius:8px;white-space:normal;overflow-wrap:anywhere}.trace-status{padding:14px;background:var(--accent-wash);border-radius:8px;min-height:88px}.lesson-answer{max-width:110px;padding:7px;border:1px solid var(--rule);border-radius:5px}.lesson-feedback{margin-top:12px;padding:12px;background:var(--surface-sunk);border-radius:8px;min-height:50px}.lesson-feedback[data-result="correct"]{border-left:4px solid var(--ok)}.lesson-feedback[data-result="incorrect"]{border-left:4px solid var(--err)}
+.lesson-choice{display:block;margin:10px 0}.lesson-choice input{margin-right:8px}.code,.editor,.term,.stage,.task,.verify,.bridge-strip{min-width:0;max-width:100%}.code{overflow-x:auto}.side{grid-template-columns:minmax(0,1fr)}.bridge-strip{flex-wrap:wrap}.bs-t{overflow-wrap:anywhere}.step-text{overflow-wrap:anywhere}
+@media(max-width:1199px){.cols{grid-template-columns:minmax(0,1fr)}.side{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}}
+@media(max-width:700px){.resource-grid,.trace-grid{grid-template-columns:minmax(0,1fr)}.resource-band,.lesson-block{padding:18px}.trace-controls button{height:auto;min-height:38px}.code-line{white-space:pre-wrap;flex-wrap:wrap}.blank{max-width:100%;min-width:0}.stage,.task{padding-left:16px;padding-right:16px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
 </head>
 <body>
 <a class="skip" href="#teaching">跳到教学内容</a>
@@ -391,13 +413,24 @@ button,input,textarea{font:inherit;color:inherit}
 
 <main class="wrap">
 
+  <section class="resource-band" aria-labelledby="rec-resources">
+    <h2 id="rec-resources">学习资源与路线：从函数返回值到递归证明</h2>
+    <p>第一次接触递归时，先学会“调用一个函数，拿回一个值”。下面是可直接复制到课程平台或搜索引擎的检索词；按基础 → 扩展 → 进阶学习。完整课程与更多例题见 <a href="knowledge.md">递归知识笔记</a>。</p>
+    <div class="resource-grid">
+      <div><strong>核心：读懂一次调用</strong><code>Python 函数参数 局部变量 return 返回值<br>Python 阶乘递归 基线条件 调用栈 逐步追踪</code></div>
+      <div><strong>扩展：换问题而不换原理</strong><code>Python 递归累加 0 基线 阶乘与循环对比<br>Python recursion stack frame return vs print</code></div>
+      <div><strong>进阶：解释为何正确、为何停止</strong><code>递归终止性 递减度量 自然数 数学归纳法<br>Python 尾递归不优化 递归深度 空间复杂度</code></div>
+    </div>
+    <p>建议：先读下方先修例子 → 用逐行推演器跟踪 n=3 → 独立预测 n=0 与 n=4 → 做原有填空与运行实验 → 将连乘迁移成累加。</p>
+  </section>
+
   <!-- ═══ Zone 01 · 教学内容 ═══════════════════════════════ -->
   <section class="zone" id="teaching" aria-labelledby="z1t">
     <div class="zone-head">
       <div class="micro micro--accent">01 · TEACHING · 教学内容</div>
       <h1 class="zone-title" id="z1t">阶乘递归：基线条件与递归条件</h1>
-      <p class="zone-goal">学完这一节，你能读懂并补全任意简单递归函数，并说清调用栈的「展开 → 命中基线 → 回退求值」全过程。</p>
-      <p class="zone-meta">预计 12 分钟　·　难度 2/5　·　先修：函数定义与返回值</p>
+      <p class="zone-goal">学完这一节，你能补全非负整数的阶乘递归，逐层说明参数与返回值，并将相同的递归设计迁移到 1 到 n 的累加。</p>
+      <p class="zone-meta">预计 35–50 分钟　·　可分段学习　·　先修：整数、比较、函数参数与 return</p>
       <div class="zone-rule"></div>
     </div>
 
@@ -420,7 +453,7 @@ button,input,textarea{font:inherit;color:inherit}
             <p class="cp-q">如果删掉 <code>factorial</code> 的基线条件，Python 会发生什么？</p>
             <div class="cp-opts" role="group" aria-label="理解检查选项">
               <button class="opt" type="button" data-v="bad" data-why="Python 不会在定义时检查递归是否收敛——语法完全合法。" aria-pressed="false">A. 直接报语法错误，函数根本无法定义</button>
-              <button class="opt" type="button" data-v="ok" data-why="正确。CPython 默认递归深度上限为 1000，没有基线条件就会一直压栈直到 RecursionError。注意：这是运行时的保护机制，不是语言层面的限制。" aria-pressed="false">B. 触发 RecursionError：调用层数超过上限</button>
+              <button class="opt" type="button" data-v="ok" data-why="正确。反复调用会不断增加调用深度，直到达到解释器的递归限制而触发 RecursionError。CPython 常见默认上限约为 1000，可用 sys.getrecursionlimit() 查询；实际可用深度还受已有调用层数影响。" aria-pressed="false">B. 触发 RecursionError：调用层数超过上限</button>
             </div>
             <div class="cp-rule"></div>
             <p class="cp-fb" id="cpFb" role="status" aria-live="polite"></p>
@@ -431,13 +464,13 @@ button,input,textarea{font:inherit;color:inherit}
           <div class="card">
             <span class="micro">KEY FORM · 关键式子</span>
             <span class="formula">factorial(n) = n × factorial(n-1)</span>
-            <span class="formula formula--base">factorial(0) = 1　（等价写法 n &lt;= 1）</span>
+            <span class="formula formula--base">0! = 1，1! = 1　（非负整数域可用 n &lt;= 1）</span>
             <p class="card-foot">墨色 = 递归条件，绿色 = 基线条件。</p>
           </div>
 
           <div class="card card--err">
             <span class="micro">MISCONCEPTION · 常见误解</span>
-            <p class="card-body">「递归就是自己调用自己」——这句话只说对了一半。真正让递归成立的是<b>基线的存在</b>；只有「调用自己」的那部分是死循环。</p>
+            <p class="card-body">有基线还不够：每次调用还必须沿正确方向接近它。<code>n * factorial(n + 1)</code> 虽然有 <code>n &lt;= 1</code> 的基线，输入 4 也永远到不了。返回时还要正确组合子结果。</p>
           </div>
 
           <div class="card card--sunk">
@@ -452,6 +485,112 @@ button,input,textarea{font:inherit;color:inherit}
         </aside>
       </div>
     </div>
+  </section>
+
+
+  <section class="lesson-block" id="recursion-foundations" aria-labelledby="rec-foundations-title">
+    <div class="micro micro--accent">FOUNDATIONS · 先修与推导</div>
+    <h2 id="rec-foundations-title">先会“调用并返回”，再学“调用自己”</h2>
+    <p><b>本节的输入约定是非负整数 n：</b>0、1、2、3……。负数和小数不属于这里定义的阶乘。先确认你能读懂三个动作：<code>def</code> 定义函数；调用时把实参交给参数；<code>return</code> 立即结束这一层，并把一个值交回调用的位置。</p>
+    <pre>def add_one(x):
+    return x + 1
+
+y = add_one(2) * 3
+# 调用时 x=2 → 返回 3 → 原式变成 y=3*3 → y=9</pre>
+    <p>这里 <code>x</code> 与 <code>y</code> 不是同一个变量。<code>print(3)</code> 会显示文字，但它不能代替 <code>return 3</code> 给乘法一个数；函数走到末尾没有 return 时，会返回 <code>None</code>。</p>
+    <details><summary>先修自检：=、==、&lt;= 各做什么？</summary><p><code>x = 2</code> 把值存入变量；<code>x == 2</code> 比较并得到 True / False；<code>x &lt;= 2</code> 判断“不大于 2”。<code>if</code> 根据布尔值选择执行语句。<code>n - 1</code> 只是给子调用计算一个新值，不会把上一层的 n 改掉。</p></details>
+    <h3>从阶乘定义推导程序，避免背模板</h3>
+    <p><code>4! = 4 × 3 × 2 × 1</code>。把第一个因子 4 拿出来，剩下的 <code>3 × 2 × 1</code> 正好是 <code>3!</code>，所以 <code>4! = 4 × 3!</code>。对一般的 n≥2，同样得到 <code>n! = n × (n−1)!</code>。这一步说明了<b>为何乘 n</b>，而不只是说明“还要调用自己”。</p>
+    <p><code>1! = 1</code>，而 <code>0! = 1</code> 是空乘积的约定：乘法在没有因子时从 1 开始。因此在非负整数域里，可以用 <code>n &lt;= 1</code> 同时处理 0 与 1。函数由一个能直接回答的基线，和一个更小且仍属于定义域的子问题组成：</p>
+    <pre>def factorial(n):
+    if n &lt;= 1:
+        return 1
+    return n * factorial(n - 1)</pre>
+    <div class="lesson-table-wrap"><table class="lesson-table"><caption>写递归之前必须能回答的三个问题</caption><thead><tr><th>问题</th><th>阶乘的回答</th><th>检查方法</th></tr></thead><tbody>
+      <tr><td>何时可以直接返回？</td><td>n 为 0 或 1，答案是 1</td><td>试 factorial(0) 与 factorial(1)</td></tr>
+      <tr><td>子问题怎样变小？</td><td>n≥2 时调用 n−1</td><td>3 → 2 → 1，终能到达基线</td></tr>
+      <tr><td>怎样组合子答案？</td><td>当前 n × 子调用的返回值</td><td>3 × factorial(2)，不能遗漏 n 或 return</td></tr>
+    </tbody></table></div>
+    <h3>完整例题：factorial(3)，每一步都保留当前层</h3>
+    <div class="lesson-table-wrap"><table class="lesson-table"><thead><tr><th>步</th><th>正在做什么</th><th>尚未完成的计算</th><th>已有结果</th></tr></thead><tbody>
+      <tr><td>1</td><td>进入 factorial(3)，局部 n=3</td><td>外层等待最终返回值</td><td>无</td></tr>
+      <tr><td>2</td><td>3≤1 为假；先算 factorial(2)</td><td>3 × □</td><td>无</td></tr>
+      <tr><td>3</td><td>进入新一层，局部 n=2；2≤1 为假</td><td>3 × □；2 × □</td><td>无</td></tr>
+      <tr><td>4</td><td>进入 n=1 的一层；1≤1 为真</td><td>上两层仍等待；这一层直接 return 1</td><td>子答案 1</td></tr>
+      <tr><td>5</td><td>回到 n=2 的一层，替换 □</td><td>2 × 1 = 2，return 2</td><td>factorial(2)=2</td></tr>
+      <tr><td>6</td><td>回到 n=3 的一层，替换 □</td><td>3 × 2 = 6，return 6</td><td>factorial(3)=6</td></tr>
+    </tbody></table></div>
+    <p>关键是 <b>n=3 的一层在等待期间仍保存 3</b>。它不会因为子调用用了 n=2 而变成 2；每次调用都有自己的局部变量和“返回后从哪里继续”的位置。</p>
+  </section>
+
+  <section class="lesson-block" id="recursion-trace" aria-labelledby="rec-trace-title">
+    <div class="micro micro--accent">TRACE · 参数、代码行、返回值同步变化</div>
+    <h2 id="rec-trace-title">亲自走过“进入 → 判断 → 等待 → 返回”</h2>
+    <p>先选阶乘与 n=3。每次“下一步”只推进一个动作；高亮表示当前执行行，栈顶表示正在工作的调用，文字说明显示该层的 n、等待的算式和已返回的值。也可以改为累加，比较乘法基线 1 与加法基线 0。</p>
+    <div class="trace-controls">
+      <label for="traceN">输入 n（0–6）</label><input id="traceN" type="number" min="0" max="6" step="1" value="3">
+      <label for="traceMode">问题</label><select id="traceMode"><option value="factorial">阶乘 factorial</option><option value="sum">累加 sum_to</option></select>
+      <button class="btn btn--outline btn--sm" id="tracePrev" type="button">上一步</button><button class="btn btn--primary btn--sm" id="traceNext" type="button">下一步</button><button class="btn btn--ghost btn--sm" id="traceReset" type="button">重置推演</button>
+    </div>
+    <div class="trace-grid">
+      <div><ol class="trace-code" id="traceCode" aria-label="当前执行代码"><li data-line="1">def factorial(n):</li><li data-line="2">    if n &lt;= 1:</li><li data-line="3">        return 1</li><li data-line="4">    return n * factorial(n - 1)</li></ol><p class="trace-status" id="recTraceStatus" role="status" aria-live="polite">准备从第一层开始。</p><p id="recTraceCount">步骤 0</p></div>
+      <div><svg class="trace-svg" id="recTraceSvg" viewBox="0 0 520 400" role="img" aria-label="递归调用栈；栈顶在上，每层保存自己的参数"></svg><p class="trace-state" id="recTraceState">栈：空 · 尚未执行</p></div>
+    </div>
+    <details><summary>为什么返回顺序与调用顺序相反？</summary><p>调用按 3 → 2 → 1 进入，但 3 在等 2，2 又在等 1；只有 1 能直接给答案。因此返回先给 1，再计算 2，最后计算 6。调用栈是“后进先出”（LIFO）：最后进入的调用最先结束。</p></details>
+    <details><summary>有基线就一定能停吗？看两个反例</summary><p><code>factorial(n + 1)</code> 从 3、4、5……远离 n≤1；<code>factorial(n)</code> 一直重复同样的输入。两者都有基线，输入 3 却都到不了它。正确的论证是在定义域内给出一个不能无限下降的非负整数度量：对本例，递归时 n 严格减 1，且 n≥2 时才递归。</p></details>
+  </section>
+
+  <section class="lesson-block" id="recursion-boundaries" aria-labelledby="rec-boundaries-title">
+    <h2 id="rec-boundaries-title">边界、反例与递归的适用范围</h2>
+    <div class="lesson-table-wrap"><table class="lesson-table"><thead><tr><th>情形</th><th>实际行为</th><th>应该怎样理解</th></tr></thead><tbody>
+      <tr><td>n=0 或 n=1</td><td>第一次判断就成立，直接返回 1</td><td>不需要再往下调用</td></tr>
+      <tr><td>只有 n==1 作基线，输入 0</td><td>0、−1、−2……永远碰不到 1</td><td>基线必须覆盖允许的终止情形</td></tr>
+      <tr><td>n−2 替代 n−1，输入 4</td><td>4 × 2 × 1 = 8，而不是 24</td><td>即使能终止，跳过因子仍会算错</td></tr>
+      <tr><td>把 * 改成 +，仍用基线 1 与 n≤1</td><td>n=4 得 4+3+2+1=10</td><td>只在非负整数域形成求和的另一种写法；n=0 却错误地得 1</td></tr>
+      <tr><td>负数或小数</td><td>短代码可能返回一个数</td><td>“有返回值”不等于符合数学定义；调用前应验证输入</td></tr>
+    </tbody></table></div>
+    <details><summary>如何给正式 Python 函数添加输入检查？</summary><pre>def factorial_checked(n):
+    if type(n) is not int:
+        raise TypeError("n 必须是整数")
+    if n &lt; 0:
+        raise ValueError("n 必须是非负数")
+    if n &lt;= 1:
+        return 1
+    return n * factorial_checked(n - 1)</pre><p>用 type(n) is int 是为了同时排除 bool。下面的受控运行器只练递归主体，不支持这段带异常检查的完整 Python 语法；要执行它，请用真实 Python 环境。</p></details>
+    <h3>与循环对比：同一答案，不同的保存方式</h3>
+    <pre>def factorial_loop(n):
+    result = 1
+    for k in range(2, n + 1):
+        result = result * k
+    return result</pre>
+    <p>n=4 时，循环把 result 依次变成 1、2、6、24；递归则保存 n=4、3、2 的等待帧，再返回时计算。在“每次整数运算视为一个单位”的模型里，两者都做 O(n) 次工作，递归要 O(n) 个栈帧，循环只用常数个变量。大整数越来越长，所以真实运行时间与存储还受到数字位数影响。CPython 不自动消除尾递归，不能用“尾调用”保证常数栈空间。</p>
+    <details><summary>进一步理解：为何阶乘递归的答案必然正确？</summary><p>先检查 0、1 的答案与定义一致。再假设 factorial(n−1) 对更小输入能返回 (n−1)!；当前层乘 n，就得到 n×(n−1)!=n!。从基线逐层往上应用这个理由，就是数学归纳法。正确性与终止性是两个问题：既要最终停下，也要每层组合正确。</p></details>
+  </section>
+
+  <section class="lesson-block" id="recursion-transfer" aria-labelledby="rec-transfer-title">
+    <h2 id="rec-transfer-title">分层练习：预测 → 排错 → 迁移</h2>
+    <p>先独立作答再展开解析。这里的检查练习记录答题证据；原有 Q1、提示阶梯与评分规则仍用于本节点的正式活动。</p>
+    <h3>1 · 预测边界与普通输入</h3>
+    <p><label for="recBaseAnswer">factorial(0) = </label><input class="lesson-answer" id="recBaseAnswer" inputmode="numeric" autocomplete="off"><label for="recFourAnswer">　factorial(4) = </label><input class="lesson-answer" id="recFourAnswer" inputmode="numeric" autocomplete="off"></p>
+    <button class="btn btn--outline btn--sm" type="button" id="recPredictCheck">检查预测</button><div class="lesson-feedback" id="recPredictFeedback" role="status" aria-live="polite">先判断基线，再写出 4 × 3 × 2 × 1。</div>
+    <details><summary>答案与每一步</summary><p>factorial(0)=1：0≤1 成立，直接 return 1。factorial(4)=24：调用进入 4、3、2、1；返回先给 1，然后 2×1=2、3×2=6、4×6=24。等待期间不先算乘法。</p></details>
+    <h3>2 · 查错：为什么一步减 2 不对？</h3>
+    <p><code>return n * factorial(n - 2)</code>，基线仍是 n≤1。对 n=4，哪种解释正确？</p>
+    <label class="lesson-choice"><input type="radio" name="recDebugAnswer" value="never">永不结束，因为跳过了 1</label>
+    <label class="lesson-choice"><input type="radio" name="recDebugAnswer" value="skip">会结束并得到 8，但遗漏了因子 3</label>
+    <label class="lesson-choice"><input type="radio" name="recDebugAnswer" value="same">仍然得到 24，因为步长不影响乘积</label>
+    <button class="btn btn--outline btn--sm" type="button" id="recDebugCheck">检查排错</button><div class="lesson-feedback" id="recDebugFeedback" role="status" aria-live="polite">把参数逐个写出，不要把“能停止”当作“答案正确”。</div>
+    <details><summary>解析与最小反例</summary><p>参数是 4 → 2 → 0；0≤1 命中基线返回 1，接着 2×1=2、4×2=8。基线已经允许 0，所以并非无法终止。输入 3 更早暴露错误：3→1，只得到 3 而非 6。修正要恢复 n−1，让每一个因子都出现。</p></details>
+    <h3>3 · 迁移到 1+2+…+n：修改基线和组合</h3>
+    <pre>def sum_to(n):
+    if n == 0:
+        return ____    # 没有数要加时的起点
+    return n + sum_to(n - 1)</pre>
+    <p><label for="recSumBase">基线返回值：</label><input class="lesson-answer" id="recSumBase" inputmode="numeric" autocomplete="off"><label for="recSumFour">　sum_to(4) = </label><input class="lesson-answer" id="recSumFour" inputmode="numeric" autocomplete="off"></p>
+    <button class="btn btn--outline btn--sm" type="button" id="recTransferCheck">检查迁移</button><div class="lesson-feedback" id="recTransferFeedback" role="status" aria-live="polite">加法起点与乘法起点是否相同？</div>
+    <details><summary>完整迁移解答</summary><p>基线是 0，sum_to(4)=10。逐层返回：sum_to(0)=0，sum_to(1)=1+0=1，sum_to(2)=2+1=3，sum_to(3)=3+3=6，sum_to(4)=4+6=10。“变小”仍是 n−1，但“直接答案”与“组合方式”都由新问题的数学含义决定。</p></details>
+    <details><summary>再迁移：设计 power(a, n)，a 的 n 次方（n 为非负整数）</summary><p>基线 power(a,0)=1；递归式 power(a,n)=a×power(a,n−1)。n=3、a=2 时返回 1→2→4→8。这里变小的是指数 n，每次乘的是固定底数 a；不能照搬阶乘的 n×。通过另一个参数识别“什么固定、什么变小”。</p></details>
+    <p>回到下方运行器，把函数改为 sum_to，测试 n=0、1、4；再故意把 n−1 改成 n+1，观察为什么永远到不了基线。做完后，用自己的话同时说明：输入约定、出口、进展、返回值。</p>
   </section>
 
   <!-- ═══ Zone 02 · 交互练习 ═════════════════════════════════ -->
@@ -523,7 +662,7 @@ button,input,textarea{font:inherit;color:inherit}
 
         <div class="match-fb" id="q1Fb" role="status" aria-live="polite"></div>
 
-        <div class="note">本页只判定这一种写法范围：基线条件须让 <code>n</code> 小于等于某个常数时返回 1；递归条件须把规模缩小并调用自身。等价的几种写法都算正确。</div>
+        <div class="note">本页的标准目标是 n≤1（或整数域等价的n&lt;2）与 n×factorial(n−1)。仅以n==0为基线也能计算非负阶乘，但会多一层调用，课堂规则按替代写法给部分反馈。其他等价程序应在真实Python中验证，规则未识别不代表数学上错误。</div>
       </div>
 
       <!-- 提示阶梯 -->
@@ -584,7 +723,7 @@ button,input,textarea{font:inherit;color:inherit}
           <span class="task-id">Q3</span>
           <h3 class="task-title">受控代码运行器：亲手验证一次</h3>
         </div>
-        <p class="task-lead">改代码、改参数，看每一次调用与返回。建议你试两个实验：① 把基线条件注释掉，看会发生什么；② 把 <code>n *</code> 改成 <code>n +</code>，看结果变了多少。</p>
+        <p class="task-lead">改代码、改参数，看每一次调用与返回。先用 n=4 得到 24；再把 <code>n - 1</code> 改成 <code>n + 1</code>，观察深度上限。最后把 <code>*</code> 改成 <code>+</code>，比较结果；要完整迁移到 sum_to，还要把基线改成 n==0 并返回 0。</p>
 
         <div class="runner">
           <div>
@@ -607,7 +746,7 @@ button,input,textarea{font:inherit;color:inherit}
           <button class="btn btn--ghost btn--sm" id="btnRunClear" type="button">清空控制台</button>
         </div>
 
-        <div class="note note--warn">本运行器是<b>受控语义模拟</b>，不是通用 Python 解释器。它只支持「单个函数 / 单参数 / 单基线条件 / 单递归步」这一形式（factorial、sum 这类）。它做的是真实的递归语义执行与调用栈追踪，不是打印预设文本。</div>
+        <div class="note note--warn">本运行器是<b>受控语义模拟</b>，不是通用 Python 解释器。它只支持「单个函数 / 单参数 / 单基线条件 / 单递归步」这一形式（factorial、sum_to 这类）。它按所支持的形式追踪递归语义，演示上限为 120 层，并只返回安全整数；不模拟 CPython 的完整语法、无限精度整数或真实递归上限。删除基线会被解析器拒绝；要观察深度超限，请改成 n+1。</div>
       </div>
 
       <!-- 反馈 + 评分 -->
@@ -639,7 +778,7 @@ button,input,textarea{font:inherit;color:inherit}
       <!-- 后置验证 -->
       <div class="verify" id="verify" hidden>
         <div class="micro micro--accent">POST-VERIFICATION · 后置验证（完整答案后必做）</div>
-        <p class="task-lead" style="margin-top:var(--s-4)">你已经看过完整答案。要证明你理解的是<b>原理</b>而不是这一段文字，请回答下面这个问题——这是本次任务结束的唯一条件。</p>
+        <p class="task-lead" style="margin-top:var(--s-4)">你已经看过完整答案。请回答下面的问题，宿主将核验你是否理解原理；提交文字本身不代表验证通过。</p>
         <p style="margin-top:var(--s-4);font-size:13.5px;font-weight:600">如果基线条件写成 <code>n == 1</code> 而不是 <code>n &lt;= 1</code>，调用 <code>factorial(0)</code> 会发生什么？为什么？</p>
         <textarea id="verifyInput" aria-label="后置验证作答" placeholder="用一两句话说清楚即可。"></textarea>
         <div class="btn-row" style="margin-top:var(--s-4)">
@@ -706,407 +845,191 @@ button,input,textarea{font:inherit;color:inherit}
    LEAP Runtime 交互结果内核（JSON 契约 · 证据轨 · 评分聚合）
    契约来源：examples/_shared/interaction-output.schema.json
    ══════════════════════════════════════════════════════════════ */
-window.LEAP = (function () {
+/* LEAP_HOST_BRIDGE v3: embed this kernel inline in standalone pages.
+ * Runtime receipts own evidence and completion; local exact checks own feedback.
+ */
+function createLeapBridge(config) {
   "use strict";
-
-  var state = {
-    leap_version: "2.0",
-    example_id: "python-recursion",
-    subject: "programming",
-    node: { node_id: "py.recursion.factorial", title: "阶乘递归", unit_tag: "python-recursion" },
-    learner: { learner_id: "REPLACE_WITH_LEARNER_ID", session_id: "REPLACE_WITH_SESSION_ID" },
-    events: [],
-    assessment: blankAssessment(),
-    ui_state: {
-      mode: "demo", hosted: false, pending_mcp_calls: 0,
-      hint_dependency: 0, hint_level: 0, answer_revealed: false, completed: false
-    }
-  };
-
-  var mastery = 0.62;                       /* 本地模拟值 */
   var HINT_DEP = [0, 0.25, 0.40, 0.60, 0.85];
-  var STAGE_ORDER = ["estimated", "practiced", "demonstrated", "retained", "transferred"];
-  var EVENT_COLOR = {
-    attempt_submitted: "#4C7BD9",
-    hint_used: "#B3861A",
-    answer_revealed: "#7A7F8A",
-    drag_submitted: "#4C7BD9",
-    code_run: "#2E8B84",
-    reflection_recorded: "#4C8B3F",
-    item_completed: "#2E7D5B"
-  };
-
-  /* ══ LEAP_HOST_BRIDGE · 宿主桥接 ══════════════════════════════════
-     本页只负责「呈现 + 采集」，不做任何状态判定：
-       · mastery_probability / evidence_stage / hint_dependency 由 LEAP Runtime
-         计算（LEAP_Framework_V2 §10.2‑1），本页只显示 hydrate() 注入的值；
-       · 学习者的每个动作都会被翻译成一条待执行的 MCP 调用，进入 outbox，
-         由宿主 Agent 通过 LEAP.drainOutbox() 取走后真正执行。
-     未调用 hydrate() 时保持 demo 模式，未确认的评估标记 provisional；掌握度和证据阶段不在本地推算。 */
+  var STAGE_CN = {estimated:"仅估计",practiced:"练习过",demonstrated:"独立展示",retained:"延迟保持",transferred:"已迁移"};
   var bridge = {
-    mode: "demo",
-    context: null,
-    server: {
-      mastery_probability: mastery,
-      evidence_stage: "estimated",
-      hint_dependency: 0,
-      next_review_at: null,
-      transfer_required: false
-    },
+    mode: "demo", context: null, server: {mastery_probability:null,evidence_stage:"estimated",hint_dependency:null,next_review_at:null},
     outbox: [],
-    seq: 0,
-    hooks: [],
-    last_attempt_call_id: null,
-    last_raw_answer: ""
+    seq: 0, hooks: [], attempts: {}, ledger: {}, receipts: {}, origins: {}, latestAssessmentCall: null
   };
-
-  function clamp01(v) { return Math.max(0, Math.min(1, Number(v))); }
-  function isHosted() { return bridge.mode === "hosted"; }
-  function peekOutbox() { return clone(bridge.outbox); }
-  function drainOutbox() { var out = clone(bridge.outbox); bridge.outbox.length = 0; renderAll(); return out; }
-  function onOutboxChange(fn) { if (typeof fn === "function") bridge.hooks.push(fn); }
-
-  function enqueue(tool, args, note) {
-    var call = {
-      call_id: "call_" + (++bridge.seq),
-      tool: tool,
-      args: args || {},
-      status: "pending",
-      created_at: nowSec(),
-      note: note || ""
-    };
-    bridge.outbox.push(call);
-    for (var i = 0; i < bridge.hooks.length; i++) { try { bridge.hooks[i](call, bridge.outbox.length); } catch (e) {} }
-    return call;
-  }
-
-  /* 事件 → MCP 调用映射。hint_used / answer_revealed 不单独
-     产生调用：它们的信息通过后续 attempt 的 hint_level 一并提交。 */
-  var EVENT_TO_TOOL = {
-    attempt_submitted: "submit_attempt",
-    drag_submitted: "submit_attempt",
-    code_run: "submit_attempt",
-    reflection_recorded: "record_reflection"
+  var state = {
+    leap_version: "2.0", example_id: config.example_id, subject: config.subject,
+    node: config.node, learner: {learner_id:"REPLACE_WITH_LEARNER_ID",session_id:"REPLACE_WITH_SESSION_ID"},
+    events: [], assessment: blankAssessment(),
+    ui_state: {mode:"demo",hosted:false,pending_mcp_calls:0,hint_level:0,hint_dependency:null,
+      answer_revealed:false,completed:false,local_activity_completed:false}
   };
-
-  function enqueueForEvent(ev) {
-    if (ev.event_type === "item_completed") {
-      enqueue("check_advance_unit", { session_id: state.learner.session_id,
-        node_id: state.node.node_id }, "Local activity finished; Runtime guard must approve advancement");
-      return;
-    }
-
-    var tool = EVENT_TO_TOOL[ev.event_type];
-    if (!tool) return null;
-    var raw = ev.answer == null ? "" : String(ev.answer);
-
-    if (tool === "submit_attempt") {
-      bridge.last_raw_answer = raw;
-      var call = enqueue("submit_attempt", {
-        session_id: state.learner.session_id,
-        answer: raw,
-        node_id: state.node.node_id,
-        item_id: ev.item_id || null,
-        hint_level: typeof ev.hint_level === "number" ? ev.hint_level : state.ui_state.hint_level,
-        response_time: typeof ev.response_time === "number" ? ev.response_time : null
-      }, "提交本次作答；返回的 attempt_id 供 commit_assessment 使用");
-      bridge.last_attempt_call_id = call.call_id;
-      return call;
-    }
-    return enqueue("record_reflection", {
-      session_id: state.learner.session_id,
-      reflection: raw,
-      node_id: state.node.node_id
-    }, "保存反思");
-  }
-
-  /* 宿主注入：直接吃 get_teaching_context 的返回值 */
-  function hydrate(ctx) {
-    if (!ctx || typeof ctx !== "object") { throw new TypeError("LEAP.hydrate(context) 需要一个对象参数"); }
-    bridge.context = clone(ctx);
-    bridge.mode = "hosted";
-
-    var sess = ctx.session || {};
-    var node = ctx.current_node || ctx.node || {};
-    var ks = ctx.knowledge_state || {};
-
-    var learnerId = ctx.learner_id || sess.learner_id;
-    var sessionId = ctx.session_id || sess.session_id;
-    if (learnerId) state.learner.learner_id = learnerId;
-    if (sessionId) state.learner.session_id = sessionId;
-    if (node.node_id) state.node.node_id = node.node_id;
-    if (node.title) state.node.title = node.title;
-    if (node.unit_tag) state.node.unit_tag = node.unit_tag;
-
-    if (typeof ks.mastery_probability === "number") {
-      bridge.server.mastery_probability = clamp01(ks.mastery_probability);
-      mastery = bridge.server.mastery_probability;
-    }
-    if (ks.evidence_stage) {
-      bridge.server.evidence_stage = ks.evidence_stage;
-      state.assessment.evidence_stage = ks.evidence_stage;
-    }
-    if (typeof ks.hint_dependency === "number") {
-      bridge.server.hint_dependency = clamp01(ks.hint_dependency);
-      state.ui_state.hint_dependency = bridge.server.hint_dependency;
-    }
-    if (ks.next_review_at) bridge.server.next_review_at = ks.next_review_at;
-    if (typeof ctx.transfer_requirement === "boolean") bridge.server.transfer_required = ctx.transfer_requirement;
-
-    bridge.available_actions = ctx.recommended_actions || [];
-    bridge.recommended_strategy = ctx.recommended_strategy || "";
-    bridge.due_reviews = ctx.due_reviews || [];
-
-    renderAll();
-    return snapshot();
-  }
-
-  function toggleOutboxView() {
-    var pre = document.getElementById("bridgeOutbox");
-    var btn = document.getElementById("bridgeDrain");
-    if (!pre) return;
-    var opening = pre.hidden;
-    pre.hidden = !opening;
-    if (btn) btn.textContent = opening ? "收起调用队列 ▴" : "取出调用队列 ▾";
-    if (opening) {
-      var calls = peekOutbox();
-      pre.textContent = calls.length
-        ? JSON.stringify(calls, null, 2)
-        : "（队列为空：尚无需要提交给 LEAP Runtime 的调用）";
-    }
-  }
-
-  var drainWired = false;
-  function renderBridge() {
-    var modeEl = document.getElementById("bridgeMode");
-    var sumEl = document.getElementById("bridgeSummary");
-    var noteEl = document.getElementById("spineNote");
-    var n = bridge.outbox.length;
-
-    if (modeEl) modeEl.textContent = "BRIDGE · " + (isHosted() ? "已接入宿主" : "演示模式");
-    if (sumEl) {
-      sumEl.textContent = isHosted()
-        ? "已注入 Runtime 上下文（" + state.node.node_id + "）；待执行的 MCP 调用 " + n + " 条。"
-        : "未接入宿主 Agent；学习动作会累积为待执行的 MCP 调用（当前 " + n + " 条）。";
-    }
-    if (noteEl) {
-      noteEl.innerHTML = isHosted()
-        ? "本页状态由 <b>LEAP Runtime</b> 注入（<code>LEAP.hydrate()</code>）；掌握度与证据阶段由服务端 BKT 与 State Guard 计算，本页不自行推算。"
-        : "本页尚未连接 Runtime；掌握度与证据阶段保持初始占位值，作答评分仅为待核验反馈。";
-    }
-
-    var btn = document.getElementById("bridgeDrain");
-    if (btn && !drainWired) { drainWired = true; btn.addEventListener("click", toggleOutboxView); }
-    if (btn && !n) { btn.disabled = true; } else if (btn) { btn.disabled = false; }
-  }
-
-  function blankAssessment() {
-    return {
-      item_id: "", correctness: 0, conceptual_understanding: 0, reasoning_quality: 0,
-      application: 0, transfer: 0, hint_dependency: 0, confidence: 0, overall_score: 0,
-      error_type: "none", misconception: "", feedback: "",
-      evidence_stage: "estimated", assessor_type: "rule", provisional: true
-    };
-  }
+  var renderHooks = [], drainWired = false;
   function nowSec() { return Math.floor(Date.now() / 1000); }
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
-
-  /* overall_score：correctness .4 / conceptual .3 / reasoning .2 / application .1
-     缺失维度自动归一化；transfer 与 hint_dependency 不参与聚合 */
+  function isHosted() { return bridge.mode === "hosted"; }
+  function blankAssessment() { return {item_id:"",correctness:null,conceptual_understanding:null,reasoning_quality:null,
+    application:null,transfer:null,hint_dependency:null,confidence:null,overall_score:null,error_type:"none",
+    misconception:"",feedback:"尚未评估",evidence_stage:"estimated",assessor_type:"rule",provisional:true}; }
   function aggregate(d) {
-    var w = { correctness: 0.4, conceptual_understanding: 0.3, reasoning_quality: 0.2, application: 0.1 };
-    var sum = 0, tw = 0, k;
-    for (k in w) {
-      if (typeof d[k] === "number" && isFinite(d[k])) { sum += d[k] * w[k]; tw += w[k]; }
+    var weights = {correctness:0.4,conceptual_understanding:0.3,reasoning_quality:0.2,application:0.1}, sum=0,total=0;
+    Object.keys(weights).forEach(function(k) {if(typeof d[k]==="number" && Number.isFinite(d[k])) {sum+=d[k]*weights[k];total+=weights[k];}});
+    return total ? Math.round(sum/total*100)/100 : null;
+  }
+  function enqueue(tool,args,note) {
+    var call = {call_id:"call_"+(++bridge.seq),tool:tool,args:args||{},status:"pending",created_at:nowSec(),note:note||""};
+    bridge.outbox.push(call); bridge.ledger[call.call_id]=clone(call);
+    bridge.origins[call.call_id]={session_id:state.learner.session_id,node_id:state.node.node_id};
+    bridge.hooks.forEach(function(fn) {fn(clone(call),bridge.outbox.length);});
+    return call;
+  }
+  function enqueueForEvent(ev) {
+    if(ev.event_type === "item_completed") {
+      enqueue("check_advance_unit",{session_id:state.learner.session_id,node_id:state.node.node_id},"检查推进条件；检查通过本身不代表已推进");
+      return;
     }
-    return tw ? Math.round((sum / tw) * 100) / 100 : 0;
+    if(["attempt_submitted","drag_submitted","code_run"].indexOf(ev.event_type)>=0) {
+      var raw=ev.answer==null?"":String(ev.answer), key=ev.item_id||"";
+      var call=enqueue("submit_attempt",{session_id:state.learner.session_id,node_id:state.node.node_id,item_id:key||null,
+        answer:raw,hint_level:typeof ev.hint_level==="number"?ev.hint_level:state.ui_state.hint_level,
+        response_time:typeof ev.response_time==="number"?ev.response_time:null},"保留原始作答与本题 attempt 引用");
+      bridge.attempts[key]={call_id:call.call_id,raw_answer:raw,hint_level:call.args.hint_level,assessor_scope:ev.assessor_scope||"exact_answer"};
+    } else if(ev.event_type==="reflection_recorded") {
+      enqueue("record_reflection",{session_id:state.learner.session_id,node_id:state.node.node_id,reflection:String(ev.answer||"")},"保存反思，不作为正确性评分");
+    }
   }
-
-  function pushEvent(event_type, payload) {
-    var ev = { event_type: event_type };
-    if (payload) { for (var k in payload) { if (Object.prototype.hasOwnProperty.call(payload, k)) ev[k] = payload[k]; } }
-    ev.created_at = nowSec();
-    state.events.push(ev);
-    enqueueForEvent(ev);
-    renderAll();
-    return ev;
+  function pushEvent(event_type,payload) {
+    var ev=Object.assign({event_type:event_type,item_id:""},payload||{},{created_at:nowSec()});
+    state.events.push(ev); enqueueForEvent(ev); renderAll(); return ev;
   }
-
   function setHint(level) {
-    if (level > state.ui_state.hint_level) state.ui_state.hint_level = level;
-    if (level === 4) state.ui_state.answer_revealed = true;
-    state.ui_state.hint_dependency = HINT_DEP[Math.min(state.ui_state.hint_level, 4)];
-    renderAll();
+    if(!Number.isInteger(level)||level<0||level>4) throw new RangeError("hint level must be 0..4");
+    state.ui_state.hint_level=Math.max(level,state.ui_state.hint_level);
+    if(level===4) state.ui_state.answer_revealed=true;
+    // Local hint usage is separate from the Runtime's historical estimate.
+    state.ui_state.local_hint_dependency=HINT_DEP[state.ui_state.hint_level]; renderAll();
   }
-
   function commitAssessment(item) {
-    var dep = HINT_DEP[Math.min(state.ui_state.hint_level, 4)];
-    var a = {
-      item_id: item.item_id,
-      correctness: r2(item.correctness),
-      conceptual_understanding: r2(item.conceptual_understanding),
-      reasoning_quality: r2(item.reasoning_quality),
-      application: r2(item.application),
-      transfer: r2(item.transfer || 0),
-      hint_dependency: r2(dep),
-      confidence: 0,
-      overall_score: 0,
-      error_type: item.error_type || "none",
-      misconception: item.misconception || "",
-      feedback: item.feedback || "",
-      evidence_stage: "practiced",
-      assessor_type: item.assessor_type || "rule"
-    };
-    a.overall_score = aggregate(a);
-
-    /* Evidence stage and mastery are exclusively Runtime state, even in demo. */
-    a.evidence_stage = bridge.server.evidence_stage;
-    a.provisional = true; // this new assessment has not been committed by Runtime
-    state.assessment = a;
-    state.ui_state.hint_dependency = a.hint_dependency;
-
-    /* 评估证据必须回传 Runtime：raw_answer 不可丢弃（§22.8）。 */
-    enqueue("commit_assessment", {
-      attempt_id: bridge.last_attempt_call_id
-        ? "{{" + bridge.last_attempt_call_id + ".attempt_id}}" : "{{attempt_id}}",
-      raw_answer: bridge.last_raw_answer,
-      assessor_type: a.assessor_type,
-      correctness: a.correctness,
-      conceptual_understanding: a.conceptual_understanding,
-      reasoning_quality: a.reasoning_quality,
-      application: a.application,
-      transfer: a.transfer,
-      hint_dependency: a.hint_dependency,
-      confidence: a.confidence
-    }, "提交评估证据；attempt_id 由上一条 submit_attempt 的返回值填充，mastery 由 Runtime 计算");
-    renderAll();
-    return a;
-  }
-
-  function r2(v) { return Math.round((v || 0) * 100) / 100; }
-
-  function setCompleted(itemId, reason) {
-    state.ui_state.completed = true;
-    pushEvent("item_completed", { item_id: itemId, reason: reason || "verified" });
-  }
-
-  /* ── 渲染 ─────────────────────────────────────────────── */
-  var renderHooks = [];
-  function onRender(fn) { renderHooks.push(fn); fn(); }
-  function renderAll() {
-    renderOutput(); renderSpine(); renderRail(); renderBridge();
-    for (var i = 0; i < renderHooks.length; i++) { try { renderHooks[i](); } catch (e) { /* 单个面板失败不影响契约输出 */ } }
-  }
-
-
-
-  function renderOutput() {
-    var el = document.getElementById("leap-interaction-output");
-    if (el) el.textContent = JSON.stringify(snapshot(), null, 2);
-    var sum = document.getElementById("consoleSummary");
-    if (sum) {
-      var last = state.events.length ? state.events[state.events.length - 1].event_type : null;
-      sum.textContent = "AGENT OUTPUT · 已记录 " + state.events.length + " 条事件" +
-        (last ? " · 最近 " + last : "") + (state.ui_state.completed ? " · 本节点已完成" : "");
+    var attempt=bridge.attempts[item.item_id];
+    if(!attempt) throw new Error("本题尚未提交作答，不能借用其他题目的 attempt");
+    if(attempt.assessor_scope==="host_semantic_review"||item.assessor_scope==="host_semantic_review") {
+      bridge.latestAssessmentCall=null;
+      state.assessment=Object.assign(blankAssessment(),{item_id:item.item_id,feedback:"原始作答已收集，等待宿主审核论证",evidence_stage:bridge.server.evidence_stage});
+      renderAll(); return clone(state.assessment);
     }
+    if(typeof item.correctness!=="number"||!Number.isFinite(item.correctness)||item.correctness<0||item.correctness>1) throw new TypeError("Exact checks require an explicit correctness value");
+    // An exact answer does not establish reasoning, concepts, transfer or self-confidence.
+    var value=Math.round(item.correctness*100)/100;
+    var a=Object.assign(blankAssessment(),{item_id:item.item_id,correctness:value,overall_score:value,
+      feedback:item.feedback||"仅核对客观答案",error_type:item.error_type||"none",misconception:item.misconception||"",
+      hint_dependency:HINT_DEP[Math.min(attempt.hint_level,4)],evidence_stage:bridge.server.evidence_stage,provisional:true});
+    state.assessment=a;
+    var call=enqueue("commit_assessment",{attempt_id:"{{"+attempt.call_id+".attempt_id}}",raw_answer:attempt.raw_answer,
+      assessor_type:"rule",correctness:a.correctness,hint_dependency:a.hint_dependency},"仅提交客观正确性；其他维度待相应证据评估");
+    bridge.latestAssessmentCall=call.call_id; renderAll(); return clone(a);
   }
-
-  function renderSpine() {
-    var cur = state.assessment.evidence_stage;
-    var idx = Math.max(0, STAGE_ORDER.indexOf(cur));
-    var segs = document.querySelectorAll("#evTrack .ev-seg");
-    for (var i = 0; i < segs.length; i++) {
-      if (i <= idx) { segs[i].classList.add("is-on"); } else { segs[i].classList.remove("is-on"); }
-    }
-    var nameEl = document.getElementById("evName");
-    if (nameEl) {
-      nameEl.textContent = cur + " · " + STAGE_CN[cur];
-      nameEl.style.color = "var(--ev-" + cur + ")";
-    }
-    var fill = document.getElementById("masFill");
-    if (fill) fill.style.width = Math.round(mastery * 100) + "%";
-    var val = document.getElementById("masVal");
-    if (val) val.textContent = mastery.toFixed(2);
-    var note = document.getElementById("ladderNote");
-    if (note) {
-      note.textContent = "阶梯高度 = 支持强度。已用层级越高，hint_dependency 越高；本节点当前 " +
-        HINT_DEP[Math.min(state.ui_state.hint_level, 4)].toFixed(2) + "。";
-    }
+  function setCompleted(itemId,reason) {
+    state.ui_state.local_activity_completed=true;
+    pushEvent("item_completed",{item_id:itemId,reason:reason||"local_check_finished"});
   }
-
-  var STAGE_CN = {
-    estimated: "仅估计", practiced: "练习过", demonstrated: "独立展示",
-    retained: "延迟保持", transferred: "已迁移"
-  };
-
-  function renderRail() {
-    var host = document.getElementById("railDots");
-    if (!host) return;
-    var n = state.events.length;
-    host.innerHTML = "";
-    if (!n) return;
-    var gap = n === 1 ? 0 : 1120 / (n + 1);
-    /* 使用百分比定位，随容器宽度自适应 */
-    for (var i = 0; i < n; i++) {
-      var d = document.createElement("span");
-      var isLast = (i === n - 1);
-      d.className = "rail-dot" + (isLast ? " rail-dot--last" : "");
-      var pct = n === 1 ? 50 : ((i + 1) / (n + 1)) * 100;
-      d.style.left = pct + "%";
-      d.style.background = EVENT_COLOR[state.events[i].event_type] || "#9AA1AD";
-      d.title = state.events[i].event_type;
-      host.appendChild(d);
+  function hydrate(ctx) {
+    if(!ctx||typeof ctx!=="object"||ctx.ok===false) throw new TypeError("hydrate requires a successful Runtime context");
+    var sess=ctx.session||{},node=ctx.current_node||ctx.node||{},ks=ctx.knowledge_state||{};
+    var learner=ctx.learner_id||sess.learner_id, sid=ctx.session_id||sess.session_id;
+    if(!learner||!sid||!node.node_id) throw new TypeError("Runtime context needs learner, session and node identifiers");
+    if(sid!==state.learner.session_id||node.node_id!==state.node.node_id) {
+      if(bridge.outbox.length) throw new Error("切换上下文前必须先取走并处理原节点的调用队列");
+      bridge.attempts={}; bridge.latestAssessmentCall=null; state.ui_state.completed=false; state.ui_state.local_activity_completed=false;
+      state.ui_state.hint_level=0; state.ui_state.answer_revealed=false; state.assessment=blankAssessment();
     }
-    var cnt = document.getElementById("railCount");
-    if (cnt) cnt.textContent = "已产生 " + n + " 条事件（只追加，不覆盖）";
-    var last = document.getElementById("railLast");
-    if (last) {
-      var e = state.events[n - 1];
-      last.textContent = "最近：" + e.event_type + (e.item_id ? " · " + e.item_id : "") +
-        " · hint_level " + state.ui_state.hint_level + " · " + fmtTime(e.created_at);
-    }
+    state.learner={learner_id:learner,session_id:sid}; state.node=Object.assign({},state.node,node);
+    bridge.context=clone(ctx); bridge.mode="hosted";
+    bridge.server={mastery_probability:typeof ks.mastery_probability==="number"?ks.mastery_probability:null,
+      evidence_stage:ks.evidence_stage||"estimated",hint_dependency:typeof ks.hint_dependency==="number"?ks.hint_dependency:null,
+      next_review_at:ks.next_review_at||null};
+    state.assessment.evidence_stage=bridge.server.evidence_stage;
+    state.ui_state.hint_dependency=bridge.server.hint_dependency;
+    // A state snapshot does not confirm a particular pending assessment receipt.
+    renderAll(); return snapshot();
   }
-  function fmtTime(t) {
-    var d = new Date(t * 1000);
-    return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2) + ":" + ("0" + d.getSeconds()).slice(-2);
+  function applyToolResults(results) {
+    // Validate the whole batch before changing any receipt or displayed state.
+    var merged=Object.assign({},bridge.receipts,results||{});
+    Object.keys(results||{}).forEach(function(id) {
+      var call=bridge.ledger[id],result=results[id];
+      if(!call) throw new Error("Unknown outbox call receipt: "+id);
+      if(!result||result.ok!==true) return;
+      if(call.tool==="commit_assessment") {
+        var match=/^\{\{(call_\d+)\.attempt_id\}\}$/.exec(call.args.attempt_id);
+        var attemptReceipt=match&&merged[match[1]];
+        if(!attemptReceipt||attemptReceipt.ok!==true||!attemptReceipt.attempt_id||result.attempt_id!==attemptReceipt.attempt_id) throw new Error("Assessment receipt does not match its attempt");
+        if(!result.result_id||typeof result.overall_score!=="number"||!Number.isFinite(result.overall_score)) throw new Error("Incomplete assessment receipt");
+      }
+    });
+    Object.keys(results||{}).forEach(function(id) {
+      var call=bridge.ledger[id], result=results[id];
+      bridge.receipts[id]=clone(result);
+      if(!result||result.ok!==true) return;
+      var origin=bridge.origins[id];
+      if(origin.session_id!==state.learner.session_id||origin.node_id!==state.node.node_id) return;
+      if(call.tool==="commit_assessment" && id===bridge.latestAssessmentCall) {
+        Object.assign(state.assessment,result.scores||{},{overall_score:result.overall_score,provisional:false,result_id:result.result_id});
+        if(result.learner_state) bridge.server=Object.assign({},bridge.server,result.learner_state);
+      }
+      if(call.tool==="advance_unit"&&result.advanced===true&&result.session_id===state.learner.session_id) state.ui_state.completed=true;
+    });
+    state.assessment.evidence_stage=bridge.server.evidence_stage;
+    state.ui_state.hint_dependency=bridge.server.hint_dependency; renderAll(); return snapshot();
   }
-
-  /* ── 对外接口 ─────────────────────────────────────────── */
+  function requestAdvance() {
+    var call=enqueue("advance_unit",{session_id:state.learner.session_id,node_id:state.node.node_id},"Runtime State Guard 批准后推进"); renderAll(); return clone(call);
+  }
+  function peekOutbox() {return clone(bridge.outbox);}
+  function drainOutbox() {var out=peekOutbox();bridge.outbox.length=0;renderAll();return out;}
   function snapshot() {
-    var out = clone(state);
-    out.ui_state.mode = bridge.mode;
-    out.ui_state.hosted = isHosted();
-    out.ui_state.pending_mcp_calls = bridge.outbox.length;
-    out.outbox = clone(bridge.outbox);
-    return out;
+    var out=clone(state); out.ui_state.mode=bridge.mode; out.ui_state.hosted=isHosted();out.ui_state.pending_mcp_calls=bridge.outbox.length;
+    out.outbox=peekOutbox();return out;
   }
-  function getInteractionResult() { return snapshot(); }
-  function getState() { return state; }
-  function getMastery() { return mastery; }
+  function renderOutput() {
+    var el=document.getElementById("leap-interaction-output");if(el) el.textContent=JSON.stringify(snapshot(),null,2);
+    var sum=document.getElementById("consoleSummary");if(sum) sum.textContent="AGENT OUTPUT · 已记录 "+state.events.length+" 条事件"+(state.ui_state.completed?" · Runtime 已推进":state.ui_state.local_activity_completed?" · 本地练习已结束，待 Runtime 检查":"");
+  }
+  function renderSpine() {
+    var cur=bridge.server.evidence_stage,stages=Object.keys(STAGE_CN),idx=stages.indexOf(cur);
+    document.querySelectorAll("#evTrack .ev-seg").forEach(function(el,i){el.classList.toggle("is-on",i<=idx);});
+    var name=document.getElementById("evName");if(name) name.textContent=cur+" · "+STAGE_CN[cur];
+    var val=document.getElementById("masVal"),fill=document.getElementById("masFill"),m=bridge.server.mastery_probability;
+    if(val) val.textContent=typeof m==="number"?m.toFixed(2):"未评估";
+    if(fill) fill.style.width=typeof m==="number"?Math.round(m*100)+"%":"0%";
+    var review=document.querySelector(".spine-rev .val"),at=bridge.server.next_review_at;
+    if(review) review.textContent=at?new Date(at*1000).toLocaleString():"尚未安排";
+    var note=document.getElementById("ladderNote");if(note) note.textContent="提示只在主动请求时展开；当前提示层级 "+state.ui_state.hint_level+"。";
+  }
+  function renderBridge() {
+    var mode=document.getElementById("bridgeMode"),sum=document.getElementById("bridgeSummary"),note=document.getElementById("spineNote");
+    if(mode) mode.textContent="BRIDGE · "+(isHosted()?"Runtime 上下文快照":"离线演示");
+    if(sum) sum.textContent="待处理调用 "+bridge.outbox.length+" 条。客观答案反馈需回执确认；论证等待宿主审核。";
+    if(note) note.textContent=isHosted()?"显示最近一次 Runtime 上下文；新作答等待实际调用回执。":"掌握度未评估；离线操作仅收集学习动作。";
+    var button=document.getElementById("bridgeDrain"),pre=document.getElementById("bridgeOutbox");
+    if(button&&!drainWired) {drainWired=true;button.addEventListener("click",function(){if(pre){pre.hidden=!pre.hidden;pre.textContent=JSON.stringify(peekOutbox(),null,2);}});}
+    if(button) button.disabled=!bridge.outbox.length;
+  }
+  function renderRail() {
+    var dots=document.getElementById("railDots"),n=state.events.length;
+    if(dots) {dots.replaceChildren();state.events.forEach(function(e,i){var d=document.createElement("span");d.className="rail-dot";d.style.left=((i+1)/(n+1)*100)+"%";d.title=e.event_type;dots.appendChild(d);});}
+    var count=document.getElementById("railCount"),last=document.getElementById("railLast");
+    if(count) count.textContent="已产生 "+n+" 条事件（只追加，不覆盖）";
+    if(last&&n) last.textContent="最近："+state.events[n-1].event_type;
+  }
+  function renderAll() {renderOutput();renderSpine();renderBridge();renderRail();renderHooks.forEach(function(fn){fn();});}
+  function onRender(fn) {renderHooks.push(fn);fn();}
+  return {hydrate:hydrate,isHosted:isHosted,getInteractionResult:snapshot,getState:function(){return state;},getMastery:function(){return bridge.server.mastery_probability;},
+    peekOutbox:peekOutbox,drainOutbox:drainOutbox,onOutboxChange:function(fn){bridge.hooks.push(fn);},pushEvent:pushEvent,
+    setHint:setHint,commitAssessment:commitAssessment,setCompleted:setCompleted,applyToolResults:applyToolResults,requestAdvance:requestAdvance,
+    aggregate:aggregate,onRender:onRender,refresh:renderAll,HINT_DEP:HINT_DEP,STAGE_CN:STAGE_CN};
+}
 
-  return {
-    /* ── 输入：宿主 Agent 注入 Runtime 上下文 ── */
-    hydrate: hydrate,
-    isHosted: isHosted,
-    /* ── 输出：契约对象 ── */
-    getInteractionResult: getInteractionResult,
-    /* ── 输出：待执行的 MCP 调用队列 ── */
-    peekOutbox: peekOutbox,
-    drainOutbox: drainOutbox,
-    onOutboxChange: onOutboxChange,
-    pushEvent: pushEvent,
-    setHint: setHint,
-    commitAssessment: commitAssessment,
-    setCompleted: setCompleted,
-    aggregate: aggregate,
-    getState: getState,
-    getMastery: getMastery,
-    onRender: onRender,
-    refresh: renderAll,
-    HINT_DEP: HINT_DEP,
-    STAGE_CN: STAGE_CN
-  };
-})();
+window.LEAP = createLeapBridge({"example_id":"python-recursion","subject":"programming","node":{ node_id: "py.recursion.factorial", title: "阶乘递归", unit_tag: "python-recursion" }});
 
 /* ══════════════════════════════════════════════════════════════
    页面交互
@@ -1120,7 +1043,7 @@ window.LEAP = (function () {
   (function checkpoint() {
     var opts = document.querySelectorAll("#cp .opt");
     var fb = $("cpFb");
-    var done = false;
+    var checkpointAttempts = 0;
     Array.prototype.forEach.call(opts, function (b) {
       b.addEventListener("click", function () {
         Array.prototype.forEach.call(opts, function (x) { x.setAttribute("aria-pressed", "false"); });
@@ -1128,11 +1051,11 @@ window.LEAP = (function () {
         var ok = b.dataset.v === "ok";
         fb.innerHTML = (ok ? "<b>正确。</b> " : "<b>再想一想。</b> ") + b.dataset.why;
         fb.classList.add("is-on");
-        if (!done) {
-          done = true;
+        {
+          checkpointAttempts++;
           window.LEAP.pushEvent("attempt_submitted", {
             item_id: "cp-01", answer: b.textContent.trim(), hint_level: 0,
-            response_time: 0, attempt_index: 1, predicted_performance: null,
+            response_time: 0, attempt_index: checkpointAttempts, predicted_performance: null,
             error_type: ok ? "none" : "misconception"
           });
         }
@@ -1157,8 +1080,8 @@ window.LEAP = (function () {
   function drawStack() {
     var tube = $("tube");
     tube.innerHTML = "";
-    var st = cur === 0 ? [] : STEPS[cur - 1].s;
-    for (var i = 0; i < st.length; i++) {
+    var st = cur === 0 || cur === STEPS.length ? [] : STEPS[cur - 1].s;
+    for (var i = st.length-1; i >= 0; i--) {
       var f = document.createElement("div");
       f.className = "tf";
       f.dataset.s = st[i].st;
@@ -1169,7 +1092,7 @@ window.LEAP = (function () {
     if (!st.length) {
       var e = document.createElement("div");
       e.style.cssText = "font-size:11.5px;color:var(--ink-3);text-align:center;padding:0 0 96px";
-      e.textContent = "栈为空 · 尚未开始";
+      e.textContent = cur === STEPS.length ? "栈为空 · 最外层已返回 24" : "栈为空 · 尚未开始";
       tube.appendChild(e);
     }
     var st1 = document.querySelector(".tube-label");
@@ -1177,6 +1100,7 @@ window.LEAP = (function () {
     $("stepText").textContent = cur === 0 ? "点击「单步」或「播放」，观察调用栈如何一层层生长、又一层层收回。" : STEPS[cur - 1].d;
     $("stepCount").textContent = "步骤 " + cur + " / " + STEPS.length + "　·　状态：" +
       (cur === 0 ? "待开始" : (cur < 5 ? "展开中" : (cur < 9 ? "回退中" : "已完成")));
+    tube.setAttribute("aria-label", "调用栈：" + (cur === 0 ? "尚未开始" : STEPS[cur - 1].d));
   }
   function stepFwd() {
     if (cur < STEPS.length) { cur++; drawStack(); }
@@ -1202,7 +1126,8 @@ window.LEAP = (function () {
   $("btnReset").addEventListener("click", function () { stopPlay(); cur = 0; drawStack(); });
   document.addEventListener("keydown", function (e) {
     var t = e.target.tagName;
-    if (t === "INPUT" || t === "TEXTAREA") return;
+    if (t === "INPUT" || t === "TEXTAREA" || t === "SELECT" || t === "BUTTON" || t === "SUMMARY") return;
+    if (!$("tube").closest(".stage").contains(e.target)) return;
     if (e.key === "ArrowRight") { stopPlay(); stepFwd(); e.preventDefault(); }
     else if (e.key === "ArrowLeft") { stopPlay(); stepBack(); e.preventDefault(); }
     else if (e.key === " " || e.code === "Space") { togglePlay(); e.preventDefault(); }
@@ -1292,26 +1217,26 @@ window.LEAP = (function () {
     base: [
       { re: /^n\s*<=\s*1$/, ok: true },
       { re: /^n\s*<\s*2$/, ok: true },
-      { re: /^n\s*==\s*0$/, ok: true, partial: true, why: "n == 0 也正确，但它只覆盖 0，factorial(1) 会多压一层栈——写成 n <= 1 更省。" },
+      { re: /^n\s*==\s*0$/, ok: true, why: "n == 0 配合 n−1 能正确覆盖全部非负整数；n=1 额外调用 n=0，答案仍为1。" },
       { re: /^n\s*==\s*1$/, ok: false, kind: "reasoning_error", why: "n == 1 漏掉了 n == 0。调用 factorial(0) 时基线不成立，会一路减到负数并触发 RecursionError。" },
       { re: /^n\s*=\s*0$/, ok: false, kind: "misconception", why: "单个 = 是赋值不是比较，Python 里会直接报语法错误。这里需要的是判断相等的 ==" },
-      { re: /^(?:true|1)$/i, ok: false, kind: "misconception", why: "写成一个恒真条件，等于没有基线——递归永远不会停。基线条件必须真的能在某个规模上成立。" },
-      { re: /^n\s*>=\s*1$/, ok: false, kind: "reasoning_error", why: "方向反了：n >= 1 在 n=4 时就成立，函数会直接返回 1，结果永远是 1。" },
-      { re: /^n\s*<\s*0$/, ok: false, kind: "reasoning_error", why: "n < 0 永远不会对正数成立，递归没有出口。" }
+      { re: /^(?:true|1)$/i, ok: false, kind: "misconception", why: "恒真条件会在第一次调用立即 return 1；输入4也得到1，不会进入递归。应只对能直接解出的边界返回。" },
+      { re: /^n\s*>=\s*1$/, ok: false, kind: "reasoning_error", why: "n≥1 会使所有正整数立即返回1；输入0反而沿负整数递归，永远不满足基线。方向与覆盖范围都错。" },
+      { re: /^n\s*<\s*0$/, ok: false, kind: "reasoning_error", why: "n−1 最终会到−1并返回1，但经过0时乘出0：输入4得到0而非24，且子输入离开非负整数定义域。能停不等于正确。" }
     ],
     rec: [
-      { re: /^n\s*\*\s*(?:factorial|f)\s*\(\s*n\s*-\s*1\s*\)$/, ok: true },
-      { re: /^(?:factorial|f)\s*\(\s*n\s*-\s*1\s*\)\s*\*\s*n$/, ok: true },
-      { re: /^n\s*\*\s*(?:factorial|f)\s*\(\s*n\s*-\s*(?:1|one)\s*\)$/, ok: true },
+      { re: /^n\s*\*\s*factorial\s*\(\s*n\s*-\s*1\s*\)$/, ok: true },
+      { re: /^factorial\s*\(\s*n\s*-\s*1\s*\)\s*\*\s*n$/, ok: true },
+      { re: /\bf\s*\(|\bone\b/, ok: false, kind: "answer_error", why: "本段只定义 factorial 和 n；f 或 one 未定义，执行会触发 NameError。请使用 factorial(n−1)。" },
       { re: /^n\s*\+\s*(?:factorial|f)\s*\(\s*n\s*-\s*1\s*\)$/, ok: false, kind: "answer_error", why: "结构完全正确，只是把乘号写成了加号。factorial 求的是连乘，用 + 会得到阶乘的「累加版」，结果差得很远。" },
       { re: /^n\s*\*\s*(?:factorial|f)\s*\(\s*n\s*\+\s*1\s*\)$/, ok: false, kind: "reasoning_error", why: "递归参数在变大，规模没有缩小，永远不会触到基线——这是典型的「看似递归实为死循环」。" },
       { re: /^n\s*\*\s*(?:factorial|f)\s*\(\s*n\s*\)$/, ok: false, kind: "reasoning_error", why: "参数没有变，每一层都是同样的问题，栈会一直长到 RecursionError。递归条件必须让规模严格变小。" },
-      { re: /^n\s*\*\s*factorial\s*\(\s*n\s*-\s*2\s*\)$/, ok: false, kind: "reasoning_error", why: "步长是 2，会跳过 n == 1（n 从 2 直接到 0），结果是 0。递归步长必须能与基线条件严丝合缝地对上。" },
+      { re: /^n\s*\*\s*factorial\s*\(\s*n\s*-\s*2\s*\)$/, ok: false, kind: "reasoning_error", why: "步长是 2，会遗漏阶乘中的因子。以 n <= 1 为基线，输入 4 时走 4→2→0，得到 4×2×1=8 而非 24。能终止不等于组合正确。" },
       { re: /^(?:factorial|f)\s*\(\s*n\s*\)$/, ok: false, kind: "reasoning_error", why: "只调用了自身却没有把结果与 n 结合，等于什么都没算，而且参数没变小。" }
     ]
   };
   function norm(s) {
-    return String(s || "").replace(/[\s\u3000]+/g, "").replace(/×/g, "*").replace(/[（]/g, "(").replace(/[）]/g, ")").toLowerCase();
+    return String(s || "").replace(/[\s\u3000]+/g, "").replace(/×/g, "*").replace(/[（]/g, "(").replace(/[）]/g, ")");
   }
   function matchRule(kind, raw) {
     var v = norm(raw);
@@ -1329,7 +1254,7 @@ window.LEAP = (function () {
     q1Tried++;
     var ra = matchRule("base", a), rb = matchRule("rec", b);
     var ca = ra && ra.ok ? 1 : 0, cb = rb && rb.ok ? 1 : 0;
-    var partialA = ra && ra.partial, partialB = rb && (rb.ok && !rb.partial);
+    var partialA = ra && ra.partial, partialB = rb && rb.partial;
     var correctness = Math.min(1, (ca ? (partialA ? 0.85 : 1) : 0) * 0.4 + (cb ? 1 : 0) * 0.6);
     /* 概念维度：基线条件错通常是概念问题，递归条件错通常是推理问题 */
     var misconception = "";
@@ -1347,10 +1272,10 @@ window.LEAP = (function () {
 
     var fb1, fb2, fb3;
     if (allOk) {
-      fb1 = "基线条件与递归条件都写对了：<b>" + esc(a.trim()) + "</b> 能让递归在 n 为 0 或 1 时停下，<b>" + esc(b.trim()) + "</b> 把规模严格缩小并调用自身。";
+      fb1 = "基线条件与递归条件都写对了：<b>" + esc(a.trim()) + "</b> 覆盖全部非负整数输入的终止边界，<b>" + esc(b.trim()) + "</b> 保持定义域并正确组合子答案。n==0 会多调用一层，数学答案仍正确。";
       fb2 = "没有发现错误。";
       fb3 = q1Tried === 1 && S.ui_state.hint_level === 0
-        ? "一次无提示通过。建议再点一下 Q3 的运行器，把基线条件注释掉亲自看一次 RecursionError——把「知道」变成「见过」。"
+        ? "一次无提示通过。建议用 Q3 把 n-1 改成 n+1，观察有基线却到不了的深度超限；删除基线在本模拟器会得到解析错误。"
         : "建议再做一次 Q3 的实验：把 n * 改成 n +，对比结果差异，确认你理解的是「连乘」而不是「套模板」。";
     } else {
       var wrongs = [];
@@ -1423,7 +1348,7 @@ window.LEAP = (function () {
       });
       d.addEventListener("click", function () { if (selectedChip) placeChip(selectedChip, s.id); });
       d.addEventListener("keydown", function (e) {
-        if ((e.key === "Enter" || e.key === " ") && selectedChip) { e.preventDefault(); placeChip(selectedChip, s.id); }
+        if (e.target === d && (e.key === "Enter" || e.key === " ") && selectedChip) { e.preventDefault(); placeChip(selectedChip, s.id); }
       });
       slotHost.appendChild(d);
     });
@@ -1433,7 +1358,8 @@ window.LEAP = (function () {
       b.dataset.chip = c.id; b.textContent = c.text;
       b.addEventListener("dragstart", function (e) { e.dataTransfer.setData("text/plain", c.id); b.classList.add("is-drag"); });
       b.addEventListener("dragend", function () { b.classList.remove("is-drag"); });
-      b.addEventListener("click", function () {
+      b.addEventListener("click", function (e) {
+        e.stopPropagation();
         if (b.dataset.state === "ok") return;
         if (selectedChip === c.id) { selectedChip = null; b.classList.remove("is-sel"); return; }
         Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (x) { x.classList.remove("is-sel"); });
@@ -1445,7 +1371,7 @@ window.LEAP = (function () {
   function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 
   function placeChip(chipId, slotId) {
-    var chip = chipHost.querySelector('.chip[data-chip="' + chipId + '"]');
+    var chip = document.querySelector('.chip[data-chip="' + chipId + '"]');
     var slot = slotHost.querySelector('.slot[data-slot="' + slotId + '"]');
     if (!chip || !slot) return;
     var occupied = slot.querySelector(".chip");
@@ -1462,6 +1388,8 @@ window.LEAP = (function () {
   }
   $("btnClearQ2").addEventListener("click", function () {
     Array.prototype.forEach.call(document.querySelectorAll(".slot .chip"), function (c) { chipHost.appendChild(c); });
+    selectedChip = null;
+    Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (c) { c.classList.remove("is-sel"); });
     clearStates(); $("q2Fb").classList.remove("is-on");
   });
 
@@ -1496,14 +1424,14 @@ window.LEAP = (function () {
     var f1 = ok ? "四个阶段全部对上。你已经能分清「往下走」和「往回收」这两段了。" :
       "你放对了 " + correct + "/4 个位置。";
     var f2 = ok ? "没有发现错误。" : why;
-    var f3 = ok ? "下一步：打开 Q3，把基线条件注释掉跑一次，亲眼看到 RecursionError。" :
+    var f3 = ok ? "下一步：Q3保留基线，把n−1改n+1观察深度上限；删掉基线会解析拒绝，完整Python请在真实解释器运行。" :
       "按这个顺序重排一遍口诀：<b>先压到底 → 命中基线 → 再逐层回退算 → 最后把值交给上一层</b>。";
     el.innerHTML = "<b>" + f1 + "</b>　" + f2;
     el.style.color = ok ? "var(--ok)" : "var(--ink-2)";
     el.classList.add("is-on");
     setFeedback(errType, f1, f2, f3, !ok);
     window.LEAP.pushEvent("drag_submitted", {
-      item_id: "q2", answer: "correct " + correct + "/" + STAGES.length,
+      item_id: "q2", answer: JSON.stringify(STAGES.map(function(s){var chip=slotHost.querySelector('.slot[data-slot="'+s.id+'"] .chip');return {slot:s.id,chip:chip?chip.dataset.chip:null};})),
       hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: q2Tried,
       predicted_performance: null, error_type: errType
     });
@@ -1540,8 +1468,8 @@ window.LEAP = (function () {
     rows.forEach(function (r) {
       var d = document.createElement("div");
       d.className = "score-row";
-      d.innerHTML = '<span class="score-key">' + r.k + '<b style="color:' + r.c + '">' + r.v.toFixed(2) + '</b></span>' +
-        '<span class="score-track"><span class="score-fill" data-k="' + r.k + '" style="width:' + (r.v * 100) + '%"></span></span>';
+      d.innerHTML = '<span class="score-key">' + r.k + '<b style="color:' + r.c + '">' + (typeof r.v === "number" ? r.v.toFixed(2) : "未评估") + '</b></span>' +
+        '<span class="score-track"><span class="score-fill" data-k="' + r.k + '" style="width:' + ((typeof r.v === "number" ? r.v : 0) * 100) + '%"></span></span>';
       host.appendChild(d);
     });
   }
@@ -1579,8 +1507,9 @@ window.LEAP = (function () {
     var argDelta = (argM[1] === "-" ? -1 : 1) * parseInt(argM[2], 10);
 
     var outer = recExpr.replace(new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*\\(\\s*[^)]*\\)"), "\u00a7").replace(/\s+/g, "");
-    var comb = outer.match(new RegExp("^(" + prm + "|\\d+)([*+\\-])\u00a7$")) ||
-      outer.match(new RegExp("^\u00a7([*+\\-])(" + prm + "|\\d+)$"));
+    var forwardComb = outer.match(new RegExp("^(" + prm + "|\\d+)([*+\\-])\u00a7$"));
+    var reverseComb = outer.match(new RegExp("^\u00a7([*+\\-])(" + prm + "|\\d+)$"));
+    var comb = forwardComb || (reverseComb ? [reverseComb[0], reverseComb[2], reverseComb[1]] : null);
     if (!comb) throw new ParseErr("递归 return 的形式需要是 " + prm + " * " + name + "(" + prm + " - 1)（或把乘号换成加号），本示例不支持更复杂的组合。");
     var leftIsParam = /^[A-Za-z_]/.test(comb[1]);
     var op = comb[2], operand = leftIsParam ? prm : comb[1];
@@ -1588,7 +1517,7 @@ window.LEAP = (function () {
     return {
       name: name, param: prm,
       baseOp: cond[1], baseConst: parseInt(cond[2], 10), baseValue: parseInt(cond[3], 10),
-      argDelta: argDelta, op: op, operand: operand
+      argDelta: argDelta, op: op, operand: operand, reversed: !forwardComb
     };
   }
   function testBase(spec, v) {
@@ -1620,7 +1549,8 @@ window.LEAP = (function () {
         catch (err) { depth--; throw err; }
         var lv = spec.operand === spec.param ? v : parseInt(spec.operand, 10);
         var rv = sub;
-        res = spec.op === "*" ? lv * rv : (spec.op === "+" ? lv + rv : lv - rv);
+        res = spec.op === "*" ? lv * rv : (spec.op === "+" ? lv + rv : (spec.reversed ? rv - lv : lv - rv));
+        if (!Number.isSafeInteger(res)) throw new ParseErr("结果超出本浏览器模拟器的安全整数范围；请使用较小的 n 或真实 Python 的整数运算。");
         out.push({ t: "ret", s: "  ".repeat(depth - 1) + "\u21a9 " + spec.name + "(" + v + ") = " + res + (spec.op === "*" ? "   （" + lv + " \u00d7 " + rv + "）" : "") });
       }
       depth--;
@@ -1638,14 +1568,14 @@ window.LEAP = (function () {
   $("btnRun").addEventListener("click", function () {
     var src = $("srcCode").value;
     var argRaw = $("argN").value.trim();
-    var arg = parseInt(argRaw, 10);
+    var arg = Number(argRaw);
     var term = $("term");
-    if (isNaN(arg)) { term.innerHTML = '<span class="err">n 需要是一个整数。</span>'; return; }
+    if (!/^\d+$/.test(argRaw) || !Number.isSafeInteger(arg) || arg < 0) { term.innerHTML = '<span class="err">n 需要是非负整数；不会把小数、负数或带文字的输入截断成整数。</span>'; return; }
     var r;
     try { r = runCode(src, arg); }
     catch (e) {
       term.innerHTML = '<span class="err">' + esc(e.message) + '</span>';
-      window.LEAP.pushEvent("code_run", { item_id: "q3", answer: "parse_error", hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: 1, predicted_performance: null, error_type: "misconception" });
+      window.LEAP.pushEvent("code_run", { item_id: "q3", answer: "input n="+argRaw+"\n"+src, hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: 1, predicted_performance: null, error_type: "misconception", assessor_scope:"host_semantic_review" });
       return;
     }
     var html = "";
@@ -1655,20 +1585,20 @@ window.LEAP = (function () {
     });
     if (r.error) {
       html += '\n<span class="err">' + esc(r.error) + '</span>\n';
-      html += '<span class="dim">\n提示：这就是「没有基线条件」或「规模没有变小」的真实后果 —— 栈会一直长，直到运行时强制中断。\n对照理解检查里的答案，你现在应该能解释它为什么发生了。</span>';
+      html += '<span class="dim">\n本模拟器达到120层上限；基线不可达、参数不前进或合法但较大的输入都可能触发。请结合代码与输入判断，深度超限不能单独证明无限递归。</span>';
     } else {
       html += '\n<span class="ok">' + r.spec.name + "(" + arg + ") = " + r.value + '\n</span>';
     }
     term.innerHTML = html;
     window.LEAP.pushEvent("code_run", {
-      item_id: "q3", answer: "n=" + arg + " -> " + (r.error ? "RecursionError" : r.value),
+      item_id: "q3", answer: "input n="+argRaw+"\n"+src, assessor_scope:"host_semantic_review",
       hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: 1,
       predicted_performance: null, error_type: r.error ? "reasoning_error" : "none"
     });
     if (r.error) {
       setFeedback("reasoning_error",
         "你能主动改代码做实验，这个动作本身就是对的——比只看讲解记得牢得多。",
-        "这次运行触发了 RecursionError：" + esc(r.error) + "。说明当前代码在这个 n 上<b>没有出口</b>，或者每一步没有真正把规模缩小。",
+        "这次运行超过模拟器的120层上限：" + esc(r.error) + "。可能是基线不可达，也可能是正确递归需要更多帧；先检查代码和输入，再判断终止性。",
         "检查两件事：① 基线条件那一行是否真的会在某个 n 上成立；② 递归调用里的参数是否严格变小（n - 1 而不是 n 或 n + 1）。改完再运行一次。", true);
     }
   });
@@ -1677,35 +1607,19 @@ window.LEAP = (function () {
   });
 
   /* ── 8. 后置验证 ───────────────────────────────────────── */
+  var explanationAttempts = 0;
   $("btnVerify").addEventListener("click", function () {
-    var v = $("verifyInput").value.trim();
+    var v = ($("verifyInput").value || "").trim();
     var fb = $("verifyFb");
-    if (v.length < 6) {
-      fb.innerHTML = "再写具体一点：至少说清「会不会出错」以及「为什么」。";
-      fb.style.color = "var(--warn)"; fb.classList.add("is-on"); return;
-    }
-    var hitKey = /(0|零)/.test(v) && /(不|无法|没有|不会)/.test(v) && /(0|零|负)/.test(v);
-    var hitRec = /(递归|栈|深度|recursion|上限|1000|报错)/i.test(v);
-    var transfer = (hitKey ? 0.5 : 0.2) + (hitRec ? 0.4 : 0.1);
-    transfer = Math.min(1, transfer);
-    var ok = transfer >= 0.7;
-    fb.innerHTML = ok
-      ? "<b>就对了。</b> n == 1 只覆盖 1 这一个值，调用 factorial(0) 时基线不成立，n 会继续减到 -1、-2……直到触发 RecursionError。这说明你抓住的是<b>「基线必须覆盖所有终止情形」</b>这个原理。"
-      : "<b>方向还差一点。</b> 关键在「覆盖范围」：n == 1 只挡住了一个值，0 没有被挡住，于是 n 会一路减到负数。再想一次：基线的职责是让递归<b>一定能停</b>。";
-    fb.style.color = ok ? "var(--ok)" : "var(--ink-2)";
-    fb.classList.add("is-on");
+    if (!v) { fb.textContent = "请先写下你的解释再提交。"; fb.className = "match-fb is-on"; return; }
+    explanationAttempts++;
+    fb.textContent = "已记录解释，等待宿主进行语义核验。请说明输入、条件真假、下一步及其原因；本页不会凭关键词判断这段解释是否正确。";
+    fb.className = "match-fb is-on";
     window.LEAP.pushEvent("attempt_submitted", {
       item_id: "q1-verify", answer: v, hint_level: S.ui_state.hint_level,
-      response_time: 0, attempt_index: 1, predicted_performance: null,
-      error_type: ok ? "none" : "reasoning_error"
+      response_time: 0, attempt_index: explanationAttempts, predicted_performance: null,
+      assessor_scope: "host_semantic_review"
     });
-    window.LEAP.commitAssessment({
-      item_id: "q1-verify", correctness: transfer, conceptual_understanding: transfer,
-      reasoning_quality: transfer, application: 0.8, transfer: transfer,
-      error_type: ok ? "none" : "reasoning_error", misconception: "",
-      feedback: ok ? "后置验证通过。" : "后置验证未通过。", assessor_type: "hybrid"
-    });
-    if (ok) window.LEAP.setCompleted("q1", "post_verification_passed");
   });
 
   /* ── 9. 输出控制台折叠 ─────────────────────────────────── */
@@ -1716,12 +1630,143 @@ window.LEAP = (function () {
   });
 
   /* ── 初始渲染 ──────────────────────────────────────────── */
+  buildMatch();
   renderScore();
   setFeedback("none",
     "还没有提交任何作答。先看调用栈动画，再去做 Q1。",
     "答错也没关系——反馈会区分「概念错」与「写法错」，两种的处理方式完全不同。",
     "建议路径：看完 Stage 的 9 步 → 做 Q1 → 需要时再点提示阶梯。");
   window.LEAP.refresh();
+})();
+</script>
+
+<script>
+(function deepRecursionLesson() {
+  "use strict";
+  var byId = function(id) { return document.getElementById(id); };
+  var states = [], position = 0, valid = true, runSerial = 0, attempts = {};
+  function record(itemId, answer, ok) {
+    attempts[itemId] = (attempts[itemId] || 0) + 1;
+    window.LEAP.pushEvent("attempt_submitted", {item_id:itemId, answer:answer,
+      hint_level:window.LEAP.getState().ui_state.hint_level, response_time:0,
+      attempt_index:attempts[itemId], predicted_performance:null,
+      error_type:ok ? "none" : "reasoning_error"});
+  }
+  function respond(id, ok, message) {
+    var box = byId(id);
+    box.dataset.result = ok ? "correct" : "incorrect";
+    box.textContent = message;
+  }
+  function createTrace(n, mode) {
+    var stack = [], output = null, list = [];
+    var name = mode === "factorial" ? "factorial" : "sum_to";
+    var operator = mode === "factorial" ? "×" : "+";
+    function save(line, text, returned) {
+      list.push({line:line, text:text, returned:returned, output:output,
+        frames:stack.map(function(f) {return {n:f.n, phase:f.phase, pending:f.pending};}),
+        done:stack.length === 0 && output !== null});
+    }
+    save(0, "准备调用 " + name + "(" + n + ")。栈为空，尚未得到返回值。", null);
+    function call(v) {
+      var frame = {n:v, phase:"active", pending:"当前调用"};
+      stack.push(frame);
+      save(1, "进入 " + name + "(" + v + ")：新建一层，只在这一层保存 n=" + v + "。", null);
+      var base = mode === "factorial" ? v <= 1 : v === 0;
+      save(2, "检查 " + v + (mode === "factorial" ? " <= 1" : " == 0") + "：" + (base ? "成立，进入基线。" : "不成立，必须先求更小子问题。"), null);
+      var value;
+      if (base) {
+        value = mode === "factorial" ? 1 : 0;
+        frame.pending = "直接返回 " + value;
+        save(3, "基线不再调用自身；这一层准备 return " + value + "。", value);
+      } else {
+        frame.phase = "waiting";
+        frame.pending = v + " " + operator + " □";
+        save(4, "保存 n=" + v + "，暂停在 " + frame.pending + "；先调用 " + name + "(" + (v - 1) + ")。上一层的 n 不会改变。", null);
+        var child = call(v - 1);
+        frame.phase = "active";
+        value = mode === "factorial" ? v * child : v + child;
+        frame.pending = v + " " + operator + " " + child + " = " + value;
+        save(4, "回到 n=" + v + " 的一层。子结果 " + child + " 替换 □，计算 " + frame.pending + "，准备返回。", child);
+      }
+      stack.pop();
+      if (!stack.length) output = value;
+      save(base ? 3 : 4, name + "(" + v + ") 返回 " + value + " 并出栈。" + (stack.length ? "上层继续等待的计算。" : "最外层结束，最终结果为 " + value + "。"), value);
+      return value;
+    }
+    call(n);
+    return list;
+  }
+  function render() {
+    if (!valid) return;
+    var state = states[position], svg = byId("recTraceSvg");
+    byId("recTraceStatus").textContent = state.text;
+    byId("recTraceCount").textContent = "步骤 " + position + " / " + (states.length - 1) + (state.done ? " · 已返回最终结果" : "");
+    byId("recTraceState").textContent = "栈深度：" + state.frames.length + " · 最近返回：" + (state.returned === null ? "尚无" : state.returned) + " · 最终结果：" + (state.output === null ? "尚未返回" : state.output);
+    document.querySelectorAll("#traceCode li").forEach(function(line) {line.dataset.active = String(Number(line.dataset.line) === state.line);});
+    svg.innerHTML = "";
+    svg.dataset.step = String(position); svg.dataset.done = String(state.done);
+    svg.dataset.result = state.output === null ? "" : String(state.output);
+    svg.setAttribute("aria-label", state.text + " 当前有 " + state.frames.length + " 个调用帧。");
+    var ns = "http://www.w3.org/2000/svg";
+    var label = document.createElementNS(ns, "text"); label.setAttribute("x","20"); label.setAttribute("y","26"); label.textContent = "栈顶在上 · 最新调用先返回"; svg.appendChild(label);
+    if (!state.frames.length) {
+      var empty = document.createElementNS(ns, "text"); empty.setAttribute("x","20"); empty.setAttribute("y","80");
+      empty.textContent = state.done ? "栈为空 · 已把 " + state.output + " 交给调用者" : "栈为空 · 尚未开始"; svg.appendChild(empty);
+    }
+    state.frames.slice().reverse().forEach(function(f, i) {
+      var g = document.createElementNS(ns,"g"); g.setAttribute("class","trace-frame"); g.dataset.active = String(f.phase === "active");
+      var rect = document.createElementNS(ns,"rect"); rect.setAttribute("x","16");rect.setAttribute("y",String(42 + i * 49));rect.setAttribute("width","488");rect.setAttribute("height","42");rect.setAttribute("rx","6");g.appendChild(rect);
+      var t = document.createElementNS(ns,"text");t.setAttribute("x","28");t.setAttribute("y",String(69 + i * 49));
+      t.textContent = "n=" + f.n + " · " + (f.phase === "waiting" ? "等待：" : "当前：") + f.pending;g.appendChild(t);svg.appendChild(g);
+    });
+    byId("tracePrev").disabled = position === 0;
+    byId("traceNext").disabled = position === states.length - 1;
+  }
+  function rebuild() {
+    var raw = byId("traceN").value.trim();
+    valid = /^\d+$/.test(raw) && Number(raw) >= 0 && Number(raw) <= 6;
+    position = 0; runSerial++;
+    if (!valid) {
+      byId("recTraceStatus").textContent = "本推演器请输入 0 到 6 的整数。负数与小数不属于本课阶乘定义；演示范围限制用于让每层都能看清。";
+      byId("recTraceSvg").innerHTML = ""; byId("recTraceSvg").dataset.result = "";
+      byId("recTraceSvg").dataset.done = "false"; byId("recTraceSvg").dataset.step = "0";
+      byId("recTraceState").textContent = "输入未接受 · 没有开始递归";
+      byId("recTraceCount").textContent = "等待合法输入";
+      byId("tracePrev").disabled = true;byId("traceNext").disabled = true;
+      document.querySelectorAll("#traceCode li").forEach(function(line) {line.dataset.active="false";});
+      return;
+    }
+    var mode = byId("traceMode").value, name = mode === "factorial" ? "factorial" : "sum_to";
+    var lines = byId("traceCode").children;
+    lines[0].textContent = "def " + name + "(n):";
+    lines[1].textContent = "    if n " + (mode === "factorial" ? "<= 1:" : "== 0:");
+    lines[2].textContent = "        return " + (mode === "factorial" ? "1" : "0");
+    lines[3].textContent = "    return n " + (mode === "factorial" ? "*" : "+") + " " + name + "(n - 1)";
+    states = createTrace(Number(raw), mode); render();
+  }
+  byId("traceNext").addEventListener("click", function() {
+    if (valid && position < states.length - 1) {
+      position++; render();
+      if (states[position].done) window.LEAP.pushEvent("code_run",{item_id:"rec-trace",answer:byId("traceMode").value+"("+byId("traceN").value+")="+states[position].output,hint_level:0,response_time:0,attempt_index:runSerial,predicted_performance:null,error_type:"none"});
+    }
+  });
+  byId("tracePrev").addEventListener("click",function(){if(valid && position>0){position--;render();}});
+  byId("traceReset").addEventListener("click",rebuild);
+  byId("traceN").addEventListener("input",rebuild);
+  byId("traceMode").addEventListener("change",rebuild);
+  byId("recPredictCheck").addEventListener("click",function(){
+    var a=byId("recBaseAnswer").value.trim(), b=byId("recFourAnswer").value.trim(), ok=a==="1" && b==="24";
+    respond("recPredictFeedback",ok,ok?"正确：0≤1，直接返回1；4→3→2→1，返回值1→2→6→24。":"先看定义域内的基线：0! 是空乘积，取1。4! 的返回要依次乘2、3、4，得到24。");record("rec-predict","factorial(0)="+a+";factorial(4)="+b,ok);
+  });
+  byId("recDebugCheck").addEventListener("click",function(){
+    var choice=document.querySelector('input[name="recDebugAnswer"]:checked'), answer=choice?choice.value:"未选",ok=answer==="skip";
+    respond("recDebugFeedback",ok,ok?"正确：4→2→0，0≤1 命中基线。4×2×1=8，能停却漏掉因子3，所以不是阶乘。":"正确解释是“会结束但得到8”。n≤1 包含0，4→2→0 能到基线；遗漏因子3才是错误。");record("rec-debug-step","n-2:"+answer,ok);
+  });
+  byId("recTransferCheck").addEventListener("click",function(){
+    var a=byId("recSumBase").value.trim(),b=byId("recSumFour").value.trim(),ok=a==="0" && b==="10";
+    respond("recTransferFeedback",ok,ok?"正确：加法基线0，返回0→1→3→6→10。每层仍保存自己的n，组合改为n+子结果。":"没有数要加时返回0；sum_to(4) 依次组合1+0、2+1、3+3、4+6，结果10。不能把阶乘的乘法起点1照搬到这里。");record("rec-transfer-sum","base="+a+";sum_to(4)="+b,ok);
+  });
+  rebuild();
 })();
 </script>
 </body>

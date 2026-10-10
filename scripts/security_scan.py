@@ -216,7 +216,8 @@ RULES: list[Rule] = [
     ),
     Rule(
         "NET002", "P2", "Public IPv4 address",
-        re.compile(r"\b(?!10\.|127\.|0\.|255\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)(?:\d{1,3}\.){3}\d{1,3}\b"),
+        # RFC 5737 TEST-NET blocks are reserved for documentation, not real hosts.
+        re.compile(r"(?<![\d.])\b(?!10\.|127\.|0\.|255\.|192\.168\.|192\.0\.2\.|198\.51\.100\.|203\.0\.113\.|172\.(?:1[6-9]|2\d|3[01])\.)(?:\d{1,3}\.){3}\d{1,3}\b"),
         hint="Confirm no real host/IP is exposed.",
     ),
 ]

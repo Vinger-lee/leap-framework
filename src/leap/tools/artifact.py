@@ -8,6 +8,7 @@ the host agent does all of that (section 22.10).
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -23,6 +24,61 @@ SPECS_DIR = Path(__file__).resolve().parents[1] / "specs"
 
 class ArtifactTools(LeapToolMixin):
     """Artifact persistence, static specs, export and final reporting."""
+
+    def get_teaching_delivery_policy(self) -> dict:
+        """Return permanent depth, visualization, Markdown and resource requirements."""
+        from leap.runtime.delivery import delivery_policy
+        return self.ok(policy=delivery_policy(complete=True))
+
+    def get_subject_catalog(self, subject: str | None = None) -> dict:
+        """Return subject modules, prerequisite edges and canonical knowledge notes."""
+        catalog = self._load_spec("subject_catalog.json")
+        if subject is not None:
+            selected = [entry for entry in catalog["subjects"] if entry["subject_id"] == subject]
+            if not selected:
+                raise ToolError("unknown_subject", "Subject is not present in the starter catalog; the delivery policy still applies to any subject")
+            catalog["subjects"] = selected
+        return self.ok(catalog=catalog, catalog_is_exhaustive=False)
+
+    def save_teaching_package(
+        self, session_id: str, node_id: str, subject: str,
+        markdown: str, html: str, manifest: dict,
+        *, request_id: str | None = None,
+    ) -> dict:
+        """Validate and store a complete canonical Markdown + interactive HTML pair.
+
+        The host supplies actual bodies, point-by-point teaching and resource
+        records. Structural acceptance never certifies subject-matter truth.
+        """
+        from leap.runtime.delivery import validate_teaching_package
+        session = self.require_session(session_id)
+        self.require_grounding(session_id)
+        node = self.require_node(node_id)
+        if node["session_id"] != session_id:
+            raise ToolError("invalid_node", "teaching node must belong to this session")
+        self.require_text(subject, "subject")
+        result = validate_teaching_package(markdown, html, manifest)
+        if not result["valid"]:
+            raise ToolError("teaching_package_incomplete", "Teaching pair does not meet the permanent delivery policy", result)
+        source_ids = manifest.get("source_ids")
+        if not isinstance(source_ids, list) or not source_ids or any(not isinstance(s, str) for s in source_ids):
+            raise ToolError("invalid_source", "Teaching package must name its actual session source records")
+        for source_id in source_ids:
+            if not self.db.query_one("SELECT 1 FROM evidence_sources WHERE source_id=? AND session_id=?", (source_id, session_id)):
+                raise ToolError("invalid_source", "Teaching source must belong to this session")
+        artifact_id = new_id("art")
+        ts = now_ts()
+        content = {"markdown": markdown, "html": html, "manifest": manifest}
+        metadata = {"node_id": node_id, "subject": subject, "validation": result,
+                    "markdown_sha256": hashlib.sha256(markdown.encode("utf-8")).hexdigest(),
+                    "html_sha256": hashlib.sha256(html.encode("utf-8")).hexdigest()}
+        self.db.execute(
+            "INSERT INTO artifacts (artifact_id, learner_id, session_id, artifact_type, content, metadata, version, created_at) VALUES (?,?,?,?,?,?,?,?)",
+            (artifact_id, session["learner_id"], session_id, "teaching_package", self._dumps(content), self._dumps(metadata), "3.0", ts),
+        )
+        self.events.emit("teaching_package_saved", session_id=session_id, learner_id=session["learner_id"], node_id=node_id,
+                         payload={"artifact_id": artifact_id, "policy_version": "3.0", "content_verified_by_runtime": False}, request_id=request_id)
+        return self.ok(package_id=artifact_id, validation=result, content_hashes=metadata)
 
     # ------------------------------------------------------------------
     # 22.10 Artifact
@@ -46,6 +102,20 @@ class ArtifactTools(LeapToolMixin):
             )
         if session_id:
             self.require_session(session_id)
+        teaching_types = {"html", "markdown", "lesson", "teaching", "teaching_html", "teaching_markdown", "chapter_delivery"}
+        is_teaching = (artifact_type.lower() in teaching_types or
+                       (path_or_uri and str(path_or_uri).lower().endswith((".html", ".htm", ".md"))) or
+                       (isinstance(content, str) and "<html" in content.lower()))
+        if is_teaching:
+            package_id = metadata.get("teaching_package_id") if isinstance(metadata, dict) else None
+            row = self.db.query_one("SELECT metadata FROM artifacts WHERE artifact_id=? AND session_id=? AND artifact_type='teaching_package'", (package_id, session_id)) if package_id else None
+            if not row:
+                raise ToolError("teaching_package_required", "Register both teaching bodies with save_teaching_package before saving a teaching artifact")
+            package_meta = json.loads(row["metadata"])
+            if content is not None:
+                digest = hashlib.sha256(content.encode("utf-8")).hexdigest()
+                if digest not in {package_meta["markdown_sha256"], package_meta["html_sha256"]}:
+                    raise ToolError("teaching_content_mismatch", "Artifact content differs from the registered teaching pair")
         self.ensure_learner(learner_id)
 
         artifact_id = new_id("art")
@@ -96,6 +166,7 @@ class ArtifactTools(LeapToolMixin):
         """Return the static vault specification. No local file access."""
         return self.ok(
             spec=self._load_spec("obsidian_structure.json"),
+            delivery_requirements=self.get_teaching_delivery_policy()["policy"],
             note=(
                 "This is a specification only. The LEAP runtime does not read or write any "
                 "Obsidian folder; the host agent materialises the files."
@@ -107,6 +178,7 @@ class ArtifactTools(LeapToolMixin):
         return self.ok(
             spec=self._load_spec("web_component_spec.json"),
             interaction_schema=self._load_spec("interaction_output.schema.json"),
+            delivery_requirements=self.get_teaching_delivery_policy()["policy"],
             note=(
                 "This is a specification only. The LEAP runtime does not generate HTML and "
                 "does not read local front-end sources; the host agent does."
@@ -533,4 +605,8 @@ class ArtifactTools(LeapToolMixin):
             lines.append("- No review items scheduled yet.")
 
         lines.append("")
-        return "\n".join(lines)
+        from leap.runtime.notes import obsidian_note
+        topic = str(report.get("topic") or "learning evidence")
+        return obsidian_note("\n".join(lines), title=t("report.title"), topic=topic,
+                             tags=["leap", "report", "runtime_snapshot"],
+                             links=["01_Knowledge/Knowledge_Map", "00_System/learning_goal"])

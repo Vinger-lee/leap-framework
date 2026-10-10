@@ -47,7 +47,15 @@ class TeachingTools(LeapToolMixin):
             "register_items_before_delivery": "save_assessment_item",
             "free_text_requires": "host semantic review; never keyword-only scoring",
             "runtime_content_verification": False,
+            "register_lesson_before_items": "save_teaching_package",
+            "canonical_source": "complete Obsidian Markdown with reciprocal wikilinks and more detail than HTML",
         }
+        from leap.runtime.delivery import teaching_point_template
+        context["teaching_point_template"] = teaching_point_template()
+        context["lesson_packages"] = self.rows(
+            "SELECT artifact_id, metadata FROM artifacts WHERE session_id=? "
+            "AND artifact_type='teaching_package' ORDER BY rowid DESC", (session_id,)
+        )
         return self.ok(session_id=session_id, node_id=node_id, **context)
 
     # ------------------------------------------------------------------

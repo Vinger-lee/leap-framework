@@ -67,8 +67,12 @@
     ]
   },
   {
-    "name": "complete layer matching judgement",
+    "name": "complete layer matching judgement with explicit functional labels",
     "steps": [
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('.match').scrollIntoView({block:'center'})"
+      },
       {
         "action": "drag",
         "selector": ".chip[data-chip=\"http\"]",
@@ -116,6 +120,124 @@
     ],
     "assertions": [
       "window.LEAP.getInteractionResult().assessment.correctness === 1"
+    ]
+  },
+  {
+    "name": "both seven-layer SVGs expose every responsibility and preserve keyboard selection",
+    "steps": [{"action":"evaluate","script":"for(const id of ['osiTeach','osiStage']){for(const layer of document.querySelectorAll('#'+id+' .osi-layer')){layer.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));}}"}],
+    "assertions": [
+      "document.querySelectorAll('#osiTeach .osi-layer').length === 7 && document.querySelectorAll('#osiStage .osi-layer').length === 7",
+      "document.querySelector('#osiTeachInfo').textContent.includes('不添加统一的 H1') && document.querySelector('#osiStageInfo').textContent.includes('物理层')",
+      "document.querySelectorAll('#osiTeach [data-on=\"1\"]').length === 1 && document.querySelector('#osiTeach [data-n=\"1\"]').getAttribute('aria-expanded') === 'true'"
+    ]
+  },
+  {
+    "name": "wrong and corrected checkpoint preserve every retry",
+    "steps": [{"action":"click","selector":"#cp .opt[data-v='bad']"},{"action":"click","selector":"#cp .opt[data-v='ok']"}],
+    "assertions": [
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='cp-01' && e.event_type==='attempt_submitted').length === 2",
+      "window.LEAP.peekOutbox().filter(c=>c.tool==='submit_attempt').length === 2 && window.LEAP.getInteractionResult().assessment.correctness === 1"
+    ]
+  },
+  {
+    "name": "empty matching is incomplete and cannot manufacture scoring evidence",
+    "steps": [{"action":"click","selector":"#btnSubmitQ1"}],
+    "assertions": [
+      "document.querySelector('#q1Fb').textContent.includes('8 张未放置') && window.LEAP.getInteractionResult().events.length === 0",
+      "window.LEAP.getInteractionResult().ui_state.completed === false"
+    ]
+  },
+  {
+    "name": "click and keyboard matching supports corrected placed chips without duplicate children",
+    "steps": [{"action":"click","selector":".chip[data-chip='http']"},{"action":"click","selector":".slot[data-layer='2']"},{"action":"click","selector":".chip[data-chip='http']"},{"action":"evaluate","script":"document.querySelector('.slot[data-layer=\"7\"]').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}))"},{"action":"click","selector":"#btnClearQ1"}],
+    "assertions": [
+      "document.querySelectorAll('#chips .chip').length === 8 && document.querySelectorAll('.slot .chip').length === 0 && document.querySelectorAll('[data-chip=http]').length === 1",
+      "!document.querySelectorAll('.chip.is-sel').length && document.querySelector('#q1Fb').classList.contains('is-on') === false"
+    ]
+  },
+  {
+    "name": "partly wrong full matching retains raw mapping then can be revised exactly",
+    "steps": [{"action":"evaluate","script":"for(const [id,layer] of Object.entries({http:7,dns:7,tcp:4,ip:3,router:2,eth:2,switch:2,nic:1})){document.querySelector('.chip[data-chip='+id+']').click();document.querySelector('.slot[data-layer=\"'+layer+'\"]').click();}"},{"action":"click","selector":"#btnSubmitQ1"},{"action":"evaluate","script":"window.__partial=window.LEAP.getInteractionResult().assessment.correctness; document.querySelector('.chip[data-chip=router]').click();document.querySelector('.slot[data-layer=\"3\"]').click();"},{"action":"click","selector":"#btnSubmitQ1"}],
+    "assertions": [
+      "window.__partial === 0.88 && window.LEAP.getInteractionResult().assessment.correctness === 1",
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='q1' && e.event_type==='drag_submitted').length === 2",
+      "window.LEAP.getInteractionResult().events.some(e=>e.item_id==='q1' && e.answer.includes('\"router\":2')) && window.LEAP.getInteractionResult().events.some(e=>e.item_id==='q1' && e.answer.includes('\"router\":3'))"
+    ]
+  },
+  {
+    "name": "encapsulation starts with data retains TCP through router and changes link headers and TTL",
+    "steps": [{"action":"evaluate","script":"window.OSIDemo.setStep(4);window.__first=document.querySelector('#encPkt').textContent;window.OSIDemo.setStep(5);window.__physical=window.OSIDemo.getSnapshot();window.OSIDemo.setStep(7);window.__routeText=document.querySelector('#encStep').textContent;window.__routeKeys=window.OSIDemo.getSnapshot().packet;window.OSIDemo.setStep(8);"}],
+    "assertions": [
+      "window.__first.includes('A → G1') && window.__first.includes('TTL 64')",
+      "window.__physical.packet.join(',') === 'dl,ip,tcp,data,dl' && !window.__physical.packet.includes('phy')",
+      "window.__routeKeys.join(',') === 'ip,tcp,data' && window.__routeText.includes('TTL 64 → 63') && window.__routeText.includes('不会')",
+      "document.querySelector('#encPkt').textContent.includes('G2 → B') && document.querySelector('#encPkt').textContent.includes('TTL 63') && window.OSIDemo.getSnapshot().station === 'router'",
+      "document.querySelector('#encRoute [data-station=router]').classList.contains('current')"
+    ]
+  },
+  {
+    "name": "every forward and reverse encapsulation step is lossless and reset restores initial state",
+    "steps": [{"action":"evaluate","script":"window.__states=[];for(let i=0;i<13;i++){document.querySelector('#btnEncStep').click();window.__states.push(JSON.stringify(window.OSIDemo.getSnapshot().packet));}window.__last=window.OSIDemo.getSnapshot();window.__reverse=true;for(let i=12;i>0;i--){document.querySelector('#btnEncBack').click();window.__reverse=window.__reverse&&(JSON.stringify(window.OSIDemo.getSnapshot().packet)===window.__states[i-1]);}document.querySelector('#btnEncReset').click();"}],
+    "assertions": [
+      "window.__last.step === 13 && window.__last.packet.join(',') === 'data' && window.__last.station === 'receiver' && window.__last.playing === false",
+      "window.__reverse === true && window.OSIDemo.getSnapshot().step === 0 && window.OSIDemo.getSnapshot().packet.length === 0 && document.querySelector('#btnEncBack').disabled === true"
+    ]
+  },
+  {
+    "name": "encapsulation play pause and scoped keyboard controls preserve UI state",
+    "steps": [{"action":"click","selector":"#btnEncPlay"},{"action":"evaluate","script":"window.__playing=window.OSIDemo.getSnapshot().playing;"},{"action":"click","selector":"#btnEncPlay"},{"action":"evaluate","script":"window.__paused=!window.OSIDemo.getSnapshot().playing; const c=document.querySelector('#encControls');c.focus();c.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));window.__right=window.OSIDemo.getSnapshot().step;c.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));window.__left=window.OSIDemo.getSnapshot().step;document.querySelector('#osiExplanation').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));"}],
+    "assertions": [
+      "window.__playing === true && window.__paused === true && window.__right === window.__left+1",
+      "window.OSIDemo.getSnapshot().step === window.__left && window.LEAP.getInteractionResult().events.length === 0"
+    ]
+  },
+  {
+    "name": "all three concept choices preserve wrong and revised answers",
+    "steps": [{"action":"evaluate","script":"for(const q of ['q3a','q3b','q3c']){document.querySelector('.mcq[data-q='+q+'] .opt[data-v=bad]').click();document.querySelector('.mcq[data-q='+q+'] .opt[data-v=ok]').click();}"}],
+    "assertions": [
+      "window.LEAP.getInteractionResult().events.filter(e=>e.event_type==='attempt_submitted').length === 6",
+      "window.LEAP.getInteractionResult().assessment.item_id === 'q3c' && window.LEAP.getInteractionResult().assessment.correctness === 1",
+      "window.LEAP.peekOutbox().filter(c=>c.tool==='commit_assessment').every(c=>c.args.raw_answer.length>0 && c.args.attempt_id.includes('call_'))"
+    ]
+  },
+  {
+    "name": "byte calculation has partial credit then exact packet frame and hop-address judgement",
+    "steps": [{"action":"fill","selector":"#q4Packet","value":"240"},{"action":"fill","selector":"#q4Frame","value":"254"},{"action":"evaluate","script":"document.querySelector('#q4Mac').value='B';document.querySelector('#q4Ip').value='same';"},{"action":"click","selector":"#btnSubmitQ4"},{"action":"evaluate","script":"window.__partial=window.LEAP.getInteractionResult().assessment.correctness;"},{"action":"fill","selector":"#q4Frame","value":"258"},{"action":"click","selector":"#btnSubmitQ4"}],
+    "assertions": [
+      "window.__partial === 0.75 && window.LEAP.getInteractionResult().assessment.correctness === 1",
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='q4').length === 2 && document.querySelector('#q4Fb').textContent.includes('258 byte')"
+    ]
+  },
+  {
+    "name": "free-text diagnosis collects original reasoning without pretending keywords prove it",
+    "steps": [{"action":"fill","selector":"#osiExplanation","value":"DNS MAC IP TCP 路由器。这些关键词不构成有依据的故障诊断，需由宿主语义评估。"},{"action":"click","selector":"#btnSubmitExplanation"}],
+    "assertions": [
+      "window.LEAP.getInteractionResult().events.some(e=>e.item_id==='q5-semantic' && e.answer.includes('不构成有依据'))",
+      "window.LEAP.peekOutbox().filter(c=>c.tool==='submit_attempt').length === 1 && !window.LEAP.peekOutbox().some(c=>c.tool==='commit_assessment')",
+      "window.LEAP.getInteractionResult().ui_state.completed === false"
+    ]
+  },
+  {
+    "name": "answer reveal needs confirmation and does not mark completed",
+    "steps": [{"action":"click","selector":"#ladder [data-lv='1']"},{"action":"click","selector":"#ladder [data-lv='2']"},{"action":"click","selector":"#ladder [data-lv='3']"},{"action":"click","selector":"#ladder [data-lv='4']"},{"action":"click","selector":"#btnCancelReveal"},{"action":"evaluate","script":"window.__cancel=!window.LEAP.getInteractionResult().ui_state.answer_revealed;"},{"action":"click","selector":"#ladder [data-lv='4']"},{"action":"click","selector":"#btnConfirmReveal"}],
+    "assertions": [
+      "window.__cancel === true && window.LEAP.getInteractionResult().ui_state.answer_revealed === true && window.LEAP.getInteractionResult().ui_state.hint_level === 4",
+      "window.LEAP.getInteractionResult().ui_state.completed === false && document.querySelector('#verify').hidden === false && document.querySelector('#hintBody').textContent.includes('258 byte')"
+    ]
+  },
+  {
+    "name": "post-reveal new layer-and-basis task requires both exact choices and its own attempt",
+    "steps": [{"action":"click","selector":"#ladder [data-lv='1']"},{"action":"click","selector":"#ladder [data-lv='2']"},{"action":"click","selector":"#ladder [data-lv='3']"},{"action":"click","selector":"#ladder [data-lv='4']"},{"action":"click","selector":"#btnConfirmReveal"},{"action":"evaluate","script":"document.querySelector('#verifyInput').value='2';document.querySelector('#verifyWhy').value='ip';"},{"action":"click","selector":"#btnVerify"},{"action":"evaluate","script":"window.__wrong=!window.LEAP.getInteractionResult().ui_state.completed;document.querySelector('#verifyWhy').value='mac';"},{"action":"click","selector":"#btnVerify"}],
+    "assertions": [
+      "window.__wrong === true && window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='q1-verify' && e.event_type==='attempt_submitted').length === 2",
+      "window.LEAP.getInteractionResult().assessment.correctness === 1 && window.LEAP.peekOutbox().some(c=>c.tool==='check_advance_unit') && !window.LEAP.peekOutbox().some(c=>c.tool==='advance_unit')"
+    ]
+  },
+  {
+    "name": "JSON output toggle matches the accessor snapshot",
+    "steps": [{"action":"click","selector":"#cp .opt[data-v='ok']"},{"action":"click","selector":"#consoleBar"}],
+    "assertions": [
+      "document.querySelector('#consoleBar').getAttribute('aria-expanded') === 'true' && JSON.stringify(JSON.parse(document.querySelector('#leap-interaction-output').textContent)) === JSON.stringify(window.LEAP.getInteractionResult())"
     ]
   }
 ]

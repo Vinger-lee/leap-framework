@@ -1,3 +1,22 @@
+---
+title: LEAP‑V2 网页规范总纲（LEAP Web Spec v2.0）
+tags:
+- leap
+- engineering
+aliases:
+- LEAP‑V2 网页规范总纲（LEAP Web Spec v2.0） guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP LEAP‑V2 网页规范总纲（LEAP Web Spec v2.0） foundations definitions workflow`
+> Extension: `LEAP LEAP‑V2 网页规范总纲（LEAP Web Spec v2.0） failure cases examples comparison`
+> Advanced: `LEAP LEAP‑V2 网页规范总纲（LEAP Web Spec v2.0） invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # LEAP‑V2 网页规范总纲（LEAP Web Spec v2.0）
 
 > 本文件是 LEAP‑V2 前端教学网页的**硬性规范权威版**。所有 `examples/` 下的分学科示例、以及后续宿主 Agent 生成的教学网页，都必须遵守本规范。
@@ -42,7 +61,7 @@
 约束：
 1. 每级提示必须由学习者**主动点击**展开。
 2. 使用后记录 `hint_level`（0 = 未用；1/2/3 = 对应级别；4 = 已展示完整答案）。
-3. **展示完整答案 ≠ 任务完成**：必须追加后置验证（同类变式题或简短自我解释）才标记 `completed = true`。
+3. **展示完整答案 ≠ 任务完成**：必须追加后置验证（同类变式题或简短自我解释），保留独立作答与提示等级。后置活动结束只请求 `check_advance_unit`；guard 允许且 `advance_unit` 实际成功的匹配回执才确认 `completed = true`。
 4. 提示文案为引导口吻，不得写成"答案是……"。
 
 对应 LEAP‑V2 文档 §12。
@@ -51,7 +70,7 @@
 
 1. 必须区分错误类型：`answer_error`（答案错误）、`reasoning_error`（推理错误）、`misconception`（概念误解）。
 2. 必须支持部分正确：完全正确 / 部分正确 / 方法正确但计算错误 / 结论正确但依据错误 / 概念正确但表达不完整 / 思路正确但未完成 / 关键步骤错误 / 完全错误。
-3. 必须输出多维评分（0–1）：`correctness`、`conceptual_understanding`、`reasoning_quality`、`application`、`transfer`、`hint_dependency`、`confidence`、`overall_score`。
+3. 评分维度包括 `correctness`、`conceptual_understanding`、`reasoning_quality`、`application`、`transfer`、`hint_dependency`、`confidence`、`overall_score`。已观察到的维度使用 0–1；未观察到的维度为 `null` 或按 schema 省略，界面显示“未评估”。客观选择/数值答案不能凭空产生概念、推理、应用、迁移分；自由文本采集原文等待宿主语义审阅。
 4. `overall_score` 默认加权：correctness 0.4 / conceptual_understanding 0.3 / reasoning_quality 0.2 / application 0.1；`transfer` 与 `hint_dependency` **不参与聚合**。
 5. 反馈文本为中文教学口吻：先肯定正确部分 → 定位错误点 → 给出下一步建议。
 
@@ -86,7 +105,7 @@
 4. 未调用 `hydrate()` 时保持 `ui_state.mode === "demo"`，掌握度与证据阶段不得本地升级；本地评分标记 `assessment.provisional = true`，界面明确标注为待核验。进入 hosted 也不代表新评分已确认；
 5. 调用队列、`ui_state.mode`、`assessment.provisional` 的字段名与取值以 `interaction-output.schema.json` 为准。
 
-6. 出题前宿主须按 [内容质量流程](../../docs/content-quality.md) 完成来源阅读和逐题复核，通过 `save_assessment_item` 登记题目；自由文本必须由宿主语义评估，不得以关键词存在代替推理正确。
+6. 出题前宿主须按 [[docs/content-quality|内容质量流程]] 完成来源阅读和逐题复核，通过 `save_assessment_item` 登记题目；自由文本必须由宿主语义评估，不得以关键词存在代替推理正确。
 7. `item_completed` 产生 `check_advance_unit`，不能把本地活动完成描述为 Runtime 已批准节点完成。浏览器检查、真实 MCP 联调和学科审校必须分开报告。
 
 ## 6. 视觉与可访问性
@@ -121,3 +140,26 @@
 | 计算机基础（OSI） | 七层 SVG 示意、拖拽连线、封装动画、选择题 | Canvas 流程图、DragAndDrop Template |
 | 物理（自由落体） | MathML 公式、Canvas 模拟、参数滑块、计算填空、h‑t 曲线 | 交互式数学计算器、Canvas 动画 |
 | 逻辑（流程图） | 可拖拽节点流程图、补全题、执行动画、三级提示、结果输出 | React Flow / FlowGram、Canvas 流程图 |
+| 概率统计 | 条件概率面积图、样本空间切换、频数树、分步贝叶斯、独立性反例 | 标签清晰的 SVG、条件参数与分步控制 |
+| 化学 | 原子计数与配平、反应前后粒子图、限量试剂对比、计量单位换算 | 守恒图示、分步配平、模型边界说明 |
+| 基础电路 | 串并联结构图、电压电流控制、功率分配、开路与理想短路边界 | 参数 SVG、电路状态高亮、完整原始作答 |
+
+## 永久教学交付政策 3.0
+
+所有学科与学习模式遵循 [[docs/teaching-delivery]]；本节补充网页契约，完整政策通过 `get_teaching_delivery_policy` 获取。每点均包含前置补习、原理与条件、完整步骤、例题与核对、误解修正、边界、比较、梯度练习与迁移；能可视化的内容应有标注图和可控制推演。
+
+先写完整 Obsidian Markdown，再派生页面；头部使用经核验的视频或明确标记的核心/拓展/进阶检索词。调用 `save_teaching_package` 提交双方正文与覆盖记录，接受后才登记题目。包校验只核对结构和记录，不替代来源阅读或内容审校。
+
+1440/1920px 桌面实际内容宽度不少于屏幕的 88%，超宽屏总容器上限 1800px；375px 页面无横向溢出。键盘可操作，动画可暂停/重置并支持减弱动画。行为场景须覆盖错误、边界、揭示、重试和实际判分路径，不能仅证明按钮存在。
+
+> [!note]- Reading and verification sequence: LEAP LEAP‑V2 网页规范总纲（LEAP Web Spec v2.0）
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[docs/teaching-delivery]] · [[docs/teaching-upgrade-plan]]

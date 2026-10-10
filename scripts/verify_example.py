@@ -209,6 +209,24 @@ SUBJECT_COMPONENTS: dict[str, list[tuple[str, tuple[str, ...]]]] = {
         ("三级提示", ("hint", "提示")),
         ("结果输出", ("output", "输出")),
     ],
+    "statistics": [
+        ("样本与事件可视化", ("<svg", "<canvas")),
+        ("条件范围控制", ('type="range"', 'preset')),
+        ("人数核对", ("numerator", "分子")),
+        ("独立解释", ("semantic", "语义")),
+    ],
+    "chemistry": [
+        ("原子守恒图示", ("<svg", "atom")),
+        ("配平与反应参数", ("coefficient", "mol")),
+        ("限量试剂对照", ("limiting", "限量")),
+        ("分步演示", ("step", "步骤")),
+    ],
+    "electronics": [
+        ("电路与关系图", ("<svg",)),
+        ("电阻电压参数", ('type="range"', "slider")),
+        ("串并联对照", ("parallel", "并联")),
+        ("功率与边界", ("power", "功率")),
+    ],
 }
 
 
@@ -220,9 +238,9 @@ def check_single_file(report: Report, html: str, raw: str) -> None:
     cat = "A · 单文件零依赖"
 
     external = re.findall(
-        r'(?:src|href)\s*=\s*["\'](https?:)?//[^"\']+', html, flags=re.I
+        r'<(?:script|img|iframe|audio|video|source|link)\b[^>]*(?:src|href)\s*=\s*["\'](https?:)?//[^"\']+', html, flags=re.I
     )
-    report.add("A1", cat, "无外部资源引用 (src/href 指向 http)", not external,
+    report.add("A1", cat, "无联网依赖（参考资料链接可点击）", not external,
                f"发现 {len(external)} 处: {external[:3]}" if external else "")
 
     script_src = re.findall(r"<script[^>]+src\s*=", html, flags=re.I)
@@ -360,7 +378,7 @@ def check_contract(report: Report, html: str) -> None:
     subject = re.search(r'subject["\']?\s*[:=]\s*["\']([a-z-]+)["\']', html)
     report.add("E7", cat, "subject 取值合法",
                subject is not None and subject.group(1) in
-               {"programming", "math", "computer-science", "physics", "logic"},
+               {"programming", "math", "computer-science", "physics", "logic", "statistics", "chemistry", "electronics", "biology", "economics", "language"},
                f"实际: {subject.group(1)!r}" if subject else "未找到 subject")
 
 

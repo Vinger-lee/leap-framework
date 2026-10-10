@@ -52,6 +52,7 @@ class AssessmentTools(LeapToolMixin):
         solution: str, assumptions: list[str], verification_checks: list[dict], *,
         node_id: str | None = None, source_ids: list[str] | None = None,
         rejected_answers: list[dict] | None = None, assessor_scope: str = "host_semantic_review",
+        teaching_package_id: str | None = None,
     ) -> dict:
         """Register an immutable item only after the host records a worked solution and checks.
 
@@ -78,11 +79,22 @@ class AssessmentTools(LeapToolMixin):
                 raise ToolError("invalid_source", "item source must belong to this session")
         if self.db.query_one("SELECT 1 FROM assessment_items WHERE item_id = ?", (item_id,)):
             raise ToolError("item_already_exists", "Use a new versioned item_id when changing an item")
+        packages = self.rows(
+            "SELECT artifact_id, metadata FROM artifacts WHERE session_id=? "
+            "AND artifact_type='teaching_package' ORDER BY rowid DESC", (session_id,)
+        )
+        import json
+        package = next((p for p in packages
+                        if (not teaching_package_id or p["artifact_id"] == teaching_package_id)
+                        and (not node_id or json.loads(p["metadata"]).get("node_id") == node_id)), None)
+        if package is None:
+            raise ToolError("teaching_package_required", "Register the canonical lesson and projected HTML before its exercises")
         from leap.tools.base import json_dumps
         rubric = {"expected_answer": expected_answer, "solution": solution, "assumptions": assumptions,
                   "verification_checks": verification_checks, "source_ids": source_ids or [],
                   "rejected_answers": rejected_answers or [], "assessor_scope": assessor_scope,
                   "content_verified_by_runtime": False}
+        rubric["teaching_package_id"] = package["artifact_id"]
         self.db.execute(
             "INSERT INTO assessment_items (item_id, session_id, node_id, question, rubric, created_at) VALUES (?,?,?,?,?,?)",
             (item_id, session_id, node_id, question, json_dumps(rubric), now_ts()),
@@ -124,6 +136,11 @@ class AssessmentTools(LeapToolMixin):
             },
             node=node,
             item_registration_tool="save_assessment_item",
+            lesson_registration_tool="save_teaching_package",
+            learning_sequence=[
+                "prerequisite refresher", "mechanism and conditions", "explained worked steps",
+                "basic practice", "variation with error analysis", "transfer and review",
+            ],
             content_quality_requirements=[
                 "State assumptions and domain restrictions, then independently solve the question.",
                 "Record a substitution, symbolic derivation or executable check, including boundary cases.",
@@ -154,6 +171,8 @@ class AssessmentTools(LeapToolMixin):
             node_id=node_id,
             transfer_required=required,
             transfer_levels=["near", "variation", "far", "integrated"],
+            teaching_source="complete canonical Obsidian lesson with conditions and extended solutions",
+            visual_variation="Change a parameter or trace step and explain why the principle carries over or fails.",
             variations=[
                 "restate the task in different wording",
                 "change parameters or input data",

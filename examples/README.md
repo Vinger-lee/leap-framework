@@ -1,8 +1,27 @@
+---
+title: Teaching Page Examples
+tags:
+- leap
+- engineering
+aliases:
+- Teaching Page Examples guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP Teaching Page Examples foundations definitions workflow`
+> Extension: `LEAP Teaching Page Examples failure cases examples comparison`
+> Advanced: `LEAP Teaching Page Examples invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # Teaching Page Examples
 
-**Language**: English ｜ [中文](README_CN.md)
+**Language**: English ｜ [[examples/README_CN|中文]]
 
-Five single-file teaching pages, produced by a host agent from the engineering-side task book.
+Eight single-file teaching pages, produced by a host agent from the engineering-side task book.
 They are the reference for structure, components, interaction and visuals when a host agent
 generates pages later.
 
@@ -24,7 +43,10 @@ examples/
 ├── 02-math-linear-equation/      # mathematics
 ├── 03-cs-osi-model/              # computer science
 ├── 04-physics-free-fall/         # physics
-└── 05-logic-flowchart/           # logic
+├── 05-logic-flowchart/           # logic
+├── 06-statistics-probability/
+├── 07-chemistry-stoichiometry/
+└── 08-electronics-ohms-law/
 ```
 
 `leap-web-spec.md` defines *which three zones must exist and which JSON fields are required*;
@@ -41,6 +63,9 @@ Each example is **one single-file HTML**. Names and locations are fixed:
 | 3 | Computer science — OSI model | `leap-03-cs-osi-model.html` | `03-cs-osi-model/` |
 | 4 | Physics — free fall | `leap-04-physics-free-fall.html` | `04-physics-free-fall/` |
 | 5 | Logic — flowcharts | `leap-05-logic-flowchart.html` | `05-logic-flowchart/` |
+| 6 | Statistics — conditional probability | `leap-06-statistics-probability.html` | `06-statistics-probability/` |
+| 7 | Chemistry — stoichiometry | `leap-07-chemistry-stoichiometry.html` | `07-chemistry-stoichiometry/` |
+| 8 | Electronics — Ohm law | `leap-08-electronics-ohms-law.html` | `08-electronics-ohms-law/` |
 
 When a page is produced in several parts, concatenate them **in order** before saving under the
 name above. Do not leave fragment files.
@@ -123,3 +148,15 @@ python scripts/apply_leap_bridge.py --check     # completeness, not just presenc
 | JSON output contract fields | MCP tool contract, database design |
 | Interaction event types | Core events |
 | The page as the primary teaching surface | Web: interactive learning layer |
+
+> [!note]- Reading and verification sequence: LEAP Teaching Page Examples
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[examples/03-cs-osi-model/README]] · [[examples/06-statistics-probability/README]] · [[examples/07-chemistry-stoichiometry/README]] · [[examples/README_CN]]

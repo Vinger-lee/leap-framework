@@ -1,6 +1,25 @@
+---
+title: Host Agent Integration Guide (System Prompt)
+tags:
+- leap
+- engineering
+aliases:
+- Host Agent Integration Guide (System Prompt) guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP Host Agent Integration Guide (System Prompt) foundations definitions workflow`
+> Extension: `LEAP Host Agent Integration Guide (System Prompt) failure cases examples comparison`
+> Advanced: `LEAP Host Agent Integration Guide (System Prompt) invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # Host Agent Integration Guide (System Prompt)
 
-**Language**: **English** ｜ [简体中文](INTEGRATION_CN.md)
+**Language**: **English** ｜ [[docs/INTEGRATION_CN|简体中文]]
 
 > Copy **§1 System prompt** directly into your host agent's system prompt.
 > Everything from §2 onwards is engineering notes for developers — it does not need to go into the
@@ -33,10 +52,16 @@ allowed, or deciding whether a unit may be completed. The server returns all of 
 3. **assessor_type is required.** One of: model / rule / human / hybrid / external_estimator.
 4. **Never try to bypass the State Guard.** When a tool returns REJECT, adapt to the reason
    instead of pushing harder through prompt text.
-5. **Do Domain Grounding first.** Until it is complete (and skipping is not enabled),
-   generate_diagnostic will be rejected.
+5. **Read real sources and complete Domain Grounding first.** Record locators, excerpts,
+   worked examples and independent checks in source_refs and verification; evidence is required.
 6. **You generate the node content.** decompose_topic only returns a template; the server
    validates the DAG before storing it and rejects invalid graphs. Fix and retry.
+7. **Every learning mode follows the permanent delivery policy.** Complete Markdown precedes
+   projected HTML; register an accepted teaching package before assessment items.
+8. **Rule scoring checks objective answers only.** Free-text explanations need semantic review;
+   never invent conceptual, reasoning or transfer scores from a numeric answer.
+9. **Match actual tool receipts.** Context snapshots do not confirm a new score; a successful
+   guard check does not prove that advance_unit executed.
 
 ## Standard flow
 
@@ -47,22 +72,31 @@ Stage 0 · Create the session
 
 Stage 1 · Domain Grounding (mandatory by default)
   Study the topic yourself and produce an internal knowledge baseline report
-  → save_benchmark_report(session_id, report_text, source_refs)
+  → save_benchmark_report(session_id, report_text, source_refs, verification=...)
   → Optional: save_benchmark_claim(...) for structured claims with sources
 
 Stage 2 · Goal
   save_learning_goal(session_id, goal, target_depth, time_budget, prior_knowledge, ...)
 
-Stage 3 · Diagnostic
-  generate_diagnostic(session_id) → produce items for the returned dimensions
-  Per item: submit_diagnostic(...) to record the answer
-  Finish: save_diagnostic_result(session_id, summary)
-
-Stage 4 · Knowledge structure
-  decompose_topic(session_id, topic) → get the template
-  Generate nodes and edges yourself
+Stage 3 · Knowledge structure
+  get_teaching_delivery_policy() / get_subject_catalog(...)
+  decompose_topic(session_id, topic) → obtain the full authoring template
+  Build prerequisite and teaching nodes and edges, then validate the DAG
   → save_knowledge_nodes(session_id, nodes)
-  → save_knowledge_edges(session_id, edges)     # the server validates the DAG
+  → save_knowledge_edges(session_id, edges)
+
+Stage 4 · Canonical teaching package and diagnostic
+  Write complete Obsidian Markdown with prerequisites, conditions, steps, examples,
+  boundaries, graduated exercises and complete solutions before projecting offline HTML.
+  Add top resources, labeled controllable visuals, wide desktop/mobile and keyboard support.
+  → save_teaching_package(session_id, node_id, subject, markdown, html, manifest)
+  After acceptance, independently check and register each save_assessment_item(...,
+  teaching_package_id=...). Structural acceptance does not certify subject-matter truth.
+  generate_diagnostic(session_id) → use registered items to check prerequisites
+  Per item: submit_diagnostic(..., item_id=..., node_id=...) preserves the original answer
+  A supplied question must match the registered item; without item_id only a general
+  learner self-report is supported.
+  Finish: save_diagnostic_result(session_id, summary)
 
 Stage 5 · Teaching loop (repeat)
   get_teaching_context(session_id, node_id)
@@ -70,8 +104,8 @@ Stage 5 · Teaching loop (repeat)
       hint dependency, friction signals, evidence stage, review state, recommended actions
   Decide the next move from recommended_strategy / recommended_actions
   commit_pedagogical_decision(session_id, the action you actually took)
-  Ask → learner answers → submit_attempt(...) to record the attempt
-  → score against the rubric → assess_response(...) to self-check
+  Ask a registered item → learner answers → submit_attempt(..., item_id=...) preserves raw input
+  → review observed evidence against the rubric → assess_response(...) to self-check; omit unassessed dimensions
   → commit_assessment(attempt_id, raw_answer, ...) to submit the evidence
   → get_mastery_status(...) to read the updated server-side state
 
@@ -133,7 +167,7 @@ Stage 8 · Wrap up
 `decompose_topic` · `save_knowledge_nodes` · `save_knowledge_edges` · `get_knowledge_nodes` · `get_knowledge_edges` · `validate_knowledge_dag`
 
 ### Teaching context and policy
-`get_teaching_context` · `get_available_strategies` · `get_available_actions` · `get_plugin_info` · `evaluate_pedagogical_policy` · `commit_pedagogical_decision` · `get_decision_log`
+`get_teaching_delivery_policy` · `get_subject_catalog` · `save_teaching_package` · `save_assessment_item` · `get_teaching_context` · `get_available_strategies` · `get_available_actions` · `get_plugin_info` · `evaluate_pedagogical_policy` · `commit_pedagogical_decision` · `get_decision_log`
 
 ### Assessment
 `generate_assessment` · `assess_response` · `assess_misconception` · `resolve_misconception` · `get_mastery_status` · `get_assessment_history` · `generate_transfer_probe`
@@ -194,17 +228,34 @@ Common codes:
 create_session("learner-001", "python recursion")
 save_learning_goal(session_id, "understand recursion and debug simple recursive code",
                    target_depth="application")
-save_benchmark_report(session_id, "<internal knowledge baseline report>", source_refs=[...])
+save_benchmark_report(session_id, "<actual source reading and checks>", source_refs=[...], verification={...})
 generate_diagnostic(session_id)
 decompose_topic(session_id, "python recursion")
 save_knowledge_nodes(session_id, [...])
 save_knowledge_edges(session_id, [...])
+save_teaching_package(session_id, "py.recursion.base_case", "python",
+                      markdown="<complete canonical note>", html="<shorter offline projection>", manifest={...})
+save_assessment_item(session_id, "recursion.v1", "<checked question>", "<expected answer>",
+                     "<complete solution>", assumptions=[...], verification_checks=[...],
+                     node_id="py.recursion.base_case", teaching_package_id=package_id)
 start_unit(session_id, unit_tag="python-recursion")
 get_teaching_context(session_id, "py.recursion.base_case")
-submit_attempt(session_id, "<learner answer>", node_id="py.recursion.base_case", hint_level=0)
+submit_attempt(session_id, "<learner answer>", node_id="py.recursion.base_case", item_id="recursion.v1", hint_level=0)
 commit_assessment(attempt_id, "<raw answer>", correctness=0.9, reasoning_quality=0.8,
                   assessor_type="model")
 check_advance_unit(session_id, unit_tag="python-recursion")
 schedule_review("learner-001", "py.recursion.base_case")
 generate_final_report(session_id)
 ```
+
+> [!note]- Reading and verification sequence: LEAP Host Agent Integration Guide (System Prompt)
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[docs/INTEGRATION_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]] · [[docs/mcp-tools]] · [[docs/teaching-delivery]]

@@ -78,5 +78,519 @@
       "window.LEAP.getInteractionResult().assessment.correctness < 0.8",
       "window.LEAP.getInteractionResult().ui_state.completed === false"
     ]
+  },
+  {
+    "name": "loop initialization changes variables and highlights exact node",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#loopNext"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#loopSvg').dataset.node === 'init'",
+      "document.querySelector('#loopSvg').dataset.i === '1' && document.querySelector('#loopSvg').dataset.sum === '0'",
+      "document.querySelector('#loopSvg [data-loop-node=\"init\"]').dataset.active === 'true'",
+      "document.querySelector('#loopSvg [data-loop-edge=\"start-init\"]').dataset.active === 'true'"
+    ]
+  },
+  {
+    "name": "loop three sums to six and executes final false decision",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "while(!document.getElementById('loopNext').disabled)document.getElementById('loopNext').click();"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#loopSvg').dataset.node === 'end'",
+      "document.querySelector('#loopSvg').dataset.output === '6'",
+      "document.querySelector('#loopSvg').dataset.i === '4'",
+      "Array.from(document.querySelectorAll('#loopHistory tr')).filter(r=>r.cells[0].textContent==='判断').length === 4",
+      "document.querySelector('#loopHistory').textContent.includes('假，准备输出')"
+    ]
+  },
+  {
+    "name": "zero loop never enters body and returns empty sum",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#loopN",
+        "value": "0"
+      },
+      {
+        "action": "evaluate",
+        "script": "while(!document.getElementById('loopNext').disabled)document.getElementById('loopNext').click();"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#loopSvg').dataset.output === '0'",
+      "document.querySelector('#loopSvg').dataset.i === '1'",
+      "document.querySelectorAll('#loopHistory tr').length === 1",
+      "!document.querySelector('#loopHistory').textContent.includes('累加')"
+    ]
+  },
+  {
+    "name": "loop back edge becomes highlighted on repeated condition",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "for(let k=0;k<5;k++)document.getElementById('loopNext').click();"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#loopSvg').dataset.node === 'test'",
+      "document.querySelector('#loopSvg [data-loop-edge=\"update-test\"]').dataset.active === 'true'",
+      "document.querySelector('#loopSvg').dataset.i === '2'"
+    ]
+  },
+  {
+    "name": "missing update pauses without claiming algorithm has output",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "const x=document.getElementById('loopMode');x.value='missing';x.dispatchEvent(new Event('change',{bubbles:true}));while(!document.getElementById('loopNext').disabled)document.getElementById('loopNext').click();"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#loopSvg').dataset.node === 'paused'",
+      "document.querySelector('#loopSvg').dataset.i === '1'",
+      "document.querySelector('#loopSvg').dataset.output === ''",
+      "document.querySelector('#loopStatus').textContent.includes('不是算法结束')",
+      "window.LEAP.getInteractionResult().events.some(e=>e.item_id==='flow-loop-trace'&&e.answer.includes('paused')&&e.error_type==='reasoning_error')"
+    ]
+  },
+  {
+    "name": "loop previous and reset restore original state",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#loopNext"
+      },
+      {
+        "action": "click",
+        "selector": "#loopNext"
+      },
+      {
+        "action": "click",
+        "selector": "#loopPrev"
+      },
+      {
+        "action": "click",
+        "selector": "#loopReset"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#loopSvg').dataset.node === 'start'",
+      "document.querySelector('#loopSvg').dataset.i === ''",
+      "document.querySelectorAll('#loopHistory tr').length === 0",
+      "document.querySelector('#loopPrev').disabled === true"
+    ]
+  },
+  {
+    "name": "zero parity wrong and correct answers classify attempts",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "input[name=\"flowZero\"][value=\"odd\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#flowZeroCheck"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__wrongZero=document.getElementById('flowZeroFeedback').dataset.result"
+      },
+      {
+        "action": "click",
+        "selector": "input[name=\"flowZero\"][value=\"even\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#flowZeroCheck"
+      }
+    ],
+    "assertions": [
+      "window.__wrongZero === 'incorrect'",
+      "document.querySelector('#flowZeroFeedback').dataset.result === 'correct'",
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='flow-zero').length===2"
+    ]
+  },
+  {
+    "name": "loop prediction catches forgotten final condition",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#loopAnswerS",
+        "value": "6"
+      },
+      {
+        "action": "fill",
+        "selector": "#loopAnswerI",
+        "value": "3"
+      },
+      {
+        "action": "fill",
+        "selector": "#loopAnswerChecks",
+        "value": "3"
+      },
+      {
+        "action": "click",
+        "selector": "#loopAnswerCheck"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__wrongLoop=document.getElementById('loopAnswerFeedback').dataset.result"
+      },
+      {
+        "action": "fill",
+        "selector": "#loopAnswerI",
+        "value": "4"
+      },
+      {
+        "action": "fill",
+        "selector": "#loopAnswerChecks",
+        "value": "4"
+      },
+      {
+        "action": "click",
+        "selector": "#loopAnswerCheck"
+      }
+    ],
+    "assertions": [
+      "window.__wrongLoop === 'incorrect'",
+      "document.querySelector('#loopAnswerFeedback').dataset.result === 'correct'",
+      "document.querySelector('#loopAnswerFeedback').textContent.includes('第4次判断')"
+    ]
+  },
+  {
+    "name": "product transfer distinguishes multiplication identity from empty sum",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#flowProductBase",
+        "value": "0"
+      },
+      {
+        "action": "fill",
+        "selector": "#flowProductZero",
+        "value": "0"
+      },
+      {
+        "action": "click",
+        "selector": "#flowProductCheck"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__wrongProduct=document.getElementById('flowProductFeedback').dataset.result"
+      },
+      {
+        "action": "fill",
+        "selector": "#flowProductBase",
+        "value": "1"
+      },
+      {
+        "action": "fill",
+        "selector": "#flowProductZero",
+        "value": "1"
+      },
+      {
+        "action": "click",
+        "selector": "#flowProductCheck"
+      }
+    ],
+    "assertions": [
+      "window.__wrongProduct === 'incorrect'",
+      "document.querySelector('#flowProductFeedback').dataset.result === 'correct'",
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='flow-product-transfer')[1].error_type==='none'"
+    ]
+  },
+  {
+    "name": "decision step waits without premature output or grade",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#nIn",
+        "value": "8"
+      },
+      {
+        "action": "fill",
+        "selector": "#predIn",
+        "value": "偶数"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#branchRow').hidden === false",
+      "document.querySelector('#exeStep').textContent.includes('真，选')",
+      "document.querySelector('#realOut').textContent === '—'",
+      "document.querySelector('#exeNodes .is-cur').dataset.id==='d'",
+      "!window.LEAP.getInteractionResult().events.some(e=>e.item_id==='q2'&&e.event_type==='code_run')"
+    ]
+  },
+  {
+    "name": "wrong learner branch cannot change actual program output",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#nIn",
+        "value": "8"
+      },
+      {
+        "action": "fill",
+        "selector": "#predIn",
+        "value": "偶数"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep"
+      },
+      {
+        "action": "click",
+        "selector": "#btnNo"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__stillDecision=document.querySelector('#exeNodes .is-cur').dataset.id; window.__beforeOutput=document.querySelector('#realOut').textContent;"
+      },
+      {
+        "action": "click",
+        "selector": "#btnYes"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep"
+      }
+    ],
+    "assertions": [
+      "window.__stillDecision === 'd' && window.__beforeOutput === '—'",
+      "document.querySelector('#realOut').textContent === '偶数'",
+      "document.querySelector('#predOut').dataset.v === 'ok'",
+      "window.LEAP.getInteractionResult().events.some(e=>e.item_id==='q2-branch'&&e.error_type==='reasoning_error')",
+      "window.LEAP.getInteractionResult().assessment.correctness === 1"
+    ]
+  },
+  {
+    "name": "odd input follows false branch and checks wrong prediction",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#nIn",
+        "value": "7"
+      },
+      {
+        "action": "fill",
+        "selector": "#predIn",
+        "value": "偶数"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep"
+      },
+      {
+        "action": "click",
+        "selector": "#btnNo"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#realOut').textContent === '奇数'",
+      "document.querySelector('#predOut').dataset.v === 'bad'",
+      "window.LEAP.getInteractionResult().assessment.correctness < 1",
+      "document.querySelector('#exeEdges [data-from=\"d\"][data-to=\"n\"]').classList.contains('is-active')"
+    ]
+  },
+  {
+    "name": "zero even branch executes correctly",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#nIn",
+        "value": "0"
+      },
+      {
+        "action": "fill",
+        "selector": "#predIn",
+        "value": "偶数"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep"
+      },
+      {
+        "action": "click",
+        "selector": "#btnYes"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#realOut').textContent === '偶数'",
+      "document.querySelector('#predOut').dataset.v === 'ok'"
+    ]
+  },
+  {
+    "name": "invalid decimal input does not enter graph",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#nIn",
+        "value": "7.5"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#exeStep').textContent.includes('整数')",
+      "document.querySelector('#realOut').textContent === '—'",
+      "document.querySelector('#branchRow').hidden === true"
+    ]
+  },
+  {
+    "name": "correct branch completion updates miniature diagram and score",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#condIn",
+        "value": "n % 2 == 0"
+      },
+      {
+        "action": "click",
+        "selector": "#fcChips [data-id=\"even\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#fcSlots [data-slot=\"yes\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#fcChips [data-id=\"odd\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#fcSlots [data-slot=\"no\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.correctness === 1",
+      "document.querySelector('#mDec').classList.contains('m-ok')",
+      "document.querySelector('#mNo').classList.contains('m-ok')",
+      "document.querySelector('#mNoTxt').textContent.includes('奇数')"
+    ]
+  },
+  {
+    "name": "condition parser rejects a matching substring with false condition",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#condIn",
+        "value": "n%2==0 and False"
+      },
+      {
+        "action": "click",
+        "selector": "#fcChips [data-id=\"even\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#fcSlots [data-slot=\"yes\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#fcChips [data-id=\"odd\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#fcSlots [data-slot=\"no\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#btnSubmitQ1"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.correctness < 1",
+      "document.querySelector('#mDec').classList.contains('m-bad')"
+    ]
+  },
+  {
+    "name": "all original flowchart SVGs scale and canonical note is linked",
+    "steps": [],
+    "assertions": [
+      "['fcSvg','fcMini','exeSvg','loopSvg'].every(id=>document.getElementById(id).hasAttribute('viewBox'))",
+      "document.querySelector('a[href=\"knowledge.md\"]') !== null",
+      "document.querySelectorAll('#exeEdges text').length===2"
+    ]
+  },
+  {
+    "name": "free explanation is submitted for host semantic review without keyword grade or completion",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "document.getElementById('verify').hidden=false;window.__beforeExplanation=window.LEAP.getInteractionResult().assessment.correctness;window.__guardCount=window.LEAP.peekOutbox().filter(c=>c.tool==='check_advance_unit').length;"
+      },
+      {
+        "action": "fill",
+        "selector": "#verifyInput",
+        "value": "0 负数 递归栈 上限 是 否 奇数 偶数，但我不知道为什么。"
+      },
+      {
+        "action": "click",
+        "selector": "#btnVerify"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().events.some(e=>e.item_id==='q1-verify'&&e.assessor_scope==='host_semantic_review')",
+      "window.LEAP.getInteractionResult().assessment.correctness===window.__beforeExplanation",
+      "window.LEAP.peekOutbox().filter(c=>c.tool==='check_advance_unit').length===window.__guardCount",
+      "document.querySelector('#verifyFb').textContent.includes('等待宿主')"
+    ]
+  },
+  {
+    "name": "checkpoint retries preserve each original choice",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#cp .opt[data-v=\"bad\"] >> nth=0"
+      },
+      {
+        "action": "click",
+        "selector": "#cp .opt[data-v=\"ok\"] >> nth=0"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id===\"cp-01\").length===2",
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id===\"cp-01\")[1].attempt_index===2"
+    ]
   }
 ]

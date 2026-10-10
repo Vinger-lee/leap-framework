@@ -1,0 +1,68 @@
+{
+  "policy_id": "leap.teaching.delivery",
+  "version": "3.0",
+  "scope": "Every subject, every MCP tool, every learning mode, every teaching artifact and every future host generation",
+  "mandatory": true,
+  "source_of_truth": "complete Obsidian Markdown; HTML is a shorter interactive projection",
+  "workflow": [
+    "Read actual authoritative sources with host tools and record precise evidence; do not infer source reading from an MCP call.",
+    "Diagnose prerequisites without fabricating learner answers; include a beginner refresher and define every new symbol.",
+    "Write the complete canonical Markdown first, with a resource block at the top and reciprocal resolvable vault-root wikilinks.",
+    "For every teaching point explain the mechanism, every derivation or operation step and why that step is valid.",
+    "Add verified worked examples, boundary cases, misconception correction, contrasting cases, graduated exercises and a transfer task.",
+    "For every visualizable point provide a labeled diagram and a meaningful controllable step/animation/parameter view; otherwise explain why text is the appropriate representation.",
+    "Produce a self-contained offline HTML projection with wide desktop layout, responsive mobile layout and accessible reduced-motion controls.",
+    "Register the complete Markdown/HTML pair with save_teaching_package; register each assessment item before asking it.",
+    "Run all interaction paths, wrong and boundary inputs, Markdown coverage, backlink resolution, desktop and mobile checks.",
+    "Collect raw answers and hint level; semantic reasoning needs host review, Runtime alone updates evidence, retention and progression."
+  ],
+  "teaching_point_fields": ["point_id", "title", "prerequisites", "principle", "steps", "worked_example", "misconceptions", "boundaries", "comparison", "practice", "transfer", "visualization"],
+  "depth": {
+    "prerequisites": "Teach the prerequisite needed for this step, not merely its name; explain terms, notation, units and input constraints.",
+    "principle": "Explain why it works and the conditions that make the claim true. No unsupported universal promise that every beginner has mastered it.",
+    "steps": "An ordered list of at least two complete operations or derivation steps with explanations; no 'obvious', 'similarly' or omitted intermediate result in place of teaching.",
+    "worked_example": "State the exact inputs and assumptions, show all steps and independently check the result.",
+    "misconceptions": "Give the incorrect idea, explain its error and repair it; never score prose by the presence of those words.",
+    "boundaries": "Cover zero/negative/empty/undefined inputs and domain-specific model limits that apply; avoid claiming an irrelevant case is supported.",
+    "comparison": "Contrast a correct method or condition with a nearby case for which it fails.",
+    "practice": "Provide basic, variation and challenge tasks with complete solutions and wrong-answer explanations.",
+    "transfer": "Change inputs, context or constraints; ask the learner to explain which principle carries over."
+  },
+  "visualization": {
+    "priority": "visual first where a picture reveals structure, mechanism or state",
+    "types": ["labeled SVG diagram", "process flow", "structure map", "comparison table", "parameter simulation", "step trace", "pauseable animation"],
+    "required_controls": ["step forward/back or parameter change", "reset", "visible state and explanation", "keyboard equivalent", "reduced motion"],
+    "no_visual_exception": "Record an explicit pedagogical reason for a nonvisualizable point, not a blanket omission.",
+    "truth_boundary": "Graphs and sampled simulations illustrate; analytical reasoning or full checks establish conclusions."
+  },
+  "layout": {
+    "desktop_max_width_px": 1800,
+    "desktop_padding": "clamp(20px, 2.5vw, 48px)",
+    "desktop_content_utilization_min": 0.88,
+    "desktop_check_widths": [1440, 1920],
+    "columns": "minmax(0, 1fr) minmax(320px, 420px)",
+    "column_gap_px": 32,
+    "paragraph_readability": "Use columns, subsections, diagrams and comparison panels instead of a narrow whole-page cap.",
+    "mobile_check_width_px": 375,
+    "mobile_rule": "stack panels and keep page scrollWidth <= viewport width; code/table panels may scroll within their own container"
+  },
+  "markdown": {
+    "required": ["valid YAML frontmatter", "title/tags/aliases", "top learning resources", "vault-root [[wikilinks]]", "reciprocal backlink index", "callouts and foldable detail", "full derivations and examples", "HTML content coverage", "additional explanation beyond HTML", "source evidence and limitations"],
+    "states": "Learner state in Markdown is explicitly a Runtime snapshot, never authoritative local mastery.",
+    "coverage": "Compare visible teaching prose and formulas, not HTML/CSS/JS character count. Keep all projected content plus additional original explanation and examples in Markdown."
+  },
+  "learning_resources": {
+    "placement": "At the top of each teaching document, before lesson content",
+    "prefer": "Precisely relevant videos only after verifying URL accessibility, title/publisher, actual topical content and a useful timestamp or section.",
+    "video_required_fields": ["url", "title", "publisher", "checked_at", "locator", "verification_excerpt", "accessible", "content_matches"],
+    "unverified_video_rule": "Omit the video completely; no guessed title, invented URL or availability guarantee.",
+    "fallback_required_tiers": ["core", "extension", "advanced"],
+    "fallback": "Use precise topic + skill/operation + level search terms, with separate core/extension/advanced suggestions; label them as queries rather than sources read.",
+    "no_future_guarantee": "Verification describes the checked moment only; every later generation rechecks or falls back to keywords."
+  },
+  "verification": {
+    "runtime": "Checks structural records, stored content coverage and provenance fields; it does not establish semantic or mathematical truth.",
+    "host": ["independently solve and check every exercise", "read real sources", "check every correct/incorrect interactive path", "resolve all vault links", "inspect diagrams and desktop/mobile rendering"],
+    "forbidden": ["keyword-only semantic scoring", "local evidence-stage promotion", "completion after answer reveal", "fabricated learner results", "unverified video recommendations", "submitting a path without the teaching bodies as proof of quality"]
+  }
+}

@@ -1,3 +1,22 @@
+---
+title: 内容质量与接入验收
+tags:
+- leap
+- engineering
+aliases:
+- 内容质量与接入验收 guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP 内容质量与接入验收 foundations definitions workflow`
+> Extension: `LEAP 内容质量与接入验收 failure cases examples comparison`
+> Advanced: `LEAP 内容质量与接入验收 invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # 内容质量与接入验收
 
 LEAP 是教学状态 Runtime。领域学习、资料检索、出题和自由文本语义评分由宿主 Agent 执行；Runtime 不包含通用学科判题模型。保存报告、通过 JSON Schema、浏览器无报错，都不等于教材和答案正确。
@@ -38,9 +57,15 @@ LEAP 是教学状态 Runtime。领域学习、资料检索、出题和自由文�
 
 这些检查只保证证据记录存在，不能认证宿主真的读取过来源，也不能认证摘录真实或论断正确。要求更强的来源证明时，应由宿主保存实际读取工具日志和材料快照；不得把 `content_verified_by_runtime: false` 描述成已通过学科验证。`validate_claim` 的 `verified` 只涉及来源关联，见 `verification_scope: source_linkage_only`。
 
-## 3. 出题前逐题复核并登记
+## 3. 先登记完整知识源，再逐题复核
 
-使用 `save_assessment_item` 登记题目，保存 `question`、`expected_answer`、`solution`、`assumptions`、`verification_checks`；建议同时保存 `source_ids` 和 `rejected_answers`。题目 ID 不可覆盖，修改题意或答案时使用新版本 ID。
+所有学习模式与学科均先读取 `get_teaching_delivery_policy`。宿主建立知识节点后，先完成最全面的 Obsidian Markdown，再派生离线交互 HTML；双方头部包含核验视频或三层精确检索词。向 `save_teaching_package(session_id, node_id, subject, markdown, html, manifest)` 提交实际正文，不能仅传文件路径或“已核验”声明。
+
+manifest 提供 `teaching_points`、`resources`、`html_segments`、`markdown_extensions`、同会话 `source_ids`。每点包含前置补习、机制与条件、完整步骤、例题与独立核对、误解、边界、比较、梯度练习、迁移和图示策略；可视化 selector 对应实际元素。Markdown 覆盖实际 HTML 静态文字，另有可定位的推导或案例。动态反馈和图示仍需浏览器与内容审校。
+
+接受后的包 ID 作为 `teaching_package_id` 传给同节点题目和教学产物。正文版本变化须重新登记教学包，再以新题目 ID 登记变更的题目。结构接受只证明字段、正文覆盖、记录及关联符合要求，不能证明学科命题真实。
+
+使用 `save_assessment_item` 登记题目，保存 `question`、`expected_answer`、`solution`、`assumptions`、`verification_checks`、`teaching_package_id`；同时关联 `source_ids` 并可保存 `rejected_answers`。题目 ID 不可覆盖，修改题意或答案时使用新版本 ID。
 
 逐题检查：
 
@@ -56,14 +81,16 @@ LEAP 是教学状态 Runtime。领域学习、资料检索、出题和自由文�
 
 带 `item_id` 的作答须引用本会话已登记题目。Runtime 会拒绝未登记或跨会话引用，避免页面第一次真实调用时才遇到 SQLite 外键错误。原有不传 `item_id` 的通用作答仍受支持；因此本入口不能强制宿主在 Runtime 外生成的所有内容都接受审校。
 
+`submit_diagnostic` 使用同样的领域与题目门禁。传入 `question` 必须同时引用已登记 `item_id`，且题干一致；没有题目 ID 时仅支持通用学习者自述，不能将临时生成的测验包装成已审校题目。
+
 ## 4. 页面到 Runtime 的闭环
 
 1. 宿主从 `get_teaching_context` 读取上下文并调用 `LEAP.hydrate(ctx)`。
 2. 页面采集动作，`submit_attempt` 在前，`commit_assessment` 在后。宿主依次执行并替换 `{{call_N.attempt_id}}` 引用。
 3. 后置验证必须提交自己的 attempt，不能把分数挂到上一题；`raw_answer` 必须与所引用 attempt 的原文一致。
 4. 对自由文本题，宿主先语义审阅再执行评分调用；页面给出的本地分数只是候选反馈。
-5. 每条调用检查 `ok`，失败不能默默推进；提交后重新读取上下文回填页面。
-6. `item_completed` 只表示页面活动完成，产生 `check_advance_unit`；宿主在 guard 允许时才提议 `advance_unit`，后者仍由服务端裁决。
+5. 每条调用检查 `ok`，失败不能默默推进。通过 `LEAP.applyToolResults(receipts)` 提交逐条匹配的成功回执，再读取上下文；上下文快照不能替代本题评分回执。
+6. 本地活动结束只产生 `check_advance_unit`；宿主在 guard 允许时才提议 `advance_unit`，后者仍由服务端裁决。页面只有收到匹配的实际推进成功回执才确认完成。
 
 demo 模式也不得推算掌握度和证据阶段，只保留初始占位值。`provisional` 表示本地评估尚未获 Runtime 确认；单纯切换 hosted 模式不能确认新分数。查看 outbox 使用 `peekOutbox`，只有执行方领取队列才使用 `drainOutbox`。`drainOutbox` 是取走接口，并无持久重试/确认机制，执行方应先保存领取结果，失败时保留待重试调用及依赖关系。
 
@@ -74,11 +101,24 @@ python scripts/verify_example.py --all
 python scripts/verify_example_runtime.py --all --json runtime-verification.json
 python scripts/verify_mcp_bridge.py
 python scripts/generate_tool_reference.py --check
+python scripts/verify_teaching_repository.py
 pytest
 ```
 
 浏览器运行校验读取与 HTML 同名的 `.runtime.json` 场景清单。每个场景从重新加载页面开始，明确操作和断言；缺失清单是失败。清单覆盖哪些路径才能声称哪些路径通过，不能从几次按钮点击推导“所有交互正确”。
 
-`verify_mcp_bridge.py` 启动真正的 MCP stdio 子进程，用 Chromium 操作数学示例，在临时 SQLite 中登记题目、提交原始作答、提交评分、执行完成检查并回填状态。使用的是明确标注的合成测试材料；它不证明真实学科来源已经阅读，也不改变 WorkBuddy 等客户端配置。
+`verify_mcp_bridge.py` 启动真正的 MCP stdio 子进程，用 Chromium 操作数学示例，在临时 SQLite 中登记仓库完整教学包和测试题目、提交原始作答、提交评分、执行完成检查并回填状态。使用的是明确标注的合成测试作答；它不证明真实学科来源已经阅读，也不改变 WorkBuddy 等客户端配置。可复现第一章配方与正式交付验证见 [[curricula/math1-2028-ch01/README]]。
 
 这两项均不验证学科内容。交付还需要独立的内容审校记录，列出材料版本、逐题答案和复核结果、未解决的不确定性。运行测试次数不能替代这份记录。
+
+> [!note]- Reading and verification sequence: LEAP 内容质量与接入验收
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[curricula/math1-2028-ch01/README]] · [[docs/teaching-delivery]] · [[docs/teaching-upgrade-plan]] · [[examples/03-cs-osi-model/README]] · [[examples/03-cs-osi-model/README_CN]] · [[examples/06-statistics-probability/README]] · [[examples/06-statistics-probability/README_CN]] · [[examples/07-chemistry-stoichiometry/README]] · [[examples/07-chemistry-stoichiometry/README_CN]] · [[examples/07-chemistry-stoichiometry/sources]] · [[examples/_shared/leap-bridge]] · [[examples/_shared/leap-web-spec]]

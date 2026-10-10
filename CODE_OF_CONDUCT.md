@@ -1,3 +1,22 @@
+---
+title: Code of Conduct
+tags:
+- leap
+- engineering
+aliases:
+- Code of Conduct guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP Code of Conduct foundations definitions workflow`
+> Extension: `LEAP Code of Conduct failure cases examples comparison`
+> Advanced: `LEAP Code of Conduct invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # Code of Conduct
 
 ## Our pledge
@@ -72,3 +91,15 @@ in violation of this Code of Conduct:
 
 This Code of Conduct is adapted from the
 [Contributor Covenant](https://www.contributor-covenant.org/), version 2.1.
+
+> [!note]- Reading and verification sequence: LEAP Code of Conduct
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]]

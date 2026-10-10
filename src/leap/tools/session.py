@@ -348,6 +348,11 @@ class SessionTools(LeapToolMixin):
                 "submit_diagnostic. Keep the probe short when prior_knowledge is high; extend "
                 "it when prerequisites are unknown."
             ),
+            generation_requirements=(
+                "Fetch get_teaching_delivery_policy; write the full Obsidian Markdown source "
+                "before a shorter HTML projection and register both with save_teaching_package. "
+                "All learning modes retain this requirement."
+            ),
             state_guard=decision.as_dict(),
         )
 
@@ -363,42 +368,20 @@ class SessionTools(LeapToolMixin):
         response_time: float | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Record one diagnostic answer as a learning attempt."""
-        session = self.require_session(session_id)
-        answer = self.require_text(answer, "answer")
+        """Record a diagnostic through the same grounded, registered-item path.
 
-        if item_id is None:
-            item_id = new_id("item")
-            if question:
-                self.db.execute(
-                    "INSERT INTO assessment_items "
-                    "(item_id, session_id, node_id, question, question_type, created_at) "
-                    "VALUES (?, ?, ?, ?, 'diagnostic', ?)",
-                    (item_id, session_id, node_id, question, now_ts()),
-                )
-        attempt_id = new_id("att")
-        attempt_index = int(
-            self.db.scalar(
-                "SELECT COUNT(*) FROM learning_attempts WHERE session_id = ? AND node_id IS ?",
-                (session_id, node_id),
-                0,
-            )
-        ) + 1
-
-        with self.db.transaction():
-            self.db.execute(
-                "INSERT INTO learning_attempts "
-                "(attempt_id, session_id, item_id, node_id, answer, response_time, hint_level, "
-                " attempt_index, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (attempt_id, session_id, item_id, node_id, answer, response_time, hint_level,
-                 attempt_index, now_ts()),
-            )
-        self.events.emit(
-            "attempt_submitted", session_id=session_id, learner_id=session["learner_id"],
-            node_id=node_id, payload={"attempt_id": attempt_id, "phase": "diagnostic"},
-            request_id=request_id,
-        )
-        return self.ok(attempt_id=attempt_id, item_id=item_id, attempt_index=attempt_index)
+        Unstructured learner self-reports may omit item_id. A new question must
+        be registered with its teaching package before collecting its answer.
+        """
+        if question and not item_id:
+            raise ToolError("assessment_item_required", "Register diagnostic questions with save_assessment_item before submitting answers")
+        if question and item_id:
+            self.require_session(session_id)
+            item = self.db.query_one("SELECT question FROM assessment_items WHERE item_id = ? AND session_id = ?", (item_id, session_id))
+            if not item or item["question"] != question:
+                raise ToolError("assessment_item_mismatch", "Diagnostic question must match the registered item")
+        return self.submit_attempt(session_id, answer, item_id=item_id, node_id=node_id,
+                                   hint_level=hint_level, response_time=response_time, request_id=request_id)
 
     def get_diagnostic_result(self, session_id: str) -> dict:
         self.require_session(session_id)

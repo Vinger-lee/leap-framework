@@ -30,7 +30,8 @@ async def verify(database: Path, chromium: str | None):
             await session.initialize()
             catalog = (await session.list_tools()).tools
             names = {t.name for t in catalog}
-            assert {"submit_attempt", "commit_assessment", "record_reflection", "schedule_review", "check_advance_unit", "save_assessment_item"} <= names
+            assert {"submit_attempt", "commit_assessment", "record_reflection", "schedule_review", "check_advance_unit", "save_assessment_item", "save_teaching_package", "get_teaching_delivery_policy", "get_subject_catalog"} <= names
+            assert len(catalog) == 62
 
             async def call(name, args):
                 result = await session.call_tool(name, args)
@@ -53,7 +54,11 @@ async def verify(database: Path, chromium: str | None):
             assert baseline["domain_grounding_stage"] == "completed"
             await call("save_knowledge_nodes", {"session_id": sid, "nodes": [{"node_id": "bridge.equation", "title": "Equation fixture", "unit_tag": "bridge-fixture", "bloom_level": "understand", "transfer_requirements": "none"}]})
             await call("start_unit", {"session_id": sid, "node_id": "bridge.equation"})
-            await call("save_assessment_item", {"session_id": sid, "item_id": "q2", "node_id": "bridge.equation", "question": "Solve 3x+5=20", "expected_answer": "x=5", "solution": "3x=15 then x=5", "assumptions": ["x is real"], "verification_checks": [{"method": "substitution", "result": "3*5+5=20"}], "assessor_scope": "exact_answer"})
+            html = ROOT / "examples/02-math-linear-equation/leap-02-math-linear-equation.html"
+            manifest = json.loads(html.with_suffix(".delivery.json").read_text(encoding="utf-8"))
+            manifest["source_ids"] = baseline["sources_saved"]
+            package = await call("save_teaching_package", {"session_id": sid, "node_id": "bridge.equation", "subject": "math", "markdown": (html.parent/"knowledge.md").read_text(encoding="utf-8"), "html": html.read_text(encoding="utf-8"), "manifest": manifest})
+            await call("save_assessment_item", {"session_id": sid, "item_id": "q2", "node_id": "bridge.equation", "question": "Solve 3x+5=20", "expected_answer": "x=5", "solution": "3x=15 then x=5", "assumptions": ["x is real"], "verification_checks": [{"method": "substitution", "result": "3*5+5=20"}], "assessor_scope": "exact_answer", "teaching_package_id": package["package_id"], "source_ids": baseline["sources_saved"]})
             ctx = await call("get_teaching_context", {"session_id": sid})
             async with async_playwright() as pw:
                 browser = await pw.chromium.launch(executable_path=chromium)
@@ -61,7 +66,6 @@ async def verify(database: Path, chromium: str | None):
                     page = await browser.new_page()
                     errors = []
                     page.on("pageerror", lambda e: errors.append(str(e)))
-                    html = ROOT / "examples/02-math-linear-equation/leap-02-math-linear-equation.html"
                     await page.goto(html.as_uri())
                     await page.evaluate("ctx => window.LEAP.hydrate(ctx)", ctx)
                     await page.locator("#step1").fill("3x=15")
@@ -82,6 +86,10 @@ async def verify(database: Path, chromium: str | None):
                     assert executed == ["submit_attempt", "submit_attempt", "commit_assessment", "check_advance_unit"], executed
                     history = await call("get_assessment_history", {"session_id": sid, "node_id": "bridge.equation"})
                     assert history["results"][0]["raw_answer"] == "step2: x=5"
+                    confirmed = await page.evaluate("results => window.LEAP.applyToolResults(results)", results)
+                    assert confirmed["assessment"]["provisional"] is False
+                    assert confirmed["assessment"]["reasoning_quality"] is None
+                    assert confirmed["ui_state"]["completed"] is False
                     refreshed = await call("get_teaching_context", {"session_id": sid})
                     hydrated = await page.evaluate("ctx => window.LEAP.hydrate(ctx)", refreshed)
                     assert hydrated["assessment"]["evidence_stage"] == refreshed["knowledge_state"]["evidence_stage"]
@@ -89,6 +97,7 @@ async def verify(database: Path, chromium: str | None):
                     assert review["ok"]
                     assert not errors, errors
                     return {"ok": True, "registered_tools": len(catalog), "executed_page_tools": executed,
+                            "teaching_package_registered": True, "assessment_receipt_confirmed": True,
                             "persisted_raw_answer": history["results"][0]["raw_answer"],
                             "runtime_stage": refreshed["knowledge_state"]["evidence_stage"],
                             "scope": "real MCP stdio + Chromium + temporary SQLite; synthetic content fixture"}

@@ -1,6 +1,25 @@
+---
+title: Architecture
+tags:
+- leap
+- engineering
+aliases:
+- Architecture guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP Architecture foundations definitions workflow`
+> Extension: `LEAP Architecture failure cases examples comparison`
+> Advanced: `LEAP Architecture invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # Architecture
 
-**Language**: English ｜ [中文](ARCHITECTURE_CN.md)
+**Language**: English ｜ [[docs/ARCHITECTURE_CN|中文]]
 
 > The authoritative framework design specification and visual design system are maintained by the
 > project author separately and are **not** part of this repository. This document describes the
@@ -101,7 +120,7 @@ A failed call is never turned into a silent state update.
 
 ## 7. Extension points
 
-See [`README.md`](../README.md#-pluggable-by-design). Each seam is a `Protocol` in
+See [[README|README.md]]. Each seam is a `Protocol` in
 `runtime/contracts.py`; implementations register against a kind in `runtime/plugins.py` and are
 selected by name in `config/default.yaml`.
 
@@ -109,7 +128,7 @@ selected by name in `config/default.yaml`.
 
 Learner-facing text resolves through `src/leap/i18n.py`: active locale → default locale → the key
 itself, so a missing translation degrades instead of raising. Tool names, field names and enum
-values are intentionally not translated. See [`LOCALIZATION.md`](LOCALIZATION.md).
+values are intentionally not translated. See [[docs/LOCALIZATION|LOCALIZATION.md]].
 
 ## 9. Quality gates
 
@@ -134,3 +153,15 @@ this:
 2. Scanner rule `AI001` is path-based, so it fires even when `.gitignore` is bypassed.
 3. `tests/test_infrastructure.py::TestAiWorkspaceIsolation` queries `git ls-files` and the full
    commit history and asserts zero such files; CI runs it on every push.
+
+> [!note]- Reading and verification sequence: LEAP Architecture
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[docs/ARCHITECTURE_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]]

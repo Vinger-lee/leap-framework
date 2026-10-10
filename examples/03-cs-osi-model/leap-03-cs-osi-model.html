@@ -1,10 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OSI 七层模型 —— 分层结构、各层职责与数据封装</title>
-<style>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>OSI 七层模型：职责、边界与跨网封装</title><style>
 /* ══════════════════════════════════════════════════════════════
    LEAP 视觉设计系统 v1.0 · 令牌层
    规范来源：LEAP_视觉设计理念_给Gemini.md §4
@@ -379,13 +374,34 @@ button,input,textarea{font:inherit;color:inherit}
     font:400 var(--fs-mono)/1.6 var(--font-mono);color:var(--ink-2);
     white-space:pre-wrap;word-break:break-all;max-height:320px;overflow:auto}
 
-</style>
-</head>
-<body>
-<a class="skip" href="#teaching">跳到教学内容</a>
 
-<!-- ═══ 进度脊柱 ═════════════════════════════════════════════ -->
-<header class="spine">
+/* Spacious teaching layout: the reading column absorbs available PC width. */
+:root{--page-max:1800px;--page-pad:clamp(20px,3vw,48px);--side-col:420px;--col-gap:32px}
+.cols{grid-template-columns:minmax(0,1fr) var(--side-col);gap:32px}
+.col-main,.side,.stage,.task,.console,.zone-body,.result>*,.cols>*{min-width:0}
+.col-main p,.col-main li{max-width:100%;overflow-wrap:anywhere}
+.zone-goal{max-width:1040px}.resource-panel{margin:20px 0 32px;padding:20px 24px;background:var(--surface);border:1px solid var(--hairline);border-radius:12px}
+.resource-panel p+p{margin-top:8px}.resource-panel b{color:var(--accent)}
+.teach-table{width:100%;border-collapse:collapse;background:var(--surface);font-size:13px;line-height:1.75}
+.teach-table th,.teach-table td{padding:12px;text-align:left;vertical-align:top;border:1px solid var(--hairline);overflow-wrap:anywhere}
+.teach-table th{background:var(--surface-sunk)}.table-scroll{max-width:100%;overflow-x:auto;border-radius:8px}
+.callout{padding:16px 20px;border-left:3px solid var(--warn);background:var(--warn-wash);border-radius:0 8px 8px 0}
+.teach-heading{font-size:var(--fs-h2);margin-top:32px}.steps-list{padding-left:24px;line-height:1.85}.steps-list li+li{margin-top:8px}
+.concept-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.concept-grid>*{min-width:0}
+.concept-grid h3{font-size:var(--fs-h3);margin-bottom:12px}.concept-grid p{font-size:14px}
+.network-fig{display:block;width:100%;height:auto;max-height:260px}.network-fig text{font-family:var(--font-sans);fill:var(--ink);font-size:14px}
+.network-fig .net-node{fill:var(--surface);stroke:var(--rule);stroke-width:1.5}.network-fig .current{fill:var(--accent-wash);stroke:var(--accent);stroke-width:2}
+.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px 0}.field-grid label{display:grid;gap:6px;font-size:13px}
+.field-grid input,.field-grid select,select.blank{width:100%;min-width:0;padding:8px 12px;border:1px solid var(--rule);border-radius:6px;background:var(--surface)}
+.task textarea{width:100%;min-height:140px;resize:vertical;padding:12px;border:1px solid var(--rule);border-radius:8px;background:var(--surface-sunk);margin-top:16px;line-height:1.78}
+.practice-note{margin-top:12px;font-size:13px;color:var(--ink-2)}.stage-ctrl:focus-visible{outline:2px solid var(--accent);outline-offset:6px}
+.osi-fig{max-width:440px}.pkt{flex-direction:row;flex-wrap:wrap;gap:6px}.pkt-blk{padding:12px;flex:1 1 120px}.enc-row{height:38px}
+.stage-grid{grid-template-columns:252px minmax(0,1fr)}.bridge-strip{flex-wrap:wrap}.bridge-out{max-width:100%}
+.verify select{max-width:100%}.summary-read{font-size:13px;color:var(--ink-2)}
+@media(max-width:1100px){:root{--page-max:1800px;--page-pad:clamp(20px,3vw,48px);--col-gap:32px}.cols{grid-template-columns:minmax(0,1fr)}.side{grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))}.result{grid-template-columns:minmax(0,1fr)}}
+@media(min-width:1101px) and (max-width:1199px){:root{--page-max:1800px;--page-pad:clamp(20px,3vw,48px)}.cols{grid-template-columns:minmax(0,1fr) 420px}.side{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:700px){.concept-grid,.field-grid,.stage-grid{grid-template-columns:minmax(0,1fr)}.table-scroll{font-size:12px}.teach-table th,.teach-table td{padding:8px}.resource-panel{padding:16px}.task,.stage,.cp,.card{padding:20px}.network-fig text{font-size:16px}.zone{padding-top:48px}}
+</style></head><body><a class="skip" href="#teaching">跳到教学内容</a><header class="spine">
   <div class="spine-in">
     <div class="brand">
       <span class="brand-mark" aria-hidden="true"></span>
@@ -415,96 +431,94 @@ button,input,textarea{font:inherit;color:inherit}
 
     <div class="spine-rev">
       <div class="micro">NEXT REVIEW</div>
-      <span class="val">3 天后 · 09/22</span>
+      <span class="val">待宿主安排</span>
     </div>
   </div>
-  <p class="spine-note">本页尚未连接 Runtime；掌握度与证据阶段保持初始占位值，作答评分仅为待核验反馈。</p>
   <p class="spine-note" id="spineNote">本页尚未连接 Runtime；掌握度与证据阶段保持初始占位值，作答评分仅为待核验反馈。</p>
-</header>
-
-<main class="wrap">
-
-  <!-- ═══ Zone 01 · 教学内容 ═══════════════════════════════ -->
-  <section class="zone" id="teaching" aria-labelledby="z1t">
-    <div class="zone-head">
-      <div class="micro micro--accent">01 · TEACHING · 教学内容</div>
-      <h1 class="zone-title" id="z1t">OSI 七层模型：分层结构、各层职责与数据封装</h1>
-      <p class="zone-goal">学完这一节，你能自上而下说出七层的名称与职责，把常见协议和设备归到正确层级，并讲清「封装」与「解封装」是怎么发生的。</p>
-      <p class="zone-meta">预计 14 分钟　·　难度 2/5　·　先修：网络通信的基本直觉</p>
-      <div class="zone-rule"></div>
+</header><main class="wrap">
+<section class="zone" id="teaching" aria-labelledby="z1t">
+  <div class="zone-head"><div class="micro micro--accent">01 · TEACHING · 教学内容</div>
+    <h1 class="zone-title" id="z1t">OSI 七层模型：职责、边界与跨网封装</h1>
+    <p class="zone-goal">从“为何分层”出发，能描述七层职责，区分 MAC、IP、端口，并沿着“主机 → 路由器 → 主机”解释数据单元如何变化。</p>
+    <p class="zone-meta">建议 35–50 分钟 · 先读先修概念，再操作动画，最后完成递进练习</p><div class="zone-rule"></div>
+  </div>
+  <div class="resource-panel" aria-label="分层学习资源搜索关键词">
+    <div class="micro micro--accent">LEARNING RESOURCES · 搜索关键词</div>
+    <p><b>核心 / 必看：</b>“OSI 七层模型 每层职责”“TCP IP 与 OSI 区别”“MAC IP 端口 区别”“计算机网络 封装 解封装”。</p>
+    <p><b>拓展 / 辅助：</b>“以太网 帧头 帧尾 FCS”“路由器 每一跳 MAC 地址 TTL”“HTTP TCP IP 分层 Wireshark”。</p>
+    <p><b>进阶 / 深入：</b>“ISO IEC 7498-1 OSI reference model”“RFC 1122 Internet layers”“RFC 791 TTL”“RFC 9293 TCP”“QUIC UDP TLS layering”。</p>
+    <p class="summary-read">这些是可复制到 B 站、课程平台或搜索引擎的检索词，不是已核验的视频推荐。优先选择能完整演示两跳封装并说明模型边界的材料。</p>
+  </div>
+  <div class="zone-body"><div class="cols"><div class="col-main">
+    <h2 class="teach-heading" style="margin-top:0">先修：先认清“数据、地址、协议”</h2>
+    <p><b>比特 bit</b>是 0 或 1；8 bit 构成 1 byte。<b>协议</b>规定消息格式和处理规则，<b>服务</b>是某层向上一层提供的能力，<b>接口</b>是同一主机上下层交换数据的方式。两个对等层在逻辑上遵守同一协议，实际数据仍要通过下层和介质传送。</p>
+    <div class="concept-grid">
+      <div class="card"><h3>三种“送到哪里”</h3><p><b>MAC：</b>典型以太网中，用于当前链路的帧转发。<br><b>IP：</b>标识网络层源与目的，支持跨网路由。<br><b>端口：</b>传输层交付到相应的通信端点；端口并非某个进程的永久身份证。</p></div>
+      <div class="card"><h3>四种常见数据单元</h3><p><b>应用数据：</b>如 HTTP 请求。<br><b>TCP 段：</b>TCP 头 + 载荷。<br><b>IP 数据报：</b>IP 头 + 载荷。<br><b>链路帧：</b>帧头 + 载荷 + 帧尾；UDP 通常称“数据报”，并不称 TCP 段。</p></div>
     </div>
-
-    <div class="zone-body">
-      <div class="cols">
-        <div class="col-main">
-          <p>网络世界里，任何一次通信都涉及「怎么表达、怎么送达、怎么在介质上传输」等一连串问题。OSI 参考模型把这些职责<b>纵向切成七层</b>，每层只做好一件事，并只与<b>相邻层</b>打交道。上层不必知道下层用的是光纤还是 Wi‑Fi，下层也不必知道上层在传网页还是邮件。</p>
-
-          <div class="quote">分层的核心价值：把「一个庞大的问题」拆成「七个各自独立、可替换、可单独排错的小问题」。<br>上下层之间靠<b>标准接口</b>协作，某一层技术换代（如以太网换 Wi‑Fi），对相邻层几乎无感。</div>
-
-          <h2 style="font-size:var(--fs-h3)">七层结构（自下而上）</h2>
-          <p>下面这张图是七层的标准堆叠。点任意一层（或用键盘聚焦后按 Enter），右侧会展开它的职责与典型协议。</p>
-
-          <svg class="osi-fig" id="osiTeach" role="group" aria-label="OSI 七层结构示意，点击任一层查看职责"></svg>
-          <div class="osi-info" id="osiTeachInfo" aria-live="polite">
-            <span class="micro micro--accent">点击任意一层</span>
-            <p style="margin-top:6px">七层自下而上依次是：物理层、数据链路层、网络层、传输层、会话层、表示层、应用层。点一下，看每层到底负责什么、认哪些协议。</p>
-          </div>
-
-          <h2 style="font-size:var(--fs-h3);margin-top:var(--s-8)">术语与职责速记</h2>
-          <ul class="terms">
-            <li>①　<b>物理层 / 数据链路层 / 网络层</b> —— 解决「比特怎么在介质上跑、一段链路怎么传、跨网络怎么路由」。</li>
-            <li>②　<b>传输层</b> —— 解决「端到端」：把数据可靠（TCP）或快速地（UDP）送到对端进程。</li>
-            <li>③　<b>会话层 / 表示层 / 应用层</b> —— 解决「连接怎么管、数据怎么编码加密、应用能直接用什么服务」。</li>
-            <li>④　<b>封装</b> —— 发送时每一层都给来自上层的数据<b>加上本层的控制信息（头 / 尾）</b>，对端再逐层剥除。</li>
-          </ul>
-
-          <!-- 理解检查 -->
-          <div class="cp" id="cp">
-            <div class="micro micro--accent">CHECKPOINT · 理解检查</div>
-            <p class="cp-q">为什么要把网络功能分成七层，而不是直接用一整块程序处理所有通信？</p>
-            <div class="cp-opts" role="group" aria-label="理解检查选项">
-              <button class="opt" type="button" data-v="ok" data-why="正确。分层让每层只解决一个局部问题，层间用标准接口协作；某一层技术演进（例如介质从双绞线换成光纤）不会影响其他层，排错时也能逐层定位。" aria-pressed="false">A. 分层让每层职责单一、彼此通过接口解耦，便于替换、排错与独立演进</button>
-              <button class="opt" type="button" data-v="bad" data-why="层数本身不带来速度，也不等于更专业。七层是一种职责切分，真正的收益是解耦与可替换，而不是「层数越多越快」。" aria-pressed="false">B. 分层主要是为了显得专业，层数越多网络传输就越快</button>
-            </div>
-            <div class="cp-rule"></div>
-            <p class="cp-fb" id="cpFb" role="status" aria-live="polite"></p>
-          </div>
-        </div>
-
-        <aside class="side" aria-label="辅助卡片">
-          <div class="card">
-            <span class="micro">KEY FORM · 关键式子</span>
-            <span class="formula">封装 = 每层给上层数据 + 本层控制信息</span>
-            <span class="formula formula--base">发送向下加头 · 接收向上去头</span>
-            <p class="card-foot">墨色 = 数据本体，绿色 = 方向规律（下加上去下）。</p>
-          </div>
-
-          <div class="card card--err">
-            <span class="micro">MISCONCEPTION · 常见误解</span>
-            <p class="card-body">「交换机工作在网络层（第三层）」是最常见的误解。交换机依据 <b>MAC 地址</b>在一段链路内转发，工作在<b>数据链路层（第二层）</b>；真正在网络层工作、依据 IP 地址跨网转发的是<b>路由器</b>。</p>
-          </div>
-
-          <div class="card card--sunk">
-            <span class="micro">REQUIRED EVIDENCE · 达标要求</span>
-            <ul class="reqs">
-              <li>掌握度 mastery ≥ 0.80</li>
-              <li>提示依赖 hint_dependency ≤ 0.50</li>
-              <li>至少 1 次在无提示条件下独立完成匹配</li>
-              <li data-kind="transfer">迁移验证：给一个设备说出它工作在第几层</li>
-            </ul>
-          </div>
-        </aside>
-      </div>
-    </div>
-  </section>
-
+    <h2 class="teach-heading">1. 分层是职责模型，不是七个独立的程序</h2>
+    <p>通信需要应用语义、数据表示、会话管理、端点交付、跨网寻址、链路传送和物理信号。OSI 用七层把这些职责拆开。每层可借助下层服务，为上层提供能力；这样能够按接口替换技术，并按职责排查故障。</p>
+    <div class="quote">“同层逻辑通信”与“上下层实际传递”同时存在。浏览器与服务器遵守 HTTP，HTTP 数据实际借助 TCP/IP 和链路传到对端。分层不会保证网络更快，也不要求每层都实现成独立模块。</div>
+    <p>点击七层 SVG，或聚焦后按 Enter，查看每层的职责、常见实例和不能据此推出的结论。</p>
+    <svg class="osi-fig" id="osiTeach" role="group" aria-label="OSI 七层结构，点击或 Enter 查看每层职责与边界"></svg>
+    <div class="osi-info" id="osiTeachInfo" aria-live="polite"><span class="micro micro--accent">七层自下而上</span><p>物理、数据链路、网络、传输、会话、表示、应用。先认识职责，再看协议与设备的具体功能。</p></div>
+    <div class="table-scroll"><table class="teach-table"><thead><tr><th>层</th><th>解决的问题 / 常见实例</th><th>边界：不能推出什么</th></tr></thead><tbody>
+      <tr><td>L7 应用</td><td>面向应用的网络服务与消息语义；HTTP、DNS、SMTP。</td><td>“应用层”并不是用户界面；DNS 可借助 UDP 或 TCP，不因此改变其应用服务职责。</td></tr>
+      <tr><td>L6 表示</td><td>表示语法、编码转换、压缩、加解密等职责。</td><td>现实 Internet 不保证存在独立的 L6；TLS 常放在应用与传输之间，不能硬说所有加密都只在 L6。</td></tr>
+      <tr><td>L5 会话</td><td>组织对话、会话建立与管理、同步等职责。</td><td>应用登录状态、TCP 连接与 OSI 会话不是同一概念，实际会话职责常由应用实现。</td></tr>
+      <tr><td>L4 传输</td><td>通信端点之间的传输；TCP 有序可靠字节流、流量/拥塞控制；UDP 保留报文边界。</td><td>UDP 不提供 TCP 式重传和排序，但不保证更快；TCP 不提供应用事务成功或加密的保证。</td></tr>
+      <tr><td>L3 网络</td><td>跨网逻辑寻址和转发；IP、路由器的 IP 转发功能。</td><td>IP 是尽力而为，不保证交付、顺序或无重复；路由器通常不会为转发而剥除 TCP 头。</td></tr>
+      <tr><td>L2 链路</td><td>一条链路上的帧、介质接入和检错；以太网 MAC、二层交换机。</td><td>链路检错不等于端到端可靠；以太网技术和网卡也包含物理层功能，多层交换机可有 L3 功能。</td></tr>
+      <tr><td>L1 物理</td><td>将比特映射为电、光、无线信号；编码、时序、收发器、介质。</td><td>它不会额外添加“IP 头”或统一的“H1 包头”；网卡的 MAC 功能不属于纯物理层。</td></tr>
+    </tbody></table></div>
+    <h2 class="teach-heading">2. OSI 与 TCP/IP：不要强行一一对应</h2>
+    <p>OSI 是七层参考模型；Internet 通常按应用、传输、Internet/网络、链路四层描述，教学也常把链路拆成链路与物理形成五层。OSI 的上三层职责往往由 Internet 的应用协议、库或程序一起实现。协议归层要先声明采用哪种模型和正在讨论的功能。</p>
+    <div class="callout"><b>按功能判断：</b>“网卡属于哪层”信息不足，因为网卡通常涉及 L1/L2；“网卡收发器把比特变成信号”可归 L1。“交换机属于哪层”要限定二层转发还是三层路由。“以太网属于哪层”也要区分帧/MAC 与物理规范。</div>
+    <h2 class="teach-heading">3. 完整例子：100 字节 HTTP 数据跨两条以太网链路</h2>
+    <p>假设已有 TCP 连接，发送一段 100 byte 的<b>明文 HTTP 应用数据</b>。为看清层次，采用 IPv4，无 TCP/IP 选项、无 NAT、无分片，无隧道；忽略建连、重传与确认包。两个地址均为文档示例地址。</p>
+    <svg class="network-fig" viewBox="0 0 850 180" role="img" aria-label="发送主机经过路由器跨两条以太网链路到接收主机">
+      <path d="M190 75H330 M520 75H660" fill="none" stroke="#2B4AC4" stroke-width="3"/><path d="M316 68L330 75L316 82 M646 68L660 75L646 82" fill="none" stroke="#2B4AC4" stroke-width="2"/>
+      <rect class="net-node" x="10" y="25" width="180" height="95" rx="8"/><rect class="net-node" x="330" y="25" width="190" height="95" rx="8"/><rect class="net-node" x="660" y="25" width="180" height="95" rx="8"/>
+      <text x="25" y="50">主机 A · MAC A</text><text x="25" y="78">192.0.2.10</text><text x="25" y="105">TCP 源端口 53000</text>
+      <text x="345" y="50">路由器 · 两个接口</text><text x="345" y="78">入口 MAC G1</text><text x="345" y="105">出口 MAC G2</text>
+      <text x="675" y="50">主机 B · MAC B</text><text x="675" y="78">198.51.100.20</text><text x="675" y="105">TCP 目的端口 80</text>
+      <text x="200" y="155">第一跳：A → G1</text><text x="535" y="155">第二跳：G2 → B</text>
+    </svg>
+    <ol class="steps-list">
+      <li><b>应用：</b>生成 100 byte HTTP 数据。TCP 不是“一条应用消息必定对应一个段”；这里只选取一个不分段的简化示例。</li>
+      <li><b>传输：</b>加 20 byte TCP 头，含源端口 53000、目的端口 80、序号等，成为 120 byte TCP 段。</li>
+      <li><b>网络：</b>加 20 byte IPv4 头，源 192.0.2.10、目的 198.51.100.20、TTL 64，成为 140 byte IP 数据报。</li>
+      <li><b>第一跳链路：</b>目的不在本地子网，发给网关。加 14 byte 以太网头与 4 byte FCS，帧的源/目的 MAC 为 A/G1，总长 158 byte。</li>
+      <li><b>物理：</b>把帧对应的比特编码为信号发送；不是在帧外再增加一个“H1 包头”。</li>
+      <li><b>路由器：</b>处理入口链路帧，把 IP 数据报交给网络层；查目的 IP 的路由，TTL 从 64 到 63，更新 IPv4 首部校验和；为出口链路重新封装帧，MAC 改为 G2/B，重算 FCS。此假设下 IP 源/目的和 TCP 端口保持不变。</li>
+      <li><b>接收端：</b>从信号恢复比特/帧；链路层检错和去链路信息，网络层确认本机交付并去 IP 头，TCP 按序号等处理后把有序字节交给目的端点，HTTP 才处理应用消息。</li>
+    </ol>
+    <p><b>字节核对：</b>100 + 20 = 120（TCP 段）；120 + 20 = 140（IPv4 数据报）；140 + 14 + 4 = 158（以太网帧）。本例按帧头到 FCS 计数；不计前导码/SFD 与帧间间隔。MTU 1500 通常限制的是以太网载荷，不是这里包含帧头/尾的长度。</p>
+    <h2 class="teach-heading">4. 对比、误区与排错</h2>
+    <ul class="terms">
+      <li><b>逐跳与端到端：</b>路由器会替换当前链路封装；IP 地址在本例中保留，但 NAT、隧道等可改变外层地址，因此“IP 永远不变”过强。</li>
+      <li><b>检错与可靠：</b>帧的 FCS 检错不等于必然修复，IP 尽力而为，TCP 用确认、重传等提高字节流可靠性。最终应用交易是否成功仍由应用处理。</li>
+      <li><b>可达与可用：</b>网线正常不保证 DNS 正常；能 ping 通不保证 TCP 端口开放；TCP 建连成功不保证 HTTP 返回成功；排查证据应对应正在检查的职责。</li>
+      <li><b>顺序与头部：</b>封装一般向下，解封装向上；具体协议加哪些头尾、是否压缩/加密、是否分段由协议决定，不是“七层必有七个头”。</li>
+    </ul>
+    <div class="cp" id="cp"><div class="micro micro--accent">CHECKPOINT · 理解检查</div><p class="cp-q">OSI 分层最直接解决什么问题？</p><div class="cp-opts" role="group" aria-label="理解检查选项">
+      <button class="opt" type="button" data-v="ok" data-why="你认出了分层的价值：按职责与接口解耦，便于替换和定位故障。下一步用各层数据单元检查这个想法。" aria-pressed="false">A. 通过服务和接口拆分职责，便于替换技术与定位故障</button>
+      <button class="opt" type="button" data-v="bad" data-why="你注意到层次结构了；卡在把层数当成性能保证。下一步比较职责：更多层并不保证更快，也不要求七个独立程序。" aria-pressed="false">B. 保证每次通信都有七个包头且总比四层模型更快</button>
+    </div><div class="cp-rule"></div><p class="cp-fb" id="cpFb" role="status" aria-live="polite"></p></div>
+  </div><aside class="side" aria-label="复习与边界提示">
+    <div class="card"><span class="micro">ROAD MAP · 学习路线</span><ol class="steps-list"><li>区分 bit/byte 与 MAC/IP/端口。</li><li>点七层图，逐层说出职责和边界。</li><li>走完两跳动画，关注路由器。</li><li>做匹配、辨析、字节计算与排错说明。</li><li>看答案后完成新题验证。</li></ol></div>
+    <div class="card card--sunk"><span class="micro">MODEL BOUNDARY · 模型边界</span><p class="card-body">OSI 是参考模型；协议和设备可能跨层。TLS、QUIC、NAT、隧道、三层交换机都提醒我们：先描述功能，再谈归层。</p></div>
+    <div class="card card--err"><span class="micro">WATCH THE ROUTER · 重点观察</span><p class="card-body">第一跳 A/G1 → 第二跳 G2/B：<b>MAC 帧封装改变</b>。无 NAT 时端到端 IP 地址保留，但 TTL 和 IPv4 头校验和改变；路由器转发无需解包到 HTTP。</p></div>
+    <div class="card"><span class="micro">SUCCESS CRITERIA · 学习目标</span><ul class="reqs"><li>准确区分各层职责和具体功能。</li><li>独立归位 8 张限定功能卡片。</li><li>算对段/包/帧长度并说明计数边界。</li><li>能用证据区分“网络可达”与“应用可用”。</li></ul><p class="card-foot">网页的本地反馈仅为待核验练习证据；掌握度与证据阶段由 Runtime 注入。</p></div>
+  </aside></div></div>
+</section>
   <!-- ═══ Zone 02 · 交互练习 ═════════════════════════════════ -->
   <section class="zone" id="practice" aria-labelledby="z2t">
     <div class="zone-head">
       <div class="micro micro--accent">02 · PRACTICE · 交互练习</div>
-      <h2 class="zone-title" id="z2t">七层可视化、协议归位与数据封装</h2>
-      <p class="zone-goal">先看七层结构、再动手把协议与设备拖到正确层、最后用动画看清封装与解封装的全过程。</p>
-      <p class="zone-meta">4 个交互环节　·　即时反馈　·　全部结果写入下方 Agent 输出区</p>
+      <h2 class="zone-title" id="z2t">从归层到跨网：递进练习</h2>
+      <p class="zone-goal">入门做功能匹配；进阶走完两跳封装；再做职责辨析、字节计算和排错说明。</p>
+      <p class="zone-meta">5 个学习环节　·　即时反馈　·　全部结果写入下方 Agent 输出区</p>
       <div class="zone-rule"></div>
     </div>
 
@@ -539,9 +553,9 @@ button,input,textarea{font:inherit;color:inherit}
       <div class="task" style="margin-top:var(--s-16)">
         <div class="task-head">
           <span class="task-id">Q1</span>
-          <h3 class="task-title">把协议与设备拖到对应的 OSI 层级</h3>
+          <h3 class="task-title">入门：把协议与具体功能拖到对应层</h3>
         </div>
-        <p class="task-lead">可以拖拽，也可以先点卡片、再点目标层（键盘用户请用后一种方式）。一个层级可以放多张卡片。全部放好后点「提交匹配」。</p>
+        <p class="task-lead">可以拖拽，也可以先点卡片、再点目标层（键盘用户请用后一种方式）。一个层级可以放多张卡片，已放卡片也能重新移动。按卡片限定的功能判断；网卡、以太网与交换机可能涉及多层。全部放好后点「提交匹配」。</p>
 
         <div class="match">
           <div>
@@ -567,19 +581,28 @@ button,input,textarea{font:inherit;color:inherit}
           <span class="task-id">Q2</span>
           <h3 class="task-title">数据封装与解封装动画</h3>
         </div>
-        <p class="task-lead">发送端自上而下逐层「加头」，到达对端后自下而上逐层「去头」。用播放 / 暂停 / 重置观察，也可用键盘控制。</p>
+        <p class="task-lead">本动画与教学例子一致：100 byte HTTP 数据，已有 TCP 连接，经一个路由器跨两跳以太网。单步观察数据单元、MAC、TTL 以及当前处理设备。</p>
 
         <div class="stage" style="background:var(--surface-sunk)">
           <div class="micro">STAGE · ENCAPSULATION / DECAPSULATION</div>
-          <p class="stage-title">封装：向下逐层加头　·　解封装：向上逐层去头</p>
+          <p class="stage-title">主机 A → 路由器 → 主机 B：端到端数据与逐跳帧</p>
 
+          <svg class="network-fig" id="encRoute" viewBox="0 0 850 150" role="img" aria-label="封装演示当前设备">
+            <path d="M190 65H330 M520 65H660" fill="none" stroke="#D8D3C9" stroke-width="3"/>
+            <rect class="net-node" data-station="sender" x="10" y="20" width="180" height="90" rx="8"/>
+            <rect class="net-node" data-station="router" x="330" y="20" width="190" height="90" rx="8"/>
+            <rect class="net-node" data-station="receiver" x="660" y="20" width="180" height="90" rx="8"/>
+            <text x="25" y="55">发送主机 A</text><text x="25" y="82">MAC A · 源端口 53000</text>
+            <text x="345" y="55">路由器</text><text x="345" y="82">入口 G1 / 出口 G2</text>
+            <text x="675" y="55">接收主机 B</text><text x="675" y="82">MAC B · 目的端口 80</text>
+          </svg>
           <div class="stage-grid">
             <div class="enc-rows" id="encRows" role="img" aria-label="七层路径，高亮表示当前所在层"></div>
             <div class="osi-stage-side">
               <div class="step-panel">
                 <div class="micro">CURRENT STEP · 当前步骤</div>
                 <p class="step-text" id="encStep">点击「单步」或「播放」，观察数据单元如何自上而下加头、再自下而上去头。</p>
-                <div class="step-count" id="encCount">步骤 0 / 9　·　状态：待开始</div>
+                <div class="step-count" id="encCount">步骤 0 / 13　·　状态：待开始</div>
               </div>
               <div class="pkt" id="encPkt" aria-label="当前数据单元（含各层头部）"></div>
               <p class="enc-legend">
@@ -590,30 +613,31 @@ button,input,textarea{font:inherit;color:inherit}
             </div>
           </div>
 
-          <div class="stage-ctrl">
+          <div class="stage-ctrl" id="encControls" tabindex="0" aria-label="封装控制；聚焦此区域后方向键单步，空格播放暂停">
             <button class="btn btn--primary" id="btnEncPlay" type="button">播放</button>
+            <button class="btn btn--outline" id="btnEncBack" type="button">上一步</button>
             <button class="btn btn--outline" id="btnEncStep" type="button">单步</button>
             <button class="btn btn--outline" id="btnEncReset" type="button">重置</button>
-            <span class="kbd-hint">← → 单步　·　空格 播放 / 暂停</span>
+            <span class="kbd-hint">聚焦控制区：← → 单步 · 空格 播放 / 暂停</span>
           </div>
         </div>
 
-        <div class="note">本动画为<b>受控语义演示</b>：它真实反映「每层加 / 去本层头部」的顺序（数据 → 段 → 包 → 帧 → 比特流），但不模拟具体字节与校验计算。会话层与表示层在本例中透传，故未单独出现。</div>
+        <div class="note">本动画是受控封装演示，不模拟真实抓包、ARP、握手、拥塞、分片或信号波形。L1 表示信号传送，不添加“H1 头”。发送端处理 L4→L3→L2；中间路由器处理链路与网络职责；最终接收端才向 L4/L7 交付。OSI 上三层不强制对应三个独立包头。</div>
       </div>
 
       <!-- 任务 3：选择题 -->
       <div class="task" style="margin-top:var(--s-16)">
         <div class="task-head">
           <span class="task-id">Q3</span>
-          <h3 class="task-title">三层选择题：分清「记错层」与「混淆职责」</h3>
+          <h3 class="task-title">辨析：层号正确，还要说明边界</h3>
         </div>
         <p class="task-lead">每题作答后都会给一行解释，并区分你是「记错层级（answer_error）」还是「混淆了层的职责（misconception）」。</p>
 
         <div class="mcq" data-q="q3a">
-          <p class="mcq-q">在 OSI 七层中，路由器（Router）主要工作在哪一层？</p>
+          <p class="mcq-q">在 OSI 七层中，路由器按目的 IP 进行跨网转发，这个功能主要属于哪一层？</p>
           <div class="cp-opts" role="group" aria-label="Q3a 选项">
             <button class="opt" type="button" data-v="bad" data-err="answer_error" data-why="记错层级了。物理层只负责把比特送上介质，不认识地址、不做转发决策。" aria-pressed="false">A. 物理层（第 1 层）</button>
-            <button class="opt" type="button" data-v="bad" data-err="misconception" data-why="这是典型混淆：交换机才工作在数据链路层、按 MAC 地址转发；路由器按 IP 地址在不同网络间路由，属网络层。" aria-pressed="false">B. 数据链路层（第 2 层）</button>
+            <button class="opt" type="button" data-v="bad" data-err="misconception" data-why="这是典型混淆：二层交换机的帧转发按 MAC 判断；题目限定的是路由器按 IP 跨网转发，所以属于网络层。" aria-pressed="false">B. 数据链路层（第 2 层）</button>
             <button class="opt" type="button" data-v="ok" data-why="正确。路由器依据 IP 地址进行逻辑寻址与跨网转发，这正是网络层（第 3 层）的核心职责。" aria-pressed="false">C. 网络层（第 3 层）</button>
             <button class="opt" type="button" data-v="bad" data-err="answer_error" data-why="记错层级了。传输层负责端到端的可靠 / 不可靠传输，不做网络间的路由。" aria-pressed="false">D. 传输层（第 4 层）</button>
           </div>
@@ -624,8 +648,8 @@ button,input,textarea{font:inherit;color:inherit}
         <div class="mcq" data-q="q3b">
           <p class="mcq-q">「可靠传输、流量控制、端口复用」主要是哪一层的职责？</p>
           <div class="cp-opts" role="group" aria-label="Q3b 选项">
-            <button class="opt" type="button" data-v="bad" data-err="answer_error" data-why="记错层级了。应用层直接使用这些能力，但「可靠传输」本身不是它提供的。" aria-pressed="false">A. 应用层（第 7 层）</button>
-            <button class="opt" type="button" data-v="ok" data-why="正确。传输层（第 4 层）通过 TCP 提供端到端的可靠传输、流量控制与端口复用；UDP 则提供低延迟的不可靠传输。" aria-pressed="false">B. 传输层（第 4 层）</button>
+            <button class="opt" type="button" data-v="bad" data-err="answer_error" data-why="记错层级了。本题限定 TCP 提供的端点传输能力，所以归 L4。应用也可另行实现确认等机制，不能据此说应用层永远不做可靠性。" aria-pressed="false">A. 应用层（第 7 层）</button>
+            <button class="opt" type="button" data-v="ok" data-why="正确。传输层（第 4 层）通过 TCP 提供端到端的可靠传输、流量控制与端口复用；UDP 不提供同样的重传和排序保证，但“更快/更低延迟”不是无条件保证。" aria-pressed="false">B. 传输层（第 4 层）</button>
             <button class="opt" type="button" data-v="bad" data-err="misconception" data-why="混淆了两种职责：网络层负责「路由寻址」，端到端「可靠传输」是传输层的事，二者不要混为一谈。" aria-pressed="false">C. 网络层（第 3 层）</button>
             <button class="opt" type="button" data-v="bad" data-err="answer_error" data-why="记错层级了。数据链路层只负责一段链路内的帧传输（MAC），不管端到端可靠性。" aria-pressed="false">D. 数据链路层（第 2 层）</button>
           </div>
@@ -637,7 +661,7 @@ button,input,textarea{font:inherit;color:inherit}
           <p class="mcq-q">关于「封装」，下面哪一句话是正确的？</p>
           <div class="cp-opts" role="group" aria-label="Q3c 选项">
             <button class="opt" type="button" data-v="bad" data-err="misconception" data-why="混淆了方向：发送端是「逐层加头」，解封装才是「逐层去头」，二者方向相反。" aria-pressed="false">A. 封装只在发送端做一次，之后不再变化</button>
-            <button class="opt" type="button" data-v="ok" data-why="正确。封装的本质就是：每一层都对「来自上层的数据」加上本层的控制信息（头部 / 尾部），对端再逐层剥除。" aria-pressed="false">B. 每一层都对来自上层的数据加上本层的控制信息</button>
+            <button class="opt" type="button" data-v="ok" data-why="正确。封装的核心是：采用的具体协议给上层载荷添加本协议的控制信息。路由器会换链路封装；物理层把比特编码为信号，而不是再加一个统一包头。" aria-pressed="false">B. 采用的协议可加头/尾；具体格式与是否添加由协议决定</button>
             <button class="opt" type="button" data-v="bad" data-err="misconception" data-why="方向说反了：解封装是「从物理层向应用层」逐层去头，而不是「加头」。" aria-pressed="false">C. 解封装是从应用层向物理层逐层加头</button>
             <button class="opt" type="button" data-v="bad" data-err="answer_error" data-why="记错层级了。IP 头由网络层（第 3 层）添加，物理层只负责把帧变成比特流。" aria-pressed="false">D. 物理层负责加上 IP 头</button>
           </div>
@@ -645,6 +669,22 @@ button,input,textarea{font:inherit;color:inherit}
           <p class="cp-fb" role="status" aria-live="polite"></p>
         </div>
       </div>
+
+
+<div class="task" style="margin-top:var(--s-16)"><div class="task-head"><span class="task-id">Q4 · APPLICATION</span><h3 class="task-title">进阶：重新核对字节与逐跳地址</h3></div>
+  <p class="task-lead">变式：应用数据改为 200 byte；TCP 头 20、IPv4 头 20、以太网头 14、FCS 4 byte。仍无选项、NAT、分片或 VLAN，帧长度计至 FCS。</p>
+  <div class="field-grid"><label>IPv4 数据报总长度 / byte<input type="number" id="q4Packet" min="0" step="1" aria-label="IPv4 数据报长度"></label><label>以太网帧总长度 / byte<input type="number" id="q4Frame" min="0" step="1" aria-label="以太网帧长度"></label>
+    <label>路由器出口帧的目的 MAC<select id="q4Mac" aria-label="路由器出口目的 MAC"><option value="">请选择</option><option value="A">发送主机 A</option><option value="G1">入口网关 G1</option><option value="B">接收主机 B</option></select></label>
+    <label>无 NAT 时端到端源/目的 IP<select id="q4Ip" aria-label="端到端 IP 地址变化"><option value="">请选择</option><option value="same">地址保持原值，TTL 减少</option><option value="replace">都替换成路由器地址</option><option value="none">去除且不再添加 IP 头</option></select></label></div>
+  <button class="btn btn--primary" id="btnSubmitQ4" type="button">提交计算与判断</button><p class="match-fb" id="q4Fb" role="status" aria-live="polite"></p>
+  <p class="practice-note">逐项部分计分。不要把 1500 byte MTU 直接当作所有帧的总长度，也不要把物理信号当作一个额外协议头。</p>
+</div>
+<div class="task" style="margin-top:var(--s-16)"><div class="task-head"><span class="task-id">Q5 · TRANSFER</span><h3 class="task-title">迁移：能 ping 通，为何仍不能访问网页？</h3></div>
+  <p class="task-lead">主机能 ping 通服务器 IP，浏览器却打不开该域名的网页。提出至少两个位于不同职责范围的合理假设，并为每个假设给一个能帮助区分它的检查。说明 ping 通本身还不能保证什么。</p>
+  <textarea id="osiExplanation" aria-label="排错推理说明" placeholder="例如先写观察证据，再写假设与具体检查，并指出检查的局限。"></textarea>
+  <button class="btn btn--primary" id="btnSubmitExplanation" type="button">提交推理，待语义评估</button><p class="match-fb" id="explanationFb" role="status" aria-live="polite"></p>
+  <p class="practice-note">页面保存完整原文并提交作答；宿主需判断假设、检查与证据是否匹配。字数、某个关键词或层号出现不能证明推理正确。</p>
+</div>
 
       <!-- 提示阶梯 -->
       <div class="ladder">
@@ -698,18 +738,13 @@ button,input,textarea{font:inherit;color:inherit}
         </div>
       </div>
 
-      <!-- 后置验证 -->
-      <div class="verify" id="verify" hidden>
-        <div class="micro micro--accent">POST-VERIFICATION · 后置验证（完整答案后必做）</div>
-        <p class="task-lead" style="margin-top:var(--s-4)">你已经看过完整答案。要证明你理解的是<b>原理</b>而不是这一段文字，请回答下面这个问题——这是本次任务结束的唯一条件。</p>
-        <p style="margin-top:var(--s-4);font-size:13.5px;font-weight:600">如果一台设备只认识 MAC 地址、完全不认识 IP 地址，它最可能工作在 OSI 的哪一层？为什么？</p>
-        <textarea id="verifyInput" aria-label="后置验证作答" placeholder="用一两句话说清「哪一层」以及「为什么」即可。"></textarea>
-        <div class="btn-row" style="margin-top:var(--s-4)">
-          <button class="btn btn--primary" id="btnVerify" type="button">提交自我解释</button>
-        </div>
-        <div class="match-fb" id="verifyFb" role="status" aria-live="polite"></div>
-      </div>
 
+<div class="verify" id="verify" hidden><div class="micro micro--accent">POST-VERIFICATION · 看完答案后的新题</div>
+  <p class="task-lead">后置验证：某设备仅按目的 MAC 转发以太网帧，不进行 IP 路由。选出该功能的层级及直接依据；两项都正确才结束这项验证。</p>
+  <div class="field-grid"><label>该功能属于<select id="verifyInput" aria-label="后置验证层级"><option value="">请选择</option><option value="1">L1 物理</option><option value="2">L2 数据链路</option><option value="3">L3 网络</option><option value="4">L4 传输</option></select></label>
+    <label>直接依据<select id="verifyWhy" aria-label="后置验证依据"><option value="">请选择</option><option value="mac">按 MAC 处理链路帧</option><option value="ip">按 IP 路由跨网数据报</option><option value="port">按端口交付通信端点</option></select></label></div>
+  <button class="btn btn--primary" id="btnVerify" type="button">提交变式验证</button><div class="match-fb" id="verifyFb" role="status" aria-live="polite"></div>
+</div>
       <!-- 证据轨 -->
       <div class="rail">
         <div class="rail-head">
@@ -757,944 +792,261 @@ button,input,textarea{font:inherit;color:inherit}
     </div>
   </section>
 
-  <p class="foot">
-    LEAP‑V2 分学科前端示例 · 示例 3（计算机基础 / OSI 七层模型）　·　node_id <code>cs.network.osi_model</code>　·　unit_tag <code>osi-model</code><br>
-    单文件零依赖 · 零 CDN · 零外部图片 · 全部图形为内联 SVG / DOM 绘制　·　结构规范见 <code>examples/_shared/leap-web-spec.md</code>，视觉规范见 <code>LEAP_视觉设计理念_给Gemini.md</code>
-  </p>
-</main>
-
-<script>
-/* ══════════════════════════════════════════════════════════════
-   LEAP Runtime 交互结果内核（JSON 契约 · 证据轨 · 评分聚合）
-   契约来源：examples/_shared/interaction-output.schema.json
-   ══════════════════════════════════════════════════════════════ */
-window.LEAP = (function () {
+<p class="foot">LEAP 示例 3 · OSI 七层模型 · node_id <code>cs.network.osi_model</code> · unit_tag <code>osi-model</code><br>单文件离线运行 · 教学知识稿见本目录 knowledge.md · 参考模型与受控两跳示例，不是实际抓包模拟器。</p></main><script>/* LEAP_HOST_BRIDGE v3: embed this kernel inline in standalone pages.
+ * Runtime receipts own evidence and completion; local exact checks own feedback.
+ */
+function createLeapBridge(config) {
   "use strict";
-
-  var state = {
-    leap_version: "2.0",
-    example_id: "osi-model",
-    subject: "computer-science",
-    node: { node_id: "cs.network.osi_model", title: "OSI 七层模型", unit_tag: "osi-model" },
-    learner: { learner_id: "REPLACE_WITH_LEARNER_ID", session_id: "REPLACE_WITH_SESSION_ID" },
-    events: [],
-    assessment: blankAssessment(),
-    ui_state: {
-      mode: "demo", hosted: false, pending_mcp_calls: 0,
-      hint_dependency: 0, hint_level: 0, answer_revealed: false, completed: false
-    }
-  };
-
-  var mastery = 0.48;                       /* 本地模拟值 */
   var HINT_DEP = [0, 0.25, 0.40, 0.60, 0.85];
-  var STAGE_ORDER = ["estimated", "practiced", "demonstrated", "retained", "transferred"];
-  var EVENT_COLOR = {
-    attempt_submitted: "#4C7BD9",
-    hint_used: "#B3861A",
-    answer_revealed: "#7A7F8A",
-    drag_submitted: "#4C7BD9",
-    code_run: "#2E8B84",
-    reflection_recorded: "#4C8B3F",
-    item_completed: "#2E7D5B"
-  };
-
-  /* ══ LEAP_HOST_BRIDGE · 宿主桥接 ══════════════════════════════════
-     本页只负责「呈现 + 采集」，不做任何状态判定：
-       · mastery_probability / evidence_stage / hint_dependency 由 LEAP Runtime
-         计算（LEAP_Framework_V2 §10.2‑1），本页只显示 hydrate() 注入的值；
-       · 学习者的每个动作都会被翻译成一条待执行的 MCP 调用，进入 outbox，
-         由宿主 Agent 通过 LEAP.drainOutbox() 取走后真正执行。
-     未调用 hydrate() 时保持 demo 模式，未确认的评估标记 provisional；掌握度和证据阶段不在本地推算。 */
+  var STAGE_CN = {estimated:"仅估计",practiced:"练习过",demonstrated:"独立展示",retained:"延迟保持",transferred:"已迁移"};
   var bridge = {
-    mode: "demo",
-    context: null,
-    server: {
-      mastery_probability: mastery,
-      evidence_stage: "estimated",
-      hint_dependency: 0,
-      next_review_at: null,
-      transfer_required: false
-    },
+    mode: "demo", context: null, server: {mastery_probability:null,evidence_stage:"estimated",hint_dependency:null,next_review_at:null},
     outbox: [],
-    seq: 0,
-    hooks: [],
-    last_attempt_call_id: null,
-    last_raw_answer: ""
+    seq: 0, hooks: [], attempts: {}, ledger: {}, receipts: {}, origins: {}, latestAssessmentCall: null
   };
-
-  function clamp01(v) { return Math.max(0, Math.min(1, Number(v))); }
-  function isHosted() { return bridge.mode === "hosted"; }
-  function peekOutbox() { return clone(bridge.outbox); }
-  function drainOutbox() { var out = clone(bridge.outbox); bridge.outbox.length = 0; renderAll(); return out; }
-  function onOutboxChange(fn) { if (typeof fn === "function") bridge.hooks.push(fn); }
-
-  function enqueue(tool, args, note) {
-    var call = {
-      call_id: "call_" + (++bridge.seq),
-      tool: tool,
-      args: args || {},
-      status: "pending",
-      created_at: nowSec(),
-      note: note || ""
-    };
-    bridge.outbox.push(call);
-    for (var i = 0; i < bridge.hooks.length; i++) { try { bridge.hooks[i](call, bridge.outbox.length); } catch (e) {} }
-    return call;
-  }
-
-  /* 事件 → MCP 调用映射。hint_used / answer_revealed 不单独
-     产生调用：它们的信息通过后续 attempt 的 hint_level 一并提交。 */
-  var EVENT_TO_TOOL = {
-    attempt_submitted: "submit_attempt",
-    drag_submitted: "submit_attempt",
-    code_run: "submit_attempt",
-    reflection_recorded: "record_reflection"
+  var state = {
+    leap_version: "2.0", example_id: config.example_id, subject: config.subject,
+    node: config.node, learner: {learner_id:"REPLACE_WITH_LEARNER_ID",session_id:"REPLACE_WITH_SESSION_ID"},
+    events: [], assessment: blankAssessment(),
+    ui_state: {mode:"demo",hosted:false,pending_mcp_calls:0,hint_level:0,hint_dependency:null,
+      answer_revealed:false,completed:false,local_activity_completed:false}
   };
-
-  function enqueueForEvent(ev) {
-    if (ev.event_type === "item_completed") {
-      enqueue("check_advance_unit", { session_id: state.learner.session_id,
-        node_id: state.node.node_id }, "Local activity finished; Runtime guard must approve advancement");
-      return;
-    }
-
-    var tool = EVENT_TO_TOOL[ev.event_type];
-    if (!tool) return null;
-    var raw = ev.answer == null ? "" : String(ev.answer);
-
-    if (tool === "submit_attempt") {
-      bridge.last_raw_answer = raw;
-      var call = enqueue("submit_attempt", {
-        session_id: state.learner.session_id,
-        answer: raw,
-        node_id: state.node.node_id,
-        item_id: ev.item_id || null,
-        hint_level: typeof ev.hint_level === "number" ? ev.hint_level : state.ui_state.hint_level,
-        response_time: typeof ev.response_time === "number" ? ev.response_time : null
-      }, "提交本次作答；返回的 attempt_id 供 commit_assessment 使用");
-      bridge.last_attempt_call_id = call.call_id;
-      return call;
-    }
-    return enqueue("record_reflection", {
-      session_id: state.learner.session_id,
-      reflection: raw,
-      node_id: state.node.node_id
-    }, "保存反思");
-  }
-
-  /* 宿主注入：直接吃 get_teaching_context 的返回值 */
-  function hydrate(ctx) {
-    if (!ctx || typeof ctx !== "object") { throw new TypeError("LEAP.hydrate(context) 需要一个对象参数"); }
-    bridge.context = clone(ctx);
-    bridge.mode = "hosted";
-
-    var sess = ctx.session || {};
-    var node = ctx.current_node || ctx.node || {};
-    var ks = ctx.knowledge_state || {};
-
-    var learnerId = ctx.learner_id || sess.learner_id;
-    var sessionId = ctx.session_id || sess.session_id;
-    if (learnerId) state.learner.learner_id = learnerId;
-    if (sessionId) state.learner.session_id = sessionId;
-    if (node.node_id) state.node.node_id = node.node_id;
-    if (node.title) state.node.title = node.title;
-    if (node.unit_tag) state.node.unit_tag = node.unit_tag;
-
-    if (typeof ks.mastery_probability === "number") {
-      bridge.server.mastery_probability = clamp01(ks.mastery_probability);
-      mastery = bridge.server.mastery_probability;
-    }
-    if (ks.evidence_stage) {
-      bridge.server.evidence_stage = ks.evidence_stage;
-      state.assessment.evidence_stage = ks.evidence_stage;
-    }
-    if (typeof ks.hint_dependency === "number") {
-      bridge.server.hint_dependency = clamp01(ks.hint_dependency);
-      state.ui_state.hint_dependency = bridge.server.hint_dependency;
-    }
-    if (ks.next_review_at) bridge.server.next_review_at = ks.next_review_at;
-    if (typeof ctx.transfer_requirement === "boolean") bridge.server.transfer_required = ctx.transfer_requirement;
-
-    bridge.available_actions = ctx.recommended_actions || [];
-    bridge.recommended_strategy = ctx.recommended_strategy || "";
-    bridge.due_reviews = ctx.due_reviews || [];
-
-    renderAll();
-    return snapshot();
-  }
-
-  function toggleOutboxView() {
-    var pre = document.getElementById("bridgeOutbox");
-    var btn = document.getElementById("bridgeDrain");
-    if (!pre) return;
-    var opening = pre.hidden;
-    pre.hidden = !opening;
-    if (btn) btn.textContent = opening ? "收起调用队列 ▴" : "取出调用队列 ▾";
-    if (opening) {
-      var calls = peekOutbox();
-      pre.textContent = calls.length
-        ? JSON.stringify(calls, null, 2)
-        : "（队列为空：尚无需要提交给 LEAP Runtime 的调用）";
-    }
-  }
-
-  var drainWired = false;
-  function renderBridge() {
-    var modeEl = document.getElementById("bridgeMode");
-    var sumEl = document.getElementById("bridgeSummary");
-    var noteEl = document.getElementById("spineNote");
-    var n = bridge.outbox.length;
-
-    if (modeEl) modeEl.textContent = "BRIDGE · " + (isHosted() ? "已接入宿主" : "演示模式");
-    if (sumEl) {
-      sumEl.textContent = isHosted()
-        ? "已注入 Runtime 上下文（" + state.node.node_id + "）；待执行的 MCP 调用 " + n + " 条。"
-        : "未接入宿主 Agent；学习动作会累积为待执行的 MCP 调用（当前 " + n + " 条）。";
-    }
-    if (noteEl) {
-      noteEl.innerHTML = isHosted()
-        ? "本页状态由 <b>LEAP Runtime</b> 注入（<code>LEAP.hydrate()</code>）；掌握度与证据阶段由服务端 BKT 与 State Guard 计算，本页不自行推算。"
-        : "本页尚未连接 Runtime；掌握度与证据阶段保持初始占位值，作答评分仅为待核验反馈。";
-    }
-
-    var btn = document.getElementById("bridgeDrain");
-    if (btn && !drainWired) { drainWired = true; btn.addEventListener("click", toggleOutboxView); }
-    if (btn && !n) { btn.disabled = true; } else if (btn) { btn.disabled = false; }
-  }
-
-  function blankAssessment() {
-    return {
-      item_id: "", correctness: 0, conceptual_understanding: 0, reasoning_quality: 0,
-      application: 0, transfer: 0, hint_dependency: 0, confidence: 0, overall_score: 0,
-      error_type: "none", misconception: "", feedback: "",
-      evidence_stage: "estimated", assessor_type: "rule", provisional: true
-    };
-  }
+  var renderHooks = [], drainWired = false;
   function nowSec() { return Math.floor(Date.now() / 1000); }
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
-
-  /* overall_score：correctness .4 / conceptual .3 / reasoning .2 / application .1
-     缺失维度自动归一化；transfer 与 hint_dependency 不参与聚合 */
+  function isHosted() { return bridge.mode === "hosted"; }
+  function blankAssessment() { return {item_id:"",correctness:null,conceptual_understanding:null,reasoning_quality:null,
+    application:null,transfer:null,hint_dependency:null,confidence:null,overall_score:null,error_type:"none",
+    misconception:"",feedback:"尚未评估",evidence_stage:"estimated",assessor_type:"rule",provisional:true}; }
   function aggregate(d) {
-    var w = { correctness: 0.4, conceptual_understanding: 0.3, reasoning_quality: 0.2, application: 0.1 };
-    var sum = 0, tw = 0, k;
-    for (k in w) {
-      if (typeof d[k] === "number" && isFinite(d[k])) { sum += d[k] * w[k]; tw += w[k]; }
-    }
-    return tw ? Math.round((sum / tw) * 100) / 100 : 0;
+    var weights = {correctness:0.4,conceptual_understanding:0.3,reasoning_quality:0.2,application:0.1}, sum=0,total=0;
+    Object.keys(weights).forEach(function(k) {if(typeof d[k]==="number" && Number.isFinite(d[k])) {sum+=d[k]*weights[k];total+=weights[k];}});
+    return total ? Math.round(sum/total*100)/100 : null;
   }
-
-  function pushEvent(event_type, payload) {
-    var ev = { event_type: event_type };
-    if (payload) { for (var k in payload) { if (Object.prototype.hasOwnProperty.call(payload, k)) ev[k] = payload[k]; } }
-    ev.created_at = nowSec();
-    state.events.push(ev);
-    enqueueForEvent(ev);
-    renderAll();
-    return ev;
+  function enqueue(tool,args,note) {
+    var call = {call_id:"call_"+(++bridge.seq),tool:tool,args:args||{},status:"pending",created_at:nowSec(),note:note||""};
+    bridge.outbox.push(call); bridge.ledger[call.call_id]=clone(call);
+    bridge.origins[call.call_id]={session_id:state.learner.session_id,node_id:state.node.node_id};
+    bridge.hooks.forEach(function(fn) {fn(clone(call),bridge.outbox.length);});
+    return call;
   }
-
-  function setHint(level) {
-    if (level > state.ui_state.hint_level) state.ui_state.hint_level = level;
-    if (level === 4) state.ui_state.answer_revealed = true;
-    state.ui_state.hint_dependency = HINT_DEP[Math.min(state.ui_state.hint_level, 4)];
-    renderAll();
-  }
-
-  function commitAssessment(item) {
-    var dep = HINT_DEP[Math.min(state.ui_state.hint_level, 4)];
-    var a = {
-      item_id: item.item_id,
-      correctness: r2(item.correctness),
-      conceptual_understanding: r2(item.conceptual_understanding),
-      reasoning_quality: r2(item.reasoning_quality),
-      application: r2(item.application),
-      transfer: r2(item.transfer || 0),
-      hint_dependency: r2(dep),
-      confidence: 0,
-      overall_score: 0,
-      error_type: item.error_type || "none",
-      misconception: item.misconception || "",
-      feedback: item.feedback || "",
-      evidence_stage: "practiced",
-      assessor_type: item.assessor_type || "rule"
-    };
-    a.overall_score = aggregate(a);
-
-    /* Evidence stage and mastery are exclusively Runtime state, even in demo. */
-    a.evidence_stage = bridge.server.evidence_stage;
-    a.provisional = true; // this new assessment has not been committed by Runtime
-    state.assessment = a;
-    state.ui_state.hint_dependency = a.hint_dependency;
-
-    /* 评估证据必须回传 Runtime：raw_answer 不可丢弃（§22.8）。 */
-    enqueue("commit_assessment", {
-      attempt_id: bridge.last_attempt_call_id
-        ? "{{" + bridge.last_attempt_call_id + ".attempt_id}}" : "{{attempt_id}}",
-      raw_answer: bridge.last_raw_answer,
-      assessor_type: a.assessor_type,
-      correctness: a.correctness,
-      conceptual_understanding: a.conceptual_understanding,
-      reasoning_quality: a.reasoning_quality,
-      application: a.application,
-      transfer: a.transfer,
-      hint_dependency: a.hint_dependency,
-      confidence: a.confidence
-    }, "提交评估证据；attempt_id 由上一条 submit_attempt 的返回值填充，mastery 由 Runtime 计算");
-    renderAll();
-    return a;
-  }
-
-  function r2(v) { return Math.round((v || 0) * 100) / 100; }
-
-  function setCompleted(itemId, reason) {
-    state.ui_state.completed = true;
-    pushEvent("item_completed", { item_id: itemId, reason: reason || "verified" });
-  }
-
-  /* ── 渲染 ─────────────────────────────────────────────── */
-  var renderHooks = [];
-  function onRender(fn) { renderHooks.push(fn); fn(); }
-  function renderAll() {
-    renderOutput(); renderSpine(); renderRail(); renderBridge();
-    for (var i = 0; i < renderHooks.length; i++) { try { renderHooks[i](); } catch (e) { /* 单个面板失败不影响契约输出 */ } }
-  }
-
-
-
-  function renderOutput() {
-    var el = document.getElementById("leap-interaction-output");
-    if (el) el.textContent = JSON.stringify(snapshot(), null, 2);
-    var sum = document.getElementById("consoleSummary");
-    if (sum) {
-      var last = state.events.length ? state.events[state.events.length - 1].event_type : null;
-      sum.textContent = "AGENT OUTPUT · 已记录 " + state.events.length + " 条事件" +
-        (last ? " · 最近 " + last : "") + (state.ui_state.completed ? " · 本节点已完成" : "");
-    }
-  }
-
-  function renderSpine() {
-    var cur = state.assessment.evidence_stage;
-    var idx = Math.max(0, STAGE_ORDER.indexOf(cur));
-    var segs = document.querySelectorAll("#evTrack .ev-seg");
-    for (var i = 0; i < segs.length; i++) {
-      if (i <= idx) { segs[i].classList.add("is-on"); } else { segs[i].classList.remove("is-on"); }
-    }
-    var nameEl = document.getElementById("evName");
-    if (nameEl) {
-      nameEl.textContent = cur + " · " + STAGE_CN[cur];
-      nameEl.style.color = "var(--ev-" + cur + ")";
-    }
-    var fill = document.getElementById("masFill");
-    if (fill) fill.style.width = Math.round(mastery * 100) + "%";
-    var val = document.getElementById("masVal");
-    if (val) val.textContent = mastery.toFixed(2);
-    var note = document.getElementById("ladderNote");
-    if (note) {
-      note.textContent = "阶梯高度 = 支持强度。已用层级越高，hint_dependency 越高；本节点当前 " +
-        HINT_DEP[Math.min(state.ui_state.hint_level, 4)].toFixed(2) + "。";
-    }
-  }
-
-  var STAGE_CN = {
-    estimated: "仅估计", practiced: "练习过", demonstrated: "独立展示",
-    retained: "延迟保持", transferred: "已迁移"
-  };
-
-  function renderRail() {
-    var host = document.getElementById("railDots");
-    if (!host) return;
-    var n = state.events.length;
-    host.innerHTML = "";
-    if (!n) return;
-    var gap = n === 1 ? 0 : 1120 / (n + 1);
-    /* 使用百分比定位，随容器宽度自适应 */
-    for (var i = 0; i < n; i++) {
-      var d = document.createElement("span");
-      var isLast = (i === n - 1);
-      d.className = "rail-dot" + (isLast ? " rail-dot--last" : "");
-      var pct = n === 1 ? 50 : ((i + 1) / (n + 1)) * 100;
-      d.style.left = pct + "%";
-      d.style.background = EVENT_COLOR[state.events[i].event_type] || "#9AA1AD";
-      d.title = state.events[i].event_type;
-      host.appendChild(d);
-    }
-    var cnt = document.getElementById("railCount");
-    if (cnt) cnt.textContent = "已产生 " + n + " 条事件（只追加，不覆盖）";
-    var last = document.getElementById("railLast");
-    if (last) {
-      var e = state.events[n - 1];
-      last.textContent = "最近：" + e.event_type + (e.item_id ? " · " + e.item_id : "") +
-        " · hint_level " + state.ui_state.hint_level + " · " + fmtTime(e.created_at);
-    }
-  }
-  function fmtTime(t) {
-    var d = new Date(t * 1000);
-    return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2) + ":" + ("0" + d.getSeconds()).slice(-2);
-  }
-
-  /* ── 对外接口 ─────────────────────────────────────────── */
-  function snapshot() {
-    var out = clone(state);
-    out.ui_state.mode = bridge.mode;
-    out.ui_state.hosted = isHosted();
-    out.ui_state.pending_mcp_calls = bridge.outbox.length;
-    out.outbox = clone(bridge.outbox);
-    return out;
-  }
-  function getInteractionResult() { return snapshot(); }
-  function getState() { return state; }
-  function getMastery() { return mastery; }
-
-  return {
-    /* ── 输入：宿主 Agent 注入 Runtime 上下文 ── */
-    hydrate: hydrate,
-    isHosted: isHosted,
-    /* ── 输出：契约对象 ── */
-    getInteractionResult: getInteractionResult,
-    /* ── 输出：待执行的 MCP 调用队列 ── */
-    peekOutbox: peekOutbox,
-    drainOutbox: drainOutbox,
-    onOutboxChange: onOutboxChange,
-    pushEvent: pushEvent,
-    setHint: setHint,
-    commitAssessment: commitAssessment,
-    setCompleted: setCompleted,
-    aggregate: aggregate,
-    getState: getState,
-    getMastery: getMastery,
-    onRender: onRender,
-    refresh: renderAll,
-    HINT_DEP: HINT_DEP,
-    STAGE_CN: STAGE_CN
-  };
-})();
-
-/* ══════════════════════════════════════════════════════════════
-   页面交互
-   ══════════════════════════════════════════════════════════════ */
-(function () {
-  "use strict";
-  var $ = function (id) { return document.getElementById(id); };
-  var S = window.LEAP.getState();
-  var NS = "http://www.w3.org/2000/svg";
-
-  /* ── 七层数据 ─────────────────────────────────────────── */
-  var LAYERS = [
-    { n: 7, name: "应用层", en: "Application", desc: "为应用程序提供网络服务接口（如浏览器用 HTTP 取网页）。它不关心数据如何送达，只定义「能做什么」。" },
-    { n: 6, name: "表示层", en: "Presentation", desc: "负责数据格式转换、加密解密、压缩。让应用层不必操心对端用什么编码。" },
-    { n: 5, name: "会话层", en: "Session", desc: "建立、管理和终止会话（如一次登录后的持续连接）。现代实现中常并入应用层。" },
-    { n: 4, name: "传输层", en: "Transport", desc: "提供端到端通信：TCP 负责可靠传输、流量控制、端口复用；UDP 负责低延迟的不可靠传输。" },
-    { n: 3, name: "网络层", en: "Network", desc: "负责逻辑寻址与路由，把包从源主机送到目的主机。IP 给出逻辑地址，路由器据此在不同网络间转发。" },
-    { n: 2, name: "数据链路层", en: "Data Link", desc: "把 IP 包封装成帧，用 MAC 地址在一段链路（同一广播域）内点对点传输。交换机工作在此层。" },
-    { n: 1, name: "物理层", en: "Physical", desc: "定义电气、机械、时序规范，把帧变成 0/1 比特流在介质上传输。网卡、双绞线、光纤在此层。" }
-  ];
-  var LAYER_NAME = { 7: "应用层", 6: "表示层", 5: "会话层", 4: "传输层", 3: "网络层", 2: "数据链路层", 1: "物理层" };
-
-  /* ── 通用：构建七层 SVG ───────────────────────────────── */
-  function buildOsiSvg(svg, opts) {
-    var W = 180, h = 30, gap = 6, x = 10;
-    var total = LAYERS.length * (h + gap);
-    svg.setAttribute("viewBox", "0 0 " + (W + 20) + " " + total);
-    LAYERS.forEach(function (L, i) {
-      var y = i * (h + gap);
-      var g = document.createElementNS(NS, "g");
-      g.setAttribute("class", "osi-layer");
-      g.setAttribute("data-n", L.n);
-      g.setAttribute("tabindex", "0");
-      g.setAttribute("role", "button");
-      g.setAttribute("aria-expanded", "false");
-      g.setAttribute("aria-label", "第 " + L.n + " 层 " + L.name + "，点击展开职责");
-      var rect = document.createElementNS(NS, "rect");
-      rect.setAttribute("x", x); rect.setAttribute("y", y);
-      rect.setAttribute("width", W); rect.setAttribute("height", h);
-      rect.setAttribute("rx", "6");
-      g.appendChild(rect);
-      var num = document.createElementNS(NS, "text");
-      num.setAttribute("x", x + 12); num.setAttribute("y", y + h / 2 + 4);
-      num.setAttribute("class", "osi-num"); num.textContent = "L" + L.n;
-      g.appendChild(num);
-      var name = document.createElementNS(NS, "text");
-      name.setAttribute("x", x + 40); name.setAttribute("y", y + h / 2 + 4);
-      name.setAttribute("class", "osi-name"); name.textContent = L.name;
-      g.appendChild(name);
-      g.addEventListener("click", function () { opts.onPick(L, g); });
-      g.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); opts.onPick(L, g); }
-      });
-      svg.appendChild(g);
-    });
-  }
-  function clearOsiOn(svg) {
-    Array.prototype.forEach.call(svg.querySelectorAll(".osi-layer"), function (g) {
-      g.setAttribute("data-on", "0"); g.setAttribute("aria-expanded", "false");
-    });
-  }
-
-  /* ── 1. Zone 01 教学图 ────────────────────────────────── */
-  (function teachFig() {
-    var svg = $("osiTeach"), info = $("osiTeachInfo");
-    buildOsiSvg(svg, {
-      onPick: function (L, g) {
-        clearOsiOn(svg);
-        g.setAttribute("data-on", "1"); g.setAttribute("aria-expanded", "true");
-        info.innerHTML = '<span class="micro micro--accent">第 ' + L.n + ' 层 · ' + L.name +
-          '（' + L.en + '）</span><p style="margin-top:6px">' + L.desc + '</p>';
-      }
-    });
-  })();
-
-  /* ── 2. Stage 七层可视化 ──────────────────────────────── */
-  (function stageFig() {
-    var svg = $("osiStage"), info = $("osiStageInfo");
-    buildOsiSvg(svg, {
-      onPick: function (L, g) {
-        clearOsiOn(svg);
-        g.setAttribute("data-on", "1"); g.setAttribute("aria-expanded", "true");
-        info.innerHTML = '<b>第 ' + L.n + ' 层 · ' + L.name + '</b><br>' + L.desc;
-      }
-    });
-  })();
-
-  /* ── 3. 理解检查 ──────────────────────────────────────── */
-  (function checkpoint() {
-    var opts = document.querySelectorAll("#cp .opt");
-    var fb = $("cpFb");
-    var done = false;
-    Array.prototype.forEach.call(opts, function (b) {
-      b.addEventListener("click", function () {
-        Array.prototype.forEach.call(opts, function (x) { x.setAttribute("aria-pressed", "false"); });
-        b.setAttribute("aria-pressed", "true");
-        var ok = b.dataset.v === "ok";
-        fb.innerHTML = (ok ? "<b>正确。</b> " : "<b>再想一想。</b> ") + b.dataset.why;
-        fb.classList.add("is-on");
-        if (!done) {
-          done = true;
-          window.LEAP.pushEvent("attempt_submitted", {
-            item_id: "cp-01", answer: b.textContent.trim(), hint_level: 0,
-            response_time: 0, attempt_index: 1, predicted_performance: null,
-            error_type: ok ? "none" : "misconception"
-          });
-        }
-      });
-    });
-  })();
-
-  /* ── 4. Q1 拖拽匹配 ───────────────────────────────────── */
-  var MATCH_CHIPS = [
-    { id: "http", name: "HTTP", layer: 7, extra: "它定义 Web 请求语义，不负责可靠传输。" },
-    { id: "dns", name: "DNS", layer: 7, extra: "把域名解析为 IP，属于应用层服务。" },
-    { id: "tcp", name: "TCP", layer: 4, extra: "负责端到端可靠传输与端口复用。" },
-    { id: "ip", name: "IP", layer: 3, extra: "负责逻辑寻址与路由。" },
-    { id: "router", name: "路由器", layer: 3, extra: "依据 IP 地址在不同网络间转发。" },
-    { id: "eth", name: "以太网", layer: 2, extra: "定义局域网帧格式与 MAC 寻址。" },
-    { id: "switch", name: "交换机", layer: 2, extra: "基于 MAC 地址在二层转发帧。" },
-    { id: "nic", name: "网卡", layer: 1, extra: "把帧变成比特流送上介质。" }
-  ];
-  var slotHost = $("slots"), chipHost = $("chips");
-  var selectedChip = null;
-
-  function buildMatch() {
-    slotHost.innerHTML = ""; chipHost.innerHTML = "";
-    LAYERS.slice().reverse().forEach(function (L) {
-      var d = document.createElement("div");
-      d.className = "slot"; d.dataset.layer = L.n;
-      d.setAttribute("role", "button");
-      d.setAttribute("tabindex", "0");
-      d.setAttribute("aria-label", "目标层：第 " + L.n + " 层 " + L.name);
-      d.innerHTML = '<span class="slot-label">第 ' + L.n + ' 层 · ' + L.name + '</span>';
-      d.addEventListener("dragover", function (e) { e.preventDefault(); d.classList.add("is-over"); });
-      d.addEventListener("dragleave", function () { d.classList.remove("is-over"); });
-      d.addEventListener("drop", function (e) {
-        e.preventDefault(); d.classList.remove("is-over");
-        var id = e.dataTransfer.getData("text/plain");
-        placeChip(id, L.n);
-      });
-      d.addEventListener("click", function () { if (selectedChip) placeChip(selectedChip, L.n); });
-      d.addEventListener("keydown", function (e) {
-        if ((e.key === "Enter" || e.key === " ") && selectedChip) { e.preventDefault(); placeChip(selectedChip, L.n); }
-      });
-      slotHost.appendChild(d);
-    });
-    shuffle(MATCH_CHIPS.slice()).forEach(function (c) {
-      var b = document.createElement("button");
-      b.type = "button"; b.className = "chip"; b.draggable = true;
-      b.dataset.chip = c.id; b.dataset.layer = c.layer; b.textContent = c.name;
-      b.setAttribute("aria-label", "可拖拽：" + c.name + "（归第 " + c.layer + " 层）");
-      b.addEventListener("dragstart", function (e) { e.dataTransfer.setData("text/plain", c.id); b.classList.add("is-drag"); });
-      b.addEventListener("dragend", function () { b.classList.remove("is-drag"); });
-      b.addEventListener("click", function () {
-        if (b.dataset.state === "ok") return;
-        if (selectedChip === c.id) { selectedChip = null; b.classList.remove("is-sel"); return; }
-        Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (x) { x.classList.remove("is-sel"); });
-        selectedChip = c.id; b.classList.add("is-sel");
-      });
-      chipHost.appendChild(b);
-    });
-  }
-  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-
-  function placeChip(chipId, layer) {
-    var chip = chipHost.querySelector('.chip[data-chip="' + chipId + '"]');
-    var slot = slotHost.querySelector('.slot[data-layer="' + layer + '"]');
-    if (!chip || !slot) return;
-    slot.appendChild(chip);
-    chip.classList.remove("is-sel", "is-drag");
-    chip.dataset.state = "";
-    slot.dataset.state = "";
-    selectedChip = null;
-  }
-  function clearStates() {
-    Array.prototype.forEach.call(document.querySelectorAll(".slot"), function (s) { s.dataset.state = ""; });
-    Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (c) { c.dataset.state = ""; });
-  }
-  $("btnClearQ1").addEventListener("click", function () {
-    Array.prototype.forEach.call(document.querySelectorAll(".slot .chip"), function (c) { chipHost.appendChild(c); });
-    clearStates(); $("q1Fb").classList.remove("is-on");
-  });
-
-  var q1Tried = 0;
-  $("btnSubmitQ1").addEventListener("click", function () {
-    var total = MATCH_CHIPS.length, placed = 0, correct = 0, firstWrong = null;
-    Array.prototype.forEach.call(slotHost.querySelectorAll(".slot"), function (slot) {
-      var ln = parseInt(slot.dataset.layer, 10);
-      Array.prototype.forEach.call(slot.querySelectorAll(".chip"), function (chip) {
-        placed++;
-        if (parseInt(chip.dataset.layer, 10) === ln) {
-          correct++; chip.dataset.state = "ok"; slot.dataset.state = "ok";
-        } else {
-          chip.dataset.state = "bad"; slot.dataset.state = "bad";
-          if (!firstWrong) firstWrong = { chip: chip.dataset.chip, got: ln };
-        }
-      });
-    });
-    var el = $("q1Fb");
-    if (placed < total) {
-      el.innerHTML = "还有 " + (total - placed) + " 张卡片没放进去。全部放好后再提交。";
-      el.style.color = "var(--warn)"; el.classList.add("is-on"); return;
-    }
-    q1Tried++;
-    var correctness = correct / total;
-    var ok = correct === total;
-    var why = "";
-    if (!ok && firstWrong) {
-      var chipDef = MATCH_CHIPS.filter(function (c) { return c.id === firstWrong.chip; })[0];
-      var realLayer = chipDef.layer, realName = LAYER_NAME[realLayer];
-      var gotName = LAYER_NAME[firstWrong.got];
-      why = "第一处错误：" + chipDef.name + " 属于第 " + realLayer + " 层" + realName +
-        "，不是第 " + firstWrong.got + " 层" + gotName + "；" + chipDef.extra;
-    }
-    var errType = ok ? "none" : (correct >= total - 2 ? "answer_error" : "misconception");
-    var misconception = (!ok && correct <= 2) ? "把「交换机 / 路由器」的层级混淆，或误以为协议可随意归层" : "";
-    var f1 = ok ? "八张卡片全部归位正确。" : "你放对了 " + correct + "/" + total + " 张。";
-    var f2 = ok ? "没有发现错误。" : why;
-    var f3 = ok ? "下一步：打开 Q2，看数据在这些层之间是如何被一层层「打包」与「拆包」的。"
-      : "重排口诀：<b>上三层管应用（HTTP/DNS）→ 传输层管端到端（TCP）→ 网络层管路由（IP/路由器）→ 下两层管介质（以太网/交换机/网卡）</b>。";
-    el.innerHTML = "<b>" + f1 + "</b>　" + f2;
-    el.style.color = ok ? "var(--ok)" : "var(--ink-2)";
-    el.classList.add("is-on");
-    setFeedback(errType, f1, f2, f3, !ok);
-    window.LEAP.pushEvent("drag_submitted", {
-      item_id: "q1", answer: "correct " + correct + "/" + total,
-      hint_level: S.ui_state.hint_level, response_time: 0, attempt_index: q1Tried,
-      predicted_performance: null, error_type: errType
-    });
-    window.LEAP.commitAssessment({
-      item_id: "q1", correctness: correctness,
-      conceptual_understanding: ok ? 1 : (correct / total) * 0.8 + 0.1,
-      reasoning_quality: ok ? 1 : 0.5, application: ok ? 1 : correctness,
-      transfer: 0, error_type: errType, misconception: misconception,
-      feedback: f1 + " " + (why || ""), assessor_type: "rule"
-    });
-    if (ok && !S.ui_state.answer_revealed) window.LEAP.setCompleted("q1", "matched_without_reveal");
-  });
-  buildMatch();
-
-  /* ── 5. Q2 封装 / 解封装动画 ──────────────────────────── */
-  var ENC_ROWS = [7, 6, 5, 4, 3, 2, 1];
-  (function buildEncRows() {
-    var host = $("encRows");
-    ENC_ROWS.forEach(function (n) {
-      var r = document.createElement("div");
-      r.className = "enc-row"; r.dataset.n = n;
-      r.innerHTML = '<span>L' + n + ' · ' + LAYER_NAME[n] + '</span><span style="font-family:var(--font-mono);font-size:10.5px;color:var(--ink-3)"></span>';
-      host.appendChild(r);
-    });
-  })();
-
-  var ENC_STEPS = [
-    { dir: "down", n: 7, txt: "应用层把用户的「数据」交给传输层，此时还没有任何网络层头部。", hdr: { k: "data", label: "数据（应用层数据）" } },
-    { dir: "down", n: 4, txt: "传输层在前面加上「H4 TCP 头」（端口号、序号、校验），形成「段 segment」。", hdr: { k: "tcp", label: "H4 · TCP 头（端口 · 序号）" } },
-    { dir: "down", n: 3, txt: "网络层再加「H3 IP 头」（源 / 目的 IP），形成「包 packet」。", hdr: { k: "ip", label: "H3 · IP 头（源/目的 IP）" } },
-    { dir: "down", n: 2, txt: "数据链路层加「H2 帧头/帧尾」（MAC 地址），形成「帧 frame」。", hdr: { k: "dl", label: "H2 · 帧头/帧尾（MAC）" } },
-    { dir: "down", n: 1, txt: "物理层把帧变成 0/1「比特流」，送上传输介质。", hdr: { k: "phy", label: "H1 · 比特流（0/1）" } },
-    { dir: "up", n: 2, txt: "对端数据链路层校验帧头帧尾并剥除，把「包」上交网络层。", pop: true },
-    { dir: "up", n: 3, txt: "网络层剥除「H3 IP 头」，把「段」上交传输层。", pop: true },
-    { dir: "up", n: 4, txt: "传输层按序号重组、剥除「H4 TCP 头」，把数据上交应用层。", pop: true },
-    { dir: "up", n: 7, txt: "应用层拿到原始「数据」，封装与解封装全部完成。", pop: true }
-  ];
-  var encCur = 0, encTimer = null, encPkt = [];
-
-  function encDraw() {
-    var rows = $("encRows").querySelectorAll(".enc-row");
-    Array.prototype.forEach.call(rows, function (r) { r.dataset.s = ""; });
-    if (encCur > 0) {
-      var curN = ENC_STEPS[encCur - 1].n;
-      Array.prototype.forEach.call(rows, function (r) {
-        if (parseInt(r.dataset.n, 10) === curN) r.dataset.s = "active";
-      });
-    }
-    var pkt = $("encPkt");
-    pkt.innerHTML = "";
-    if (!encPkt.length) {
-      var e = document.createElement("div");
-      e.className = "pkt-blk"; e.style.cssText = "background:var(--surface-sunk);color:var(--ink-3);text-align:center";
-      e.textContent = "（空 · 尚未开始）";
-      pkt.appendChild(e);
-    } else {
-      encPkt.forEach(function (b) {
-        var d = document.createElement("div");
-        d.className = "pkt-blk"; d.dataset.k = b.k; d.textContent = b.label;
-        pkt.appendChild(d);
-      });
-    }
-    $("encStep").textContent = encCur === 0
-      ? "点击「单步」或「播放」，观察数据单元如何自上而下加头、再自下而上去头。"
-      : ENC_STEPS[encCur - 1].txt;
-    $("encCount").textContent = "步骤 " + encCur + " / " + ENC_STEPS.length + "　·　状态：" +
-      (encCur === 0 ? "待开始" : (ENC_STEPS[encCur - 1].dir === "down" ? "封装中（向下加头）" : "解封装中（向上去头）"));
-  }
-  function encStepFwd() {
-    if (encCur < ENC_STEPS.length) {
-      var st = ENC_STEPS[encCur];
-      if (st.pop) encPkt.pop(); else if (st.hdr) encPkt.push(st.hdr);
-      encCur++; encDraw();
-    } else encStop();
-  }
-  function encStepBack() {
-    if (encCur > 0) {
-      var st = ENC_STEPS[encCur - 1];
-      if (st.pop) encPkt.push(st.hdr); else if (st.hdr) encPkt.pop();
-      encCur--; encDraw();
-    }
-  }
-  function encStop() {
-    if (encTimer) { clearInterval(encTimer); encTimer = null; }
-    $("btnEncPlay").textContent = "播放";
-  }
-  function encToggle() {
-    if (encTimer) { encStop(); return; }
-    if (encCur >= ENC_STEPS.length) { encCur = 0; encPkt = []; }
-    $("btnEncPlay").textContent = "暂停";
-    encTimer = setInterval(function () {
-      if (encCur >= ENC_STEPS.length) { encStop(); return; }
-      encStepFwd();
-    }, 1100);
-    encDraw();
-  }
-  $("btnEncPlay").addEventListener("click", encToggle);
-  $("btnEncStep").addEventListener("click", function () { encStop(); encStepFwd(); });
-  $("btnEncReset").addEventListener("click", function () { encStop(); encCur = 0; encPkt = []; encDraw(); });
-  document.addEventListener("keydown", function (e) {
-    var t = e.target.tagName;
-    if (t === "INPUT" || t === "TEXTAREA") return;
-    if (e.key === "ArrowRight") { encStop(); encStepFwd(); e.preventDefault(); }
-    else if (e.key === "ArrowLeft") { encStop(); encStepBack(); e.preventDefault(); }
-    else if (e.key === " " || e.code === "Space") { encToggle(); e.preventDefault(); }
-  });
-  encDraw();
-
-  /* ── 6. Q3 选择题 ─────────────────────────────────────── */
-  Array.prototype.forEach.call(document.querySelectorAll(".mcq"), function (box) {
-    var opts = box.querySelectorAll(".opt");
-    var fb = box.querySelector(".cp-fb");
-    var done = false;
-    var qid = box.dataset.q;
-    Array.prototype.forEach.call(opts, function (b) {
-      b.addEventListener("click", function () {
-        Array.prototype.forEach.call(opts, function (x) { x.setAttribute("aria-pressed", "false"); });
-        b.setAttribute("aria-pressed", "true");
-        var ok = b.dataset.v === "ok";
-        var errType = b.dataset.err || "answer_error";
-        fb.innerHTML = (ok ? "<b>正确。</b> " : "<b>再想想。</b> ") + b.dataset.why;
-        fb.classList.add("is-on");
-        if (!done) {
-          done = true;
-          window.LEAP.pushEvent("attempt_submitted", {
-            item_id: qid, answer: b.textContent.trim(), hint_level: S.ui_state.hint_level,
-            response_time: 0, attempt_index: 1, predicted_performance: null, error_type: ok ? "none" : errType
-          });
-          window.LEAP.commitAssessment({
-            item_id: qid, correctness: ok ? 1 : 0,
-            conceptual_understanding: ok ? 1 : 0.4, reasoning_quality: ok ? 1 : 0.5,
-            application: ok ? 1 : 0.5, transfer: 0,
-            error_type: ok ? "none" : errType,
-            misconception: (!ok && errType === "misconception") ? "混淆了相邻层的职责边界" : "",
-            feedback: b.dataset.why, assessor_type: "rule"
-          });
-        }
-      });
-    });
-  });
-
-  /* ── 7. 提示阶梯 ──────────────────────────────────────── */
-  var HINTS = {
-    1: { t: "① 引导问题 · 只给方向", h: "先问自己：七层里哪些层负责「<b>端到端</b>」通信，哪些层只负责「<b>一段链路</b>」的传输？把这两类分开，归位就简单了。" },
-    2: { t: "② 策略提示 · 给思路", h: "记住一句口诀：<b>上三层管应用（HTTP/DNS）→ 传输层管端到端（TCP）→ 网络层管路由（IP/路由器）→ 下两层管介质（以太网/交换机/网卡）</b>。按这句把每张卡片归位。" },
-    3: { t: "③ 部分示范 · 给前半段", h: "先写出应用层与传输层分别「装」什么：应用层数据是「<b>数据</b>」本身；传输层在它外面加「<b>H4 TCP 头</b>」，成为「段」。剩下网络层与数据链路层该加什么头，留给你补全。" },
-    4: { t: "④ 完整答案 · 已展示", h: "完整归位表：", c:
-      "第 7 层 应用层    → HTTP · DNS\n" +
-      "第 4 层 传输层    → TCP\n" +
-      "第 3 层 网络层    → IP · 路由器\n" +
-      "第 2 层 数据链路层 → 以太网 · 交换机\n" +
-      "第 1 层 物理层    → 网卡\n" +
-      "（会话层 / 表示层 本例无对应卡片）" }
-  };
-
-  function setLadderState() {
-    var lvl = S.ui_state.hint_level;
-    Array.prototype.forEach.call(document.querySelectorAll("#ladder .ladder-step"), function (b) {
-      var lv = parseInt(b.dataset.lv, 10);
-      b.dataset.state = lv <= lvl ? "used" : (lv === lvl + 1 ? "avail" : "locked");
-      b.disabled = (lv > lvl + 1);
-      b.setAttribute("aria-disabled", String(lv > lvl + 1));
-    });
-    $("ladderNote").textContent = "阶梯高度 = 支持强度。已用层级越高，hint_dependency 越高；本节点当前 " +
-      window.LEAP.HINT_DEP[Math.min(lvl, 4)].toFixed(2) +
-      (lvl >= 3 ? "（> 0.50，已不足以升级到 demonstrated）" : "（≤ 0.50，仍可升级到 demonstrated）") + "。";
-  }
-  function showHint(lv) {
-    var body = $("hintBody");
-    var box = document.createElement("div");
-    box.className = "hint-card";
-    box.dataset.lv = lv;
-    if (lv === 4) {
-      box.innerHTML = '<span class="micro">④ 完整答案</span><p>' + HINTS[4].h + '</p><pre>' + esc(HINTS[4].c) + '</pre>';
-      body.appendChild(box);
-      $("verify").hidden = false;
-      $("verify").scrollIntoView({ behavior: "smooth", block: "center" });
+  function enqueueForEvent(ev) {
+    if(ev.event_type === "item_completed") {
+      enqueue("check_advance_unit",{session_id:state.learner.session_id,node_id:state.node.node_id},"检查推进条件；检查通过本身不代表已推进");
       return;
     }
-    box.innerHTML = '<span class="micro">' + HINTS[lv].t + '</span><p>' + HINTS[lv].h + '</p>' +
-      (HINTS[lv].c ? '<pre>' + esc(HINTS[lv].c) + '</pre>' : '');
-    body.appendChild(box);
-  }
-  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
-
-  Array.prototype.forEach.call(document.querySelectorAll("#ladder .ladder-step"), function (b) {
-    b.addEventListener("click", function () {
-      var lv = parseInt(b.dataset.lv, 10);
-      if (lv > S.ui_state.hint_level + 1) return;
-      if (lv <= S.ui_state.hint_level) return;
-      if (lv === 4) { renderConfirm(); return; }
-      window.LEAP.setHint(lv);
-      window.LEAP.pushEvent("hint_used", { item_id: "q1", hint_level: lv, answer: "", response_time: 0, attempt_index: 1, predicted_performance: null });
-      showHint(lv);
-      setLadderState();
-    });
-  });
-
-  function renderConfirm() {
-    if ($("confirmBox")) return;
-    var box = document.createElement("div");
-    box.className = "confirm";
-    box.id = "confirmBox";
-    box.innerHTML = '<p>展开完整答案后，本次作答会被记录为 <code>answer_revealed</code>，' +
-      '<b>hint_dependency 升到 0.85</b>，并且你<b>必须完成一题后置验证</b>，本任务才算结束。' +
-      '如果你只想再试一次，建议先点「③ 部分示范」。</p>' +
-      '<div class="btn-row"><button class="btn btn--primary btn--sm" id="btnConfirmReveal" type="button">我确认，展开完整答案</button>' +
-      '<button class="btn btn--ghost btn--sm" id="btnCancelReveal" type="button">先不展开</button></div>';
-    $("hintBody").appendChild(box);
-    $("btnCancelReveal").addEventListener("click", function () { box.remove(); });
-    $("btnConfirmReveal").addEventListener("click", function () {
-      box.remove();
-      window.LEAP.setHint(4);
-      window.LEAP.pushEvent("answer_revealed", { item_id: "q1", hint_level: 4, answer: "", response_time: 0, attempt_index: 1, predicted_performance: null });
-      showHint(4);
-      setLadderState();
-    });
-  }
-  setLadderState();
-
-  /* ── 8. 反馈面板 + 评分面板 ───────────────────────────── */
-  function setFeedback(errType, f1, f2, f3, isBad) {
-    var t = errType === "none" ? "ok" : (errType === "misconception" ? "err" : "warn");
-    var badge = $("fbBadge");
-    badge.textContent = errType === "none" ? "no_error" : errType;
-    badge.dataset.t = t;
-    $("fbBar").style.background = t === "ok" ? "var(--ok)" : (t === "err" ? "var(--err)" : "var(--warn)");
-    $("fbS1").innerHTML = f1;
-    $("fbS2").innerHTML = f2;
-    $("fbS3").innerHTML = f3;
-  }
-  function renderScore() {
-    var a = S.assessment;
-    var rows = [
-      { k: "correctness", v: a.correctness, c: "var(--ok)" },
-      { k: "reasoning_quality", v: a.reasoning_quality, c: "var(--warn)" },
-      { k: "hint_dependency", v: a.hint_dependency, c: "var(--accent)" },
-      { k: "overall_score", v: a.overall_score, c: "var(--accent)", strong: true }
-    ];
-    var host = $("scoreRows");
-    host.innerHTML = "";
-    rows.forEach(function (r) {
-      var d = document.createElement("div");
-      d.className = "score-row";
-      d.innerHTML = '<span class="score-key">' + r.k + '<b style="color:' + r.c + '">' + r.v.toFixed(2) + '</b></span>' +
-        '<span class="score-track"><span class="score-fill" data-k="' + r.k + '" style="width:' + (r.v * 100) + '%"></span></span>';
-      host.appendChild(d);
-    });
-  }
-  renderScore();
-  window.LEAP.onRender(renderScore);
-
-  /* ── 9. 后置验证 ──────────────────────────────────────── */
-  $("btnVerify").addEventListener("click", function () {
-    var v = $("verifyInput").value.trim();
-    var fb = $("verifyFb");
-    if (v.length < 6) {
-      fb.innerHTML = "再写具体一点：至少说清「哪一层」以及「为什么」。";
-      fb.style.color = "var(--warn)"; fb.classList.add("is-on"); return;
+    if(["attempt_submitted","drag_submitted","code_run"].indexOf(ev.event_type)>=0) {
+      var raw=ev.answer==null?"":String(ev.answer), key=ev.item_id||"";
+      var call=enqueue("submit_attempt",{session_id:state.learner.session_id,node_id:state.node.node_id,item_id:key||null,
+        answer:raw,hint_level:typeof ev.hint_level==="number"?ev.hint_level:state.ui_state.hint_level,
+        response_time:typeof ev.response_time==="number"?ev.response_time:null},"保留原始作答与本题 attempt 引用");
+      bridge.attempts[key]={call_id:call.call_id,raw_answer:raw,hint_level:call.args.hint_level,assessor_scope:ev.assessor_scope||"exact_answer"};
+    } else if(ev.event_type==="reflection_recorded") {
+      enqueue("record_reflection",{session_id:state.learner.session_id,node_id:state.node.node_id,reflection:String(ev.answer||"")},"保存反思，不作为正确性评分");
     }
-    var hitLayer = /(二层|数据链路|2 ?层|第二层|链路层|mac)/i.test(v);
-    var hitWhy = /(mac|帧|地址|介质|交换机)/i.test(v);
-    var transfer = (hitLayer ? 0.5 : 0.2) + (hitWhy ? 0.4 : 0.1);
-    transfer = Math.min(1, transfer);
-    var ok = transfer >= 0.7;
-    fb.innerHTML = ok
-      ? "<b>就对了。</b> 只认 MAC 地址、不认 IP 地址的设备工作在<b>数据链路层（第二层）</b>：它只负责一段链路内的帧转发，跨网络的路由交给网络层的路由器。"
-      : "<b>方向还差一点。</b> 关键在「认什么地址」：认 MAC 地址、做帧转发的设备是<b>数据链路层（第二层）</b>；认 IP 地址、做跨网路由的才是网络层的路由器。";
-    fb.style.color = ok ? "var(--ok)" : "var(--ink-2)";
-    fb.classList.add("is-on");
-    window.LEAP.pushEvent("attempt_submitted", {
-      item_id: "q1-verify", answer: v, hint_level: S.ui_state.hint_level,
-      response_time: 0, attempt_index: 1, predicted_performance: null,
-      error_type: ok ? "none" : "reasoning_error"
+  }
+  function pushEvent(event_type,payload) {
+    var ev=Object.assign({event_type:event_type,item_id:""},payload||{},{created_at:nowSec()});
+    state.events.push(ev); enqueueForEvent(ev); renderAll(); return ev;
+  }
+  function setHint(level) {
+    if(!Number.isInteger(level)||level<0||level>4) throw new RangeError("hint level must be 0..4");
+    state.ui_state.hint_level=Math.max(level,state.ui_state.hint_level);
+    if(level===4) state.ui_state.answer_revealed=true;
+    // Local hint usage is separate from the Runtime's historical estimate.
+    state.ui_state.local_hint_dependency=HINT_DEP[state.ui_state.hint_level]; renderAll();
+  }
+  function commitAssessment(item) {
+    var attempt=bridge.attempts[item.item_id];
+    if(!attempt) throw new Error("本题尚未提交作答，不能借用其他题目的 attempt");
+    if(attempt.assessor_scope==="host_semantic_review"||item.assessor_scope==="host_semantic_review") {
+      bridge.latestAssessmentCall=null;
+      state.assessment=Object.assign(blankAssessment(),{item_id:item.item_id,feedback:"原始作答已收集，等待宿主审核论证",evidence_stage:bridge.server.evidence_stage});
+      renderAll(); return clone(state.assessment);
+    }
+    if(typeof item.correctness!=="number"||!Number.isFinite(item.correctness)||item.correctness<0||item.correctness>1) throw new TypeError("Exact checks require an explicit correctness value");
+    // An exact answer does not establish reasoning, concepts, transfer or self-confidence.
+    var value=Math.round(item.correctness*100)/100;
+    var a=Object.assign(blankAssessment(),{item_id:item.item_id,correctness:value,overall_score:value,
+      feedback:item.feedback||"仅核对客观答案",error_type:item.error_type||"none",misconception:item.misconception||"",
+      hint_dependency:HINT_DEP[Math.min(attempt.hint_level,4)],evidence_stage:bridge.server.evidence_stage,provisional:true});
+    state.assessment=a;
+    var call=enqueue("commit_assessment",{attempt_id:"{{"+attempt.call_id+".attempt_id}}",raw_answer:attempt.raw_answer,
+      assessor_type:"rule",correctness:a.correctness,hint_dependency:a.hint_dependency},"仅提交客观正确性；其他维度待相应证据评估");
+    bridge.latestAssessmentCall=call.call_id; renderAll(); return clone(a);
+  }
+  function setCompleted(itemId,reason) {
+    state.ui_state.local_activity_completed=true;
+    pushEvent("item_completed",{item_id:itemId,reason:reason||"local_check_finished"});
+  }
+  function hydrate(ctx) {
+    if(!ctx||typeof ctx!=="object"||ctx.ok===false) throw new TypeError("hydrate requires a successful Runtime context");
+    var sess=ctx.session||{},node=ctx.current_node||ctx.node||{},ks=ctx.knowledge_state||{};
+    var learner=ctx.learner_id||sess.learner_id, sid=ctx.session_id||sess.session_id;
+    if(!learner||!sid||!node.node_id) throw new TypeError("Runtime context needs learner, session and node identifiers");
+    if(sid!==state.learner.session_id||node.node_id!==state.node.node_id) {
+      if(bridge.outbox.length) throw new Error("切换上下文前必须先取走并处理原节点的调用队列");
+      bridge.attempts={}; bridge.latestAssessmentCall=null; state.ui_state.completed=false; state.ui_state.local_activity_completed=false;
+      state.ui_state.hint_level=0; state.ui_state.answer_revealed=false; state.assessment=blankAssessment();
+    }
+    state.learner={learner_id:learner,session_id:sid}; state.node=Object.assign({},state.node,node);
+    bridge.context=clone(ctx); bridge.mode="hosted";
+    bridge.server={mastery_probability:typeof ks.mastery_probability==="number"?ks.mastery_probability:null,
+      evidence_stage:ks.evidence_stage||"estimated",hint_dependency:typeof ks.hint_dependency==="number"?ks.hint_dependency:null,
+      next_review_at:ks.next_review_at||null};
+    state.assessment.evidence_stage=bridge.server.evidence_stage;
+    state.ui_state.hint_dependency=bridge.server.hint_dependency;
+    // A state snapshot does not confirm a particular pending assessment receipt.
+    renderAll(); return snapshot();
+  }
+  function applyToolResults(results) {
+    // Validate the whole batch before changing any receipt or displayed state.
+    var merged=Object.assign({},bridge.receipts,results||{});
+    Object.keys(results||{}).forEach(function(id) {
+      var call=bridge.ledger[id],result=results[id];
+      if(!call) throw new Error("Unknown outbox call receipt: "+id);
+      if(!result||result.ok!==true) return;
+      if(call.tool==="commit_assessment") {
+        var match=/^\{\{(call_\d+)\.attempt_id\}\}$/.exec(call.args.attempt_id);
+        var attemptReceipt=match&&merged[match[1]];
+        if(!attemptReceipt||attemptReceipt.ok!==true||!attemptReceipt.attempt_id||result.attempt_id!==attemptReceipt.attempt_id) throw new Error("Assessment receipt does not match its attempt");
+        if(!result.result_id||typeof result.overall_score!=="number"||!Number.isFinite(result.overall_score)) throw new Error("Incomplete assessment receipt");
+      }
     });
-    window.LEAP.commitAssessment({
-      item_id: "q1-verify", correctness: transfer, conceptual_understanding: transfer,
-      reasoning_quality: transfer, application: 0.8, transfer: transfer,
-      error_type: ok ? "none" : "reasoning_error", misconception: "",
-      feedback: ok ? "后置验证通过。" : "后置验证未通过。", assessor_type: "hybrid"
+    Object.keys(results||{}).forEach(function(id) {
+      var call=bridge.ledger[id], result=results[id];
+      bridge.receipts[id]=clone(result);
+      if(!result||result.ok!==true) return;
+      var origin=bridge.origins[id];
+      if(origin.session_id!==state.learner.session_id||origin.node_id!==state.node.node_id) return;
+      if(call.tool==="commit_assessment" && id===bridge.latestAssessmentCall) {
+        Object.assign(state.assessment,result.scores||{},{overall_score:result.overall_score,provisional:false,result_id:result.result_id});
+        if(result.learner_state) bridge.server=Object.assign({},bridge.server,result.learner_state);
+      }
+      if(call.tool==="advance_unit"&&result.advanced===true&&result.session_id===state.learner.session_id) state.ui_state.completed=true;
     });
-    if (ok) window.LEAP.setCompleted("q1", "post_verification_passed");
-  });
+    state.assessment.evidence_stage=bridge.server.evidence_stage;
+    state.ui_state.hint_dependency=bridge.server.hint_dependency; renderAll(); return snapshot();
+  }
+  function requestAdvance() {
+    var call=enqueue("advance_unit",{session_id:state.learner.session_id,node_id:state.node.node_id},"Runtime State Guard 批准后推进"); renderAll(); return clone(call);
+  }
+  function peekOutbox() {return clone(bridge.outbox);}
+  function drainOutbox() {var out=peekOutbox();bridge.outbox.length=0;renderAll();return out;}
+  function snapshot() {
+    var out=clone(state); out.ui_state.mode=bridge.mode; out.ui_state.hosted=isHosted();out.ui_state.pending_mcp_calls=bridge.outbox.length;
+    out.outbox=peekOutbox();return out;
+  }
+  function renderOutput() {
+    var el=document.getElementById("leap-interaction-output");if(el) el.textContent=JSON.stringify(snapshot(),null,2);
+    var sum=document.getElementById("consoleSummary");if(sum) sum.textContent="AGENT OUTPUT · 已记录 "+state.events.length+" 条事件"+(state.ui_state.completed?" · Runtime 已推进":state.ui_state.local_activity_completed?" · 本地练习已结束，待 Runtime 检查":"");
+  }
+  function renderSpine() {
+    var cur=bridge.server.evidence_stage,stages=Object.keys(STAGE_CN),idx=stages.indexOf(cur);
+    document.querySelectorAll("#evTrack .ev-seg").forEach(function(el,i){el.classList.toggle("is-on",i<=idx);});
+    var name=document.getElementById("evName");if(name) name.textContent=cur+" · "+STAGE_CN[cur];
+    var val=document.getElementById("masVal"),fill=document.getElementById("masFill"),m=bridge.server.mastery_probability;
+    if(val) val.textContent=typeof m==="number"?m.toFixed(2):"未评估";
+    if(fill) fill.style.width=typeof m==="number"?Math.round(m*100)+"%":"0%";
+    var review=document.querySelector(".spine-rev .val"),at=bridge.server.next_review_at;
+    if(review) review.textContent=at?new Date(at*1000).toLocaleString():"尚未安排";
+    var note=document.getElementById("ladderNote");if(note) note.textContent="提示只在主动请求时展开；当前提示层级 "+state.ui_state.hint_level+"。";
+  }
+  function renderBridge() {
+    var mode=document.getElementById("bridgeMode"),sum=document.getElementById("bridgeSummary"),note=document.getElementById("spineNote");
+    if(mode) mode.textContent="BRIDGE · "+(isHosted()?"Runtime 上下文快照":"离线演示");
+    if(sum) sum.textContent="待处理调用 "+bridge.outbox.length+" 条。客观答案反馈需回执确认；论证等待宿主审核。";
+    if(note) note.textContent=isHosted()?"显示最近一次 Runtime 上下文；新作答等待实际调用回执。":"掌握度未评估；离线操作仅收集学习动作。";
+    var button=document.getElementById("bridgeDrain"),pre=document.getElementById("bridgeOutbox");
+    if(button&&!drainWired) {drainWired=true;button.addEventListener("click",function(){if(pre){pre.hidden=!pre.hidden;pre.textContent=JSON.stringify(peekOutbox(),null,2);}});}
+    if(button) button.disabled=!bridge.outbox.length;
+  }
+  function renderRail() {
+    var dots=document.getElementById("railDots"),n=state.events.length;
+    if(dots) {dots.replaceChildren();state.events.forEach(function(e,i){var d=document.createElement("span");d.className="rail-dot";d.style.left=((i+1)/(n+1)*100)+"%";d.title=e.event_type;dots.appendChild(d);});}
+    var count=document.getElementById("railCount"),last=document.getElementById("railLast");
+    if(count) count.textContent="已产生 "+n+" 条事件（只追加，不覆盖）";
+    if(last&&n) last.textContent="最近："+state.events[n-1].event_type;
+  }
+  function renderAll() {renderOutput();renderSpine();renderBridge();renderRail();renderHooks.forEach(function(fn){fn();});}
+  function onRender(fn) {renderHooks.push(fn);fn();}
+  return {hydrate:hydrate,isHosted:isHosted,getInteractionResult:snapshot,getState:function(){return state;},getMastery:function(){return bridge.server.mastery_probability;},
+    peekOutbox:peekOutbox,drainOutbox:drainOutbox,onOutboxChange:function(fn){bridge.hooks.push(fn);},pushEvent:pushEvent,
+    setHint:setHint,commitAssessment:commitAssessment,setCompleted:setCompleted,applyToolResults:applyToolResults,requestAdvance:requestAdvance,
+    aggregate:aggregate,onRender:onRender,refresh:renderAll,HINT_DEP:HINT_DEP,STAGE_CN:STAGE_CN};
+}
 
-  /* ── 10. 输出控制台折叠 ───────────────────────────────── */
-  $("consoleBar").addEventListener("click", function () {
-    var on = $("consoleJson").classList.toggle("is-on");
-    $("consoleBar").setAttribute("aria-expanded", String(on));
-    $("consoleAction").textContent = on ? "收起 JSON ▴" : "展开 JSON ▾";
+window.LEAP = createLeapBridge({"example_id":"osi-model","subject":"computer-science","node":{ node_id: "cs.network.osi_model", title: "OSI 七层模型", unit_tag: "osi-model" }});
+(function(){
+  "use strict";
+  var $=function(id){return document.getElementById(id)}, LEAP=window.LEAP, S=LEAP.getState();
+  var NS="http://www.w3.org/2000/svg", attempts={}, starts={};
+  function attempt(id,answer,type){var t=performance.now(); LEAP.pushEvent(type||"attempt_submitted",{item_id:id,assessor_scope:id.indexOf("semantic")>=0?"host_semantic_review":"exact_answer",answer:String(answer),hint_level:S.ui_state.hint_level,response_time:Math.max(0,(t-(starts[id]||0))/1000),attempt_index:(attempts[id]=(attempts[id]||0)+1),predicted_performance:null});starts[id]=t;}
+  function assess(id,c,fb,err){LEAP.commitAssessment({item_id:id,correctness:c,conceptual_understanding:c,reasoning_quality:c,application:c,transfer:0,error_type:err||(c===1?"none":"answer_error"),feedback:fb,assessor_type:"rule"});}
+  function feedback(id,text){var el=$(id);el.textContent=text;el.classList.add("is-on");}
+  var LAYERS=[
+    {n:7,name:"应用层",en:"Application",desc:"定义应用网络服务与消息语义；例如 HTTP、DNS、SMTP。不是用户界面，也不负责所有下层交付细节。"},
+    {n:6,name:"表示层",en:"Presentation",desc:"处理数据表示、编码转换、压缩与加解密等职责。现实协议不保证单独实现 L6；TLS 不能机械地等同于一个独立表示层。"},
+    {n:5,name:"会话层",en:"Session",desc:"管理对话、会话与同步等职责。Internet 常由应用实现相关功能；应用登录会话、TCP 连接与 OSI 会话概念不能直接等同。"},
+    {n:4,name:"传输层",en:"Transport",desc:"通信端点之间的传输；TCP 提供有序可靠字节流、流量与拥塞控制，UDP 保留报文边界但不提供同样的重传/排序保证。UDP 不保证更快；TCP 不保证应用事务成功或加密。"},
+    {n:3,name:"网络层",en:"Network",desc:"跨网逻辑寻址与路由转发；IP、路由器的 IP 转发功能。IP 尽力而为，不保证交付、顺序或无重复。路由器通常不为转发而去除 TCP 头。"},
+    {n:2,name:"数据链路层",en:"Data Link",desc:"链路上的帧、介质接入与检错；以太网 MAC、二层交换机的帧转发。检错不等于端到端可靠；多层交换机可另有 L3 功能。"},
+    {n:1,name:"物理层",en:"Physical",desc:"把比特映射为电/光/无线信号，约定编码、时序与介质特性。网卡收发器属这一功能范围，网卡 MAC 功能另属 L2；不添加统一的 H1 包头。"}
+  ];
+  var names={};LAYERS.forEach(function(L){names[L.n]=L.name});
+  function svgLayers(id,infoId){var svg=$(id);svg.setAttribute("viewBox","0 0 440 336");LAYERS.forEach(function(L,i){var g=document.createElementNS(NS,"g");g.setAttribute("class","osi-layer");g.dataset.n=L.n;g.setAttribute("tabindex","0");g.setAttribute("role","button");g.setAttribute("aria-expanded","false");g.setAttribute("aria-label","第"+L.n+"层 "+L.name+"；查看职责与边界");var y=i*48;
+    g.innerHTML='<rect x="5" y="'+y+'" width="430" height="42" rx="6"/><text class="osi-num" x="20" y="'+(y+27)+'">L'+L.n+'</text><text class="osi-name" x="65" y="'+(y+27)+'">'+L.name+' · '+L.en+'</text>';
+    function pick(){svg.querySelectorAll(".osi-layer").forEach(function(x){x.dataset.on="0";x.setAttribute("aria-expanded","false")});g.dataset.on="1";g.setAttribute("aria-expanded","true");$(infoId).textContent="L"+L.n+" "+L.name+"："+L.desc;}
+    g.addEventListener("click",pick);g.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();pick()}});svg.appendChild(g);
+  });}
+  svgLayers("osiTeach","osiTeachInfo");svgLayers("osiStage","osiStageInfo");
+  document.querySelectorAll("#cp .opt").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll("#cp .opt").forEach(function(x){x.setAttribute("aria-pressed","false")});b.setAttribute("aria-pressed","true");feedback("cpFb",b.dataset.why);attempt("cp-01",b.textContent.trim());assess("cp-01",b.dataset.v==="ok"?1:0,b.dataset.why,b.dataset.v==="ok"?"none":"misconception");})});
+  var CHIPS=[{id:"http",name:"HTTP 消息语义",layer:7},{id:"dns",name:"DNS 域名解析服务",layer:7},{id:"tcp",name:"TCP 端点字节流传输",layer:4},{id:"ip",name:"IP 寻址与转发",layer:3},{id:"router",name:"路由器的 IP 跨网转发",layer:3},{id:"eth",name:"以太网帧 / MAC 功能",layer:2},{id:"switch",name:"二层交换机的帧转发",layer:2},{id:"nic",name:"网卡收发器 PHY：比特 → 信号",layer:1}];
+  var selected=null;
+  LAYERS.slice().reverse().forEach(function(L){var d=document.createElement("div");d.className="slot";d.dataset.layer=L.n;d.setAttribute("role","button");d.tabIndex=0;d.setAttribute("aria-label","目标 L"+L.n+" "+L.name);d.innerHTML='<span class="slot-label">L'+L.n+' · '+L.name+'</span>';
+    d.addEventListener("dragover",function(e){e.preventDefault();d.classList.add("is-over")});d.addEventListener("dragleave",function(){d.classList.remove("is-over")});d.addEventListener("drop",function(e){e.preventDefault();d.classList.remove("is-over");place(e.dataTransfer.getData("text/plain"),L.n)});d.addEventListener("click",function(){if(selected)place(selected,L.n)});d.addEventListener("keydown",function(e){if(e.target===d&&(e.key==="Enter"||e.key===" ")&&selected){e.preventDefault();place(selected,L.n)}});$("slots").appendChild(d);
   });
-
-  /* ── 初始渲染 ──────────────────────────────────────────── */
-  renderScore();
-  setFeedback("none",
-    "还没有提交任何作答。先看七层结构，再去做 Q1 拖拽匹配。",
-    "答错也没关系——反馈会区分「记错层级」与「混淆职责」，两种的处理方式完全不同。",
-    "建议路径：看完 Stage 七层图 → 做 Q1 匹配 → 点开 Q2 看封装动画 → 再做 Q3 选择题。");
-  window.LEAP.refresh();
+  CHIPS.forEach(function(c){var b=document.createElement("button");b.type="button";b.className="chip";b.draggable=true;b.dataset.chip=c.id;b.dataset.layer=c.layer;b.textContent=c.name;b.setAttribute("aria-label","选择或拖拽 "+c.name);b.addEventListener("dragstart",function(e){e.dataTransfer.setData("text/plain",c.id);b.classList.add("is-drag")});b.addEventListener("dragend",function(){b.classList.remove("is-drag")});b.addEventListener("click",function(e){e.stopPropagation();document.querySelectorAll(".chip").forEach(function(x){x.classList.remove("is-sel")});selected=selected===c.id?null:c.id;if(selected)b.classList.add("is-sel")});$("chips").appendChild(b)});
+  function place(id,layer){var chip=document.querySelector('.chip[data-chip="'+id+'"]'),slot=document.querySelector('.slot[data-layer="'+layer+'"]');if(!chip||!slot)return;slot.appendChild(chip);chip.dataset.state="";chip.classList.remove("is-sel","is-drag");document.querySelectorAll(".slot").forEach(function(x){x.dataset.state=""});selected=null;}
+  $("btnClearQ1").addEventListener("click",function(){document.querySelectorAll(".slot .chip").forEach(function(x){$("chips").appendChild(x);x.dataset.state="";x.classList.remove("is-sel")});document.querySelectorAll(".slot").forEach(function(x){x.dataset.state=""});selected=null;$("q1Fb").classList.remove("is-on")});
+  $("btnSubmitQ1").addEventListener("click",function(){var answer={},correct=0,placed=0;CHIPS.forEach(function(c){var b=document.querySelector('.chip[data-chip="'+c.id+'"]'),p=b.closest(".slot"),n=p?Number(p.dataset.layer):null;answer[c.id]=n;if(n!==null)placed++;var ok=n===c.layer;if(ok)correct++;b.dataset.state=ok?"ok":"bad"});if(placed<CHIPS.length){feedback("q1Fb","还有 "+(CHIPS.length-placed)+" 张未放置。请先完成全部归位。");return;}var f="你做对 "+correct+"/8 张；"+(correct===8?"限定的功能全部归位。下一步观察路由器如何重新封装帧。":"卡在功能与层级的对应。下一步按应用语义、端点、IP 路由、MAC 帧、物理信号重新检查；已放卡片可重移。");attempt("q1",JSON.stringify(answer),"drag_submitted");assess("q1",correct/8,f,correct===8?"none":"answer_error");feedback("q1Fb",f);setFeedback(correct===8?"none":"answer_error","正确归位 "+correct+" 张。",correct===8?"没有匹配错误。":"按卡片限定的具体功能重新判断，不给整个设备强行贴唯一层号。","继续两跳封装动画。");if(correct===8&&!S.ui_state.answer_revealed)LEAP.setCompleted("q1","matched_without_reveal");});
+  LAYERS.forEach(function(L){var d=document.createElement("div");d.className="enc-row";d.dataset.n=L.n;d.textContent="L"+L.n+" · "+L.name;$("encRows").appendChild(d)});
+  var DATA={k:"data",label:"HTTP 数据 · 100 byte"},TCP={k:"tcp",label:"TCP 头 · 20 byte · 53000 → 80"},IP64={k:"ip",label:"IPv4 头 · 20 byte · TTL 64"},IP63={k:"ip",label:"IPv4 头 · 20 byte · TTL 63"},ETH1={k:"dl",label:"以太网头 · 14 byte · A → G1"},ETH2={k:"dl",label:"以太网头 · 14 byte · G2 → B"},FCS={k:"dl",label:"FCS · 4 byte"};
+  var STEPS=[
+    {n:7,station:"sender",pkt:[DATA],txt:"主机 A：已有 TCP 连接，应用生成 100 byte HTTP 数据。不是每条 HTTP 消息都恰好占一个段；本例采用单段简化。"},
+    {n:4,station:"sender",pkt:[TCP,DATA],txt:"TCP 加 20 byte 头：源端口 53000、目的 80、序号等。TCP 段 = 120 byte。"},
+    {n:3,station:"sender",pkt:[IP64,TCP,DATA],txt:"IPv4 加 20 byte 头：192.0.2.10 → 198.51.100.20，TTL 64。IP 数据报 = 140 byte。"},
+    {n:2,station:"sender",pkt:[ETH1,IP64,TCP,DATA,FCS],txt:"远端不在本地子网，所以当前以太网目的 MAC 是网关 G1，不是远端 B。帧头 14 + 载荷 140 + FCS 4 = 158 byte。"},
+    {n:1,station:"sender",pkt:[ETH1,IP64,TCP,DATA,FCS],txt:"第一条链路：比特编码成电/光等信号。没有额外的 H1 包头；图中仍展示被编码的帧。"},
+    {n:2,station:"router",pkt:[IP64,TCP,DATA],txt:"路由器入口：链路处理检错和接收，把 IP 数据报从入口帧中交给网络层。入口以太网头/FCS 不会端到端保留。"},
+    {n:3,station:"router",pkt:[IP63,TCP,DATA],txt:"路由器查目的 IP 选出口；TTL 64 → 63，并更新 IPv4 首部校验和。无 NAT 时端到端源/目的 IP 与 TCP 端口保留；路由器不会为转发去除 TCP 头。"},
+    {n:2,station:"router",pkt:[ETH2,IP63,TCP,DATA,FCS],txt:"路由器出口：在第二条以太网链路上重新封装，源 MAC G2、目的 MAC B，重新计算 FCS。仍为 158 byte 帧。"},
+    {n:1,station:"router",pkt:[ETH2,IP63,TCP,DATA,FCS],txt:"第二条链路：把新帧的比特编码为信号发给 B。相邻链路的物理技术可以不同；本例均为以太网。"},
+    {n:2,station:"receiver",pkt:[IP63,TCP,DATA],txt:"B 的链路层从收到的帧取出 IP 数据报。FCS 用于检错；链路检错不等于端到端应用交易保证。"},
+    {n:3,station:"receiver",pkt:[TCP,DATA],txt:"B 的网络层确认目的为本机，把 TCP 段交给相应上层协议。本例无 IP 分片。"},
+    {n:4,station:"receiver",pkt:[DATA],txt:"B 的 TCP 按校验、序号、端点等处理，向目的端点提供有序字节流。实际 TCP 还涉及确认/重传，本动画不模拟。"},
+    {n:7,station:"receiver",pkt:[DATA],txt:"目的应用得到 100 byte HTTP 数据并解释应用语义。交付字节并不等于 HTTP 请求或业务事务必定成功。"}
+  ];
+  var cur=0,timer=null;
+  function draw(){var st=cur?STEPS[cur-1]:null;document.querySelectorAll(".enc-row").forEach(function(r){r.dataset.s=st&&Number(r.dataset.n)===st.n?"active":""});document.querySelectorAll("#encRoute .net-node").forEach(function(n){n.classList.toggle("current",!!st&&n.dataset.station===st.station)});$("encPkt").innerHTML="";(st?st.pkt:[{k:"data",label:"待开始：原始应用数据"}]).forEach(function(b){var d=document.createElement("div");d.className="pkt-blk";d.dataset.k=b.k;d.textContent=b.label;$("encPkt").appendChild(d)});$("encStep").textContent=st?st.txt:"点击单步，从应用数据开始；关注两跳之间的 MAC 与 TTL。";$("encCount").textContent="步骤 "+cur+" / "+STEPS.length+" · "+(st?({sender:"发送端封装",router:"路由器转发与重封装",receiver:"最终接收端解封装"}[st.station]):"待开始");$("btnEncBack").disabled=cur===0;$("btnEncStep").disabled=cur===STEPS.length;}
+  function stop(){if(timer!==null){clearInterval(timer);timer=null}$("btnEncPlay").textContent="播放"}
+  function move(delta){cur=Math.max(0,Math.min(STEPS.length,cur+delta));draw();if(cur===STEPS.length)stop()}
+  function toggle(){if(timer!==null){stop();return}if(cur===STEPS.length)cur=0;$("btnEncPlay").textContent="暂停";timer=setInterval(function(){move(1)},850);draw()}
+  $("btnEncPlay").addEventListener("click",toggle);$("btnEncStep").addEventListener("click",function(){stop();move(1)});$("btnEncBack").addEventListener("click",function(){stop();move(-1)});$("btnEncReset").addEventListener("click",function(){stop();cur=0;draw()});
+  $("encControls").addEventListener("keydown",function(e){if(e.key==="ArrowRight"||e.key==="ArrowLeft"){e.preventDefault();stop();move(e.key==="ArrowRight"?1:-1)}else if(e.target===this&&e.key===" "){e.preventDefault();toggle()}});draw();
+  window.OSIDemo={getSnapshot:function(){return {step:cur,playing:timer!==null,packet:cur?STEPS[cur-1].pkt.map(function(b){return b.k}):[],station:cur?STEPS[cur-1].station:null}},setStep:function(n){stop();cur=Math.max(0,Math.min(STEPS.length,Number(n)||0));draw();}};
+  document.querySelectorAll(".mcq").forEach(function(box){box.querySelectorAll(".opt").forEach(function(b){b.addEventListener("click",function(){box.querySelectorAll(".opt").forEach(function(x){x.setAttribute("aria-pressed","false")});b.setAttribute("aria-pressed","true");var ok=b.dataset.v==="ok",text=(ok?"你做对了判断。":"你已完成一次判断；卡在职责或层级。")+b.dataset.why+" 下一步对照该层负责的数据单元。";box.querySelector(".cp-fb").textContent=text;box.querySelector(".cp-fb").classList.add("is-on");attempt(box.dataset.q,b.textContent.trim());assess(box.dataset.q,ok?1:0,text,ok?"none":b.dataset.err||"answer_error")})})});
+  $("btnSubmitQ4").addEventListener("click",function(){var a={packet:$("q4Packet").value,frame:$("q4Frame").value,mac:$("q4Mac").value,ip:$("q4Ip").value};if(Object.keys(a).some(function(k){return a[k]===""})){feedback("q4Fb","先填完两项字节长度和两项地址判断。");return}var flags=[Number(a.packet)===240,Number(a.frame)===258,a.mac==="B",a.ip==="same"],c=flags.filter(Boolean).length/4;attempt("q4",JSON.stringify(a));var text=c===1?"你做对了四项：240 byte IP 数据报、258 byte 帧、出口目的 MAC B、IP 地址保留而 TTL 减少。下一步说明它们分别属于哪项职责。":"部分正确 "+flags.filter(Boolean).length+"/4；卡在第 "+flags.map(function(x,i){return x?null:i+1}).filter(Boolean).join("、")+" 项。下一步按应用→TCP→IP→帧核对，并区分下一跳 MAC 与最终目的 IP。";assess("q4",c,text,c===1?"none":flags[2]&&flags[3]?"answer_error":"reasoning_error");feedback("q4Fb",text)});
+  $("btnSubmitExplanation").addEventListener("click",function(){var v=$("osiExplanation").value.trim();if(!v){feedback("explanationFb","先写下你的假设、检查方法与证据边界。");return}attempt("q5-semantic",v);feedback("explanationFb","已保存完整原文，待宿主语义评估；没有按关键词生成分数或完成标记。检查自己的每个假设是否有对应的区分性检查。")});
+  var HINTS={1:"先分清：应用语义、端点传输、跨网 IP、逐跳 MAC 帧、信号分别由谁负责？Q4 每个长度计到了哪一层？Q5 的观察究竟证明了什么？",2:"匹配从功能出发，不给整台设备贴唯一层号。Q4 先加 TCP/IP 头，再加以太网头/FCS；路由器出口 MAC 指向第二跳邻居。Q5 可分别检查名称解析、TCP 端口、HTTP 返回。",3:"HTTP/DNS 是应用服务，TCP 属 L4，IP 与路由器 IP 转发属 L3。Q4 的 TCP 段为 200+20=220 byte，下一步再加 IP 头和链路头尾。Q5 先比较按 IP 与按域名访问的观察，但注意同一服务器可能依赖 Host 头。",4:"完整参考：Q1 HTTP/DNS→L7；TCP→L4；IP/路由器 IP 转发→L3；以太网帧/MAC、二层交换机帧转发→L2；网卡 PHY 收发器→L1。Q3a L3；Q3b L4；Q3c 具体协议决定头/尾。Q4 IP=240 byte，帧=258 byte，出口目的 MAC=B，无 NAT 时 IP 源/目的保留而 TTL 减少。Q5 参考：DNS 可能解析错误，可查询解析结果并比较受控的 IP/域名请求；TCP 目的端口可能被防火墙阻止或未监听，可测试该端口并检查监听/防火墙；HTTP 服务也可能返回错误，可检查状态码与应用日志。ping 通只提供部分 IP/ICMP 可达证据，不保证 DNS、TCP 端口、TLS 或 HTTP 业务可用。假设是候选原因，检查结果仍需解释；IP 直连失败也可能受 Host/TLS 等应用配置影响。"};
+  var hintLevel=0;
+  function ladder(){document.querySelectorAll("#ladder .ladder-step").forEach(function(b){var l=Number(b.dataset.lv);b.disabled=l>hintLevel+1;b.dataset.state=l<=hintLevel?"used":l===hintLevel+1?"avail":"locked"});}
+  function reveal(l){hintLevel=l;LEAP.setHint(l);LEAP.pushEvent(l===4?"answer_revealed":"hint_used",{item_id:"q1",hint_level:l,answer:"",response_time:0});var d=document.createElement("div");d.className="hint-card";d.dataset.lv=l;d.textContent="L"+l+" · "+HINTS[l];$("hintBody").appendChild(d);if(l===4)$("verify").hidden=false;ladder();}
+  document.querySelectorAll("#ladder .ladder-step").forEach(function(b){b.addEventListener("click",function(){var l=Number(b.dataset.lv);if(l!==hintLevel+1)return;if(l===4){if($("confirmBox"))return;var d=document.createElement("div");d.className="confirm";d.id="confirmBox";d.innerHTML='<p>完整答案会被记录为 answer_revealed；之后仍须完成新的后置验证。这不会自动提升掌握度或证据阶段。</p><div class="btn-row"><button class="btn btn--primary" id="btnConfirmReveal" type="button">我确认，展开完整答案</button><button class="btn btn--ghost" id="btnCancelReveal" type="button">先不展开</button></div>';$("hintBody").appendChild(d);$("btnCancelReveal").addEventListener("click",function(){d.remove()});$("btnConfirmReveal").addEventListener("click",function(){d.remove();reveal(4)});}else reveal(l);})});ladder();
+  $("btnVerify").addEventListener("click",function(){var a={layer:$("verifyInput").value,basis:$("verifyWhy").value};if(!a.layer||!a.basis){feedback("verifyFb","请选择层级与直接依据。");return}var c=((a.layer==="2"?1:0)+(a.basis==="mac"?1:0))/2,text=c===1?"客观变式通过：按 MAC 转发帧属于 L2 数据链路功能。已请求宿主检查本地活动完成证据。":"部分正确 "+(c*2)+"/2；按 IP 进行跨网路由和按 MAC 处理链路帧的依据不同，请重选。";attempt("q1-verify",JSON.stringify(a));assess("q1-verify",c,text);feedback("verifyFb",text);if(c===1)LEAP.setCompleted("q1","post_verification_passed")});
+  function setFeedback(err,f1,f2,f3){$("fbBadge").textContent=err;$("fbS1").textContent=f1;$("fbS2").textContent=f2;$("fbS3").textContent=f3;}
+  function score(){var a=LEAP.getState().assessment;$("scoreRows").innerHTML="";["correctness","reasoning_quality","hint_dependency","overall_score"].forEach(function(k){var d=document.createElement("div");d.className="score-row";d.innerHTML='<span class="score-key">'+k+'<b>'+(typeof a[k]==="number"?a[k].toFixed(2):"未评估")+'</b></span><span class="score-track"><span class="score-fill" style="width:'+((a[k]||0)*100)+'%"></span></span>';$("scoreRows").appendChild(d)})}
+  LEAP.onRender(score);$("consoleBar").addEventListener("click",function(){var on=$("consoleJson").classList.toggle("is-on");this.setAttribute("aria-expanded",String(on));$("consoleAction").textContent=on?"收起 JSON ▴":"展开 JSON ▾"});
+  setFeedback("none","先读先修概念并点击七层图。","注意设备可能跨层、UDP 不保证更快、L1 不添加统一包头。","匹配 → 两跳封装 → 概念辨析 → 字节变式 → 排错说明。");LEAP.refresh();
 })();
-</script>
-</body>
-</html>
+</script></body></html>

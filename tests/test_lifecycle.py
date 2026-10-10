@@ -273,10 +273,10 @@ class TestReportingAndArtifacts:
 
     def test_artifact_round_trip(self, grounded_service, session_id):
         saved = grounded_service.save_artifact(
-            "learner-test", session_id, "html", content="<html></html>"
+            "learner-test", session_id, "code", content="print('artifact round trip')"
         )
         fetched = grounded_service.get_artifact(saved["artifact_id"])["artifact"]
-        assert fetched["content"] == "<html></html>"
+        assert fetched["content"] == "print('artifact round trip')"
 
     def test_artifact_requires_some_payload(self, grounded_service, session_id):
         with pytest.raises(ToolError):

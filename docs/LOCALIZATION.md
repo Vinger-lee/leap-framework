@@ -1,6 +1,25 @@
+---
+title: Localization
+tags:
+- leap
+- engineering
+aliases:
+- Localization guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP Localization foundations definitions workflow`
+> Extension: `LEAP Localization failure cases examples comparison`
+> Advanced: `LEAP Localization invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # Localization
 
-**Language**: English ｜ [中文](LOCALIZATION_CN.md)
+**Language**: English ｜ [[docs/LOCALIZATION_CN|中文]]
 
 LEAP is model-agnostic and is embedded by host agents written by anyone, so text a **learner or
 operator actually reads** must not be hard-coded to one language.
@@ -85,3 +104,15 @@ the standard toolchain becomes worthwhile — the `Translator.t()` call sites wo
 | `src/leap/i18n.py` | Message catalogues and `Translator` |
 | `config/default.yaml` | The `locale` parameter |
 | `tests/test_i18n.py` | Catalogue integrity and locale tests |
+
+> [!note]- Reading and verification sequence: LEAP Localization
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[docs/ARCHITECTURE]] · [[docs/LOCALIZATION_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]]

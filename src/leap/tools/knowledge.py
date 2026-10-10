@@ -49,12 +49,18 @@ class KnowledgeTools(LeapToolMixin):
         session = self.require_session(session_id)
         topic = topic or session.get("topic")
         budget = int(self.conf("unit_concept_budget", 8))
+        from leap.runtime.delivery import teaching_point_template
 
         return self.ok(
             session_id=session_id,
             topic=topic,
             unit_concept_budget=budget,
             node_field_template=NODE_FIELD_TEMPLATE,
+            teaching_point_template=teaching_point_template(),
+            canonical_authoring_order=[
+                "full Obsidian note", "interactive HTML projection",
+                "save_teaching_package", "assessment registration",
+            ],
             relation_types=list(RELATION_TYPES),
             relation_semantics={
                 "prerequisite": "the later node depends on the earlier one for teaching order",

@@ -1,6 +1,25 @@
+---
+title: 架构
+tags:
+- leap
+- engineering
+aliases:
+- 架构 guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP 架构 foundations definitions workflow`
+> Extension: `LEAP 架构 failure cases examples comparison`
+> Advanced: `LEAP 架构 invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # 架构
 
-**语言**：[English](ARCHITECTURE.md) ｜ 中文
+**语言**：[[docs/ARCHITECTURE|English]] ｜ 中文
 
 > 权威的框架设计文档与视觉设计规范由项目作者另行维护，**不包含在本仓库**。
 > 本文档描述本仓库的实现架构。
@@ -97,14 +116,14 @@ Schema 变更是增量的：`CREATE TABLE IF NOT EXISTS` 不会修改已有表�
 
 ## 7. 扩展点
 
-见 [`README.md`](../README_CN.md#-可插拔设计)。每个接缝都是 `runtime/contracts.py` 里的一个
+见 [[README_CN|README.md]]。每个接缝都是 `runtime/contracts.py` 里的一个
 `Protocol`；实现按 kind 注册到 `runtime/plugins.py`，由 `config/default.yaml` 按名字选择。
 
 ## 8. 多语言
 
 面向学习者的文案通过 `src/leap/i18n.py` 解析：当前语言 → 默认语言 → key 本身，
 因此缺翻译会降级而不是抛异常。工具名、字段名、枚举值有意不翻译。
-见 [`LOCALIZATION_CN.md`](LOCALIZATION_CN.md)。
+见 [[docs/LOCALIZATION_CN|LOCALIZATION_CN.md]]。
 
 ## 9. 质量门禁
 
@@ -127,3 +146,15 @@ AI 助手工作区与本地临时目录永不进入提交。由三层保障：
 2. 扫描器规则 `AI001` 基于路径，即使 `.gitignore` 被绕过也会触发。
 3. `tests/test_infrastructure.py::TestAiWorkspaceIsolation` 查询 `git ls-files` 与全部提交
    历史并断言此类文件为 0；CI 每次 push 都会跑。
+
+> [!note]- Reading and verification sequence: LEAP 架构
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[docs/ARCHITECTURE]]

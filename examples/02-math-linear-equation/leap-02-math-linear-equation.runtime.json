@@ -214,7 +214,7 @@
     ]
   },
   {
-    "name": "post-check uses its own raw answer and attempt",
+    "name": "free-text post-check preserves raw answer without keyword grading",
     "steps": [
       {
         "action": "click",
@@ -247,7 +247,338 @@
       }
     ],
     "assertions": [
-      "(() => { const q=window.LEAP.peekOutbox(), c=q.filter(x=>x.tool==='commit_assessment').pop(), a=q.filter(x=>x.tool==='submit_attempt').pop(); return !!c && !!a && c.args.raw_answer === a.args.answer && c.args.attempt_id === '{{'+a.call_id+'.attempt_id}}'; })() "
+      "window.LEAP.peekOutbox().some(c=>c.tool==='submit_attempt' && c.args.item_id==='q2-verify' && c.args.answer==='移项变号是两边同减，随便翻符号会出错')",
+      "!window.LEAP.peekOutbox().some(c=>c.tool==='commit_assessment' && c.args.item_id==='q2-verify')",
+      "window.LEAP.getInteractionResult().ui_state.completed === false",
+      "document.querySelector('#verifyFb').textContent.includes('待宿主语义审核')"
+    ]
+  },
+  {
+    "name": "balance next previous reset and double-side highlight",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#eqNext"
+      },
+      {
+        "action": "click",
+        "selector": "#eqNext"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__mathStep=document.querySelector('#eqStepStatus').dataset.step"
+      },
+      {
+        "action": "click",
+        "selector": "#eqPrev"
+      },
+      {
+        "action": "click",
+        "selector": "#eqHighlight"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__highlight=document.querySelector('#eqBeam').getAttribute('stroke-width')"
+      },
+      {
+        "action": "click",
+        "selector": "#eqHighlight"
+      },
+      {
+        "action": "click",
+        "selector": "#eqReset"
+      }
+    ],
+    "assertions": [
+      "window.__mathStep==='2'",
+      "window.__highlight==='8'",
+      "document.querySelector('#eqBeam').getAttribute('stroke-width')==='4'",
+      "document.querySelector('#eqStepStatus').dataset.step==='0'",
+      "document.querySelector('#eqPrev').disabled"
+    ]
+  },
+  {
+    "name": "balance reaches verification and respects step bounds",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#eqNext"
+      },
+      {
+        "action": "click",
+        "selector": "#eqNext"
+      },
+      {
+        "action": "click",
+        "selector": "#eqNext"
+      },
+      {
+        "action": "click",
+        "selector": "#eqNext"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#eqNext').disabled",
+      "document.querySelector('#eqStepStatus').textContent.includes('检验')",
+      "document.querySelector('#eqStepStatus').dataset.step==='4'"
+    ]
+  },
+  {
+    "name": "wrong equivalent transformation comparison opens and closes",
+    "steps": [
+      {
+        "action": "click",
+        "selector": "#eqCompare"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__compare=!document.querySelector('#eqComparison').hidden"
+      },
+      {
+        "action": "click",
+        "selector": "#eqCompare"
+      }
+    ],
+    "assertions": [
+      "window.__compare===true",
+      "document.querySelector('#eqComparison').hidden",
+      "document.querySelector('#eqCompare').getAttribute('aria-expanded')==='false'"
+    ]
+  },
+  {
+    "name": "parameter calculator negative coefficient and number-line graph",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "(() => { const e=document.querySelector('#rngA');e.value='-2';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true})); })()"
+      },
+      {
+        "action": "evaluate",
+        "script": "(() => { const e=document.querySelector('#rngB');e.value='-6';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true})); })()"
+      },
+      {
+        "action": "evaluate",
+        "script": "(() => { const e=document.querySelector('#rngC');e.value='10';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true})); })()"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#eqGraph').dataset.solution==='-8'",
+      "document.querySelector('#calcEq').dataset.solutionType==='unique'",
+      "document.querySelector('#nline svg').getAttribute('aria-label').includes('-8')"
+    ]
+  },
+  {
+    "name": "parameter calculator zero coefficient contradiction",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "(() => { const e=document.querySelector('#rngA');e.value='0';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true})); })()"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#rngA').value==='0'",
+      "document.querySelector('#calcEq').dataset.solutionType==='none'",
+      "document.querySelector('#eqGraph').dataset.solutionType==='none'",
+      "document.querySelector('#calcSteps').textContent.includes('无解')",
+      "!document.querySelector('#calcSteps').textContent.includes('Infinity')"
+    ]
+  },
+  {
+    "name": "parameter calculator zero coefficient identity",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "(() => { const e=document.querySelector('#rngA');e.value='0';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true})); })()"
+      },
+      {
+        "action": "evaluate",
+        "script": "(() => { const e=document.querySelector('#rngC');e.value='5';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true})); })()"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#calcEq').dataset.solutionType==='all'",
+      "document.querySelector('#eqGraph').dataset.solutionType==='all'",
+      "document.querySelector('#calcSteps').textContent.includes('每个实数')"
+    ]
+  },
+  {
+    "name": "parameter reset restores unique x five",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "(() => { const e=document.querySelector('#rngA');e.value='0';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true})); })()"
+      },
+      {
+        "action": "click",
+        "selector": "#btnResetCalc"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#eqGraph').dataset.solution==='5'",
+      "document.querySelector('#rngA').value==='3'",
+      "document.querySelector('#rngB').value==='5'",
+      "document.querySelector('#rngC').value==='20'"
+    ]
+  },
+  {
+    "name": "new fraction exercise rejects wrong then accepts exact answer",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#mathChallenge",
+        "value": "12"
+      },
+      {
+        "action": "click",
+        "selector": "#mathChallengeCheck"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__wrongFraction=window.LEAP.getInteractionResult().assessment.correctness"
+      },
+      {
+        "action": "fill",
+        "selector": "#mathChallenge",
+        "value": "x=12/2"
+      },
+      {
+        "action": "click",
+        "selector": "#mathChallengeCheck"
+      }
+    ],
+    "assertions": [
+      "window.__wrongFraction===0",
+      "window.LEAP.getInteractionResult().assessment.correctness===1",
+      "document.querySelector('#mathChallengeFeedback').dataset.ok==='true'",
+      "window.LEAP.peekOutbox().filter(c=>c.tool==='commit_assessment').pop().args.raw_answer==='x=12/2'"
+    ]
+  },
+  {
+    "name": "new fraction exercise does not extract embedded accidental number",
+    "steps": [
+      {
+        "action": "fill",
+        "selector": "#mathChallenge",
+        "value": "wrong 6 solution"
+      },
+      {
+        "action": "click",
+        "selector": "#mathChallengeCheck"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().assessment.correctness===0"
+    ]
+  },
+  {
+    "name": "new boundary grading wrong then right",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#mathBoundary').value='unique'"
+      },
+      {
+        "action": "click",
+        "selector": "#mathBoundaryCheck"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__boundaryWrong=window.LEAP.getInteractionResult().assessment.correctness"
+      },
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#mathBoundary').value='none'"
+      },
+      {
+        "action": "click",
+        "selector": "#mathBoundaryCheck"
+      }
+    ],
+    "assertions": [
+      "window.__boundaryWrong===0",
+      "window.LEAP.getInteractionResult().assessment.correctness===1",
+      "document.querySelector('#mathBoundaryFeedback').textContent.includes('3=8')"
+    ]
+  },
+  {
+    "name": "native explanation foldout supports keyboard open and close",
+    "steps": [
+      {
+        "action": "evaluate",
+        "script": "document.querySelector('#math-foundations summary').focus(); document.querySelector('#math-foundations summary').click();"
+      },
+      {
+        "action": "evaluate",
+        "script": "window.__foldOpen=document.querySelector('#math-foundations details').open;document.querySelector('#math-foundations summary').click();"
+      }
+    ],
+    "assertions": [
+      "window.__foldOpen===true",
+      "document.querySelector('#math-foundations details').open===false"
+    ]
+  },
+  {
+    "name": "checkpoint retries keep both original attempts",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".opt[data-v=\"bad\"] >> nth=0"
+      },
+      {
+        "action": "click",
+        "selector": ".opt[data-v=\"ok\"] >> nth=0"
+      }
+    ],
+    "assertions": [
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='cp-01'&&e.event_type==='attempt_submitted').length===2",
+      "window.LEAP.peekOutbox().filter(c=>c.tool==='submit_attempt'&&c.args.item_id==='cp-01').length===2"
+    ]
+  },
+  {
+    "name": "revealed original numeric answer cannot skip semantic verification",
+    "steps": [
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"1\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"2\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"3\"]"
+      },
+      {
+        "action": "click",
+        "selector": ".ladder-step[data-lv=\"4\"]"
+      },
+      {
+        "action": "click",
+        "selector": "#btnConfirmReveal"
+      },
+      {
+        "action": "fill",
+        "selector": "#step1",
+        "value": "3x=15"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep1"
+      },
+      {
+        "action": "fill",
+        "selector": "#step2",
+        "value": "x=5"
+      },
+      {
+        "action": "click",
+        "selector": "#btnStep2"
+      }
+    ],
+    "assertions": [
+      "document.querySelector('#verify').hidden===false",
+      "window.LEAP.getInteractionResult().ui_state.completed===false"
     ]
   }
 ]

@@ -1,8 +1,27 @@
+---
+title: LEAP 教学页面示例
+tags:
+- leap
+- engineering
+aliases:
+- LEAP 教学页面示例 guide
+canonical_role: full_knowledge_source
+delivery_policy: '3.0'
+---
+
+> [!info] Learning resources / 学习资源
+> Core: `LEAP LEAP 教学页面示例 foundations definitions workflow`
+> Extension: `LEAP LEAP 教学页面示例 failure cases examples comparison`
+> Advanced: `LEAP LEAP 教学页面示例 invariants verification transfer`
+> These are search queries; no video has been certified for this note.
+
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+
 # LEAP 教学页面示例
 
-**语言 / Language**：**简体中文** ｜ [English](README.md)
+**语言 / Language**：**简体中文** ｜ [[examples/README|English]]
 
-五个单文件教学页面，由宿主 Agent 依据工程侧任务书产出。它们是宿主 Agent 生成页面时，在结构、组件、交互与视觉上的参考标准。
+八个单文件教学页面，由宿主 Agent 依据工程侧任务书产出。它们是宿主 Agent 生成页面时，在结构、组件、交互与视觉上的参考标准。
 
 > 视觉设计规范由项目作者另行维护，**不在本仓库**；本目录下的每个页面都遵循该规范。
 
@@ -21,7 +40,10 @@ examples/
 ├── 02-math-linear-equation/      # 数学
 ├── 03-cs-osi-model/              # 计算机基础
 ├── 04-physics-free-fall/         # 物理
-└── 05-logic-flowchart/           # 逻辑
+├── 05-logic-flowchart/           # 逻辑
+├── 06-statistics-probability/
+├── 07-chemistry-stoichiometry/
+└── 08-electronics-ohms-law/
 ```
 
 `leap-web-spec.md` 规定"必须有哪三段、JSON 必须有哪些字段"；视觉规范规定"这三段长什么样"。
@@ -37,6 +59,9 @@ examples/
 | 3 | 计算机基础 —— OSI 模型 | `leap-03-cs-osi-model.html` | `03-cs-osi-model/` |
 | 4 | 物理 —— 自由落体 | `leap-04-physics-free-fall.html` | `04-physics-free-fall/` |
 | 5 | 逻辑 —— 流程图 | `leap-05-logic-flowchart.html` | `05-logic-flowchart/` |
+| 6 | 统计 —— 条件概率 | `leap-06-statistics-probability.html` | `06-statistics-probability/` |
+| 7 | 化学 —— 化学计量 | `leap-07-chemistry-stoichiometry.html` | `07-chemistry-stoichiometry/` |
+| 8 | 电路 —— 欧姆定律 | `leap-08-electronics-ohms-law.html` | `08-electronics-ohms-law/` |
 
 生成方分段输出时，请把各段**按顺序拼接完整**后再保存为上述文件名；不要留下碎片文件。
 
@@ -114,3 +139,15 @@ python scripts/apply_leap_bridge.py --check     # 检查完整性（不只是有
 | JSON 输出契约字段 | MCP 工具契约、数据模型 |
 | 交互事件类型 | 核心事件 |
 | 页面即"教学主交互载体" | Web：交互学习层 |
+
+> [!note]- Reading and verification sequence: LEAP LEAP 教学页面示例
+> Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.
+> Work through a concrete input and retain intermediate results; compare the output with the applicable contract or definition.
+> For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
+> After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
+
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[docs/EXAMPLES]] · [[examples/01-python-recursion/knowledge]] · [[examples/03-cs-osi-model/README_CN]] · [[examples/03-cs-osi-model/knowledge]] · [[examples/05-logic-flowchart/knowledge]] · [[examples/06-statistics-probability/README_CN]] · [[examples/06-statistics-probability/knowledge]] · [[examples/07-chemistry-stoichiometry/README_CN]] · [[examples/07-chemistry-stoichiometry/knowledge]] · [[examples/README]]

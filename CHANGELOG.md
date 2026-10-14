@@ -24,6 +24,39 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] — 2026-10-14
+
+### Added
+
+- **Coarse tutor API.** Eight tools compose the fine-grained runtime server-side, so a teaching turn
+  takes one or two calls instead of six: `start_learning`, `continue_lesson`, `log_teaching_action`,
+  `submit_answer`, `advance_lesson`, `get_review_queue`, `review_answer`, `get_learner_snapshot`.
+  Each response carries `next_call` - the next tool to call, with its arguments and the reason - and
+  the facade relaxes nothing: the State Guard still decides, a refused advance writes nothing, a
+  failed assessment keeps the stored attempt recoverable, raw answers are preserved verbatim and
+  mastery is still estimated server-side. The server now registers 70 tools.
+- **Tool profiles.** `--tool-profile quickstart` (or `LEAP_TOOL_PROFILE`, or `tool_profile` in
+  `config/default.yaml`) exposes 25 tools instead of 70. An unknown profile name is refused at
+  startup instead of silently widening the surface to `full`.
+- **`leap-doctor` / `python -m leap.doctor`.** Installation self-check covering the interpreter,
+  runtime dependencies, configuration, database directory writability, schema creation in a throwaway
+  database, artifact root, message catalogues and the per-profile tool counts. Supports `--json`,
+  `--profile` and meaningful exit codes, and never opens the configured database for writing.
+- **`docs/FACADE.md` / `docs/FACADE_CN.md`** (coarse API, profiles, verification) and
+  **`docs/scope-and-limits.md` / `docs/scope-and-limits_CN.md`** (what the runtime does and does not
+  guarantee, and which claims have no evidence yet).
+
+### Changed
+
+- `build_server(profile=...)` selects the exposed tool catalog; `leap.server:main` accepts
+  `--tool-profile` and ignores unrecognised client arguments instead of aborting startup.
+- The integration guide, both READMEs and the knowledge index document the coarse path, the profiles
+  and the scope boundaries.
+- Catalog-count assertions in `verify_mcp_bridge.py` and `verify_math1_chapter.py` compare against
+  the live catalog instead of a hard-coded number, so adding a tool can no longer leave a stale
+  constant behind.
+- 38 new tests cover facade composition, error recovery, profile filtering and the self-check.
+
 ## [Unreleased] — 2026-10-11
 
 - Apply permanent delivery policy 3.0 to every MCP response and learning mode. Add full policy retrieval, an 11-subject starter catalog and registration of actual canonical Markdown/HTML teaching packages, bringing the server to 62 tools.

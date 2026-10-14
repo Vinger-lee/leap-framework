@@ -16,21 +16,23 @@ Run::
 
 from __future__ import annotations
 
+import argparse
 import functools
 import json
 import logging
 import os
 import sys
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Sequence
 
 from mcp.server.mcpserver import MCPServer
 
 from leap import __version__
 from leap.config import REPO_ROOT, load_config
+from leap.runtime.profiles import allowed_tool_names, available_profiles, resolve_profile
 from leap.tools import LeapService, ToolError, build_service
 
-__all__ = ["server", "main", "get_service", "build_server"]
+__all__ = ["server", "main", "get_service", "build_server", "registered_tool_names"]
 
 logger = logging.getLogger("leap.server")
 
@@ -77,10 +79,70 @@ def _guard(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 
 # ---------------------------------------------------------------------------
+# Tool profiles
+# ---------------------------------------------------------------------------
+def _configured_profile() -> str | None:
+    """Read ``tool_profile`` from configuration, tolerating a broken config."""
+    try:
+        value = load_config().get("tool_profile")
+    except Exception:  # pragma: no cover - a broken config surfaces in the tool calls
+        return None
+    return str(value) if value else None
+
+
+def registered_tool_names(server: MCPServer) -> list[str]:
+    """Return the tool names a built server currently exposes.
+
+    Synchronous on purpose: profiles are applied while the server is being
+    built, so an async ``list_tools()`` round trip is not available there. The
+    mcp package (>=2) keeps its registry in ``ToolManager._tools``; the profile
+    tests fail loudly if a future version changes that, instead of silently
+    exposing the whole surface.
+    """
+    tools = getattr(getattr(server, "_tool_manager", None), "_tools", None)
+    if not isinstance(tools, dict):
+        raise RuntimeError(
+            "the installed mcp package exposes no synchronous tool registry; "
+            "tool profiles require mcp>=2 (see tests/test_tool_profiles.py)"
+        )
+    return list(tools)
+
+
+def _apply_profile(server: MCPServer, profile: str) -> None:
+    """Hide the tools a profile does not expose.
+
+    Registration above always covers the complete surface, so the runtime keeps
+    every capability; only the MCP catalog the client sees is narrowed.
+    """
+    allowed = allowed_tool_names(profile)
+    if allowed is None:
+        return
+    registered = registered_tool_names(server)
+    unknown = sorted(set(allowed) - set(registered))
+    if unknown:
+        raise RuntimeError(f"tool profile {profile!r} lists unregistered tools: {unknown}")
+    for name in sorted(set(registered) - set(allowed)):
+        server.remove_tool(name)
+
+
+# ---------------------------------------------------------------------------
 # Server definition
 # ---------------------------------------------------------------------------
-def build_server() -> MCPServer:
-    """Create and register the MCP server with the full tool set."""
+def build_server(profile: str | None = None) -> MCPServer:
+    """Create and register the MCP server.
+
+    ``profile`` selects how much of the tool surface an MCP client sees (see
+    :mod:`leap.runtime.profiles`): ``full`` exposes everything registered,
+    ``quickstart`` exposes the coarse tutor API plus the setup tools a complete
+    lesson needs. Registration is identical in both cases - only the catalog is
+    filtered - so an integration can move from ``quickstart`` to ``full``
+    without a data migration.
+
+    Resolution order: ``profile`` argument > ``LEAP_TOOL_PROFILE`` environment
+    variable > ``tool_profile`` in ``config/default.yaml`` > ``full``.
+    """
+    resolved = resolve_profile(profile, fallback=_configured_profile())
+    logger.info("registering MCP tools for profile %r", resolved)
     server = MCPServer(
         name="leap-framework",
         title="LEAP - Learning Evolution & Adaptation Pipeline",
@@ -111,6 +173,180 @@ def build_server() -> MCPServer:
             "save_teaching_package and verify every interaction. Never reduce these rules for core_only."
         ),
     )
+
+    # -- 22.0 Coarse tutor API (facade) ------------------------------------
+    # One call per teaching-loop step, composed server-side from the
+    # fine-grained tools below. Same runtime, same State Guard, same evidence
+    # rules - fewer calls to get right. See leap.tools.facade.
+    @server.tool()
+    @_guard
+    def start_learning(
+        learner_id: str,
+        topic: str,
+        goal: str | None = None,
+        target_depth: str | None = None,
+        target_domain: str | None = None,
+        target_outcome: str | None = None,
+        time_budget: int | None = None,
+        prior_knowledge: str | None = None,
+        constraints: str | None = None,
+        mode: str | None = None,
+        allow_skip_domain_grounding: bool | None = None,
+        request_id: str | None = None,
+    ) -> dict:
+        """Start a session, record its goal and pick a learning mode in one call.
+
+        Coarse equivalent of create_session + save_learning_goal +
+        set_learning_configuration. The response returns next_call - the next
+        tool to call - and, when domain_grounding_notice is present, you must
+        show it to the learner verbatim before the grounding stage starts.
+        """
+        return get_service().start_learning(
+            learner_id, topic, goal=goal, target_depth=target_depth,
+            target_domain=target_domain, target_outcome=target_outcome,
+            time_budget=time_budget, prior_knowledge=prior_knowledge,
+            constraints=constraints, mode=mode,
+            allow_skip_domain_grounding=allow_skip_domain_grounding,
+            request_id=request_id,
+        )
+
+    @server.tool()
+    @_guard
+    def continue_lesson(session_id: str, node_id: str | None = None) -> dict:
+        """Return the teaching state and the next action in one call.
+
+        Coarse equivalent of get_teaching_context + get_session_info. Reports
+        the policy engine's recommended strategy and actions together with the
+        evidence stage, friction signals, active misconceptions and due review
+        count, plus next_call. The facade never selects the pedagogy itself.
+        """
+        return get_service().continue_lesson(session_id, node_id)
+
+    @server.tool()
+    @_guard
+    def log_teaching_action(
+        session_id: str,
+        action: str | None = None,
+        strategy: str | None = None,
+        node_id: str | None = None,
+        rationale: str | None = None,
+        expected_outcome: str | None = None,
+        request_id: str | None = None,
+    ) -> dict:
+        """Record the teaching action you actually took (section 27.1).
+
+        Coarse equivalent of commit_pedagogical_decision. Omitting action and
+        strategy records the runtime recommendation, so the decision log is
+        never empty; passing what you did keeps the log auditable.
+        """
+        return get_service().log_teaching_action(
+            session_id, action=action, strategy=strategy, node_id=node_id,
+            rationale=rationale, expected_outcome=expected_outcome, request_id=request_id,
+        )
+
+    @server.tool()
+    @_guard
+    def submit_answer(
+        session_id: str,
+        answer: str,
+        item_id: str | None = None,
+        node_id: str | None = None,
+        hint_level: int = 0,
+        response_time: float | None = None,
+        correctness: float | None = None,
+        conceptual_understanding: float | None = None,
+        reasoning_quality: float | None = None,
+        application: float | None = None,
+        transfer: float | None = None,
+        hint_dependency: float | None = None,
+        assessor_type: str = "model",
+        assessor_confidence: float = 1.0,
+        confidence: float | None = None,
+        expected_state_version: int | None = None,
+        request_id: str | None = None,
+    ) -> dict:
+        """Record the learner's answer and commit your assessment in one call.
+
+        Coarse equivalent of submit_attempt + commit_assessment (plus a read-back
+        of the updated state). The raw answer is stored verbatim and reused as
+        raw_answer, which removes the usual mismatch error. With no score
+        supplied only the attempt is stored - use that when free-text reasoning
+        still needs your semantic review, then call commit_assessment yourself.
+        Never send mastery_probability: it is computed server-side.
+        """
+        return get_service().submit_answer(
+            session_id, answer, item_id=item_id, node_id=node_id, hint_level=hint_level,
+            response_time=response_time, correctness=correctness,
+            conceptual_understanding=conceptual_understanding,
+            reasoning_quality=reasoning_quality, application=application, transfer=transfer,
+            hint_dependency=hint_dependency, assessor_type=assessor_type,
+            assessor_confidence=assessor_confidence, confidence=confidence,
+            expected_state_version=expected_state_version, request_id=request_id,
+        )
+
+    @server.tool()
+    @_guard
+    def advance_lesson(
+        session_id: str,
+        unit_tag: str | None = None,
+        node_id: str | None = None,
+        manual_override: bool = False,
+        request_id: str | None = None,
+    ) -> dict:
+        """Dry-run the State Guard and advance only if it allows the transition.
+
+        Coarse equivalent of check_advance_unit + advance_unit. A rejection is
+        not an error: the response returns advanced=false, the guard's own
+        reason and the repair action, and nothing is written. Never work around
+        a rejection in prompt text.
+        """
+        return get_service().advance_lesson(
+            session_id, unit_tag=unit_tag, node_id=node_id,
+            manual_override=manual_override, request_id=request_id,
+        )
+
+    @server.tool()
+    @_guard
+    def get_review_queue(
+        learner_id: str, session_id: str | None = None, limit: int = 10
+    ) -> dict:
+        """List the due spaced reviews for a learner with the next call to make.
+
+        Coarse equivalent of get_due_reviews. A non-empty queue is not a global
+        block on new learning; whether to insert, prioritise or block is decided
+        per node by Policy + State Guard.
+        """
+        return get_service().get_review_queue(learner_id, session_id=session_id, limit=limit)
+
+    @server.tool()
+    @_guard
+    def review_answer(
+        review_item_id: str,
+        rating: int,
+        session_id: str | None = None,
+        request_id: str | None = None,
+    ) -> dict:
+        """Apply a 1-4 FSRS rating to a due review and reschedule it.
+
+        Coarse equivalent of submit_review. Rate what you observed: a rating of
+        2 or more re-confirms retention evidence and can move the node's
+        evidence stage, while an inflated rating delays the next review.
+        """
+        return get_service().review_answer(
+            review_item_id, rating, session_id=session_id, request_id=request_id
+        )
+
+    @server.tool()
+    @_guard
+    def get_learner_snapshot(session_id: str) -> dict:
+        """Return session, node, mastery and review state in one call.
+
+        Coarse equivalent of get_session_info + get_mastery_status +
+        get_knowledge_nodes + get_due_reviews. Use it as the single read for
+        reconnecting a chat window, reporting progress or debugging a session,
+        instead of rebuilding state from memory.
+        """
+        return get_service().get_learner_snapshot(session_id)
 
     # -- 22.1 Session / Goal ------------------------------------------------
     @server.tool()
@@ -821,26 +1057,47 @@ def build_server() -> MCPServer:
         """
         return get_service().get_learning_metrics(session_id)
 
+    _apply_profile(server, resolved)
     return server
 
 
 server = build_server()
 
 
-def main() -> None:
+def main(argv: Sequence[str] | None = None) -> None:
     """Entry point: run the MCP server over stdio."""
+    parser = argparse.ArgumentParser(description="Run the LEAP MCP server over stdio.")
+    parser.add_argument(
+        "--tool-profile",
+        choices=available_profiles(),
+        default=None,
+        help=(
+            "how much of the tool surface the client sees (default: LEAP_TOOL_PROFILE, "
+            "then tool_profile in config/default.yaml, then full)"
+        ),
+    )
+    args, extra = parser.parse_known_args(argv)
+
     logging.basicConfig(
         level=os.environ.get("LEAP_LOG_LEVEL", "INFO").upper(),
         stream=sys.stderr,  # stdout is reserved for the MCP protocol
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
+    if extra:
+        logger.warning("ignoring unrecognised arguments: %s", extra)
     transport = os.environ.get("LEAP_MCP_TRANSPORT", "stdio")
     if transport != "stdio":
         logger.warning(
             "P0 supports stdio only; requested transport %r. Falling back to stdio.", transport
         )
+    active = server if args.tool_profile is None else build_server(args.tool_profile)
+    logger.info(
+        "LEAP MCP server ready: profile=%s tools=%d",
+        resolve_profile(args.tool_profile, fallback=_configured_profile()),
+        len(registered_tool_names(active)),
+    )
     get_service()
-    server.run(transport="stdio")
+    active.run(transport="stdio")
 
 
 if __name__ == "__main__":

@@ -78,6 +78,15 @@ domain_grounding_warn_user: true
 mcp_transport: stdio             # P0: local process only, no HTTP/SSE
 auth_enabled: false              # P0: single-machine trusted environment
 
+# --- Tool surface ----------------------------------------------------------
+# How much of the MCP tool catalog a client sees. Registration is identical in
+# every profile - only the exposed list changes, so switching later needs no
+# migration. `full` = every registered tool; `quickstart` = the coarse tutor API
+# (leap.tools.facade) plus the setup tools a complete lesson needs.
+# Overridable per process with the LEAP_TOOL_PROFILE environment variable or
+# `python -m leap.server --tool-profile quickstart`.
+tool_profile: full
+
 # --- Storage ---------------------------------------------------------------
 database_path: data/leap.db
 artifact_root: artifacts

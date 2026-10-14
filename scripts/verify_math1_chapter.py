@@ -77,7 +77,9 @@ async def verify():
     checks=math_checks()
     pair=validate_teaching_package((ROOT/'knowledge.md').read_text(encoding='utf-8'),PAGE.read_text(encoding='utf-8'),json.loads((ROOT/'delivery-manifest.json').read_text(encoding='utf-8')))
     assert pair['valid'],pair
-    assert manifest['registered_tools']==62 and manifest['registered_items']==32
+    from leap.server import build_server, registered_tool_names
+    expected_tools=len(registered_tool_names(build_server('full')))
+    assert manifest['registered_tools']==expected_tools and manifest['registered_items']==32,(manifest['registered_tools'],expected_tools)
     assert len(manifest['teaching_packages'])==4
     source_audit={'bundled':False}
     if (ROOT/'sources/index.json').exists():

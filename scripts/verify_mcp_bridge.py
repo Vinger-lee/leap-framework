@@ -20,6 +20,10 @@ from playwright.async_api import async_playwright
 from verify_example_runtime import _find_chromium
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(ROOT / "src"))
+
+from leap.server import build_server, registered_tool_names  # noqa: E402 - needs ROOT/src on the path
 
 
 async def verify(database: Path, chromium: str | None):
@@ -31,7 +35,10 @@ async def verify(database: Path, chromium: str | None):
             catalog = (await session.list_tools()).tools
             names = {t.name for t in catalog}
             assert {"submit_attempt", "commit_assessment", "record_reflection", "schedule_review", "check_advance_unit", "save_assessment_item", "save_teaching_package", "get_teaching_delivery_policy", "get_subject_catalog"} <= names
-            assert len(catalog) == 62
+            # Compare against the in-process catalog of the default profile
+            # instead of a hard-coded number, so adding a tool cannot leave a
+            # stale constant behind.
+            assert len(catalog) == len(registered_tool_names(build_server("full")))
 
             async def call(name, args):
                 result = await session.call_tool(name, args)

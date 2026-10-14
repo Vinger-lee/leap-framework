@@ -15,6 +15,7 @@ from leap.tools.assessment import AssessmentTools
 from leap.tools.artifact import ArtifactTools
 from leap.tools.base import LeapToolMixin, ToolContext, ToolError
 from leap.tools.evidence import EvidenceTools
+from leap.tools.facade import FacadeTools
 from leap.tools.knowledge import KnowledgeTools
 from leap.tools.retention import RetentionTools
 from leap.tools.session import SessionTools
@@ -31,11 +32,13 @@ __all__ = [
     "TeachingTools",
     "EvidenceTools",
     "ArtifactTools",
+    "FacadeTools",
     "build_service",
 ]
 
 
 class LeapService(
+    FacadeTools,
     SessionTools,
     KnowledgeTools,
     AssessmentTools,
@@ -44,7 +47,11 @@ class LeapService(
     EvidenceTools,
     ArtifactTools,
 ):
-    """The complete LEAP runtime API surface (section 22)."""
+    """The complete LEAP runtime API surface (section 22).
+
+    ``FacadeTools`` first: the coarse tutor API is part of the same object, so a
+    facade call and a fine-grained call see identical state, guards and events.
+    """
 
     def __init__(self, ctx: ToolContext) -> None:
         super().__init__(ctx)

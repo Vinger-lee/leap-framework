@@ -25,7 +25,7 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
   <img src="https://img.shields.io/github/v/release/Vinger-lee/leap-framework" alt="Release">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-62%20tools-22bb33" alt="MCP 工具">
+  <img src="https://img.shields.io/badge/MCP-70%20tools-22bb33" alt="MCP 工具">
   [![Tests](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml)
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
@@ -136,7 +136,27 @@ State Guard 是唯一有权批准状态迁移的组件。当工具返回 `REJECT
 
 ## 🔧 MCP 工具
 
-62 个工具，走 stdio，按领域分组：
+70 个工具，走 stdio，按领域分组：
+
+### 🚀 八次调用即可开始
+
+细粒度工具的存在是为了让每次状态变更都可独立审计；宿主 Agent 不必逐个驱动它们。8 个粗粒度工具在
+服务端完成组合，且每个回包都带 `next_call`——下一次该调用的工具及其参数。
+
+| 粗粒度工具 | 组合的细粒度调用 |
+|---|---|
+| `start_learning` | `create_session` + `save_learning_goal` + `set_learning_configuration` |
+| `continue_lesson` | `get_teaching_context` + `get_session_info` |
+| `log_teaching_action` | `commit_pedagogical_decision` |
+| `submit_answer` | `submit_attempt` + `commit_assessment` + `get_mastery_status` |
+| `advance_lesson` | `check_advance_unit` + `advance_unit`（先试跑 Guard） |
+| `get_review_queue` | `get_due_reviews` |
+| `review_answer` | `submit_review` |
+| `get_learner_snapshot` | `get_session_info` + `get_mastery_status` + `get_knowledge_nodes` + `get_due_reviews` |
+
+门面层不放松任何约束：State Guard 仍是裁决者，被拒的推进不写入状态，评估失败时作答仍可补救，原始作答
+逐字保存，掌握度仍由服务端估计。工具档位可缩小目录——`--tool-profile quickstart` 只暴露 25 个工具。
+详见 [[docs/FACADE_CN|粗粒度教学 API 与工具档位]]，以及 [[docs/scope-and-limits_CN|范围与边界]]。
 
 | 分组 | 示例 |
 |---|---|

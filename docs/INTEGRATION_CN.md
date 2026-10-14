@@ -15,9 +15,20 @@ delivery_policy: '3.0'
 > Advanced: `LEAP Host Agent 接入指南（System Prompt） invariants verification transfer`
 > These are search queries; no video has been certified for this note.
 
-Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]] · [[docs/FACADE_CN]] · [[docs/scope-and-limits_CN]]
 
 # Host Agent 接入指南（System Prompt）
+
+## 0. 两种驱动方式
+
+| 方式 | 工具面 | 适用场景 |
+|---|---|---|
+| 粗粒度教学 API | 8 个工具（`start_learning`、`continue_lesson`、`log_teaching_action`、`submit_answer`、`advance_lesson`、`get_review_queue`、`review_answer`、`get_learner_snapshot`） | 一个教学步骤一次调用；每个回包都给出 `next_call` |
+| 细粒度 runtime 工具 | 完整目录（见 §2） | 需要把一次组合调用拆到不同时刻（先记录作答、评审后再评估），或直接查看策略与证据 |
+
+两套 API 操作同一批数据行、事件与状态版本，同一会话内可随时切换。下面标准流程中每个阶段都标注了对应的
+粗粒度调用。若想缩小 Agent 看到的工具目录，可用 `--tool-profile quickstart` 启动（25 个工具），
+详见 [[docs/FACADE_CN|粗粒度教学 API 与工具档位]]；框架的已知边界见 [[docs/scope-and-limits_CN|范围与边界]]。
 
 **语言 / Language**：**简体中文** ｜ [[docs/INTEGRATION|English]]
 

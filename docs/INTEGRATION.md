@@ -15,9 +15,22 @@ delivery_policy: '3.0'
 > Advanced: `LEAP Host Agent Integration Guide (System Prompt) invariants verification transfer`
 > These are search queries; no video has been certified for this note.
 
-Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+Related: [[Knowledge_Index]] · [[docs/teaching-delivery]] · [[docs/FACADE]] · [[docs/scope-and-limits]]
 
 # Host Agent Integration Guide (System Prompt)
+
+## 0. Two ways to drive LEAP
+
+| Path | Surface | Use it when |
+|---|---|---|
+| Coarse tutor API | 8 tools (`start_learning`, `continue_lesson`, `log_teaching_action`, `submit_answer`, `advance_lesson`, `get_review_queue`, `review_answer`, `get_learner_snapshot`) | You want one call per teaching-loop step; each response returns `next_call`, the next tool to call |
+| Fine-grained runtime tools | The full catalog (§2) | You need to split a composed call across turns (record an attempt now, assess it after review) or to inspect policy/evidence directly |
+
+Both APIs operate on the same rows, events and state versions, and a session can switch between them
+at any time. Per-step coarse equivalents are noted in the standard flow below. To narrow the catalog
+an agent sees, start the server with `--tool-profile quickstart` (25 tools) and see the
+[[docs/FACADE|coarse tutor API and tool profiles]]; the documented boundaries of the framework are
+in [[docs/scope-and-limits]].
 
 **Language**: **English** ｜ [[docs/INTEGRATION_CN|简体中文]]
 

@@ -70,14 +70,14 @@ def main():
     documents = paths()
     known = {key(p): p for p in documents}
     known["Knowledge_Index"] = ROOT / "Knowledge_Index.md"
-    count = 62
+    count = 70
     for p in documents:
         if key(p) == "docs/mcp-tools":
             continue
         raw = without_backlinks(p.read_text(encoding="utf-8")).rstrip()
         raw = raw.replace("MCP-59%20tools", f"MCP-{count}%20tools")
         raw = re.sub(r"\b59(?=\s*(?:tools|个工具|أداة|herramientas|outils|のツール|инструмент))", str(count), raw) if "quality-audit" not in p.name else raw
-        raw = raw.replace("59개 도구", "62개 도구").replace("pytest -q        # 260 passed", "pytest -q        # inspect the current test result")
+        raw = raw.replace("59개 도구", "70개 도구").replace("pytest -q        # 260 passed", "pytest -q        # inspect the current test result")
         raw = re.sub(r'<img src="https://img.shields.io/badge/tests-260%20passing-22bb33"[^>]+>', '[![Tests](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml)', raw)
         raw = normalize_links(raw, p, known)
         front = re.match(r"\A---\s*\n(.*?)\n---\s*\n", raw, re.S)

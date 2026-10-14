@@ -38,7 +38,7 @@ Python 3.11 or newer is required.
 Run the quality gates — CI runs the first four on every push:
 
 ```bash
-pytest -q                                        # 260 tests
+pytest -q                                        # the full suite
 python scripts/security_scan.py --root .         # secrets & PII, must be P0/P1 = 0
 python scripts/verify_example.py --all           # example static compliance
 python scripts/verify_example_runtime.py --all   # example runtime compliance
@@ -52,6 +52,12 @@ Exit codes are `0` clean / `1` blocking / `2` warnings only.
 
 - Business logic lives in `src/leap/tools/`; the MCP layer in `src/leap/server.py` is a thin
   adapter, which keeps every tool testable without a transport.
+- **Coarse tools are a facade, never a second state machine.** A method in
+  `src/leap/tools/facade.py` must compose the existing runtime methods and must not write state
+  itself, re-derive mastery, or swallow a `ToolError`; a partially completed sequence must hand the
+  caller the ids needed to finish it (see how `submit_answer` reports `attempt_id`). When you add a
+  coarse tool, decide whether it belongs to `QUICKSTART_TOOL_NAMES` in `src/leap/runtime/profiles.py`
+  and regenerate the tool reference.
 - Tool layer code depends on the **protocols** in `src/leap/runtime/contracts.py`, never on a
   concrete class. New implementations register against a kind in `runtime/plugins.py`.
 - Timestamps are **Unix seconds** everywhere. Because events can share a second, any before/after

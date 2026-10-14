@@ -25,7 +25,7 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
   <img src="https://img.shields.io/github/v/release/Vinger-lee/leap-framework" alt="Release">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-62%20tools-22bb33" alt="MCP Tools">
+  <img src="https://img.shields.io/badge/MCP-70%20tools-22bb33" alt="MCP Tools">
   [![Tests](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml)
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
@@ -142,7 +142,30 @@ complementary long-term evidence dimensions.
 
 ## 🔧 MCP tools
 
-62 tools over stdio, grouped by domain:
+70 tools over stdio, grouped by domain:
+
+### 🚀 Start with eight calls
+
+The fine-grained tools exist so every state change is auditable on its own. A host agent does not
+have to drive them one by one: eight coarse tools compose them server-side, and every response
+returns `next_call` — the next tool to call, with its arguments.
+
+| Coarse tool | Composes |
+|---|---|
+| `start_learning` | `create_session` + `save_learning_goal` + `set_learning_configuration` |
+| `continue_lesson` | `get_teaching_context` + `get_session_info` |
+| `log_teaching_action` | `commit_pedagogical_decision` |
+| `submit_answer` | `submit_attempt` + `commit_assessment` + `get_mastery_status` |
+| `advance_lesson` | `check_advance_unit` + `advance_unit` (guard dry-run first) |
+| `get_review_queue` | `get_due_reviews` |
+| `review_answer` | `submit_review` |
+| `get_learner_snapshot` | `get_session_info` + `get_mastery_status` + `get_knowledge_nodes` + `get_due_reviews` |
+
+The facade relaxes nothing: the State Guard still decides, a refused advance writes nothing, a failed
+assessment keeps the stored attempt recoverable, the raw answer is preserved verbatim and mastery is
+still estimated server-side. Tool profiles narrow the catalog — `--tool-profile quickstart` exposes
+25 tools instead of 70. See the [[docs/FACADE|coarse tutor API and tool profiles]], and
+[[docs/scope-and-limits]] for what LEAP does and does not guarantee.
 
 | Group | Examples |
 |---|---|

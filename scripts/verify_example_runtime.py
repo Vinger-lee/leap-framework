@@ -93,6 +93,20 @@ def _validate(payload: Any, schema: dict) -> list[str]:
     return out
 
 
+def _settle(page: Any) -> None:
+    """Let queued browser tasks run before an assertion is evaluated.
+
+    Some interactions report through a queued task - ``<details>`` fires its
+    ``toggle`` event that way - so an assertion that counts events right after a
+    click can read a stale count and fail intermittently. Waiting for the next
+    animation frame plus one macrotask flushes those callbacks. Assertions are
+    unchanged; only the timing is corrected.
+    """
+    page.evaluate(
+        "() => new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)))"
+    )
+
+
 def _exercise_scenarios(page: Any, path: Path, report: RuntimeReport) -> None:
     """Run declared, reviewable paths. Missing coverage is a failed gate."""
     manifest = path.with_suffix(".runtime.json")
@@ -116,7 +130,9 @@ def _exercise_scenarios(page: Any, path: Path, report: RuntimeReport) -> None:
                     page.evaluate(step["script"])
                 else:
                     raise ValueError(f"unknown scenario action: {action}")
+            _settle(page)
             for assertion in scenario["assertions"]:
+                _settle(page)
                 if page.evaluate(assertion) is not True:
                     raise AssertionError(assertion)
             report.add("场景: " + scenario["name"], True)

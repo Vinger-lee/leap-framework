@@ -57,6 +57,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   constant behind.
 - 38 new tests cover facade composition, error recovery, profile filtering and the self-check.
 
+### Fixed
+
+- Scenario assertions in `verify_example_runtime.py` now let queued browser tasks run before they
+  are evaluated. An interaction that reports through a queued task (`<details>` fires its `toggle`
+  event that way) could leave a stale event count behind, which made example 08 fail the folded
+  worked-solution gate intermittently. The assertions themselves are unchanged.
+
 ## [Unreleased] — 2026-10-11
 
 - Apply permanent delivery policy 3.0 to every MCP response and learning mode. Add full policy retrieval, an 11-subject starter catalog and registration of actual canonical Markdown/HTML teaching packages, bringing the server to 62 tools.

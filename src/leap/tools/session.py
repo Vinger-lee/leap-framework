@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 from typing import Any, Mapping
 
-from leap.runtime.evidence import STAGES
 from leap.storage import new_id, now_ts
 from leap.tools.base import LeapToolMixin, ToolError, json_dumps
 
@@ -451,5 +450,3 @@ class SessionTools(LeapToolMixin):
             return "diagnostic"
         return "teaching"
 
-    def stage_vocabulary(self) -> list[str]:
-        return list(STAGES)

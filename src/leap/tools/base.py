@@ -8,9 +8,8 @@ transport in the loop.
 from __future__ import annotations
 
 import json
-import sqlite3
 from dataclasses import dataclass
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any, Mapping, Sequence
 
 from leap.config import Config, load_config
 from leap.runtime.events import EventLog
@@ -193,12 +192,6 @@ class LeapToolMixin:
         if not decision.allowed:
             raise ToolError("domain_grounding_required", decision.reason, decision.as_dict())
 
-    def require_learner(self, learner_id: str) -> dict:
-        row = self.db.query_one("SELECT * FROM learners WHERE learner_id = ?", (learner_id,))
-        if row is None:
-            raise ToolError("unknown_learner", f"learner not found: {learner_id}")
-        return dict(row)
-
     def ensure_learner(self, learner_id: str, name: str | None = None) -> dict:
         """Create the learner row on first sight (P0 is single-learner)."""
         row = self.db.query_one("SELECT * FROM learners WHERE learner_id = ?", (learner_id,))
@@ -216,33 +209,6 @@ class LeapToolMixin:
         if value is None or (isinstance(value, str) and not value.strip()):
             raise ToolError("invalid_argument", f"'{field}' is required and must be non-empty")
         return value if isinstance(value, str) else str(value)
-
-    # -- idempotency -------------------------------------------------------
-    def idempotent(
-        self,
-        key: str | None,
-        tool_name: str,
-        fn: Callable[[], dict],
-        session_id: str | None = None,
-    ) -> dict:
-        """Replay the stored response when the same request arrives twice."""
-        if not key:
-            return fn()
-        cached = self.db.lookup_request(key)
-        if cached is not None:
-            try:
-                payload = json.loads(cached)
-            except ValueError:
-                payload = {"ok": True, "replayed": True, "raw": cached}
-            payload["replayed"] = True
-            return payload
-        result = fn()
-        try:
-            self.db.remember_request(key, tool_name, session_id, json_dumps(result))
-        except sqlite3.Error:
-            # Idempotency bookkeeping must never break the business operation.
-            pass
-        return result
 
     # -- response envelope -------------------------------------------------
     @staticmethod

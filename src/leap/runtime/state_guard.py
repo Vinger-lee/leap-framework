@@ -20,6 +20,7 @@ import json
 from typing import Any, Iterable, Mapping
 
 from leap.runtime.evidence import stage_index
+from leap.runtime.prerequisites import unmet_prerequisites
 from leap.storage import Database, now_ts
 
 __all__ = ["GuardDecision", "StateGuard", "BLOOM_ORDER", "bloom_rank", "transfer_required"]
@@ -406,23 +407,7 @@ class StateGuard:
     # ------------------------------------------------------------------
     def _unmet_prerequisites(self, learner_id: str, node_id: str) -> list[str]:
         """Prerequisite nodes that have not yet reached ``demonstrated``."""
-        rows = self._db.query(
-            "SELECT pre_node_id FROM knowledge_edges "
-            "WHERE post_node_id = ? AND relation_type = 'prerequisite'",
-            (node_id,),
-        )
-        unmet: list[str] = []
-        for row in rows:
-            pre_id = row["pre_node_id"]
-            stage = self._db.scalar(
-                "SELECT evidence_stage FROM learner_knowledge_state "
-                "WHERE learner_id = ? AND node_id = ?",
-                (learner_id, pre_id),
-                "estimated",
-            )
-            if stage_index(stage or "estimated") < stage_index("demonstrated"):
-                unmet.append(pre_id)
-        return unmet
+        return unmet_prerequisites(self._db, learner_id, node_id)
 
     def unmet_prerequisites_for_nodes(
         self, learner_id: str, node_ids: Iterable[str]

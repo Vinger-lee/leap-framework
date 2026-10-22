@@ -107,6 +107,7 @@ class LearningMetrics:
 
         baseline, post, diagnostic_at = diagnostic_split(self._db, session_id)
         all_results = baseline + post
+        per_node = self._time_and_attempts(session_id)
 
         return {
             "session_id": session_id,
@@ -115,8 +116,8 @@ class LearningMetrics:
             "immediate_performance": self.immediate_performance(post or all_results),
             "delayed_retention": self.delayed_retention(learner_id),
             "transfer_performance": self.transfer_performance(learner_id),
-            "time_to_target_evidence": self.time_to_target_evidence(session_id),
-            "attempts_to_target_evidence": self.attempts_to_target_evidence(session_id),
+            "time_to_target_evidence": self._time_summary(per_node),
+            "attempts_to_target_evidence": self._attempts_summary(per_node),
             "hint_dependency": self.hint_dependency(all_results),
             "misconception_resolution": self.misconception_resolution(learner_id),
             "confidence_calibration": self.confidence_calibration(all_results),
@@ -189,7 +190,10 @@ class LearningMetrics:
 
     def time_to_target_evidence(self, session_id: str) -> dict:
         """Seconds from a node's first attempt to reaching the target stage."""
-        per_node = self._time_and_attempts(session_id)
+        return self._time_summary(self._time_and_attempts(session_id))
+
+    @staticmethod
+    def _time_summary(per_node: dict[str, dict]) -> dict:
         seconds = [v["seconds"] for v in per_node.values() if v["seconds"] is not None]
         return {
             "target_stage": TARGET_STAGE,
@@ -202,7 +206,10 @@ class LearningMetrics:
 
     def attempts_to_target_evidence(self, session_id: str) -> dict:
         """Effective attempts needed to reach the target stage."""
-        per_node = self._time_and_attempts(session_id)
+        return self._attempts_summary(self._time_and_attempts(session_id))
+
+    @staticmethod
+    def _attempts_summary(per_node: dict[str, dict]) -> dict:
         counts = [v["attempts"] for v in per_node.values() if v["attempts"] is not None]
         return {
             "target_stage": TARGET_STAGE,
@@ -285,7 +292,8 @@ class LearningMetrics:
             dict(r)
             for r in self._db.query(
                 "SELECT rowid, event_type, node_id, payload, created_at FROM event_log "
-                "WHERE session_id = ? ORDER BY rowid",
+                "WHERE session_id = ? "
+                "AND event_type IN ('attempt_submitted', 'assessment_committed') ORDER BY rowid",
                 (session_id,),
             )
         ]

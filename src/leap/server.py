@@ -108,11 +108,10 @@ def _configured_profile() -> str | None:
 def registered_tool_names(server: MCPServer) -> list[str]:
     """Return the tool names a built server currently exposes.
 
-    Synchronous on purpose: profiles are applied while the server is being
-    built, so an async ``list_tools()`` round trip is not available there. The
-    mcp package (>=2) keeps its registry in ``ToolManager._tools``; the profile
-    tests fail loudly if a future version changes that, instead of silently
-    exposing the whole surface.
+    This supports startup diagnostics without an async ``list_tools()`` round
+    trip. The mcp package (>=2) keeps its registry in ``ToolManager._tools``;
+    the profile tests fail loudly if a future version changes that, instead of
+    silently exposing the whole surface.
     """
     tools = getattr(getattr(server, "_tool_manager", None), "_tools", None)
     if not isinstance(tools, dict):
@@ -123,21 +122,15 @@ def registered_tool_names(server: MCPServer) -> list[str]:
     return list(tools)
 
 
-def _apply_profile(server: MCPServer, profile: str) -> None:
-    """Hide the tools a profile does not expose.
-
-    Registration above always covers the complete surface, so the runtime keeps
-    every capability; only the MCP catalog the client sees is narrowed.
-    """
+def _tool_names_for_profile(profile: str) -> tuple[str, ...]:
+    """Validate a profile and select its tools before building their schemas."""
     allowed = allowed_tool_names(profile)
     if allowed is None:
-        return
-    registered = registered_tool_names(server)
-    unknown = sorted(set(allowed) - set(registered))
+        return ALL_TOOL_NAMES
+    unknown = sorted(allowed - set(ALL_TOOL_NAMES))
     if unknown:
         raise RuntimeError(f"tool profile {profile!r} lists unregistered tools: {unknown}")
-    for name in sorted(set(registered) - set(allowed)):
-        server.remove_tool(name)
+    return tuple(name for name in ALL_TOOL_NAMES if name in allowed)
 
 
 # ---------------------------------------------------------------------------
@@ -149,14 +142,15 @@ def build_server(profile: str | None = None) -> MCPServer:
     ``profile`` selects how much of the tool surface an MCP client sees (see
     :mod:`leap.runtime.profiles`): ``full`` exposes everything registered,
     ``quickstart`` exposes the coarse tutor API plus the setup tools a complete
-    lesson needs. Registration is identical in both cases - only the catalog is
-    filtered - so an integration can move from ``quickstart`` to ``full``
+    lesson needs. Only selected schemas are built; the underlying service keeps
+    every capability, so an integration can move from ``quickstart`` to ``full``
     without a data migration.
 
     Resolution order: ``profile`` argument > ``LEAP_TOOL_PROFILE`` environment
     variable > ``tool_profile`` in ``config/default.yaml`` > ``full``.
     """
     resolved = resolve_profile(profile, fallback=_configured_profile())
+    names = _tool_names_for_profile(resolved)
     logger.info("registering MCP tools for profile %r", resolved)
     server = MCPServer(
         name="leap-framework",
@@ -190,10 +184,9 @@ def build_server(profile: str | None = None) -> MCPServer:
     )
 
     service = LeapService(_DeferredContext())
-    for name in ALL_TOOL_NAMES:
+    for name in names:
         server.tool()(_guard(getattr(service, name)))
 
-    _apply_profile(server, resolved)
     return server
 
 

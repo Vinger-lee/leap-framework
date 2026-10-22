@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 from typing import Any, Mapping
 
 from leap.runtime.evidence import stage_index
+from leap.runtime.prerequisites import unmet_prerequisites
 from leap.runtime.scheduler import ReviewScheduler
 from leap.storage import Database, new_id, now_ts
 
@@ -705,21 +706,7 @@ class PolicyEngine:
     def _prerequisite_status(self, learner_id: str, node_id: str | None) -> dict:
         if not node_id:
             return {"missing": [], "transfer_passed": False}
-        rows = self._db.query(
-            "SELECT pre_node_id FROM knowledge_edges "
-            "WHERE post_node_id = ? AND relation_type = 'prerequisite'",
-            (node_id,),
-        )
-        missing: list[str] = []
-        for row in rows:
-            stage = self._db.scalar(
-                "SELECT evidence_stage FROM learner_knowledge_state "
-                "WHERE learner_id = ? AND node_id = ?",
-                (learner_id, row["pre_node_id"]),
-                "estimated",
-            )
-            if stage_index(stage or "estimated") < stage_index("demonstrated"):
-                missing.append(row["pre_node_id"])
+        missing = unmet_prerequisites(self._db, learner_id, node_id)
 
         pass_score = float(self._get("transfer_pass_score", 0.70))
         best = self._db.scalar(

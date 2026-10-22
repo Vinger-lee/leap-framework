@@ -24,7 +24,7 @@ class TeachingTools(LeapToolMixin):
     # 22.4 Teaching context
     # ------------------------------------------------------------------
     def get_teaching_context(self, session_id: str, node_id: str | None = None) -> dict:
-        """One call that returns everything a teaching turn needs."""
+        """Return the full teaching context in one call to reduce round trips."""
         self.require_grounding(session_id)
         context = self.policy.build_teaching_context(session_id, node_id)
         node_id = node_id or context["session"].get("current_node_id")
@@ -63,17 +63,19 @@ class TeachingTools(LeapToolMixin):
     # 22.5 Pedagogical policy
     # ------------------------------------------------------------------
     def get_available_strategies(self) -> dict:
+        """List the pedagogical strategies available to the policy engine."""
         rows = self.rows("SELECT * FROM pedagogical_strategies ORDER BY strategy_id")
         return self.ok(count=len(rows), strategies=rows, vocabulary=list(STRATEGIES))
 
     def get_available_actions(self) -> dict:
+        """List the concrete teaching actions the host agent may execute."""
         return self.ok(count=len(ACTIONS), actions=list(ACTIONS))
 
     def get_plugin_info(self) -> dict:
-        """Report the active implementation for each section-35 seam.
+        """Report which implementation backs each pluggable seam (section 35).
 
-        Lets an operator confirm what is actually wired up, and lets the host
-        agent know which capabilities are backed by which engine.
+        Covers state estimation, assessment aggregation, policy, review
+        scheduling, storage and artifact storage.
         """
         from leap.runtime.plugins import describe_plugins
 
@@ -112,12 +114,7 @@ class TeachingTools(LeapToolMixin):
     def evaluate_pedagogical_policy(
         self, session_id: str, node_id: str | None = None, *, trigger_event: str | None = None
     ) -> dict:
-        """Evaluate the policy **without** persisting a decision.
-
-        The evaluation itself is still recorded as a ``policy_evaluated`` event,
-        so section 27.1 stays answerable: why it fired, what the state was,
-        which actions were candidates, and why one was chosen.
-        """
+        """Evaluate the policy for the current state without persisting a decision."""
         self.require_session(session_id)
         context = self.policy.build_teaching_context(session_id, node_id)
         decision = self.policy.evaluate(session_id, node_id, trigger_event=trigger_event)
@@ -169,11 +166,7 @@ class TeachingTools(LeapToolMixin):
         expected_outcome: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Persist the decision the host agent actually acted on (section 27.1).
-
-        When the agent omits a strategy/action the runtime records its own
-        recommendation, so the decision log is never empty.
-        """
+        """Record the decision actually acted on, for later replay."""
         self.require_session(session_id)
         recommendation = self.policy.evaluate(session_id, node_id, trigger_event=trigger_event)
 
@@ -206,6 +199,7 @@ class TeachingTools(LeapToolMixin):
         return self.ok(decision_id=decision_id, decision=recommendation.as_dict())
 
     def get_decision_log(self, session_id: str, limit: int = 50) -> dict:
+        """Read the pedagogical decision history for a session."""
         self.require_session(session_id)
         rows = self.policy.decision_log(session_id, limit=limit)
         return self.ok(session_id=session_id, count=len(rows), decisions=rows)
@@ -221,7 +215,7 @@ class TeachingTools(LeapToolMixin):
         node_id: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Mark a unit/node as the current focus."""
+        """Set the current teaching focus to a unit or node."""
         session = self.require_session(session_id)
         self.require_grounding(session_id)
         resolved_node = self._resolve_entry_node(session_id, unit_tag, node_id)
@@ -247,7 +241,7 @@ class TeachingTools(LeapToolMixin):
         manual_override: bool = False,
         expected_state_version: int | None = None,
     ) -> dict:
-        """Dry-run the guard for an advance request (no state change)."""
+        """Dry-run the State Guard for an advance request without changing state."""
         resolved_tag = self._resolve_unit_tag(session_id, unit_tag, node_id)
         decision = self.guard.check_unit(
             session_id,
@@ -269,10 +263,8 @@ class TeachingTools(LeapToolMixin):
     ) -> dict:
         """Request the next unit.
 
-        ``advance_unit`` is a **batch wrapper over a set of nodes**: every node
-        carrying the same ``unit_tag`` must pass its own node-level guard, and
-        a single failure rejects the whole request (section 6.6). There is no
-        unit table.
+        Every node sharing the unit_tag must pass its own node-level guard;
+        one failure rejects the whole request. There is no unit table.
         """
         session = self.require_session(session_id)
         resolved_tag = self._resolve_unit_tag(session_id, unit_tag, node_id)
@@ -330,7 +322,7 @@ class TeachingTools(LeapToolMixin):
         reason: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Move the focus back to an earlier node (section 21.3)."""
+        """Move the teaching focus back to an earlier node."""
         session = self.require_session(session_id)
         target_node_id = self.require_text(target_node_id, "target_node_id")
         self.require_node(target_node_id)
@@ -354,6 +346,7 @@ class TeachingTools(LeapToolMixin):
     def complete_session(
         self, session_id: str, *, status: str = "completed", request_id: str | None = None
     ) -> dict:
+        """Set the session status (active/paused/completed/abandoned)."""
         session = self.require_session(session_id)
         if status not in {"completed", "paused", "abandoned", "active"}:
             raise ToolError("invalid_status", f"unsupported session status: {status}")

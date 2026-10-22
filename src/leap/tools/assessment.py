@@ -54,10 +54,12 @@ class AssessmentTools(LeapToolMixin):
         rejected_answers: list[dict] | None = None, assessor_scope: str = "host_semantic_review",
         teaching_package_id: str | None = None,
     ) -> dict:
-        """Register an immutable item only after the host records a worked solution and checks.
+        """Register a checked item before delivery. Supply conditions, solution and independent checks.
 
-        This validates the evidence record, not mathematical truth. Free prose
-        requires host semantic review; keyword matching is not a valid assessor.
+        Runtime checks structure only. The host must verify content, options,
+        counterexamples and free-text reasoning. Item IDs are immutable. Register
+        the canonical lesson via save_teaching_package first; supply its id or
+        use the latest accepted package for this session/node.
         """
         self.require_session(session_id)
         self.require_grounding(session_id)
@@ -112,7 +114,7 @@ class AssessmentTools(LeapToolMixin):
         question_type: str | None = None,
         count: int = 1,
     ) -> dict:
-        """Return an assessment blueprint for the host agent to materialise."""
+        """Return an assessment blueprint with the rubric dimensions to score."""
         session = self.require_session(session_id)
         self.require_grounding(session_id)
         node_id = node_id or session.get("current_node_id")
@@ -157,7 +159,7 @@ class AssessmentTools(LeapToolMixin):
     def generate_transfer_probe(
         self, session_id: str, node_id: str | None = None
     ) -> dict:
-        """Return a transfer-probe blueprint (section 13.6)."""
+        """Return a transfer-probe blueprint (near / variation / far / integrated)."""
         session = self.require_session(session_id)
         self.require_grounding(session_id)
         node_id = node_id or session.get("current_node_id")
@@ -189,16 +191,16 @@ class AssessmentTools(LeapToolMixin):
     def assess_response(
         self,
         session_id: str,
-        scores: Mapping[str, Any],
+        scores: dict,
         *,
         raw_answer: str | None = None,
         assessor_type: str = "model",
         assessor_confidence: float = 1.0,
     ) -> dict:
-        """Validate dimension scores and compute the weighted ``overall_score``.
+        """Validate dimension scores and compute the weighted overall_score.
 
-        This does **not** persist anything and does **not** touch learner state;
-        it exists so the host agent can see exactly what will be committed.
+        Does not persist anything. transfer and hint_dependency are excluded
+        from the aggregate by design.
         """
         self.require_session(session_id)
         self._check_assessor_type(assessor_type)
@@ -232,7 +234,7 @@ class AssessmentTools(LeapToolMixin):
         predicted_performance: float | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Record a learner attempt and return its id for assessment."""
+        """Record a learner attempt and return its attempt_id for assessment."""
         session = self.require_session(session_id)
         answer = self.require_text(answer, "answer")
         self.require_grounding(session_id)
@@ -299,11 +301,11 @@ class AssessmentTools(LeapToolMixin):
         expected_state_version: int | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Persist assessment evidence and update learner state.
+        """Commit assessment evidence and update learner state server-side.
 
-        ``raw_answer`` and ``assessor_type`` are mandatory (section 22.8): the
-        original learner response is never discarded, so every state change can
-        be audited later.
+        raw_answer and assessor_type are mandatory: the original learner
+        response is stored for audit and never discarded. mastery_probability is
+        computed by the runtime, not supplied by the caller.
         """
         attempt_id = self.require_text(attempt_id, "attempt_id")
         raw_answer = self.require_text(raw_answer, "raw_answer")
@@ -421,7 +423,7 @@ class AssessmentTools(LeapToolMixin):
         session_id: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Record an active misconception in its authoritative table (23.7)."""
+        """Record an active misconception in its authoritative table."""
         learner_id = self.require_text(learner_id, "learner_id")
         node_id = self.require_text(node_id, "node_id")
         misconception = self.require_text(misconception, "misconception")
@@ -461,6 +463,7 @@ class AssessmentTools(LeapToolMixin):
     def resolve_misconception(
         self, misconception_id: int, *, session_id: str | None = None
     ) -> dict:
+        """Mark a misconception as resolved and refresh the cached snapshot."""
         row = self.db.query_one("SELECT * FROM misconceptions WHERE id = ?", (misconception_id,))
         if row is None:
             raise ToolError("unknown_misconception", f"misconception not found: {misconception_id}")
@@ -477,6 +480,7 @@ class AssessmentTools(LeapToolMixin):
     # Read models
     # ------------------------------------------------------------------
     def get_mastery_status(self, session_id: str, node_id: str | None = None) -> dict:
+        """Return the server-estimated learner knowledge state."""
         session = self.require_session(session_id)
         learner_id = session["learner_id"]
         if node_id:
@@ -500,6 +504,7 @@ class AssessmentTools(LeapToolMixin):
         return self.ok(session_id=session_id, learner_id=learner_id, count=len(rows), states=rows)
 
     def get_assessment_history(self, session_id: str, node_id: str | None = None, limit: int = 50) -> dict:
+        """Return past assessment results, including the raw answer for audit."""
         self.require_session(session_id)
         if node_id:
             rows = self.rows(
@@ -532,6 +537,7 @@ class AssessmentTools(LeapToolMixin):
         session_id: str | None = None,
         request_id: str | None = None,
     ) -> dict:
+        """Record a transfer probe result; transfer_type is near/variation/far/integrated."""
         learner_id = self.require_text(learner_id, "learner_id")
         node_id = self.require_text(node_id, "node_id")
         if transfer_type not in {"near", "variation", "far", "integrated"}:
@@ -576,6 +582,7 @@ class AssessmentTools(LeapToolMixin):
         node_id: str | None = None,
         request_id: str | None = None,
     ) -> dict:
+        """Store a learner reflection as an artifact."""
         session = self.require_session(session_id)
         artifact_id = new_id("art")
         ts = now_ts()

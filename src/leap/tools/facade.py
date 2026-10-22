@@ -121,20 +121,12 @@ class FacadeTools(LeapToolMixin):
         allow_skip_domain_grounding: bool | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Start a learning session, record its goal and pick a learning mode in one call.
+        """Start a session, record its goal and pick a learning mode in one call.
 
-        Coarse equivalent of ``create_session`` + ``save_learning_goal`` +
-        ``set_learning_configuration``. Use it for the common opening turn; call
-        the fine-grained tools instead when you need to create the session and
-        the goal at different moments.
-
-        ``goal`` and friends are optional: with no goal text the session is
-        still created and the response says so. ``mode`` accepts the learner's
-        own words ("我要准备考试") or a mode name.
-
-        The response returns ``next_call`` - the next tool to call - and, when
-        ``domain_grounding_notice`` is present, you must show it to the learner
-        verbatim before the grounding stage starts.
+        Coarse equivalent of create_session + save_learning_goal +
+        set_learning_configuration. The response returns next_call - the next
+        tool to call - and, when domain_grounding_notice is present, you must
+        show it to the learner verbatim before the grounding stage starts.
         """
         session = self._lean(
             self.create_session(
@@ -202,16 +194,12 @@ class FacadeTools(LeapToolMixin):
     # 2. teaching turn
     # ------------------------------------------------------------------
     def continue_lesson(self, session_id: str, node_id: str | None = None) -> dict:
-        """Return the current teaching state and the next action in one call.
+        """Return the teaching state and the next action in one call.
 
-        Coarse equivalent of ``get_teaching_context`` (+ ``get_session_info``).
-        The response keeps the runtime's own recommendation,
-        ``recommended_strategy`` / ``recommended_actions``, together with the
-        evidence stage, friction signals, active misconceptions and the due
-        review count, so one call is enough to decide the next move.
-
-        The facade never chooses the pedagogy for you: it reports what the
-        configured policy engine recommends and which call to make next.
+        Coarse equivalent of get_teaching_context + get_session_info. Reports
+        the policy engine's recommended strategy and actions together with the
+        evidence stage, friction signals, active misconceptions and due review
+        count, plus next_call. The facade never selects the pedagogy itself.
         """
         self.require_session(session_id)
         context = self._lean(self.get_teaching_context(session_id, node_id))
@@ -272,11 +260,9 @@ class FacadeTools(LeapToolMixin):
     ) -> dict:
         """Record the teaching action you actually took (section 27.1).
 
-        Coarse equivalent of ``commit_pedagogical_decision``. Omit
-        ``action``/``strategy`` to record the runtime's own recommendation, so
-        the decision log is never empty. Pass the action you *did* take - the
-        log exists to make the teaching decision auditable, not to flatter the
-        recommendation.
+        Coarse equivalent of commit_pedagogical_decision. Omitting action and
+        strategy records the runtime recommendation, so the decision log is
+        never empty; passing what you did keeps the log auditable.
         """
         decision = self._lean(
             self.commit_pedagogical_decision(
@@ -325,17 +311,12 @@ class FacadeTools(LeapToolMixin):
     ) -> dict:
         """Record the learner's answer and commit your assessment in one call.
 
-        Coarse equivalent of ``submit_attempt`` + ``commit_assessment`` (plus a
-        read-back of the updated state). The raw answer is stored verbatim and
-        reused as ``raw_answer``, which removes the most common integration
-        error: committing an assessment whose text does not match the attempt.
-
-        With no score supplied the attempt is stored and nothing is committed -
-        use that mode when free-text reasoning still needs your semantic review,
-        then call ``commit_assessment`` yourself.
-
-        ``mastery_probability`` is never accepted from you: it is computed
-        server-side from the evidence you submit.
+        Coarse equivalent of submit_attempt + commit_assessment (plus a read-back
+        of the updated state). The raw answer is stored verbatim and reused as
+        raw_answer, which removes the usual mismatch error. With no score
+        supplied only the attempt is stored - use that when free-text reasoning
+        still needs your semantic review, then call commit_assessment yourself.
+        Never send mastery_probability: it is computed server-side.
         """
         attempt = self._lean(
             self.submit_attempt(
@@ -457,11 +438,10 @@ class FacadeTools(LeapToolMixin):
     ) -> dict:
         """Dry-run the State Guard and advance only if it allows the transition.
 
-        Coarse equivalent of ``check_advance_unit`` + ``advance_unit``. A
-        rejection is **not** an error: the response returns
-        ``advanced: false`` together with the guard's own reason and the repair
-        action, so the host agent can react to the reason instead of retrying.
-        Nothing is written unless the guard allowed it.
+        Coarse equivalent of check_advance_unit + advance_unit. A rejection is
+        not an error: the response returns advanced=false, the guard's own
+        reason and the repair action, and nothing is written. Never work around
+        a rejection in prompt text.
         """
         session = self.require_session(session_id)
         resolved_tag = self._resolve_unit_tag(session_id, unit_tag, node_id)
@@ -541,11 +521,11 @@ class FacadeTools(LeapToolMixin):
     def get_review_queue(
         self, learner_id: str, *, session_id: str | None = None, limit: int = 10
     ) -> dict:
-        """List the due spaced reviews for a learner, with the next call to make.
+        """List the due spaced reviews for a learner with the next call to make.
 
-        Coarse equivalent of ``get_due_reviews``. A non-empty queue is **not** a
-        global block on new learning: whether to insert, prioritise or block is
-        decided per node by Policy + State Guard.
+        Coarse equivalent of get_due_reviews. A non-empty queue is not a global
+        block on new learning; whether to insert, prioritise or block is decided
+        per node by Policy + State Guard.
         """
         due = self._lean(self.get_due_reviews(learner_id, limit=limit))
         items = due.get("due_reviews") or []
@@ -586,9 +566,9 @@ class FacadeTools(LeapToolMixin):
     ) -> dict:
         """Apply a 1-4 FSRS rating to a due review and reschedule it.
 
-        Coarse equivalent of ``submit_review``. Rate what you observed, not what
-        you hope: a rating >= 2 re-confirms retention evidence and moves the
-        node's evidence stage, and an inflated rating delays the next review.
+        Coarse equivalent of submit_review. Rate what you observed: a rating of
+        2 or more re-confirms retention evidence and can move the node's
+        evidence stage, while an inflated rating delays the next review.
         """
         result = self._lean(
             self.submit_review(review_item_id, rating, session_id=session_id, request_id=request_id)
@@ -609,10 +589,10 @@ class FacadeTools(LeapToolMixin):
     def get_learner_snapshot(self, session_id: str) -> dict:
         """Return session, node, mastery and review state in one call.
 
-        Coarse equivalent of ``get_session_info`` + ``get_mastery_status`` +
-        ``get_knowledge_nodes`` + ``get_due_reviews``. Use it as the single
-        read for debugging, progress reporting and the opening turn of a
-        reconnected chat window, instead of reconstructing state from memory.
+        Coarse equivalent of get_session_info + get_mastery_status +
+        get_knowledge_nodes + get_due_reviews. Use it as the single read for
+        reconnecting a chat window, reporting progress or debugging a session,
+        instead of rebuilding state from memory.
         """
         session = self.require_session(session_id)
         learner_id = session["learner_id"]

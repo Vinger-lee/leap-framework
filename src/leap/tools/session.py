@@ -61,11 +61,11 @@ class SessionTools(LeapToolMixin):
         domain_grounding_warn_user: bool | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Create a learning session.
+        """Create a learning session. learner_id is required (P0 is single-learner).
 
-        ``learner_id`` is mandatory in P0 (single machine, single learner).
-        Domain-grounding switches are copied onto the session row because they
-        are **per-session** configuration, not global flags.
+        Domain-grounding switches are stored per session, not globally. When
+        domain_grounding_warn_user is true the returned notice must be shown to
+        the user before the grounding stage starts.
         """
         learner_id = self.require_text(learner_id, "learner_id")
         topic = self.require_text(topic, "topic")
@@ -122,7 +122,10 @@ class SessionTools(LeapToolMixin):
         )
 
     def find_session(self, learner_id: str, topic: str | None = None) -> dict:
-        """Recover a session id across chat windows (section 22.1)."""
+        """Find existing sessions by learner and optionally topic.
+
+        Use this to recover a session id after a chat window is reopened.
+        """
         learner_id = self.require_text(learner_id, "learner_id")
         if topic:
             rows = self.rows(
@@ -139,6 +142,7 @@ class SessionTools(LeapToolMixin):
         return self.ok(learner_id=learner_id, count=len(rows), sessions=rows)
 
     def get_session_info(self, session_id: str) -> dict:
+        """Return session state, the latest goal, node count and the next lifecycle step."""
         session = self.require_session(session_id)
         goal = self.db.query_one(
             "SELECT * FROM learning_goals WHERE session_id = ? ORDER BY rowid DESC LIMIT 1",
@@ -172,6 +176,7 @@ class SessionTools(LeapToolMixin):
         assessment_requirements: str | None = None,
         request_id: str | None = None,
     ) -> dict:
+        """Persist the learning goal and its constraints (lifecycle Stage 1)."""
         session = self.require_session(session_id)
         goal_id = new_id("goal")
         ts = now_ts()
@@ -197,6 +202,7 @@ class SessionTools(LeapToolMixin):
         return self.ok(goal_id=goal_id, session_id=session_id)
 
     def get_learning_goal(self, session_id: str) -> dict:
+        """Return the most recently saved learning goal for a session."""
         self.require_session(session_id)
         row = self.db.query_one(
             "SELECT * FROM learning_goals WHERE session_id = ? ORDER BY rowid DESC LIMIT 1",
@@ -215,18 +221,16 @@ class SessionTools(LeapToolMixin):
         *,
         request: str | None = None,
         mode: str | None = None,
-        overrides: Mapping[str, Any] | None = None,
+        overrides: dict | None = None,
         request_id: str | None = None,
     ) -> dict:
         """Apply a learner's requested learning mode (section 32).
 
-        ``request`` accepts the learner's own words ("以项目实战为主" /
-        "我要准备考试" / "只学核心内容"). ``mode`` names a mode directly, and
-        ``overrides`` may adjust individual parameters.
-
-        The result is stored as **Learning Configuration + Policy Overrides**
-        on the session - the program itself is never modified, and unrecognised
-        requests are reported back rather than silently ignored.
+        Pass the learner's own words in `request` - e.g. "以项目实战为主",
+        "我要准备考试", "只学核心内容，尽快学会". Recognised modes are
+        project_based / exam_prep / core_only / balanced. Stored as
+        session-level Learning Configuration + Policy Overrides; the program is
+        never modified, and unrecognised requests are reported back.
         """
         from leap.runtime.learning_modes import describe_modes, resolve_request
 
@@ -273,7 +277,7 @@ class SessionTools(LeapToolMixin):
         )
 
     def get_learning_configuration(self, session_id: str) -> dict:
-        """Return the session's active learning configuration (section 32)."""
+        """Return the session's active learning mode, overrides and preferences."""
         from leap.runtime.learning_modes import describe_modes
 
         self.require_session(session_id)
@@ -301,11 +305,10 @@ class SessionTools(LeapToolMixin):
     # 22.2 Diagnostic
     # ------------------------------------------------------------------
     def generate_diagnostic(self, session_id: str, *, request_id: str | None = None) -> dict:
-        """Return a diagnostic blueprint, guarded by Domain Grounding.
+        """Return a diagnostic blueprint.
 
-        LEAP does not author items itself - the host agent's LLM does, using
-        this blueprint. What the runtime enforces is *sequencing*: no
-        diagnostic before the agent has grounded itself in the domain.
+        Rejected by the State Guard until Domain Grounding is completed, unless
+        the session was created with allow_skip_domain_grounding=true.
         """
         session = self.require_session(session_id)
         decision = self.guard.check_domain_grounding(session_id)
@@ -367,10 +370,11 @@ class SessionTools(LeapToolMixin):
         response_time: float | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Record a diagnostic through the same grounded, registered-item path.
+        """Record a diagnostic answer under the same grounding and item gates as submit_attempt.
 
-        Unstructured learner self-reports may omit item_id. A new question must
-        be registered with its teaching package before collecting its answer.
+        Supplied questions require a registered item_id matching the question;
+        register its canonical teaching package first. Without an item, only a
+        general learner self-report is supported; it is not a registered quiz.
         """
         if question and not item_id:
             raise ToolError("assessment_item_required", "Register diagnostic questions with save_assessment_item before submitting answers")
@@ -383,6 +387,7 @@ class SessionTools(LeapToolMixin):
                                    hint_level=hint_level, response_time=response_time, request_id=request_id)
 
     def get_diagnostic_result(self, session_id: str) -> dict:
+        """Return the stored diagnostic summary plus every diagnostic attempt."""
         self.require_session(session_id)
         artifact = self.db.query_one(
             "SELECT * FROM artifacts WHERE session_id = ? AND artifact_type = 'diagnostic_result' "
@@ -412,7 +417,7 @@ class SessionTools(LeapToolMixin):
         *,
         request_id: str | None = None,
     ) -> dict:
-        """Persist the diagnostic summary and mark the phase complete."""
+        """Persist the diagnostic summary and mark the diagnostic phase complete."""
         session = self.require_session(session_id)
         artifact_id = new_id("art")
         ts = now_ts()
@@ -449,4 +454,3 @@ class SessionTools(LeapToolMixin):
         if not session.get("current_node_id"):
             return "diagnostic"
         return "teaching"
-

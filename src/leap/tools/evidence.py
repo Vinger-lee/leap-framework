@@ -26,14 +26,17 @@ class EvidenceTools(LeapToolMixin):
         session_id: str,
         report_text: str,
         *,
-        source_refs: Sequence[Mapping[str, Any]] | None = None,
-        verification: Mapping[str, Any] | None = None,
+        source_refs: list[dict] | None = None,
+        verification: dict | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Persist the agent's internal knowledge baseline for this topic.
+        """Save grounding evidence; prose alone remains pending and does not unlock teaching.
 
-        The full report text goes to ``artifacts``; only the structured claims
-        derived from it go to ``benchmark_claims`` (section 20, Stage 2).
+        The full text is stored as an artifact of type agent_benchmark_report;
+        source_refs require source, source_type, locator and excerpt. verification
+        requires scope, claims (claim + source_index), worked_examples (problem,
+        solution, check_method, check_result) and limitations. Read sources with
+        host tools first. Runtime checks completeness, not truth of the content.
         """
         session = self.require_session(session_id)
         report_text = self.require_text(report_text, "report_text")
@@ -144,6 +147,7 @@ class EvidenceTools(LeapToolMixin):
         conflicting_sources: Any = None,
         request_id: str | None = None,
     ) -> dict:
+        """Save one structured knowledge claim with its source and confidence."""
         self.require_session(session_id)
         claim = self.require_text(claim, "claim")
         if source_id and not self.db.query_one("SELECT 1 FROM evidence_sources WHERE source_id = ? AND session_id = ?", (source_id, session_id)):
@@ -163,6 +167,7 @@ class EvidenceTools(LeapToolMixin):
         return self.ok(claim_id=claim_id, session_id=session_id)
 
     def get_evidence(self, session_id: str, node_id: str | None = None) -> dict:
+        """Return grounding report metadata, claims and sources for a session."""
         self.require_session(session_id)
         claims = self.rows(
             "SELECT bc.*, es.source, es.source_type, es.authority "
@@ -191,6 +196,7 @@ class EvidenceTools(LeapToolMixin):
         )
 
     def validate_claim(self, claim_id: str, *, verified: bool = True) -> dict:
+        """Check whether a claim is linked to a real evidence source."""
         row = self.db.query_one("SELECT * FROM benchmark_claims WHERE claim_id = ?", (claim_id,))
         if row is None:
             raise ToolError("unknown_claim", f"claim not found: {claim_id}")
@@ -219,7 +225,7 @@ class EvidenceTools(LeapToolMixin):
         *,
         uncertainty: str | None = None,
     ) -> dict:
-        """Record conflicting sources instead of silently picking one (17.4)."""
+        """Record conflicting sources instead of silently choosing one."""
         row = self.db.query_one("SELECT * FROM benchmark_claims WHERE claim_id = ?", (claim_id,))
         if row is None:
             raise ToolError("unknown_claim", f"claim not found: {claim_id}")

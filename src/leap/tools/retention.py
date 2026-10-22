@@ -22,6 +22,7 @@ class RetentionTools(LeapToolMixin):
     def get_review_state(
         self, learner_id: str, node_id: str | None = None
     ) -> dict:
+        """Return review items with current retrievability and due status."""
         learner_id = self.require_text(learner_id, "learner_id")
         if node_id:
             rows = self.rows(
@@ -113,7 +114,7 @@ class RetentionTools(LeapToolMixin):
         session_id: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Apply a 1-4 FSRS rating and reschedule the item."""
+        """Submit an FSRS rating (1=Again, 2=Hard, 3=Good, 4=Easy) and reschedule."""
         row = self.db.query_one(
             "SELECT * FROM review_items WHERE review_item_id = ?", (review_item_id,)
         )
@@ -185,11 +186,10 @@ class RetentionTools(LeapToolMixin):
     def get_due_reviews(
         self, learner_id: str, *, limit: int = 50, session_id: str | None = None
     ) -> dict:
-        """List due items.
+        """List due review items.
 
-        Important (section 13.4): a non-empty result is **not** a global block
-        on new learning. Whether to insert, prioritise or block is a Policy and
-        State Guard decision.
+        A non-empty result does not block new learning globally - blocking is a
+        per-node Policy + State Guard decision.
         """
         learner_id = self.require_text(learner_id, "learner_id")
         due = self.policy.due_reviews(learner_id)[:limit]
@@ -211,7 +211,7 @@ class RetentionTools(LeapToolMixin):
     def recalculate_review_schedule(
         self, learner_id: str, *, now: int | None = None
     ) -> dict:
-        """Recompute retrievability and refresh caches without changing ratings."""
+        """Recompute retrievability for every review item of a learner."""
         learner_id = self.require_text(learner_id, "learner_id")
         rows = self.rows(
             "SELECT * FROM review_items WHERE learner_id = ?", (learner_id,)

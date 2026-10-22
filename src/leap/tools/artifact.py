@@ -26,12 +26,20 @@ class ArtifactTools(LeapToolMixin):
     """Artifact persistence, static specs, export and final reporting."""
 
     def get_teaching_delivery_policy(self) -> dict:
-        """Return permanent depth, visualization, Markdown and resource requirements."""
+        """Get mandatory teaching depth, visuals, wide layout, full Markdown and resource rules.
+
+        Applies to every subject, tool, mode and future generation. Write canonical
+        Obsidian Markdown first and register both bodies via save_teaching_package.
+        """
         from leap.runtime.delivery import delivery_policy
         return self.ok(policy=delivery_policy(complete=True))
 
     def get_subject_catalog(self, subject: str | None = None) -> dict:
-        """Return subject modules, prerequisite edges and canonical knowledge notes."""
+        """Get starter subject modules, prerequisite graph and canonical knowledge note paths.
+
+        Optional subject filters the catalog. The catalog is extensible; policy
+        applies equally to subjects not yet represented in shipped examples.
+        """
         catalog = self._load_spec("subject_catalog.json")
         if subject is not None:
             selected = [entry for entry in catalog["subjects"] if entry["subject_id"] == subject]
@@ -45,10 +53,11 @@ class ArtifactTools(LeapToolMixin):
         markdown: str, html: str, manifest: dict,
         *, request_id: str | None = None,
     ) -> dict:
-        """Validate and store a complete canonical Markdown + interactive HTML pair.
+        """Validate and store canonical Markdown and projected HTML with teaching records.
 
-        The host supplies actual bodies, point-by-point teaching and resource
-        records. Structural acceptance never certifies subject-matter truth.
+        Supply actual complete bodies, resources, teaching_points, html_segments,
+        markdown_extensions and source_ids. Missing depth or coverage is rejected.
+        Accepted records are structurally checked, not semantically certified.
         """
         from leap.runtime.delivery import validate_teaching_package
         session = self.require_session(session_id)
@@ -95,6 +104,11 @@ class ArtifactTools(LeapToolMixin):
         version: str = "1",
         request_id: str | None = None,
     ) -> dict:
+        """Save a learning artefact (HTML, Markdown, chart, code, report...).
+
+        Teaching HTML/Markdown require metadata.teaching_package_id from an
+        accepted save_teaching_package call. Full bodies are validated there.
+        """
         artifact_type = self.require_text(artifact_type, "artifact_type")
         if path_or_uri is None and content is None:
             raise ToolError(
@@ -136,6 +150,7 @@ class ArtifactTools(LeapToolMixin):
         return self.ok(artifact_id=artifact_id, artifact_type=artifact_type, created_at=ts)
 
     def get_artifact(self, artifact_id: str, *, include_content: bool = True) -> dict:
+        """Fetch an artefact by id."""
         row = self.db.query_one("SELECT * FROM artifacts WHERE artifact_id = ?", (artifact_id,))
         if row is None:
             raise ToolError("unknown_artifact", f"artifact not found: {artifact_id}")
@@ -147,6 +162,7 @@ class ArtifactTools(LeapToolMixin):
     def list_artifacts(
         self, session_id: str, artifact_type: str | None = None
     ) -> dict:
+        """List artefacts for a session, optionally filtered by type."""
         self.require_session(session_id)
         if artifact_type:
             rows = self.rows(
@@ -163,7 +179,10 @@ class ArtifactTools(LeapToolMixin):
         return self.ok(session_id=session_id, count=len(rows), artifacts=rows)
 
     def get_obsidian_structure(self) -> dict:
-        """Return the static vault specification. No local file access."""
+        """Return the static Obsidian vault specification.
+
+        Specification only - the runtime never reads or writes local vault files.
+        """
         return self.ok(
             spec=self._load_spec("obsidian_structure.json"),
             delivery_requirements=self.get_teaching_delivery_policy()["policy"],
@@ -174,7 +193,10 @@ class ArtifactTools(LeapToolMixin):
         )
 
     def get_web_component_spec(self) -> dict:
-        """Return the static web-component specification. No source reading."""
+        """Return the static web-component specification.
+
+        Specification only - the runtime never generates HTML or reads front-end sources.
+        """
         return self.ok(
             spec=self._load_spec("web_component_spec.json"),
             interaction_schema=self._load_spec("interaction_output.schema.json"),
@@ -191,6 +213,7 @@ class ArtifactTools(LeapToolMixin):
     def export_session_data(
         self, session_id: str, *, output_path: str | None = None
     ) -> dict:
+        """Export the full session bundle as JSON, optionally to a file path."""
         self.require_session(session_id)
         bundle = {
             "exported_at": now_ts(),
@@ -243,9 +266,9 @@ class ArtifactTools(LeapToolMixin):
     def get_learning_metrics(self, session_id: str) -> dict:
         """Return the section 26.1 learning-outcome indicators.
 
-        Section 26 asks whether the teaching strategy actually improved
-        learning, not merely whether the API responded. Every value here is
-        derived from recorded evidence, so it is reproducible.
+        Covers Immediate Performance, Delayed Retention, Transfer Performance,
+        Time/Attempts to Target Evidence, Hint Dependency, Misconception
+        Resolution, Confidence Calibration and Learning Gain.
         """
         self.require_session(session_id)
         metrics = LearningMetrics(self.db, self.cfg).compute(session_id)
@@ -254,12 +277,7 @@ class ArtifactTools(LeapToolMixin):
     def generate_final_report(
         self, session_id: str, *, save_as_artifact: bool = True
     ) -> dict:
-        """Assemble the closing report (section 25).
-
-        The report deliberately separates **observed evidence** from
-        **estimated state**, and states remaining uncertainty instead of
-        presenting model estimates as fact.
-        """
+        """Generate the closing report, separating observed evidence from estimates."""
         session = self.require_session(session_id)
         learner_id = session["learner_id"]
 

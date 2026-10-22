@@ -75,6 +75,7 @@ def _guard(fn: Callable[..., Any]) -> Callable[..., Any]:
             logger.exception("tool %s failed", fn.__name__)
             return ToolError("internal_error", str(exc), {"tool": fn.__name__}).as_dict()
 
+    wrapper.__doc__ = fn.__doc__ or getattr(LeapService, fn.__name__).__doc__
     return wrapper
 
 
@@ -194,13 +195,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         allow_skip_domain_grounding: bool | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Start a session, record its goal and pick a learning mode in one call.
-
-        Coarse equivalent of create_session + save_learning_goal +
-        set_learning_configuration. The response returns next_call - the next
-        tool to call - and, when domain_grounding_notice is present, you must
-        show it to the learner verbatim before the grounding stage starts.
-        """
         return get_service().start_learning(
             learner_id, topic, goal=goal, target_depth=target_depth,
             target_domain=target_domain, target_outcome=target_outcome,
@@ -213,13 +207,6 @@ def build_server(profile: str | None = None) -> MCPServer:
     @server.tool()
     @_guard
     def continue_lesson(session_id: str, node_id: str | None = None) -> dict:
-        """Return the teaching state and the next action in one call.
-
-        Coarse equivalent of get_teaching_context + get_session_info. Reports
-        the policy engine's recommended strategy and actions together with the
-        evidence stage, friction signals, active misconceptions and due review
-        count, plus next_call. The facade never selects the pedagogy itself.
-        """
         return get_service().continue_lesson(session_id, node_id)
 
     @server.tool()
@@ -233,12 +220,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         expected_outcome: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Record the teaching action you actually took (section 27.1).
-
-        Coarse equivalent of commit_pedagogical_decision. Omitting action and
-        strategy records the runtime recommendation, so the decision log is
-        never empty; passing what you did keeps the log auditable.
-        """
         return get_service().log_teaching_action(
             session_id, action=action, strategy=strategy, node_id=node_id,
             rationale=rationale, expected_outcome=expected_outcome, request_id=request_id,
@@ -265,15 +246,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         expected_state_version: int | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Record the learner's answer and commit your assessment in one call.
-
-        Coarse equivalent of submit_attempt + commit_assessment (plus a read-back
-        of the updated state). The raw answer is stored verbatim and reused as
-        raw_answer, which removes the usual mismatch error. With no score
-        supplied only the attempt is stored - use that when free-text reasoning
-        still needs your semantic review, then call commit_assessment yourself.
-        Never send mastery_probability: it is computed server-side.
-        """
         return get_service().submit_answer(
             session_id, answer, item_id=item_id, node_id=node_id, hint_level=hint_level,
             response_time=response_time, correctness=correctness,
@@ -293,13 +265,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         manual_override: bool = False,
         request_id: str | None = None,
     ) -> dict:
-        """Dry-run the State Guard and advance only if it allows the transition.
-
-        Coarse equivalent of check_advance_unit + advance_unit. A rejection is
-        not an error: the response returns advanced=false, the guard's own
-        reason and the repair action, and nothing is written. Never work around
-        a rejection in prompt text.
-        """
         return get_service().advance_lesson(
             session_id, unit_tag=unit_tag, node_id=node_id,
             manual_override=manual_override, request_id=request_id,
@@ -310,12 +275,6 @@ def build_server(profile: str | None = None) -> MCPServer:
     def get_review_queue(
         learner_id: str, session_id: str | None = None, limit: int = 10
     ) -> dict:
-        """List the due spaced reviews for a learner with the next call to make.
-
-        Coarse equivalent of get_due_reviews. A non-empty queue is not a global
-        block on new learning; whether to insert, prioritise or block is decided
-        per node by Policy + State Guard.
-        """
         return get_service().get_review_queue(learner_id, session_id=session_id, limit=limit)
 
     @server.tool()
@@ -326,12 +285,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         session_id: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Apply a 1-4 FSRS rating to a due review and reschedule it.
-
-        Coarse equivalent of submit_review. Rate what you observed: a rating of
-        2 or more re-confirms retention evidence and can move the node's
-        evidence stage, while an inflated rating delays the next review.
-        """
         return get_service().review_answer(
             review_item_id, rating, session_id=session_id, request_id=request_id
         )
@@ -339,13 +292,6 @@ def build_server(profile: str | None = None) -> MCPServer:
     @server.tool()
     @_guard
     def get_learner_snapshot(session_id: str) -> dict:
-        """Return session, node, mastery and review state in one call.
-
-        Coarse equivalent of get_session_info + get_mastery_status +
-        get_knowledge_nodes + get_due_reviews. Use it as the single read for
-        reconnecting a chat window, reporting progress or debugging a session,
-        instead of rebuilding state from memory.
-        """
         return get_service().get_learner_snapshot(session_id)
 
     # -- 22.1 Session / Goal ------------------------------------------------
@@ -359,12 +305,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         domain_grounding_warn_user: bool | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Create a learning session. learner_id is required (P0 is single-learner).
-
-        Domain-grounding switches are stored per session, not globally. When
-        domain_grounding_warn_user is true the returned notice must be shown to
-        the user before the grounding stage starts.
-        """
         return get_service().create_session(
             learner_id, topic,
             learner_name=learner_name,
@@ -376,16 +316,11 @@ def build_server(profile: str | None = None) -> MCPServer:
     @server.tool()
     @_guard
     def find_session(learner_id: str, topic: str | None = None) -> dict:
-        """Find existing sessions by learner and optionally topic.
-
-        Use this to recover a session id after a chat window is reopened.
-        """
         return get_service().find_session(learner_id, topic)
 
     @server.tool()
     @_guard
     def get_session_info(session_id: str) -> dict:
-        """Return session state, the latest goal, node count and the next lifecycle step."""
         return get_service().get_session_info(session_id)
 
     @server.tool()
@@ -403,7 +338,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         assessment_requirements: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Persist the learning goal and its constraints (lifecycle Stage 1)."""
         return get_service().save_learning_goal(
             session_id, goal, target_domain=target_domain, target_outcome=target_outcome,
             target_depth=target_depth, time_budget=time_budget, prior_knowledge=prior_knowledge,
@@ -414,7 +348,6 @@ def build_server(profile: str | None = None) -> MCPServer:
     @server.tool()
     @_guard
     def get_learning_goal(session_id: str) -> dict:
-        """Return the most recently saved learning goal for a session."""
         return get_service().get_learning_goal(session_id)
 
     @server.tool()
@@ -426,14 +359,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         overrides: dict | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Apply a learner's requested learning mode (section 32).
-
-        Pass the learner's own words in `request` - e.g. "以项目实战为主",
-        "我要准备考试", "只学核心内容，尽快学会". Recognised modes are
-        project_based / exam_prep / core_only / balanced. Stored as
-        session-level Learning Configuration + Policy Overrides; the program is
-        never modified, and unrecognised requests are reported back.
-        """
         return get_service().set_learning_configuration(
             session_id, request=request, mode=mode, overrides=overrides, request_id=request_id
         )
@@ -441,18 +366,12 @@ def build_server(profile: str | None = None) -> MCPServer:
     @server.tool()
     @_guard
     def get_learning_configuration(session_id: str) -> dict:
-        """Return the session's active learning mode, overrides and preferences."""
         return get_service().get_learning_configuration(session_id)
 
     # -- 22.2 Diagnostic ----------------------------------------------------
     @server.tool()
     @_guard
     def generate_diagnostic(session_id: str, request_id: str | None = None) -> dict:
-        """Return a diagnostic blueprint.
-
-        Rejected by the State Guard until Domain Grounding is completed, unless
-        the session was created with allow_skip_domain_grounding=true.
-        """
         return get_service().generate_diagnostic(session_id, request_id=request_id)
 
     @server.tool()
@@ -467,12 +386,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         response_time: float | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Record a diagnostic answer under the same grounding and item gates as submit_attempt.
-
-        Supplied questions require a registered item_id matching the question;
-        register its canonical teaching package first. Without an item, only a
-        general learner self-report is supported; it is not a registered quiz.
-        """
         return get_service().submit_diagnostic(
             session_id, answer, item_id=item_id, node_id=node_id, question=question,
             hint_level=hint_level, response_time=response_time, request_id=request_id,
@@ -481,20 +394,17 @@ def build_server(profile: str | None = None) -> MCPServer:
     @server.tool()
     @_guard
     def get_diagnostic_result(session_id: str) -> dict:
-        """Return the stored diagnostic summary plus every diagnostic attempt."""
         return get_service().get_diagnostic_result(session_id)
 
     @server.tool()
     @_guard
     def save_diagnostic_result(session_id: str, result: Any, request_id: str | None = None) -> dict:
-        """Persist the diagnostic summary and mark the diagnostic phase complete."""
         return get_service().save_diagnostic_result(session_id, result, request_id=request_id)
 
     # -- 22.3 Knowledge -----------------------------------------------------
     @server.tool()
     @_guard
     def decompose_topic(session_id: str, topic: str | None = None) -> dict:
-        """Return a DAG template. Node content is generated by the host agent's LLM."""
         return get_service().decompose_topic(session_id, topic)
 
     @server.tool()
@@ -502,7 +412,6 @@ def build_server(profile: str | None = None) -> MCPServer:
     def save_knowledge_nodes(
         session_id: str, nodes: list[dict], request_id: str | None = None
     ) -> dict:
-        """Persist knowledge nodes. Each unit_tag must respect unit_concept_budget."""
         return get_service().save_knowledge_nodes(session_id, nodes, request_id=request_id)
 
     @server.tool()
@@ -510,55 +419,43 @@ def build_server(profile: str | None = None) -> MCPServer:
     def save_knowledge_edges(
         session_id: str, edges: list[dict], request_id: str | None = None
     ) -> dict:
-        """Persist knowledge edges. The DAG is validated first and rejected if invalid."""
         return get_service().save_knowledge_edges(session_id, edges, request_id=request_id)
 
     @server.tool()
     @_guard
     def get_knowledge_nodes(session_id: str, unit_tag: str | None = None) -> dict:
-        """List knowledge nodes, optionally filtered by teaching unit."""
         return get_service().get_knowledge_nodes(session_id, unit_tag)
 
     @server.tool()
     @_guard
     def get_knowledge_edges(session_id: str) -> dict:
-        """List knowledge edges (prerequisite / support / extension / related)."""
         return get_service().get_knowledge_edges(session_id)
 
     @server.tool()
     @_guard
     def validate_knowledge_dag(session_id: str) -> dict:
-        """Validate the stored DAG: cycles, dangling edges, self-loops, isolated nodes."""
         return get_service().validate_knowledge_dag(session_id)
 
     # -- 22.4 Teaching context ---------------------------------------------
     @server.tool()
     @_guard
     def get_teaching_context(session_id: str, node_id: str | None = None) -> dict:
-        """Return the full teaching context in one call to reduce round trips."""
         return get_service().get_teaching_context(session_id, node_id)
 
     # -- 22.5 Pedagogical policy -------------------------------------------
     @server.tool()
     @_guard
     def get_available_strategies() -> dict:
-        """List the pedagogical strategies available to the policy engine."""
         return get_service().get_available_strategies()
 
     @server.tool()
     @_guard
     def get_available_actions() -> dict:
-        """List the concrete teaching actions the host agent may execute."""
         return get_service().get_available_actions()
 
     @server.tool()
     @_guard
     def get_plugin_info() -> dict:
-        """Report which implementation backs each pluggable seam (section 35).
-
-        Covers state estimation, assessment aggregation, policy, review
-        scheduling, storage and artifact storage.
-        """
         return get_service().get_plugin_info()
 
     @server.tool()
@@ -566,7 +463,6 @@ def build_server(profile: str | None = None) -> MCPServer:
     def evaluate_pedagogical_policy(
         session_id: str, node_id: str | None = None, trigger_event: str | None = None
     ) -> dict:
-        """Evaluate the policy for the current state without persisting a decision."""
         return get_service().evaluate_pedagogical_policy(session_id, node_id, trigger_event=trigger_event)
 
     @server.tool()
@@ -581,7 +477,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         expected_outcome: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Record the decision actually acted on, for later replay."""
         return get_service().commit_pedagogical_decision(
             session_id, selected_strategy, selected_action, node_id=node_id,
             trigger_event=trigger_event, rationale=rationale,
@@ -591,7 +486,6 @@ def build_server(profile: str | None = None) -> MCPServer:
     @server.tool()
     @_guard
     def get_decision_log(session_id: str, limit: int = 50) -> dict:
-        """Read the pedagogical decision history for a session."""
         return get_service().get_decision_log(session_id, limit)
 
     # -- 22.6 Assessment ----------------------------------------------------
@@ -603,7 +497,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         question_type: str | None = None,
         count: int = 1,
     ) -> dict:
-        """Return an assessment blueprint with the rubric dimensions to score."""
         return get_service().generate_assessment(session_id, node_id, question_type=question_type, count=count)
 
     @server.tool()
@@ -615,11 +508,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         assessor_type: str = "model",
         assessor_confidence: float = 1.0,
     ) -> dict:
-        """Validate dimension scores and compute the weighted overall_score.
-
-        Does not persist anything. transfer and hint_dependency are excluded
-        from the aggregate by design.
-        """
         return get_service().assess_response(
             session_id, scores, raw_answer=raw_answer,
             assessor_type=assessor_type, assessor_confidence=assessor_confidence,
@@ -635,7 +523,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         session_id: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Record an active misconception in its authoritative table."""
         return get_service().assess_misconception(
             learner_id, node_id, misconception, severity=severity,
             session_id=session_id, request_id=request_id,
@@ -644,13 +531,11 @@ def build_server(profile: str | None = None) -> MCPServer:
     @server.tool()
     @_guard
     def resolve_misconception(misconception_id: int, session_id: str | None = None) -> dict:
-        """Mark a misconception as resolved and refresh the cached snapshot."""
         return get_service().resolve_misconception(misconception_id, session_id=session_id)
 
     @server.tool()
     @_guard
     def get_mastery_status(session_id: str, node_id: str | None = None) -> dict:
-        """Return the server-estimated learner knowledge state."""
         return get_service().get_mastery_status(session_id, node_id)
 
     @server.tool()
@@ -658,13 +543,11 @@ def build_server(profile: str | None = None) -> MCPServer:
     def get_assessment_history(
         session_id: str, node_id: str | None = None, limit: int = 50
     ) -> dict:
-        """Return past assessment results, including the raw answer for audit."""
         return get_service().get_assessment_history(session_id, node_id, limit)
 
     @server.tool()
     @_guard
     def generate_transfer_probe(session_id: str, node_id: str | None = None) -> dict:
-        """Return a transfer-probe blueprint (near / variation / far / integrated)."""
         return get_service().generate_transfer_probe(session_id, node_id)
 
     @server.tool()
@@ -676,13 +559,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         rejected_answers: list[dict] | None = None, assessor_scope: str = "host_semantic_review",
         teaching_package_id: str | None = None,
     ) -> dict:
-        """Register a checked item before delivery. Supply conditions, solution and independent checks.
-
-        Runtime checks structure only. The host must verify content, options,
-        counterexamples and free-text reasoning. Item IDs are immutable. Register
-        the canonical lesson via save_teaching_package first; supply its id or
-        use the latest accepted package for this session/node.
-        """
         return get_service().save_assessment_item(
             session_id, item_id, question, expected_answer, solution, assumptions, verification_checks,
             node_id=node_id, source_ids=source_ids, rejected_answers=rejected_answers, assessor_scope=assessor_scope,
@@ -693,7 +569,6 @@ def build_server(profile: str | None = None) -> MCPServer:
     @server.tool()
     @_guard
     def get_review_state(learner_id: str, node_id: str | None = None) -> dict:
-        """Return review items with current retrievability and due status."""
         return get_service().get_review_state(learner_id, node_id)
 
     @server.tool()
@@ -705,7 +580,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         item_ref: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Create a review item for a node if one does not exist yet."""
         return get_service().schedule_review(
             learner_id, node_id, session_id=session_id, item_ref=item_ref, request_id=request_id
         )
@@ -715,7 +589,6 @@ def build_server(profile: str | None = None) -> MCPServer:
     def submit_review(
         review_item_id: str, rating: int, session_id: str | None = None, request_id: str | None = None
     ) -> dict:
-        """Submit an FSRS rating (1=Again, 2=Hard, 3=Good, 4=Easy) and reschedule."""
         return get_service().submit_review(
             review_item_id, rating, session_id=session_id, request_id=request_id
         )
@@ -723,17 +596,11 @@ def build_server(profile: str | None = None) -> MCPServer:
     @server.tool()
     @_guard
     def get_due_reviews(learner_id: str, limit: int = 50, session_id: str | None = None) -> dict:
-        """List due review items.
-
-        A non-empty result does not block new learning globally - blocking is a
-        per-node Policy + State Guard decision.
-        """
         return get_service().get_due_reviews(learner_id, limit=limit, session_id=session_id)
 
     @server.tool()
     @_guard
     def recalculate_review_schedule(learner_id: str, now: int | None = None) -> dict:
-        """Recompute retrievability for every review item of a learner."""
         return get_service().recalculate_review_schedule(learner_id, now=now)
 
     # -- 22.8 State Guard ---------------------------------------------------
@@ -745,7 +612,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         node_id: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Set the current teaching focus to a unit or node."""
         return get_service().start_unit(
             session_id, unit_tag=unit_tag, node_id=node_id, request_id=request_id
         )
@@ -759,7 +625,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         manual_override: bool = False,
         expected_state_version: int | None = None,
     ) -> dict:
-        """Dry-run the State Guard for an advance request without changing state."""
         return get_service().check_advance_unit(
             session_id, unit_tag=unit_tag, node_id=node_id,
             manual_override=manual_override, expected_state_version=expected_state_version,
@@ -777,7 +642,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         predicted_performance: float | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Record a learner attempt and return its attempt_id for assessment."""
         return get_service().submit_attempt(
             session_id, answer, item_id=item_id, node_id=node_id, hint_level=hint_level,
             response_time=response_time, predicted_performance=predicted_performance,
@@ -801,12 +665,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         expected_state_version: int | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Commit assessment evidence and update learner state server-side.
-
-        raw_answer and assessor_type are mandatory: the original learner
-        response is stored for audit and never discarded. mastery_probability is
-        computed by the runtime, not supplied by the caller.
-        """
         return get_service().commit_assessment(
             attempt_id, raw_answer, assessor_type=assessor_type, correctness=correctness,
             conceptual_understanding=conceptual_understanding, reasoning_quality=reasoning_quality,
@@ -825,11 +683,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         expected_state_version: int | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Request the next unit.
-
-        Every node sharing the unit_tag must pass its own node-level guard;
-        one failure rejects the whole request. There is no unit table.
-        """
         return get_service().advance_unit(
             session_id, unit_tag=unit_tag, node_id=node_id, manual_override=manual_override,
             expected_state_version=expected_state_version, request_id=request_id,
@@ -843,7 +696,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         reason: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Move the teaching focus back to an earlier node."""
         return get_service().rollback_unit(
             session_id, target_node_id, reason=reason, request_id=request_id
         )
@@ -860,7 +712,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         session_id: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Record a transfer probe result; transfer_type is near/variation/far/integrated."""
         return get_service().record_transfer_result(
             learner_id, node_id, transfer_type, score, task_context=task_context,
             result=result, session_id=session_id, request_id=request_id,
@@ -871,7 +722,6 @@ def build_server(profile: str | None = None) -> MCPServer:
     def record_reflection(
         session_id: str, reflection: Any, node_id: str | None = None, request_id: str | None = None
     ) -> dict:
-        """Store a learner reflection as an artifact."""
         return get_service().record_reflection(
             session_id, reflection, node_id=node_id, request_id=request_id
         )
@@ -881,7 +731,6 @@ def build_server(profile: str | None = None) -> MCPServer:
     def complete_session(
         session_id: str, status: str = "completed", request_id: str | None = None
     ) -> dict:
-        """Set the session status (active/paused/completed/abandoned)."""
         return get_service().complete_session(session_id, status=status, request_id=request_id)
 
     # -- 22.9 Evidence / Grounding -----------------------------------------
@@ -894,14 +743,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         request_id: str | None = None,
         verification: dict | None = None,
     ) -> dict:
-        """Save grounding evidence; prose alone remains pending and does not unlock teaching.
-
-        The full text is stored as an artifact of type agent_benchmark_report;
-        source_refs require source, source_type, locator and excerpt. verification
-        requires scope, claims (claim + source_index), worked_examples (problem,
-        solution, check_method, check_result) and limitations. Read sources with
-        host tools first. Runtime checks completeness, not truth of the content.
-        """
         return get_service().save_benchmark_report(
             session_id, report_text, source_refs=source_refs, request_id=request_id,
             verification=verification,
@@ -918,7 +759,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         conflicting_sources: Any = None,
         request_id: str | None = None,
     ) -> dict:
-        """Save one structured knowledge claim with its source and confidence."""
         return get_service().save_benchmark_claim(
             session_id, claim, source_id=source_id, confidence=confidence,
             knowledge_scope=knowledge_scope, conflicting_sources=conflicting_sources,
@@ -928,13 +768,11 @@ def build_server(profile: str | None = None) -> MCPServer:
     @server.tool()
     @_guard
     def get_evidence(session_id: str, node_id: str | None = None) -> dict:
-        """Return grounding report metadata, claims and sources for a session."""
         return get_service().get_evidence(session_id, node_id)
 
     @server.tool()
     @_guard
     def validate_claim(claim_id: str, verified: bool = True) -> dict:
-        """Check whether a claim is linked to a real evidence source."""
         return get_service().validate_claim(claim_id, verified=verified)
 
     @server.tool()
@@ -942,7 +780,6 @@ def build_server(profile: str | None = None) -> MCPServer:
     def record_source_conflict(
         claim_id: str, conflicting_sources: Any, uncertainty: str | None = None
     ) -> dict:
-        """Record conflicting sources instead of silently choosing one."""
         return get_service().record_source_conflict(
             claim_id, conflicting_sources, uncertainty=uncertainty
         )
@@ -952,21 +789,11 @@ def build_server(profile: str | None = None) -> MCPServer:
     @server.tool()
     @_guard
     def get_teaching_delivery_policy() -> dict:
-        """Get mandatory teaching depth, visuals, wide layout, full Markdown and resource rules.
-
-        Applies to every subject, tool, mode and future generation. Write canonical
-        Obsidian Markdown first and register both bodies via save_teaching_package.
-        """
         return get_service().get_teaching_delivery_policy()
 
     @server.tool()
     @_guard
     def get_subject_catalog(subject: str | None = None) -> dict:
-        """Get starter subject modules, prerequisite graph and canonical knowledge note paths.
-
-        Optional subject filters the catalog. The catalog is extensible; policy
-        applies equally to subjects not yet represented in shipped examples.
-        """
         return get_service().get_subject_catalog(subject)
 
     @server.tool()
@@ -975,12 +802,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         session_id: str, node_id: str, subject: str, markdown: str, html: str,
         manifest: dict, request_id: str | None = None,
     ) -> dict:
-        """Validate and store canonical Markdown and projected HTML with teaching records.
-
-        Supply actual complete bodies, resources, teaching_points, html_segments,
-        markdown_extensions and source_ids. Missing depth or coverage is rejected.
-        Accepted records are structurally checked, not semantically certified.
-        """
         return get_service().save_teaching_package(session_id, node_id, subject, markdown, html, manifest, request_id=request_id)
     @server.tool()
     @_guard
@@ -994,11 +815,6 @@ def build_server(profile: str | None = None) -> MCPServer:
         version: str = "1",
         request_id: str | None = None,
     ) -> dict:
-        """Save a learning artefact (HTML, Markdown, chart, code, report...).
-
-        Teaching HTML/Markdown require metadata.teaching_package_id from an
-        accepted save_teaching_package call. Full bodies are validated there.
-        """
         return get_service().save_artifact(
             learner_id, session_id, artifact_type, path_or_uri=path_or_uri,
             content=content, metadata=metadata, version=version, request_id=request_id,
@@ -1007,54 +823,36 @@ def build_server(profile: str | None = None) -> MCPServer:
     @server.tool()
     @_guard
     def get_artifact(artifact_id: str, include_content: bool = True) -> dict:
-        """Fetch an artefact by id."""
         return get_service().get_artifact(artifact_id, include_content=include_content)
 
     @server.tool()
     @_guard
     def list_artifacts(session_id: str, artifact_type: str | None = None) -> dict:
-        """List artefacts for a session, optionally filtered by type."""
         return get_service().list_artifacts(session_id, artifact_type)
 
     @server.tool()
     @_guard
     def get_obsidian_structure() -> dict:
-        """Return the static Obsidian vault specification.
-
-        Specification only - the runtime never reads or writes local vault files.
-        """
         return get_service().get_obsidian_structure()
 
     @server.tool()
     @_guard
     def get_web_component_spec() -> dict:
-        """Return the static web-component specification.
-
-        Specification only - the runtime never generates HTML or reads front-end sources.
-        """
         return get_service().get_web_component_spec()
 
     @server.tool()
     @_guard
     def export_session_data(session_id: str, output_path: str | None = None) -> dict:
-        """Export the full session bundle as JSON, optionally to a file path."""
         return get_service().export_session_data(session_id, output_path=output_path)
 
     @server.tool()
     @_guard
     def generate_final_report(session_id: str, save_as_artifact: bool = True) -> dict:
-        """Generate the closing report, separating observed evidence from estimates."""
         return get_service().generate_final_report(session_id, save_as_artifact=save_as_artifact)
 
     @server.tool()
     @_guard
     def get_learning_metrics(session_id: str) -> dict:
-        """Return the section 26.1 learning-outcome indicators.
-
-        Covers Immediate Performance, Delayed Retention, Transfer Performance,
-        Time/Attempts to Target Evidence, Hint Dependency, Misconception
-        Resolution, Confidence Calibration and Learning Gain.
-        """
         return get_service().get_learning_metrics(session_id)
 
     _apply_profile(server, resolved)

@@ -7,16 +7,35 @@ transport in the loop.
 
 from __future__ import annotations
 
+import inspect
 import json
 from dataclasses import dataclass
-from typing import Any, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 from leap.config import Config, load_config
 from leap.runtime.events import EventLog
 from leap.runtime.state_guard import StateGuard
 from leap.storage import new_id, new_request_id, now_ts
 
-__all__ = ["ToolError", "ToolContext", "LeapToolMixin", "json_dumps"]
+__all__ = ["ToolError", "ToolContext", "LeapToolMixin", "json_dumps", "mcp_parameters"]
+
+
+def mcp_parameters(
+    *, first: tuple[str, ...], defaults: Mapping[str, Any],
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    """Preserve an MCP parameter layout while keeping Python positional callers."""
+    def decorate(fn: Callable[..., Any]) -> Callable[..., Any]:
+        signature = inspect.signature(fn, eval_str=True)
+        parameters = {name: parameter for name, parameter in signature.parameters.items() if name != "self"}
+        ordered = [*first, *(name for name in parameters if name not in first)]
+        fn.__mcp_signature__ = signature.replace(parameters=[
+            parameters[name].replace(
+                kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                default=defaults.get(name, parameters[name].default),
+            ) for name in ordered
+        ])
+        return fn
+    return decorate
 
 
 class ToolError(Exception):

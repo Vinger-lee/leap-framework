@@ -10,6 +10,7 @@ from __future__ import annotations
 import pytest
 
 from leap.runtime.profiles import (
+    ALL_TOOL_NAMES,
     DEFAULT_PROFILE,
     FACADE_TOOL_NAMES,
     PROFILES,
@@ -29,6 +30,51 @@ def test_full_profile_exposes_every_registered_tool():
     assert allowed_tool_names("full") is None
     assert set(names) > set(FACADE_TOOL_NAMES)
     assert len(names) >= 62
+    assert tuple(names) == ALL_TOOL_NAMES
+
+
+def test_catalog_inspection_does_not_boot_the_runtime(monkeypatch):
+    import asyncio
+    import leap.server as server_module
+
+    def unexpected_boot():
+        pytest.fail("catalog inspection must not open the configured database")
+
+    monkeypatch.setattr(server_module, "get_service", unexpected_boot)
+    catalog = asyncio.run(build_server("full").list_tools())
+
+    assert [tool.name for tool in catalog] == list(ALL_TOOL_NAMES)
+
+
+def test_registered_tool_uses_the_process_service(service, monkeypatch):
+    import asyncio
+    import leap.server as server_module
+
+    monkeypatch.setattr(server_module, "get_service", lambda: service)
+    server = build_server("full")
+    asyncio.run(server.call_tool("create_session", {"learner_id": "mcp-test", "topic": "recursion"}))
+    asyncio.run(server.call_tool("save_artifact", {
+        "learner_id": "mcp-test", "artifact_type": "code", "content": "print(1)",
+    }))
+
+    sessions = service.find_session("mcp-test")["sessions"]
+    assert len(sessions) == 1
+    assert sessions[0]["topic"] == "recursion"
+    artifact = service.db.query_one("SELECT session_id, content FROM artifacts WHERE artifact_type = 'code'")
+    assert artifact["session_id"] is None
+    assert artifact["content"] == "print(1)"
+
+
+def test_artifact_catalog_preserves_optional_session():
+    import asyncio
+
+    catalog = asyncio.run(build_server("full").list_tools())
+    tool = next(tool for tool in catalog if tool.name == "save_artifact")
+    schema = tool.model_dump(by_alias=True)["inputSchema"]
+
+    assert schema["required"] == ["learner_id", "artifact_type"]
+    assert schema["properties"]["session_id"]["default"] is None
+    assert "self" not in schema["properties"]
 
 
 def test_quickstart_is_a_narrow_true_subset():

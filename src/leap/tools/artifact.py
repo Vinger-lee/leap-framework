@@ -15,7 +15,7 @@ from typing import Any, Mapping
 from leap.runtime.evidence import STAGES, stage_index
 from leap.runtime.metrics import LearningMetrics, diagnostic_split
 from leap.storage import new_id, now_ts
-from leap.tools.base import LeapToolMixin, ToolError
+from leap.tools.base import LeapToolMixin, ToolError, mcp_parameters
 
 __all__ = ["ArtifactTools"]
 
@@ -92,6 +92,7 @@ class ArtifactTools(LeapToolMixin):
     # ------------------------------------------------------------------
     # 22.10 Artifact
     # ------------------------------------------------------------------
+    @mcp_parameters(first=("learner_id", "artifact_type"), defaults={"session_id": None})
     def save_artifact(
         self,
         learner_id: str,

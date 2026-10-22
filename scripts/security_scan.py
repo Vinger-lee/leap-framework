@@ -38,6 +38,7 @@ DEFAULT_SKIP_DIRS = {
     ".hg",
     ".svn",
     ".venv",
+    ".venv-dev",
     "venv",
     "env",
     "node_modules",

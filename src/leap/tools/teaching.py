@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from leap.runtime.policy import ACTIONS, STRATEGIES
+from leap.runtime.state_guard import GuardDecision
 from leap.storage import now_ts
 from leap.tools.base import LeapToolMixin, ToolError
 
@@ -290,6 +291,13 @@ class TeachingTools(LeapToolMixin):
             )
             raise ToolError("state_guard_rejected", decision.reason, decision.as_dict())
 
+        return self._commit_unit_advance(session, resolved_tag, decision, request_id)
+
+    def _commit_unit_advance(
+        self, session: dict, resolved_tag: str, decision: GuardDecision, request_id: str | None,
+    ) -> dict:
+        """Apply a unit transition after the caller's guard allowed it."""
+        session_id = session["session_id"]
         next_node = self._next_unit_entry(session_id, resolved_tag)
         ts = now_ts()
         with self.db.transaction():

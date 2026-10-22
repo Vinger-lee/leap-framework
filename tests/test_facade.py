@@ -169,6 +169,24 @@ def test_advance_lesson_reports_a_rejection_without_writing(dag, grounded_servic
     assert after["current_node_id"] == before["current_node_id"]
 
 
+@pytest.mark.parametrize("manual_override", [False, True])
+def test_advance_lesson_checks_the_guard_once(dag, grounded_service, monkeypatch, manual_override):
+    calls = []
+    check_unit = grounded_service.guard.check_unit
+
+    def counted_check(*args, **kwargs):
+        decision = check_unit(*args, **kwargs)
+        calls.append(decision)
+        return decision
+
+    monkeypatch.setattr(grounded_service.guard, "check_unit", counted_check)
+    result = grounded_service.advance_lesson(dag, unit_tag="u1", manual_override=manual_override)
+
+    assert len(calls) == 1
+    assert result["advanced"] is calls[0].allowed
+    assert result["guard"] == calls[0].as_dict()
+
+
 def test_advance_lesson_advances_when_the_guard_allows_it(dag, grounded_service):
     result = grounded_service.advance_lesson(dag, unit_tag="u1", manual_override=True)
 

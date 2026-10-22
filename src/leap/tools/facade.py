@@ -463,19 +463,15 @@ class FacadeTools(LeapToolMixin):
         action, so the host agent can react to the reason instead of retrying.
         Nothing is written unless the guard allowed it.
         """
-        self.require_session(session_id)
-        check = self._lean(
-            self.check_advance_unit(
-                session_id, unit_tag=unit_tag, node_id=node_id, manual_override=manual_override
-            )
-        )
-        guard = check.get("guard") or {}
-        allowed = guard.get("decision") == "ALLOW"
-        if not allowed:
+        session = self.require_session(session_id)
+        resolved_tag = self._resolve_unit_tag(session_id, unit_tag, node_id)
+        decision = self.guard.check_unit(session_id, resolved_tag, manual_override=manual_override)
+        guard = decision.as_dict()
+        if not decision.allowed:
             reason = guard.get("reason") or "the State Guard did not allow this transition"
             return self.ok(
                 session_id=session_id,
-                unit_tag=check.get("unit_tag"),
+                unit_tag=resolved_tag,
                 advanced=False,
                 guard_allowed=False,
                 guard=guard,
@@ -492,13 +488,7 @@ class FacadeTools(LeapToolMixin):
             )
 
         result = self._lean(
-            self.advance_unit(
-                session_id,
-                unit_tag=unit_tag,
-                node_id=node_id,
-                manual_override=manual_override,
-                request_id=request_id,
-            )
+            self._commit_unit_advance(session, resolved_tag, decision, request_id)
         )
         return self.ok(
             session_id=session_id,

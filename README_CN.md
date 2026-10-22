@@ -88,12 +88,7 @@ pytest -q        # inspect the current test result
 python -m leap.server      # 或：leap-mcp
 ```
 
-校验内置教学页面：
-
-```bash
-python scripts/verify_example.py --all          # 静态规范符合性
-python scripts/verify_example_runtime.py --all  # headless 运行时 + JSON Schema
-```
+内置教学页面的验证依赖、命令和验收规则统一见 [[CONTRIBUTING|贡献指南]]。
 
 ## 🧠 学习闭环
 
@@ -136,44 +131,12 @@ State Guard 是唯一有权批准状态迁移的组件。当工具返回 `REJECT
 
 ## 🔧 MCP 工具
 
-70 个工具，走 stdio，按领域分组：
+完整工具名称、参数、宿主说明和档位归属统一见 [[docs/mcp-tools|自动生成的 MCP 工具参考]]。
 
-### 🚀 八次调用即可开始
-
-细粒度工具的存在是为了让每次状态变更都可独立审计；宿主 Agent 不必逐个驱动它们。8 个粗粒度工具在
-服务端完成组合，且每个回包都带 `next_call`——下一次该调用的工具及其参数。
-
-| 粗粒度工具 | 组合的细粒度调用 |
-|---|---|
-| `start_learning` | `create_session` + `save_learning_goal` + `set_learning_configuration` |
-| `continue_lesson` | `get_teaching_context` + `get_session_info` |
-| `log_teaching_action` | `commit_pedagogical_decision` |
-| `submit_answer` | `submit_attempt` + `commit_assessment` + `get_mastery_status` |
-| `advance_lesson` | `check_advance_unit` + `advance_unit`（先试跑 Guard） |
-| `get_review_queue` | `get_due_reviews` |
-| `review_answer` | `submit_review` |
-| `get_learner_snapshot` | `get_session_info` + `get_mastery_status` + `get_knowledge_nodes` + `get_due_reviews` |
-
-门面层不放松任何约束：State Guard 仍是裁决者，被拒的推进不写入状态，评估失败时作答仍可补救，原始作答
-逐字保存，掌握度仍由服务端估计。工具档位可缩小目录——`--tool-profile quickstart` 只暴露 25 个工具。
-详见 [[docs/FACADE_CN|粗粒度教学 API 与工具档位]]，以及 [[docs/scope-and-limits_CN|范围与边界]]。
-
-| 分组 | 示例 |
-|---|---|
-| 会话与目标 | `create_session`、`save_learning_goal`、`set_learning_configuration` |
-| 诊断 | `generate_diagnostic`、`submit_diagnostic`、`save_diagnostic_result` |
-| 知识 | `decompose_topic`、`save_knowledge_nodes`、`validate_knowledge_dag` |
-| 策略 | `get_teaching_context`、`evaluate_pedagogical_policy`、`commit_pedagogical_decision` |
-| 评估 | `generate_assessment`、`save_assessment_item`、`submit_attempt`、`commit_assessment`、`assess_response` |
-| 保持 | `schedule_review`、`get_due_reviews`、`submit_review` |
-| 状态守卫 | `start_unit`、`check_advance_unit`、`advance_unit`、`rollback_unit` |
-| 证据 | `save_benchmark_report`、`get_evidence`、`validate_claim` |
-| 教学交付 | `get_teaching_delivery_policy`、`get_subject_catalog`、`save_teaching_package` |
-| 工件 | `save_artifact`、`get_obsidian_structure`、`get_web_component_spec` |
-| 反思 | `record_reflection` |
-| 报告 | `generate_final_report`、`get_learning_metrics` |
-
-上表只列示例；[[docs/mcp-tools|自动生成的完整工具参考]] 包含全部注册工具与准确参数，并由 CI 核对。
+粗粒度 API 在服务端组合教学步骤，每个回包给出下一次调用 `next_call`。State Guard 负责推进裁决；
+被拒的推进不写状态，评估失败保留已提交作答，掌握度由服务端估计。初次接入推荐显式选择
+`--tool-profile quickstart`；默认档位保持 `full`。使用方式见 [[docs/FACADE_CN|粗粒度 API 与工具档位]]，
+能力边界见 [[docs/scope-and-limits_CN|范围与边界]]。
 
 领域校准现在要求 `save_benchmark_report(verification=...)` 提供来源定位、摘录、关联论断、复核例题和不确定性；仅保存文字报告会保持 pending，教学入口也受门禁约束。宿主必须自行阅读资料，出题前用 `save_assessment_item` 登记题目条件、答案、推导与独立检查。自由文本推理必须由宿主做语义评估：LEAP 检查记录并估计学习状态，不能证明学科答案正确。
 
@@ -260,22 +223,10 @@ leap-framework/
 
 ## 🔍 质量门禁
 
-```bash
-pytest -q                                        # inspect the current test result
-python scripts/security_scan.py --root .         # 密钥与个人信息（CI 门禁）
-python scripts/verify_example.py --all           # 示例静态规范符合性
-python scripts/verify_teaching_repository.py     # canonical notes, reciprocal links and full paired bodies
-python scripts/verify_mcp_bridge.py              # actual stdio Runtime + shipped page
-python scripts/verify_example_runtime.py --all   # 示例运行时符合性
-python scripts/spec_coverage.py                  # 规范覆盖率
-python scripts/apply_leap_bridge.py --check      # 宿主桥接完整性
-```
+完整验证顺序、浏览器依赖安装和通过判据统一见 [[CONTRIBUTING|贡献指南]]；自动执行范围由
+`.github/workflows/ci.yml` 定义。工具目录由 CI 对照自动生成参考逐字节校验。
 
-退出码：`0` 干净 / `1` 阻断 / `2` 仅警告。前四项在 CI 中每次 push 都会跑。
-
-AI 助手工作区（`.workbuddy*/`、`.claude*/`、`.cursor*/`、`agent-state/` 等）与本地临时目录
-不参与发布，由 `.gitignore`、扫描器规则 `AI001` 以及一项 CI 测试共同保证 —— 该测试断言
-索引与全部历史中此类文件数量为 0。
+AI 助手工作区和本地临时目录不参与发布；`.gitignore`、扫描器与 CI 测试共同检查索引及历史中未包含此类文件。
 
 ## 📖 文档
 
@@ -311,4 +262,4 @@ AI 助手工作区（`.workbuddy*/`、`.claude*/`、`.cursor*/`、`agent-state/`
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[README]] · [[docs/ARCHITECTURE_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]] · [[docs/teaching-upgrade-plan]] · [[examples/01-python-recursion/knowledge]] · [[examples/05-logic-flowchart/knowledge]]
+[[Knowledge_Index]] · [[README]] · [[docs/ARCHITECTURE_CN]] · [[docs/FACADE_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]] · [[docs/scope-and-limits_CN]] · [[docs/teaching-upgrade-plan]] · [[examples/01-python-recursion/knowledge]] · [[examples/05-logic-flowchart/knowledge]]

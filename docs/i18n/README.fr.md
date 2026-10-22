@@ -104,18 +104,7 @@ Une bonne réponse produit une preuve — pas la maîtrise. Les stades **régres
 
 ## 🔧 Outils MCP
 
-70 outils exposés via stdio.
-
-| Groupe | Exemples |
-|---|---|
-| Session et objectif | `create_session`, `save_learning_goal`, `set_learning_configuration` |
-| Diagnostic | `generate_diagnostic`, `submit_diagnostic`, `save_diagnostic_result` |
-| Connaissances | `decompose_topic`, `save_knowledge_nodes`, `validate_knowledge_dag` |
-| Politique | `get_teaching_context`, `evaluate_pedagogical_policy`, `commit_pedagogical_decision` |
-| Évaluation | `generate_assessment`, `assess_response`, `assess_misconception` |
-| Rétention | `schedule_review`, `get_due_reviews`, `submit_review` |
-| State Guard | `start_unit`, `check_advance_unit`, `advance_unit`, `rollback_unit` |
-| Rapports | `generate_final_report`, `get_learning_metrics` |
+[[docs/mcp-tools|Référence MCP générée : noms, paramètres et profils]].
 
 ## 🧩 Conçu pour être enfichable
 

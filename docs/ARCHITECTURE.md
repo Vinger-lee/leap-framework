@@ -132,17 +132,7 @@ values are intentionally not translated. See [[docs/LOCALIZATION|LOCALIZATION.md
 
 ## 9. Quality gates
 
-| Gate | Command |
-|---|---|
-| Tests | `pytest -q` |
-| Secrets & PII | `python scripts/security_scan.py --root .` |
-| Example static compliance | `python scripts/verify_example.py --all` |
-| Example runtime compliance | `python scripts/verify_example_runtime.py --all` |
-| Spec coverage | `python scripts/spec_coverage.py` |
-| Host bridge completeness | `python scripts/apply_leap_bridge.py --check` |
-
-Exit codes are `0` clean / `1` blocking / `2` warnings only. The first four run in CI on every
-push.
+Verification dependencies, commands and acceptance criteria live in [[CONTRIBUTING|the contributing guide]]. `.github/workflows/ci.yml` defines which checks run in CI.
 
 ## 10. Publication hygiene
 

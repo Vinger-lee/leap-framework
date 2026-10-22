@@ -127,16 +127,7 @@ Schema 变更是增量的：`CREATE TABLE IF NOT EXISTS` 不会修改已有表�
 
 ## 9. 质量门禁
 
-| 门禁 | 命令 |
-|---|---|
-| 测试 | `pytest -q` |
-| 密钥与个人信息 | `python scripts/security_scan.py --root .` |
-| 示例静态规范符合性 | `python scripts/verify_example.py --all` |
-| 示例运行时符合性 | `python scripts/verify_example_runtime.py --all` |
-| 规范覆盖率 | `python scripts/spec_coverage.py` |
-| 宿主桥接完整性 | `python scripts/apply_leap_bridge.py --check` |
-
-退出码：`0` 干净 / `1` 阻断 / `2` 仅警告。前四项在 CI 中每次 push 都会跑。
+验证依赖、完整命令和判据统一见 [[CONTRIBUTING|贡献指南]]；CI 自动执行范围以 `.github/workflows/ci.yml` 为准。
 
 ## 10. 发布卫生
 
@@ -157,4 +148,4 @@ AI 助手工作区与本地临时目录永不进入提交。由三层保障：
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[docs/ARCHITECTURE]]
+[[Knowledge_Index]] · [[docs/ARCHITECTURE]] · [[docs/LOCALIZATION_CN]]

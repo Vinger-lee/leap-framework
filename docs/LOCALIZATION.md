@@ -46,7 +46,7 @@ locale: zh-CN
 Override with the environment:
 
 ```bash
-LEAP_LOCALE=en python -m leap.server
+LEAP__LOCALE=en python -m leap.server
 ```
 
 Resolution order:
@@ -57,6 +57,9 @@ config `locale`  →  LEAP_LOCALE  →  LC_ALL / LC_MESSAGES / LANG  →  zh-CN 
 
 Accepted aliases (case- and underscore-insensitive): `zh`, `zh-CN`, `zh_Hans`, `cn`, `中文`,
 `en`, `en-US`, `english`.
+
+`LEAP__LOCALE` overrides configuration before locale resolution. `LEAP_LOCALE` is a fallback
+only when configuration has no valid locale; it does not override an explicit `locale` value.
 
 ## Reading a message in code
 

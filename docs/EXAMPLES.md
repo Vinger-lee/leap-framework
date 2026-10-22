@@ -75,13 +75,9 @@ Before injection the page runs in `demo` mode: locally derived numbers are flagg
 
 Do not check these by eye — the checklist is encoded as executable checks:
 
-```bash
-python scripts/verify_example.py --all          # static spec compliance
-python scripts/verify_example_runtime.py --all  # headless Chromium + JSON Schema
-python scripts/apply_leap_bridge.py --check     # host-bridge completeness
-```
+Run the checks in [[CONTRIBUTING|the contributing guide]], which includes browser setup and the complete verification sequence.
 
-`--check` verifies **completeness, not just presence**: a regenerated page can keep the bridge
+`scripts/apply_leap_bridge.py --check` verifies **completeness, not just presence**: a regenerated page can keep the bridge
 banner while dropping a required field, which is invisible to a presence check and only surfaces
 at runtime. Use `--repair` to restore a dropped part.
 

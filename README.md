@@ -89,12 +89,7 @@ Start the MCP server:
 python -m leap.server      # or: leap-mcp
 ```
 
-Verify the bundled teaching pages:
-
-```bash
-python scripts/verify_example.py --all          # static spec compliance
-python scripts/verify_example_runtime.py --all  # headless runtime + JSON Schema
-```
+For teaching-page verification dependencies, commands and acceptance criteria, see [[CONTRIBUTING|the contributing guide]].
 
 ## 🧠 The learning loop
 
@@ -142,47 +137,14 @@ complementary long-term evidence dimensions.
 
 ## 🔧 MCP tools
 
-70 tools over stdio, grouped by domain:
+Names, parameters, host descriptions and profile membership are maintained in the
+[[docs/mcp-tools|generated MCP tool reference]].
 
-### 🚀 Start with eight calls
-
-The fine-grained tools exist so every state change is auditable on its own. A host agent does not
-have to drive them one by one: eight coarse tools compose them server-side, and every response
-returns `next_call` — the next tool to call, with its arguments.
-
-| Coarse tool | Composes |
-|---|---|
-| `start_learning` | `create_session` + `save_learning_goal` + `set_learning_configuration` |
-| `continue_lesson` | `get_teaching_context` + `get_session_info` |
-| `log_teaching_action` | `commit_pedagogical_decision` |
-| `submit_answer` | `submit_attempt` + `commit_assessment` + `get_mastery_status` |
-| `advance_lesson` | `check_advance_unit` + `advance_unit` (guard dry-run first) |
-| `get_review_queue` | `get_due_reviews` |
-| `review_answer` | `submit_review` |
-| `get_learner_snapshot` | `get_session_info` + `get_mastery_status` + `get_knowledge_nodes` + `get_due_reviews` |
-
-The facade relaxes nothing: the State Guard still decides, a refused advance writes nothing, a failed
-assessment keeps the stored attempt recoverable, the raw answer is preserved verbatim and mastery is
-still estimated server-side. Tool profiles narrow the catalog — `--tool-profile quickstart` exposes
-25 tools instead of 70. See the [[docs/FACADE|coarse tutor API and tool profiles]], and
-[[docs/scope-and-limits]] for what LEAP does and does not guarantee.
-
-| Group | Examples |
-|---|---|
-| Session & goal | `create_session`, `save_learning_goal`, `set_learning_configuration` |
-| Diagnostic | `generate_diagnostic`, `submit_diagnostic`, `save_diagnostic_result` |
-| Knowledge | `decompose_topic`, `save_knowledge_nodes`, `validate_knowledge_dag` |
-| Policy | `get_teaching_context`, `evaluate_pedagogical_policy`, `commit_pedagogical_decision` |
-| Assessment | `generate_assessment`, `save_assessment_item`, `submit_attempt`, `commit_assessment`, `assess_response` |
-| Retention | `schedule_review`, `get_due_reviews`, `submit_review` |
-| State Guard | `start_unit`, `check_advance_unit`, `advance_unit`, `rollback_unit` |
-| Evidence | `save_benchmark_report`, `get_evidence`, `validate_claim` |
-| Teaching delivery | `get_teaching_delivery_policy`, `get_subject_catalog`, `save_teaching_package` |
-| Artifacts | `save_artifact`, `get_obsidian_structure`, `get_web_component_spec` |
-| Reflection | `record_reflection` |
-| Reporting | `generate_final_report`, `get_learning_metrics` |
-
-The table shows examples, not the complete catalog. The [[docs/mcp-tools|generated tool reference]] lists every registered tool and its exact parameters; CI checks it against the MCP catalog.
+The coarse API composes teaching steps server-side and returns `next_call` in each response.
+The State Guard decides transitions; refused advances write no state, failed assessments preserve
+the stored attempt, and mastery is estimated server-side. New integrations can explicitly select
+`--tool-profile quickstart`; the default remains `full`. See [[docs/FACADE|the coarse API and profiles]]
+and [[docs/scope-and-limits|the framework's boundaries]].
 
 Domain Grounding now requires source locators, excerpts, linked claims, checked examples and limitations in `save_benchmark_report(verification=...)`. Text alone remains pending; teaching entry points are guarded too. Hosts must read sources themselves and register checked questions with `save_assessment_item` before delivery. Free-text reasoning needs host semantic review: LEAP validates submitted records and estimates state; it does not prove subject-matter correctness.
 
@@ -272,19 +234,8 @@ leap-framework/
 
 ## 🔍 Quality gates
 
-```bash
-pytest -q                                        # inspect the current test result
-python scripts/security_scan.py --root .         # secrets & PII (CI gate)
-python scripts/verify_example.py --all           # example static compliance
-python scripts/verify_teaching_repository.py     # canonical notes, reciprocal links and full paired bodies
-python scripts/verify_mcp_bridge.py              # actual stdio Runtime + shipped page
-python scripts/verify_example_runtime.py --all   # example runtime compliance
-python scripts/spec_coverage.py                  # spec vs. code coverage
-python scripts/apply_leap_bridge.py --check      # host-bridge completeness
-```
-
-Exit codes are `0` clean / `1` blocking / `2` warnings only. The first four run in CI on every
-push.
+The verification sequence, browser setup and acceptance criteria live in [[CONTRIBUTING|the contributing guide]].
+`.github/workflows/ci.yml` defines the automated checks, including a byte-for-byte check of the generated tool reference.
 
 AI assistant workspaces (`.workbuddy*/`, `.claude*/`, `.cursor*/`, `agent-state/`, …) and local
 scratch directories are excluded from publication by `.gitignore`, scanner rule `AI001`, and a CI
@@ -325,4 +276,4 @@ Issues and pull requests are welcome. Please read [[CONTRIBUTING|CONTRIBUTING.md
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[README_CN]] · [[docs/ARCHITECTURE]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]]
+[[Knowledge_Index]] · [[README_CN]] · [[docs/ARCHITECTURE]] · [[docs/FACADE]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]] · [[docs/scope-and-limits]]

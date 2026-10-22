@@ -23,7 +23,7 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]] · [[docs/FACADE_CN]]
 
 | 方式 | 工具面 | 适用场景 |
 |---|---|---|
-| 粗粒度教学 API | 8 个工具（`start_learning`、`continue_lesson`、`log_teaching_action`、`submit_answer`、`advance_lesson`、`get_review_queue`、`review_answer`、`get_learner_snapshot`） | 一个教学步骤一次调用；每个回包都给出 `next_call` |
+| 粗粒度教学 API | [[docs/mcp-tools|自动生成参考中的粗粒度 API]] | 一个教学步骤一次调用；每个回包都给出 `next_call` |
 | 细粒度 runtime 工具 | 完整目录（见 §2） | 需要把一次组合调用拆到不同时刻（先记录作答、评审后再评估），或直接查看策略与证据 |
 
 两套 API 操作同一批数据行、事件与状态版本，同一会话内可随时切换。下面标准流程中每个阶段都标注了对应的
@@ -149,32 +149,7 @@ LEAP Runtime 负责：学习状态、知识结构、掌握度估计、教学策�
 
 ## 2. 工具速查
 
-### 会话与目标
-`create_session` · `find_session` · `get_session_info` · `save_learning_goal` · `get_learning_goal`
-
-### 诊断
-`generate_diagnostic` · `submit_diagnostic` · `get_diagnostic_result` · `save_diagnostic_result`
-
-### 知识结构
-`decompose_topic` · `save_knowledge_nodes` · `save_knowledge_edges` · `get_knowledge_nodes` · `get_knowledge_edges` · `validate_knowledge_dag`
-
-### 教学上下文与策略
-`get_teaching_delivery_policy` · `get_subject_catalog` · `save_teaching_package` · `save_assessment_item` · `get_teaching_context` · `get_available_strategies` · `get_available_actions` · `evaluate_pedagogical_policy` · `commit_pedagogical_decision` · `get_decision_log`
-
-### 评估
-`generate_assessment` · `assess_response` · `assess_misconception` · `resolve_misconception` · `get_mastery_status` · `get_assessment_history` · `generate_transfer_probe`
-
-### 保持
-`get_review_state` · `schedule_review` · `submit_review` · `get_due_reviews` · `recalculate_review_schedule`
-
-### 状态守卫
-`start_unit` · `check_advance_unit` · `submit_attempt` · `commit_assessment` · `advance_unit` · `rollback_unit` · `record_transfer_result` · `record_reflection` · `complete_session`
-
-### 证据 / 领域校准
-`save_benchmark_report` · `save_benchmark_claim` · `get_evidence` · `validate_claim` · `record_source_conflict`
-
-### 工件与报告
-`save_artifact` · `get_artifact` · `list_artifacts` · `get_obsidian_structure` · `get_web_component_spec` · `export_session_data` · `generate_final_report`
+工具清单、准确参数、宿主说明与档位归属统一见 [[docs/mcp-tools|自动生成的 MCP 工具参考]]。
 
 ---
 
@@ -247,4 +222,4 @@ generate_final_report(session_id)
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[docs/INTEGRATION]] · [[docs/mcp-tools]] · [[docs/teaching-delivery]]
+[[Knowledge_Index]] · [[docs/FACADE_CN]] · [[docs/INTEGRATION]] · [[docs/mcp-tools]] · [[docs/scope-and-limits_CN]] · [[docs/teaching-delivery]]

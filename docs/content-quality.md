@@ -96,14 +96,7 @@ demo 模式也不得推算掌握度和证据阶段，只保留初始占位值。
 
 ## 5. 分开报告三种验收
 
-```bash
-python scripts/verify_example.py --all
-python scripts/verify_example_runtime.py --all --json runtime-verification.json
-python scripts/verify_mcp_bridge.py
-python scripts/generate_tool_reference.py --check
-python scripts/verify_teaching_repository.py
-pytest
-```
+验证依赖、统一命令与判据见 [[CONTRIBUTING|贡献指南]]；下面说明每类检查能够证明的范围。
 
 浏览器运行校验读取与 HTML 同名的 `.runtime.json` 场景清单。每个场景从重新加载页面开始，明确操作和断言；缺失清单是失败。清单覆盖哪些路径才能声称哪些路径通过，不能从几次按钮点击推导“所有交互正确”。
 

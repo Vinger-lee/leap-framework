@@ -104,18 +104,7 @@ State Guard는 상태 전이를 승인할 수 있는 유일한 컴포넌트입�
 
 ## 🔧 MCP 도구
 
-stdio를 통해 70개 도구를 제공합니다.
-
-| 그룹 | 예시 |
-|---|---|
-| 세션 및 목표 | `create_session`, `save_learning_goal`, `set_learning_configuration` |
-| 진단 | `generate_diagnostic`, `submit_diagnostic`, `save_diagnostic_result` |
-| 지식 | `decompose_topic`, `save_knowledge_nodes`, `validate_knowledge_dag` |
-| 정책 | `get_teaching_context`, `evaluate_pedagogical_policy`, `commit_pedagogical_decision` |
-| 평가 | `generate_assessment`, `assess_response`, `assess_misconception` |
-| 유지 | `schedule_review`, `get_due_reviews`, `submit_review` |
-| 상태 가드 | `start_unit`, `check_advance_unit`, `advance_unit`, `rollback_unit` |
-| 보고 | `generate_final_report`, `get_learning_metrics` |
+[[docs/mcp-tools|자동 생성 MCP 도구 참조: 이름, 매개변수, 프로필]].
 
 ## 🧩 플러그인 설계
 

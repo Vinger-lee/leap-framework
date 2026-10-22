@@ -26,8 +26,6 @@ from leap.storage import Database, new_id, now_ts
 class TestConfig:
     def test_defaults_load(self, base_config):
         assert base_config.get("mastery_threshold") == 0.80
-        assert base_config.get("mcp_transport") == "stdio"
-        assert base_config.get("auth_enabled") is False
 
     def test_dotted_lookup_and_defaults(self, base_config):
         assert base_config.get("bkt.p_init") == 0.20

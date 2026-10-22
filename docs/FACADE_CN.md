@@ -28,16 +28,7 @@ Runtime 的工具面刻意做成细粒度：每次状态变更都是独立的可
 每个粗粒度工具内部调用与细粒度工具完全相同的 runtime 方法。它是门面层（facade），不是第二套
 状态机，因此同一个会话内可以混用两种调用。
 
-| 粗粒度工具 | 组合的细粒度调用 | 用途 |
-|---|---|---|
-| `start_learning` | `create_session` + `save_learning_goal` + `set_learning_configuration` | 开场："我想学 X" |
-| `continue_lesson` | `get_teaching_context` + `get_session_info` | 一次读取状态与推荐动作 |
-| `log_teaching_action` | `commit_pedagogical_decision` | 记录你实际采取的教学动作 |
-| `submit_answer` | `submit_attempt` + `commit_assessment` + `get_mastery_status` | 学员作答 |
-| `advance_lesson` | `check_advance_unit` + `advance_unit` | 推进（内含 Guard 试跑） |
-| `get_review_queue` | `get_due_reviews` | 到期复习 |
-| `review_answer` | `submit_review` | 提交 1-4 级 FSRS 评分 |
-| `get_learner_snapshot` | `get_session_info` + `get_mastery_status` + `get_knowledge_nodes` + `get_due_reviews` | 重连会话、汇报进度、排查问题 |
+完整的粗粒度工具清单、组合语义、签名与档位归属见 [[docs/mcp-tools|自动生成工具参考]]。
 
 每个回包都带 `next_call`：下一次该调用的工具、参数与原因。门面层因此是自解释的，宿主 Agent
 不必记住生命周期。
@@ -82,11 +73,7 @@ LEAP_TOOL_PROFILE=quickstart python -m leap.server  # 环境变量
 
 ## 3. 如何验证粗粒度接入
 
-```bash
-pytest -q tests/test_facade.py tests/test_tool_profiles.py
-python -m leap.doctor
-python -m leap.server --tool-profile quickstart
-```
+测试与验证命令统一见 [[CONTRIBUTING|贡献指南]]；安装状态可用 `python -m leap.doctor` 自检。
 
 门面层测试不只覆盖顺利路径：被拒的推进不改变任何状态、评估失败后作答仍可补救、无法识别的学习模式
 会被回报，Grounding 门禁仍然生效。
@@ -102,3 +89,8 @@ python -m leap.server --tool-profile quickstart
 > For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
 > After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
 
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[README_CN]] · [[docs/FACADE]] · [[docs/INTEGRATION_CN]] · [[docs/scope-and-limits_CN]]

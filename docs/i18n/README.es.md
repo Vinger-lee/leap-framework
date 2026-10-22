@@ -104,18 +104,7 @@ Una respuesta correcta produce evidencia, no dominio. Las etapas **retroceden** 
 
 ## 🔧 Herramientas MCP
 
-70 herramientas expuestas por stdio.
-
-| Grupo | Ejemplos |
-|---|---|
-| Sesión y objetivo | `create_session`, `save_learning_goal`, `set_learning_configuration` |
-| Diagnóstico | `generate_diagnostic`, `submit_diagnostic`, `save_diagnostic_result` |
-| Conocimiento | `decompose_topic`, `save_knowledge_nodes`, `validate_knowledge_dag` |
-| Política | `get_teaching_context`, `evaluate_pedagogical_policy`, `commit_pedagogical_decision` |
-| Evaluación | `generate_assessment`, `assess_response`, `assess_misconception` |
-| Retención | `schedule_review`, `get_due_reviews`, `submit_review` |
-| State Guard | `start_unit`, `check_advance_unit`, `advance_unit`, `rollback_unit` |
-| Informes | `generate_final_report`, `get_learning_metrics` |
+[[docs/mcp-tools|Referencia MCP generada: nombres, parámetros y perfiles]].
 
 ## 🧩 Diseño conectable
 

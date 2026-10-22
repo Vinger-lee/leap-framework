@@ -104,18 +104,7 @@ State Guard هو المكوّن الوحيد المخوّل بالسماح با�
 
 ## 🔧 أدوات MCP
 
-70 أداة عبر stdio.
-
-| المجموعة | أمثلة |
-|---|---|
-| الجلسة والهدف | `create_session`, `save_learning_goal`, `set_learning_configuration` |
-| التشخيص | `generate_diagnostic`, `submit_diagnostic`, `save_diagnostic_result` |
-| المعرفة | `decompose_topic`, `save_knowledge_nodes`, `validate_knowledge_dag` |
-| السياسة | `get_teaching_context`, `evaluate_pedagogical_policy`, `commit_pedagogical_decision` |
-| التقييم | `generate_assessment`, `assess_response`, `assess_misconception` |
-| الحفظ | `schedule_review`, `get_due_reviews`, `submit_review` |
-| State Guard | `start_unit`, `check_advance_unit`, `advance_unit`, `rollback_unit` |
-| التقارير | `generate_final_report`, `get_learning_metrics` |
+[[docs/mcp-tools|مرجع أدوات MCP المُولَّد: الأسماء والمعاملات وملفات الأدوات]].
 
 ## 🧩 تصميم قابل للاستبدال
 

@@ -30,16 +30,7 @@ catalog of about twenty-five tools instead of seventy).
 Each coarse tool calls the same runtime method as its fine-grained equivalent. It is a facade,
 not a second state machine, so coarse and fine calls can be mixed inside one session.
 
-| Coarse tool | Composes | Use it for |
-|---|---|---|
-| `start_learning` | `create_session` + `save_learning_goal` + `set_learning_configuration` | Opening turn: "I want to learn X" |
-| `continue_lesson` | `get_teaching_context` + `get_session_info` | One read that returns state and the recommended next action |
-| `log_teaching_action` | `commit_pedagogical_decision` | Recording the action you actually took |
-| `submit_answer` | `submit_attempt` + `commit_assessment` + `get_mastery_status` | The learner answered something |
-| `advance_lesson` | `check_advance_unit` + `advance_unit` | Advancing, with the guard dry-run built in |
-| `get_review_queue` | `get_due_reviews` | What is due for spaced review |
-| `review_answer` | `submit_review` | Applying a 1-4 FSRS rating |
-| `get_learner_snapshot` | `get_session_info` + `get_mastery_status` + `get_knowledge_nodes` + `get_due_reviews` | Reconnecting a chat window, reporting progress, debugging |
+See [[docs/mcp-tools|the generated reference]] for coarse tool names, composition semantics, signatures and profile membership.
 
 Every response carries `next_call`: the single next tool call to make, with its arguments and the
 reason. The facade therefore guides the agent instead of requiring it to memorise the lifecycle.
@@ -105,21 +96,14 @@ LEAP_TOOL_PROFILE=quickstart python -m leap.server # environment
 
 An unknown profile name is refused at startup instead of silently widening the surface to `full`.
 
-### Which tools stay hidden in `quickstart`
+### Profile membership
 
-Fine-grained variants of the coarse loop (`submit_attempt`, `commit_assessment`, `advance_unit`,
-`check_advance_unit`, `commit_pedagogical_decision`, `get_teaching_context`, `schedule_review`,
-`submit_review`, `get_due_reviews`), the policy introspection tools, and the artifact/reporting
-tools that a lesson does not need per turn. They remain available in `full`, and a host agent can
-switch to `full` mid-project without losing state.
+The [[docs/mcp-tools|generated tool reference]] lists profile membership for every tool. Fine-grained
+policy inspection and lower-level teaching operations remain available in `full`.
 
 ## 3. Verifying a coarse integration
 
-```bash
-pytest -q tests/test_facade.py tests/test_tool_profiles.py   # composition and profile filtering
-python -m leap.doctor                                        # installation and catalog self-check
-python -m leap.server --tool-profile quickstart              # the narrowed catalog, for real
-```
+Run the checks in [[CONTRIBUTING|the contributing guide]]; `python -m leap.doctor` checks installation and catalog availability.
 
 The facade tests assert the properties above, not just the happy path: a refused advance changes
 nothing, a failed assessment keeps the attempt recoverable, an unrecognised learning mode is
@@ -137,3 +121,8 @@ committing one. Both APIs operate on the same rows, events and versions.
 > For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
 > After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
 
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[README]] · [[docs/FACADE_CN]] · [[docs/INTEGRATION]] · [[docs/scope-and-limits]]

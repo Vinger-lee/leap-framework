@@ -24,7 +24,6 @@ friction_trigger_consecutive: 3  # N consecutive high-dependency/failed attempts
 interleaving_enabled: conditional
 diagnostic_depth: adaptive
 default_transfer_requirement: conditional
-state_update_mode: hybrid
 unit_concept_budget: 8           # max core nodes per teaching unit
 
 # --- Knowledge state estimation (section 10.2-1) --------------------------
@@ -73,10 +72,6 @@ overall_score_weights:
 # PER-SESSION configuration, not global switches.
 allow_skip_domain_grounding: false
 domain_grounding_warn_user: true
-
-# --- Transport & security (section 3.1) -----------------------------------
-mcp_transport: stdio             # P0: local process only, no HTTP/SSE
-auth_enabled: false              # P0: single-machine trusted environment
 
 # --- Tool surface ----------------------------------------------------------
 # How much of the MCP tool catalog a client sees. Registration is identical in

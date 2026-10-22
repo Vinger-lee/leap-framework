@@ -104,18 +104,7 @@ State Guard は状態遷移を承認できる唯一のコンポーネントで�
 
 ## 🔧 MCP ツール
 
-70 のツールを stdio 経由で提供します。
-
-| グループ | 例 |
-|---|---|
-| セッションと目標 | `create_session`, `save_learning_goal`, `set_learning_configuration` |
-| 診断 | `generate_diagnostic`, `submit_diagnostic`, `save_diagnostic_result` |
-| 知識 | `decompose_topic`, `save_knowledge_nodes`, `validate_knowledge_dag` |
-| 方針 | `get_teaching_context`, `evaluate_pedagogical_policy`, `commit_pedagogical_decision` |
-| 評価 | `generate_assessment`, `assess_response`, `assess_misconception` |
-| 保持 | `schedule_review`, `get_due_reviews`, `submit_review` |
-| 状態ガード | `start_unit`, `check_advance_unit`, `advance_unit`, `rollback_unit` |
-| レポート | `generate_final_report`, `get_learning_metrics` |
+[[docs/mcp-tools|自動生成された MCP ツール一覧・引数・プロファイル]].
 
 ## 🧩 プラグイン設計
 

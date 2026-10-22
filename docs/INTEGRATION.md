@@ -23,7 +23,7 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]] · [[docs/FACADE]] ·
 
 | Path | Surface | Use it when |
 |---|---|---|
-| Coarse tutor API | 8 tools (`start_learning`, `continue_lesson`, `log_teaching_action`, `submit_answer`, `advance_lesson`, `get_review_queue`, `review_answer`, `get_learner_snapshot`) | You want one call per teaching-loop step; each response returns `next_call`, the next tool to call |
+| Coarse tutor API | The coarse API in [[docs/mcp-tools|the generated reference]] | You want one call per teaching-loop step; each response returns `next_call`, the next tool to call |
 | Fine-grained runtime tools | The full catalog (§2) | You need to split a composed call across turns (record an attempt now, assess it after review) or to inspect policy/evidence directly |
 
 Both APIs operate on the same rows, events and state versions, and a session can switch between them
@@ -170,32 +170,7 @@ Stage 8 · Wrap up
 
 ## 2. Tool reference
 
-### Session and goal
-`create_session` · `find_session` · `get_session_info` · `save_learning_goal` · `get_learning_goal` · `set_learning_configuration` · `get_learning_configuration`
-
-### Diagnostic
-`generate_diagnostic` · `submit_diagnostic` · `get_diagnostic_result` · `save_diagnostic_result`
-
-### Knowledge structure
-`decompose_topic` · `save_knowledge_nodes` · `save_knowledge_edges` · `get_knowledge_nodes` · `get_knowledge_edges` · `validate_knowledge_dag`
-
-### Teaching context and policy
-`get_teaching_delivery_policy` · `get_subject_catalog` · `save_teaching_package` · `save_assessment_item` · `get_teaching_context` · `get_available_strategies` · `get_available_actions` · `get_plugin_info` · `evaluate_pedagogical_policy` · `commit_pedagogical_decision` · `get_decision_log`
-
-### Assessment
-`generate_assessment` · `assess_response` · `assess_misconception` · `resolve_misconception` · `get_mastery_status` · `get_assessment_history` · `generate_transfer_probe`
-
-### Retention
-`get_review_state` · `schedule_review` · `submit_review` · `get_due_reviews` · `recalculate_review_schedule`
-
-### State Guard
-`start_unit` · `check_advance_unit` · `submit_attempt` · `commit_assessment` · `advance_unit` · `rollback_unit` · `record_transfer_result` · `record_reflection` · `complete_session`
-
-### Evidence / grounding
-`save_benchmark_report` · `save_benchmark_claim` · `get_evidence` · `validate_claim` · `record_source_conflict`
-
-### Artifacts and reporting
-`save_artifact` · `get_artifact` · `list_artifacts` · `get_obsidian_structure` · `get_web_component_spec` · `export_session_data` · `generate_final_report` · `get_learning_metrics`
+Names, exact parameters, host descriptions and profile membership live in [[docs/mcp-tools|the generated MCP reference]].
 
 ---
 
@@ -271,4 +246,4 @@ generate_final_report(session_id)
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[docs/INTEGRATION_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]] · [[docs/mcp-tools]] · [[docs/teaching-delivery]]
+[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[docs/FACADE]] · [[docs/INTEGRATION_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]] · [[docs/mcp-tools]] · [[docs/scope-and-limits]] · [[docs/teaching-delivery]]

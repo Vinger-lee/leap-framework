@@ -53,7 +53,7 @@ agent, and which claims would need evidence that does not exist yet.
 
 ## 3. Engineering limits of this release
 
-- **Single machine, single learner (P0).** The MCP transport is stdio, `auth_enabled` is false, and
+- **Single machine, single learner (P0).** The MCP transport is stdio, authentication is not implemented, and
   there is no learner account system, multi-tenancy, permissions or content moderation. A
   school-facing deployment needs all of that and LEAP does not provide it.
 - **One implementation per pluggable seam.** All six seams are wired, but the shipped defaults are a
@@ -99,3 +99,8 @@ in a marketing page.
 > For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
 > After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
 
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[README]] · [[docs/FACADE]] · [[docs/INTEGRATION]] · [[docs/scope-and-limits_CN]]

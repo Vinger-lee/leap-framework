@@ -35,23 +35,44 @@ Python 3.11 or newer is required.
 
 ## Before you open a pull request
 
-Run the quality gates — CI runs the first four on every push:
+Use the development environment above for the core checks:
 
 ```bash
-pytest -q                                        # the full suite
-python scripts/security_scan.py --root .         # secrets & PII, must be P0/P1 = 0
-python scripts/verify_example.py --all           # example static compliance
-python scripts/verify_example_runtime.py --all   # example runtime compliance
-python scripts/spec_coverage.py                  # spec coverage
-python scripts/apply_leap_bridge.py --check      # host-bridge completeness
+python -m pytest -q
+python scripts/generate_tool_reference.py --check
+python scripts/security_scan.py --root .
+python scripts/verify_example.py --all
+python scripts/verify_teaching_repository.py
+python scripts/apply_leap_bridge.py --check
 ```
 
-Exit codes are `0` clean / `1` blocking / `2` warnings only.
+Browser and real page-to-MCP checks additionally need the examples dependencies and Chromium:
+
+```bash
+python -m pip install -e ".[dev,examples]"
+python -m playwright install chromium
+python scripts/verify_example_runtime.py --all --json runtime-verification.json
+python scripts/verify_mcp_bridge.py
+```
+
+All commands must exit successfully; the static example and security scanners also use exit `2`
+for warnings. Review those warnings; security findings at P0/P1 and any example error block release.
+The generated reference check compares bytes, the teaching repository check validates reciprocal
+links and complete paired bodies, and runtime checks validate the declared scenarios and real
+transport receipts. None of these checks certifies subject-matter correctness.
+
+This is the shared verification sequence. `.github/workflows/ci.yml` defines the automated subset;
+CI installs Chromium with `--with-deps` on Linux. Focused tests are useful during development, but
+run the full core suite before submitting a change.
 
 ## Code conventions
 
 - Business logic lives in `src/leap/tools/`; the MCP layer in `src/leap/server.py` is a thin
   adapter, which keeps every tool testable without a transport.
+- `ALL_TOOL_NAMES` in `src/leap/runtime/profiles.py` is the ordered MCP registry. Define a tool's
+  annotations and host-facing docstring beside its implementation, register its name there,
+  choose profile membership, then run `python scripts/generate_tool_reference.py`. Keep tool
+  inventories exclusively in [[docs/mcp-tools|the generated reference]]; other pages link to it.
 - **Coarse tools are a facade, never a second state machine.** A method in
   `src/leap/tools/facade.py` must compose the existing runtime methods and must not write state
   itself, re-derive mastery, or swallow a `ToolError`; a partially completed sequence must hand the
@@ -120,4 +141,4 @@ By contributing you agree that your contributions are licensed under the [MIT Li
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[README]] · [[README_CN]]
+[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[docs/ARCHITECTURE]] · [[docs/ARCHITECTURE_CN]] · [[docs/EXAMPLES]] · [[docs/FACADE]] · [[docs/FACADE_CN]] · [[docs/LOCALIZATION_CN]] · [[docs/content-quality]] · [[docs/quality-audit-2026-10-10]]

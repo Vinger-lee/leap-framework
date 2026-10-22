@@ -42,7 +42,7 @@ Related: [[Knowledge_Index]] · [[docs/FACADE_CN]] · [[docs/INTEGRATION_CN]] ·
 
 ## 3. 本版本的工程限制
 
-- **单机单学员（P0）**：传输为 stdio，`auth_enabled` 为 false，没有学员账号体系、多租户、权限与
+- **单机单学员（P0）**：传输为 stdio，未实现认证、学员账号体系、多租户、权限与
   内容审核。面向学校/机构的部署需要这些，LEAP 不提供。
 - **每个可插拔缝隙只有一种实现**：六个缝隙都已接通，但默认实现是简化 BKT、加权聚合、规则策略、
   `py-fsrs`、SQLite 与本地产物存储；替代实现是增量的，尚未在生产验证。
@@ -79,3 +79,8 @@ Related: [[Knowledge_Index]] · [[docs/FACADE_CN]] · [[docs/INTEGRATION_CN]] ·
 > For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
 > After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
 
+<!-- LEAP_BACKLINKS -->
+
+## Backlinks / 反向关联
+
+[[Knowledge_Index]] · [[README_CN]] · [[docs/FACADE_CN]] · [[docs/INTEGRATION_CN]] · [[docs/scope-and-limits]]

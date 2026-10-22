@@ -19,6 +19,10 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
 
 # 2026-10-10 使用反馈与交付物审计
 
+> [!note] 历史快照 · 已归档
+> 本文保留 2026-10-10 对当时提交的审计结论、工具数量与验证记录，不代表当前版本。
+> 当前工具目录见 [[docs/mcp-tools]]；现行验证入口见 [[CONTRIBUTING]]。
+
 核验对象：修改前的仓库 HEAD `2568667`，以及用户提供的 `leap-math1-ch01-functions-limits.html`。原交付物保留不动；本次审查没有声称查阅最新考试大纲。下面的数学结论来自定义、推导和明确反例。
 
 ## 结论

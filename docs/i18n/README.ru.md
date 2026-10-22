@@ -104,18 +104,7 @@ State Guard — единственный компонент, который мо
 
 ## 🔧 Инструменты MCP
 
-70 инструментов через stdio.
-
-| Группа | Примеры |
-|---|---|
-| Сессия и цель | `create_session`, `save_learning_goal`, `set_learning_configuration` |
-| Диагностика | `generate_diagnostic`, `submit_diagnostic`, `save_diagnostic_result` |
-| Знания | `decompose_topic`, `save_knowledge_nodes`, `validate_knowledge_dag` |
-| Политика | `get_teaching_context`, `evaluate_pedagogical_policy`, `commit_pedagogical_decision` |
-| Оценка | `generate_assessment`, `assess_response`, `assess_misconception` |
-| Удержание | `schedule_review`, `get_due_reviews`, `submit_review` |
-| State Guard | `start_unit`, `check_advance_unit`, `advance_unit`, `rollback_unit` |
-| Отчёты | `generate_final_report`, `get_learning_metrics` |
+[[docs/mcp-tools|Генерируемый справочник MCP: имена, параметры и профили]].
 
 ## 🧩 Подключаемая архитектура
 

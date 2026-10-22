@@ -15,8 +15,7 @@ def test_reference_matches_registered_mcp_catalog():
     for name in ("README.md", "README_CN.md"):
         readme = (REPO_ROOT / name).read_text(encoding="utf-8")
         assert f"MCP-{len(names)}%20tools" in readme
-        for required in ("submit_attempt", "commit_assessment", "record_reflection", "save_assessment_item"):
-            assert f"`{required}`" in readme
+        assert "[[docs/mcp-tools|" in readme
 
 
 def test_bridge_tools_exist_and_packaged_schema_matches():

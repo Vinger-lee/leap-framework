@@ -70,4 +70,4 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]] · [[docs/mcp-tools]]
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[README]] · [[curricula/math1-2028-ch01/README]] · [[docs/subject-notes/biology]] · [[docs/subject-notes/chemistry]] · [[docs/subject-notes/economics]] · [[docs/subject-notes/electronics]] · [[docs/subject-notes/language]] · [[docs/teaching-delivery]] · [[examples/07-chemistry-stoichiometry/knowledge]] · [[examples/08-electronics-ohms-law/knowledge]]
+[[Knowledge_Index]] · [[README]] · [[docs/subject-notes/biology]] · [[docs/subject-notes/chemistry]] · [[docs/subject-notes/economics]] · [[docs/subject-notes/electronics]] · [[docs/subject-notes/language]] · [[docs/teaching-delivery]] · [[examples/07-chemistry-stoichiometry/knowledge]] · [[examples/08-electronics-ohms-law/knowledge]]

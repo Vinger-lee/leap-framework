@@ -188,7 +188,7 @@ Domain Grounding now requires source locators, excerpts, linked claims, checked 
 
 See the [[docs/content-quality|content-quality and integration workflow]] and [[docs/quality-audit-2026-10-10|audit of the reported delivery]]. Browser scenario checks and real MCP integration checks are separate from content review.
 
-Every mode uses the permanent depth, controllable diagrams, wide layout, complete Obsidian source and precise resource policy. Register the actual Markdown/HTML pair with `save_teaching_package` before registering questions. See [[docs/teaching-delivery]], the 11-domain catalog in [[docs/subject-knowledge-map]], and the reproducible calculus chapter in [[curricula/math1-2028-ch01/README]].
+Every mode uses the permanent depth, controllable diagrams, wide layout, complete Obsidian source and precise resource policy. Register the actual Markdown/HTML pair with `save_teaching_package` before registering questions. See [[docs/teaching-delivery]], the 11-domain catalog in [[docs/subject-knowledge-map]], and the separate curriculum delivery workflow; course recipes are maintained outside this framework.
 
 ## 🧩 Pluggable by design
 

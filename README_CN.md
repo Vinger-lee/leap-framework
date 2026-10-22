@@ -179,7 +179,7 @@ State Guard 是唯一有权批准状态迁移的组件。当工具返回 `REJECT
 
 参见[[docs/content-quality|内容质量与真实联调流程]]及[[docs/quality-audit-2026-10-10|本次交付物审计]]。浏览器场景、真实 MCP 联调、内容审校分别验收。
 
-所有模式永久执行完整教学、可控图示、宽屏、完整 Obsidian 原始知识源和头部精准资源规则。先登记实际 Markdown/HTML 正文对 `save_teaching_package`，再登记题目；规范详见 [[docs/teaching-delivery]]。学科目录包含11类领域，八个示例配有完整知识笔记与行为清单。2028数一第一章生成配方见 [[curricula/math1-2028-ch01/README]]。
+所有模式永久执行完整教学、可控图示、宽屏、完整 Obsidian 原始知识源和头部精准资源规则。先登记实际 Markdown/HTML 正文对 `save_teaching_package`，再登记题目；规范详见 [[docs/teaching-delivery]]。学科目录包含11类领域，八个示例配有完整知识笔记与行为清单。课程配方独立于框架维护；通用交付同步入口为 `scripts/sync_delivery.py`。
 
 ## 🧩 可插拔设计
 
@@ -311,4 +311,4 @@ AI 助手工作区（`.workbuddy*/`、`.claude*/`、`.cursor*/`、`agent-state/`
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[README]] · [[curricula/math1-2028-ch01/README]] · [[docs/ARCHITECTURE_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]] · [[docs/teaching-upgrade-plan]] · [[examples/01-python-recursion/knowledge]] · [[examples/05-logic-flowchart/knowledge]]
+[[Knowledge_Index]] · [[README]] · [[docs/ARCHITECTURE_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]] · [[docs/teaching-upgrade-plan]] · [[examples/01-python-recursion/knowledge]] · [[examples/05-logic-flowchart/knowledge]]

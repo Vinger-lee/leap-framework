@@ -107,7 +107,7 @@ pytest
 
 浏览器运行校验读取与 HTML 同名的 `.runtime.json` 场景清单。每个场景从重新加载页面开始，明确操作和断言；缺失清单是失败。清单覆盖哪些路径才能声称哪些路径通过，不能从几次按钮点击推导“所有交互正确”。
 
-`verify_mcp_bridge.py` 启动真正的 MCP stdio 子进程，用 Chromium 操作数学示例，在临时 SQLite 中登记仓库完整教学包和测试题目、提交原始作答、提交评分、执行完成检查并回填状态。使用的是明确标注的合成测试作答；它不证明真实学科来源已经阅读，也不改变 WorkBuddy 等客户端配置。可复现第一章配方与正式交付验证见 [[curricula/math1-2028-ch01/README]]。
+`verify_mcp_bridge.py` 启动真正的 MCP stdio 子进程，用 Chromium 操作数学示例，在临时 SQLite 中登记仓库完整教学包和测试题目、提交原始作答、提交评分、执行完成检查并回填状态。使用的是明确标注的合成测试作答；它不证明真实学科来源已经阅读，也不改变 WorkBuddy 等客户端配置。课程配方与专用交付验证在框架仓库外维护；通用同步入口为 `scripts/sync_delivery.py`。
 
 这两项均不验证学科内容。交付还需要独立的内容审校记录，列出材料版本、逐题答案和复核结果、未解决的不确定性。运行测试次数不能替代这份记录。
 
@@ -121,4 +121,4 @@ pytest
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[curricula/math1-2028-ch01/README]] · [[docs/teaching-delivery]] · [[docs/teaching-upgrade-plan]] · [[examples/03-cs-osi-model/README]] · [[examples/03-cs-osi-model/README_CN]] · [[examples/06-statistics-probability/README]] · [[examples/06-statistics-probability/README_CN]] · [[examples/07-chemistry-stoichiometry/README]] · [[examples/07-chemistry-stoichiometry/README_CN]] · [[examples/07-chemistry-stoichiometry/sources]] · [[examples/_shared/leap-bridge]] · [[examples/_shared/leap-web-spec]]
+[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[docs/teaching-delivery]] · [[docs/teaching-upgrade-plan]] · [[examples/03-cs-osi-model/README]] · [[examples/03-cs-osi-model/README_CN]] · [[examples/06-statistics-probability/README]] · [[examples/06-statistics-probability/README_CN]] · [[examples/07-chemistry-stoichiometry/README]] · [[examples/07-chemistry-stoichiometry/README_CN]] · [[examples/07-chemistry-stoichiometry/sources]] · [[examples/_shared/leap-bridge]] · [[examples/_shared/leap-web-spec]]

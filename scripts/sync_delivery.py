@@ -1,4 +1,7 @@
-"""Execute the page's reviewed objective-answer queue via real MCP stdio.
+"""Sync a delivery's reviewed objective-answer queue via real MCP stdio.
+
+Works with any runtime-manifest.json and question-bank.json delivery. Copy this
+script into a generated delivery as host_sync.py or run it from the framework.
 
 Open proofs are persisted and listed for semantic review, never automatically scored.
 Call receipts and a durable ledger make ordinary retries safe; recovery reads Runtime's

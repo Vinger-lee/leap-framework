@@ -552,4 +552,4 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[curricula/math1-2028-ch01/README]] · [[docs/subject-knowledge-map]] · [[examples/02-math-linear-equation/README]] · [[examples/02-math-linear-equation/README_CN]] · [[examples/04-physics-free-fall/README]] · [[examples/04-physics-free-fall/README_CN]] · [[examples/04-physics-free-fall/knowledge]] · [[examples/08-electronics-ohms-law/knowledge]]
+[[Knowledge_Index]] · [[docs/subject-knowledge-map]] · [[examples/02-math-linear-equation/README]] · [[examples/02-math-linear-equation/README_CN]] · [[examples/04-physics-free-fall/README]] · [[examples/04-physics-free-fall/README_CN]] · [[examples/04-physics-free-fall/knowledge]] · [[examples/08-electronics-ohms-law/knowledge]]

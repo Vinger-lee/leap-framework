@@ -116,7 +116,7 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
 
 第一章程序验证含36项精确恒等式、边界和数值自洽检查；数值检查没有被称为证明。2028官方大纲尚未取得，内容按基础微积分组织并保留来源定位与原始快照。仍不能证明任意Agent内在“学会了”领域，也不能保证生成内容永无错误。WorkBuddy连接器安装/信任未被本次stdio联调替代。
 
-复現配方与验证入口：[[curricula/math1-2028-ch01/README]]、[[docs/teaching-delivery]]、[[docs/teaching-upgrade-plan]]。
+课程配方已独立维护。框架交付规则：[[docs/teaching-delivery]]、[[docs/teaching-upgrade-plan]]。
 
 > [!note]- Reading and verification sequence: LEAP 2026-10-10 使用反馈与交付物审计
 > Start with the definitions and scope in this note. Follow each prerequisite link before applying the workflow.

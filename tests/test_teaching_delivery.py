@@ -69,8 +69,8 @@ def test_catalog_contains_expanded_domains(service):
     ("1/2", "0.5", True),
     ("−1/2", "-0.5", True),
 ])
-def test_chapter_host_checks_malformed_and_exact_numeric_answers(raw, answer, expected):
-    from scripts.sync_math1_chapter import objective_matches
+def test_delivery_host_checks_malformed_and_exact_numeric_answers(raw, answer, expected):
+    from scripts.sync_delivery import objective_matches
     assert objective_matches({"kind": "numeric", "answer": answer}, raw) is expected
 
 

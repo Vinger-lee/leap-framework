@@ -1,5 +1,118 @@
 [
   {
+    "name": "Anatomy view changes preserve physics and can be reversed",
+    "steps": [
+      {"action": "click", "selector": "#rigFrameMid"},
+      {"action": "evaluate", "script": "window.__rigBefore=JSON.stringify(document.querySelector('#rigBall').dataset)"},
+      {"action": "click", "selector": "#rigCutaway"},
+      {"action": "evaluate", "script": "window.__cutaway=document.querySelector('#rigDrawing').dataset.mode==='cutaway' && document.querySelector('#rigCutaway').getAttribute('aria-pressed')==='true'"},
+      {"action": "click", "selector": "#rigExploded"},
+      {"action": "evaluate", "script": "window.__exploded=document.querySelector('#rigDrawing').dataset.mode==='exploded' && document.querySelector('#rigExploded').getAttribute('aria-pressed')==='true'"},
+      {"action": "click", "selector": "#rigAssembled"}
+    ],
+    "assertions": [
+      "window.__cutaway===true && window.__exploded===true",
+      "document.querySelector('#rigDrawing').dataset.mode==='assembled'",
+      "document.querySelector('#rigAssembled').getAttribute('aria-pressed')==='true'",
+      "document.querySelectorAll('[data-rig-mode][aria-pressed=true]').length===1",
+      "JSON.stringify(document.querySelector('#rigBall').dataset)===window.__rigBefore",
+      "window.LEAP.getInteractionResult().events.filter(e=>e.item_id==='fall-rig-view').length===3"
+    ]
+  },
+  {
+    "name": "Anatomy part focus explains the optical gate and restores context",
+    "steps": [
+      {"action": "click", "selector": "[data-rig-part=gates]"},
+      {"action": "evaluate", "script": "window.__gateFocus=document.querySelector('#rig-gates').classList.contains('is-focus') && document.querySelectorAll('.rig-part.is-focus').length===1 && document.querySelector('#rigPartInfo').textContent.includes('不产生推力')"},
+      {"action": "click", "selector": "[data-rig-part=all]"}
+    ],
+    "assertions": [
+      "window.__gateFocus===true",
+      "document.querySelector('#rigDrawing').dataset.focus==='all'",
+      "document.querySelectorAll('.rig-part.is-focus').length===0",
+      "document.querySelector('[data-rig-part=all]').getAttribute('aria-pressed')==='true'",
+      "document.querySelector('#rigPartInfo').getAttribute('role')==='status'",
+      "document.querySelector('#fallScrubStatus').getAttribute('aria-live')==='off'",
+      "document.querySelector('.rig-readout').getAttribute('aria-live')==='off'"
+    ]
+  },
+  {
+    "name": "independent half-time calculation drives the tower needle gates and graph",
+    "steps": [
+      {"action": "evaluate", "script": "for(const [id,value] of [['hSlider','45'],['gSlider','10']]){const e=document.getElementById(id);e.value=value;e.dispatchEvent(new Event('input',{bubbles:true}));}"},
+      {"action": "click", "selector": "#rigFrameMid"}
+    ],
+    "assertions": [
+      "Number(document.querySelector('#rigBall').dataset.time)===1.5",
+      "Number(document.querySelector('#rigBall').dataset.fallen)===11.25",
+      "Number(document.querySelector('#rigBall').dataset.height)===33.75",
+      "Number(document.querySelector('#rigBall').dataset.speed)===15",
+      "document.querySelector('#rigBall').getAttribute('transform')==='translate(0,76.500000)'",
+      "document.querySelector('#rigNeedle').getAttribute('transform')==='rotate(0.000000)'",
+      "document.querySelector('#rigElapsed').textContent==='1.500'",
+      "document.querySelector('#rigDistance').textContent==='11.250'",
+      "document.querySelector('#rigSpeed').textContent==='15.000'",
+      "Number(document.querySelector('#fallVelocitySVG').dataset.area)===11.25",
+      "document.querySelector('#rig-gate-2').dataset.passed==='true'",
+      "document.querySelector('#rig-gate-1').dataset.passed==='false'",
+      "document.querySelector('#rig-gate-0').dataset.passed==='false'",
+      "document.querySelector('#rigFrameMid').getAttribute('aria-pressed')==='true'"
+    ]
+  },
+  {
+    "name": "static frames share the timeline and forward back reset are reversible",
+    "steps": [
+      {"action": "evaluate", "script": "for(const [id,value] of [['hSlider','45'],['gSlider','10']]){const e=document.getElementById(id);e.value=value;e.dispatchEvent(new Event('input',{bubbles:true}));}"},
+      {"action": "click", "selector": "#rigFrameEnd"},
+      {"action": "evaluate", "script": "window.__rigEnd={time:document.querySelector('#rigBall').dataset.time,height:document.querySelector('#rigBall').dataset.height,speed:document.querySelector('#rigBall').dataset.speed,position:document.querySelector('#rigBall').getAttribute('transform'),passed:document.querySelectorAll('#rig-gates [data-passed=true]').length}"},
+      {"action": "click", "selector": "#btnBack"},
+      {"action": "evaluate", "script": "window.__rigBack=Number(document.querySelector('#rigBall').dataset.time)"},
+      {"action": "click", "selector": "#btnStep"},
+      {"action": "evaluate", "script": "window.__rigForward=Number(document.querySelector('#rigBall').dataset.time)"},
+      {"action": "click", "selector": "#btnReset"}
+    ],
+    "assertions": [
+      "Number(window.__rigEnd.time)===3 && Number(window.__rigEnd.height)===0 && Number(window.__rigEnd.speed)===30",
+      "window.__rigEnd.position==='translate(0,306.000000)' && window.__rigEnd.passed===3",
+      "window.__rigBack===2.875 && window.__rigForward===3",
+      "document.querySelector('#rigBall').getAttribute('transform')==='translate(0,0.000000)'",
+      "document.querySelector('#rigFrameStart').getAttribute('aria-pressed')==='true'",
+      "document.querySelector('#btnPlay').getAttribute('aria-pressed')==='false'"
+    ]
+  },
+  {
+    "name": "normalized drawing keeps SI outputs dependent on changed height",
+    "steps": [
+      {"action": "evaluate", "script": "for(const [id,value] of [['hSlider','20'],['gSlider','10']]){const e=document.getElementById(id);e.value=value;e.dispatchEvent(new Event('input',{bubbles:true}));}"},
+      {"action": "click", "selector": "#rigFrameMid"}
+    ],
+    "assertions": [
+      "Number(document.querySelector('#rigBall').dataset.time)===1",
+      "Number(document.querySelector('#rigBall').dataset.height)===15",
+      "Number(document.querySelector('#rigBall').dataset.fallen)===5",
+      "Number(document.querySelector('#rigBall').dataset.speed)===10",
+      "document.querySelector('#rigBall').getAttribute('transform')==='translate(0,76.500000)'",
+      "document.querySelector('#rigNeedle').getAttribute('transform')==='rotate(0.000000)'",
+      "document.querySelector('#rigCaption').textContent.includes('归一化')"
+    ]
+  },
+  {
+    "name": "changing the Anatomy view pauses and holds the model",
+    "steps": [
+      {"action": "click", "selector": "#btnPlay"},
+      {"action": "evaluate", "script": "new Promise(resolve=>setTimeout(resolve,180))"},
+      {"action": "click", "selector": "#rigExploded"},
+      {"action": "evaluate", "script": "window.__rigPaused=Number(document.querySelector('#rigBall').dataset.time)"},
+      {"action": "evaluate", "script": "new Promise(resolve=>setTimeout(resolve,180))"}
+    ],
+    "assertions": [
+      "window.__rigPaused>0",
+      "document.querySelector('#simStage').dataset.playing==='false'",
+      "Number(document.querySelector('#rigBall').dataset.time)===window.__rigPaused",
+      "document.querySelector('#btnPlay').getAttribute('aria-pressed')==='false'"
+    ]
+  },
+  {
     "name": "wrong understanding-check answer records an attempt",
     "steps": [
       {

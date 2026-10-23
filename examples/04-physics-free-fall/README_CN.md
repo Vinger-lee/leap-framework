@@ -36,6 +36,8 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
 
 | 组件 | 学习目标 |
 |---|---|
+| Anatomy 实验台：整机、剖面、拆解与部件选择 | 释放头、光门、承接盘与理想模型的对应关系 |
+| 三帧静态分镜与数值表 | 半程时间只下落四分之一高度；无动画也能复核 |
 | 参考轴SVG、正负速度读数 | 坐标原点、方向、速率与速度 |
 | v–t SVG面积、六步推导、高亮及错误比较 | ½的来源、斜率、面积与选根 |
 | 原有Canvas落球与s–t图、时间滑块 | 同一参数与时刻联动，不靠动画也能探索 |
@@ -54,6 +56,8 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
 window.LEAP原有hydrate、getInteractionResult及outbox接口保留。demo作答是provisional，掌握度由宿主Runtime注入。新探索写入reflection事件，新题作答保留原始答案与待提交评分。
 
 用Tab进入按钮与折叠解答，Enter/Space执行，方向键调整滑块。减少动效时播放改为单步，数值探索仍完整可用；控件获得焦点时保留原生键盘行为。
+
+小球、光门、归一化表针、曲线与读数共用同一运动状态。动画默认静止，离屏或切走标签页暂停，回到页面后手动继续。拆解只改变观察位置。实验塔的高度与表针归一化，实际 SI 数值以读数为准；静态算例固定 H=45m、g=10m/s²。通用规范见 [[docs/teaching-delivery]] 的 `anatomy.v1` 契约，原生 SVG 可用 `python examples/04-physics-free-fall/build_figure.py --check` 检查再现性。
 
 runtime.json覆盖正确/错误/部分正确评分、原始答案关联、方向切换、图解控制、质量条件、时间滑块、所有原有模拟控制及单位错误。验证入口在scripts/verify_example.py与scripts/verify_example_runtime.py。
 

@@ -467,6 +467,45 @@ button,input,textarea{font:inherit;color:inherit}
 @media(max-width:700px){.keyword-tiers,.visual-compare{grid-template-columns:minmax(0,1fr)}.subject-visual{padding:16px}.subject-visual svg text{font-size:19px}.lesson-table th,.lesson-table td{padding:8px;font-size:13px}.derivation{padding:12px}.calc-step{grid-template-columns:minmax(0,1fr);gap:4px}.resource-guide{padding:20px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 
+/* Anatomy Figure: an offline, inspectable instrument, driven by the lesson model. */
+.rig-figure{margin:24px 0;padding:24px;border:1px solid var(--rule);border-radius:var(--r-lg);background:#f6f4ee;color:#30383d}
+.rig-heading{display:flex;justify-content:space-between;gap:20px;align-items:baseline;flex-wrap:wrap}
+.rig-heading h3{font-size:20px;line-height:1.5;margin:4px 0 8px}.rig-heading .micro{color:#636c6d}
+.rig-figure p{font-size:14px;line-height:1.8;margin:10px 0}.rig-figure .visual-caption{color:#576266}
+.rig-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:center}
+.rig-drawing{min-width:0;background:#f2f0e9;border-radius:12px}
+.rig-drawing svg{display:block;width:100%;height:auto;max-height:580px;overflow:visible}
+.rig-part{transition:transform .4s cubic-bezier(.2,.7,.3,1),opacity .2s ease}
+.rig-drawing[data-mode=cutaway] #rig-door{transform:translate(95px,12px);opacity:.35}
+.rig-drawing[data-mode=exploded] #rig-release{transform:translate(0,-65px)}
+.rig-drawing[data-mode=exploded] #rig-gates{transform:translate(-100px,-12px)}
+.rig-drawing[data-mode=exploded] #rig-scale{transform:translate(85px,-30px)}
+.rig-drawing[data-mode=exploded] #rig-door{transform:translate(140px,10px)}
+.rig-drawing[data-mode=exploded] #rig-catch{transform:translate(0,45px)}
+.rig-drawing[data-mode=exploded] #rig-console{transform:translate(45px,45px)}
+.rig-drawing[data-focus]:not([data-focus=all]) .rig-part{opacity:.18}
+.rig-drawing[data-focus]:not([data-focus=all]) .rig-part.is-focus{opacity:1}
+.rig-part.is-focus polygon{stroke:#2b4ac4;stroke-width:1.3}
+#rigBall{pointer-events:none}.rig-gate-passed path{stroke:#2b4ac4;stroke-width:1.8}
+.rig-figure .visual-toolbar{margin:12px 0}.rig-figure .btn{font-size:13px;min-height:40px}
+.rig-parts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:16px 0}
+.rig-parts button{text-align:left;white-space:normal;height:auto;padding:8px 12px;line-height:1.6}
+.rig-parts [aria-pressed=true]{background:var(--accent-wash);color:var(--accent);border-color:var(--accent)}
+.rig-readout{font:600 14px/1.7 var(--font-mono);border-top:1px solid #d7d5cb;border-bottom:1px solid #d7d5cb;padding:12px 0;display:flex;gap:12px;flex-wrap:wrap}
+.rig-readout output{color:#2b4ac4}.rig-figure .stage-ctrl{flex-wrap:wrap;gap:8px}
+.rig-story{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}
+.rig-story button{display:block;min-width:0;text-align:left;border:1px solid #d3d4ce;border-radius:10px;background:#fbfaf6;padding:14px;cursor:pointer;color:inherit;font:inherit}
+.rig-story svg{display:block;width:100%;height:124px}.rig-story strong,.rig-story span{display:block;font-size:13px;line-height:1.7}
+.rig-story [aria-pressed=true]{border-color:#2b4ac4;box-shadow:inset 0 0 0 1px #2b4ac4}
+.rig-story span{color:#576266}.rig-story [data-story-ball]{fill:#4a66ce;stroke:#243b80}
+.rig-story path{fill:none;stroke:#a1a8a6;stroke-width:1.5}
+.rig-figure button:focus-visible,.rig-figure input:focus-visible{outline:3px solid #2b4ac4;outline-offset:3px}
+.rig-story button:hover,.rig-parts button:hover{border-color:#2b4ac4}
+.rig-figure details{margin:16px 0}.rig-figure summary{cursor:pointer;font-size:14px;line-height:1.8}
+.rig-figure .lesson-table{font-size:13px}.rig-figure .lesson-table caption{font-size:14px}
+@media(max-width:1000px){.rig-layout{grid-template-columns:minmax(0,1fr)}.rig-drawing svg{max-height:470px}}
+@media(max-width:700px){.rig-figure{padding:16px}.rig-layout{gap:8px}.rig-drawing svg{max-height:400px}.rig-story{grid-template-columns:minmax(0,1fr);gap:8px}.rig-story button{display:grid;grid-template-columns:72px minmax(0,1fr);gap:0 8px;padding:8px}.rig-story svg{grid-row:1/3;width:72px;height:80px}.rig-story strong{align-self:end}.rig-story span{align-self:start}.rig-story strong,.rig-story span{font-size:12px}.rig-figure .lesson-table th,.rig-figure .lesson-table td{padding:6px;font-size:12px}}
+
 </style>
 </head>
 <body>
@@ -675,9 +714,200 @@ button,input,textarea{font:inherit;color:inherit}
     <div class="zone-body">
 
       <!-- Stage：自由落体模拟 -->
-      <div class="stage">
+      <div class="stage" id="simStage">
         <div class="micro">STAGE · FREE FALL SIMULATION</div>
         <p class="stage-title">小球下落动画 与 下落位移—时间曲线（共用同一条时间轴）</p>
+
+        <figure class="rig-figure" id="fallRigFigure">
+          <figcaption class="rig-heading"><div><span class="micro">FIG. 01 · ANATOMY · 可拆解实验台</span><h3>自由落体实验塔：看清部件，再追踪运动</h3></div><span class="micro">零初速 · 恒定 g · 忽略阻力</span></figcaption>
+          <p>先切换整机、剖面和拆解，辨认释放头、光门与承接盘；再拖动时间，核对小球、速度表与曲线。蓝色小球是研究对象，灰色结构只作参照。</p>
+          <div class="rig-layout">
+            <div class="rig-drawing" id="rigDrawing" data-mode="assembled" data-focus="all">
+<!-- LEAP_RIG_START -->
+<svg id="fallRig" viewBox="130 0 520 710" role="img" aria-labelledby="rig-title rig-desc" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#677071" stroke-width=".8" stroke-linejoin="round">
+<title id="rig-title">自由落体实验塔的剖面与拆解</title>
+<desc id="rig-desc">固定支架上方是释放头，中间是竖直运动的小球与光门，底部是承接盘，右侧为归一化标尺和速度表。</desc>
+<defs><radialGradient id="rig-sphere" cx="30%" cy="25%"><stop stop-color="#ccd5f8"/><stop offset=".6" stop-color="#4a66ce"/><stop offset="1" stop-color="#203882"/></radialGradient></defs>
+<g class="rig-part" data-part="base" id="rig-base"><g data-solid="foot-pad"><polygon points="299.689,460.500 287.565,467.500 287.565,462.500 299.689,455.500" fill="#596369"/><polygon points="275.440,460.500 287.565,467.500 287.565,462.500 275.440,455.500" fill="#434d52"/><polygon points="287.565,448.500 299.689,455.500 287.565,462.500 275.440,455.500" fill="#737b80"/><path d="M275.440,455.500 L287.565,448.500 L299.689,455.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="leveling-foot"><polygon points="296.225,455.500 287.565,460.500 287.565,454.500 296.225,449.500" fill="#afada3"/><polygon points="278.905,455.500 287.565,460.500 287.565,454.500 278.905,449.500" fill="#96958e"/><polygon points="287.565,444.500 296.225,449.500 287.565,454.500 278.905,449.500" fill="#c8c5bb"/><path d="M278.905,449.500 L287.565,444.500 L296.225,449.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="foot-pad"><polygon points="441.717,542.500 429.593,549.500 429.593,544.500 441.717,537.500" fill="#596369"/><polygon points="417.469,542.500 429.593,549.500 429.593,544.500 417.469,537.500" fill="#434d52"/><polygon points="429.593,530.500 441.717,537.500 429.593,544.500 417.469,537.500" fill="#737b80"/><path d="M417.469,537.500 L429.593,530.500 L441.717,537.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="leveling-foot"><polygon points="438.253,537.500 429.593,542.500 429.593,536.500 438.253,531.500" fill="#afada3"/><polygon points="420.933,537.500 429.593,542.500 429.593,536.500 420.933,531.500" fill="#96958e"/><polygon points="429.593,526.500 438.253,531.500 429.593,536.500 420.933,531.500" fill="#c8c5bb"/><path d="M420.933,531.500 L429.593,526.500 L438.253,531.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="foot-pad"><polygon points="242.531,493.500 230.407,500.500 230.407,495.500 242.531,488.500" fill="#596369"/><polygon points="218.283,493.500 230.407,500.500 230.407,495.500 218.283,488.500" fill="#434d52"/><polygon points="230.407,481.500 242.531,488.500 230.407,495.500 218.283,488.500" fill="#737b80"/><path d="M218.283,488.500 L230.407,481.500 L242.531,488.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="leveling-foot"><polygon points="239.067,488.500 230.407,493.500 230.407,487.500 239.067,482.500" fill="#afada3"/><polygon points="221.747,488.500 230.407,493.500 230.407,487.500 221.747,482.500" fill="#96958e"/><polygon points="230.407,477.500 239.067,482.500 230.407,487.500 221.747,482.500" fill="#c8c5bb"/><path d="M221.747,482.500 L230.407,477.500 L239.067,482.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="foot-pad"><polygon points="384.560,575.500 372.435,582.500 372.435,577.500 384.560,570.500" fill="#596369"/><polygon points="360.311,575.500 372.435,582.500 372.435,577.500 360.311,570.500" fill="#434d52"/><polygon points="372.435,563.500 384.560,570.500 372.435,577.500 360.311,570.500" fill="#737b80"/><path d="M360.311,570.500 L372.435,563.500 L384.560,570.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="leveling-foot"><polygon points="381.095,570.500 372.435,575.500 372.435,569.500 381.095,564.500" fill="#afada3"/><polygon points="363.775,570.500 372.435,575.500 372.435,569.500 363.775,564.500" fill="#96958e"/><polygon points="372.435,559.500 381.095,564.500 372.435,569.500 363.775,564.500" fill="#c8c5bb"/><path d="M363.775,564.500 L372.435,559.500 L381.095,564.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="base-plate"><polygon points="468.564,536.000 375.033,590.000 375.033,580.000 468.564,526.000" fill="#afada3"/><polygon points="191.436,484.000 375.033,590.000 375.033,580.000 191.436,474.000" fill="#96958e"/><polygon points="284.967,420.000 468.564,526.000 375.033,580.000 191.436,474.000" fill="#c8c5bb"/><path d="M191.436,474.000 L284.967,420.000 L468.564,526.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<ellipse cx="285.833" cy="431.400" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M284.833,431.400 L286.833,431.400" fill="none" stroke="#e4e3dc" stroke-width=".45"/>
+<ellipse cx="211.355" cy="474.400" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M210.355,474.400 L212.355,474.400" fill="none" stroke="#e4e3dc" stroke-width=".45"/>
+<ellipse cx="448.645" cy="525.400" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M447.645,525.400 L449.645,525.400" fill="none" stroke="#e4e3dc" stroke-width=".45"/>
+<ellipse cx="374.167" cy="568.400" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M373.167,568.400 L375.167,568.400" fill="none" stroke="#e4e3dc" stroke-width=".45"/></g>
+<g class="rig-part" data-part="frame" id="rig-frame"><g data-solid="rear-skin"><polygon points="408.808,490.500 406.210,492.000 406.210,132.000 408.808,130.500" fill="#d7d2c6"/><polygon points="309.215,436.000 406.210,492.000 406.210,132.000 309.215,76.000" fill="#b8b5ab"/><polygon points="311.813,74.500 408.808,130.500 406.210,132.000 309.215,76.000" fill="#eeeae1"/><path d="M309.215,76.000 L311.813,74.500 L408.808,130.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="upright-foot"><polygon points="319.608,456.000 297.957,468.500 297.957,460.500 319.608,448.000" fill="#afada3"/><polygon points="281.503,459.000 297.957,468.500 297.957,460.500 281.503,451.000" fill="#96958e"/><polygon points="303.153,438.500 319.608,448.000 297.957,460.500 281.503,451.000" fill="#c8c5bb"/><path d="M281.503,451.000 L303.153,438.500 L319.608,448.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="rear-upright"><polygon points="310.947,449.000 300.555,455.000 300.555,83.000 310.947,77.000" fill="#c5c2b8"/><polygon points="291.029,449.500 300.555,455.000 300.555,83.000 291.029,77.500" fill="#aaa99f"/><polygon points="301.421,71.500 310.947,77.000 300.555,83.000 291.029,77.500" fill="#e6e3db"/><path d="M291.029,77.500 L301.421,71.500 L310.947,77.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="frame-bracket"><polygon points="300.555,423.000 287.565,430.500 287.565,423.500 300.555,416.000" fill="#c5c2b8"/><polygon points="278.038,425.000 287.565,430.500 287.565,423.500 278.038,418.000" fill="#aaa99f"/><polygon points="291.029,410.500 300.555,416.000 287.565,423.500 278.038,418.000" fill="#e6e3db"/><path d="M278.038,418.000 L291.029,410.500 L300.555,416.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<ellipse cx="287.565" cy="417.400" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M286.565,417.400 L288.565,417.400" fill="none" stroke="#e4e3dc" stroke-width=".45"/>
+<g data-solid="frame-bracket"><polygon points="300.555,293.000 287.565,300.500 287.565,293.500 300.555,286.000" fill="#c5c2b8"/><polygon points="278.038,295.000 287.565,300.500 287.565,293.500 278.038,288.000" fill="#aaa99f"/><polygon points="291.029,280.500 300.555,286.000 287.565,293.500 278.038,288.000" fill="#e6e3db"/><path d="M278.038,288.000 L291.029,280.500 L300.555,286.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<ellipse cx="287.565" cy="287.400" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M286.565,287.400 L288.565,287.400" fill="none" stroke="#e4e3dc" stroke-width=".45"/>
+<g data-solid="frame-bracket"><polygon points="300.555,143.000 287.565,150.500 287.565,143.500 300.555,136.000" fill="#c5c2b8"/><polygon points="278.038,145.000 287.565,150.500 287.565,143.500 278.038,138.000" fill="#aaa99f"/><polygon points="291.029,130.500 300.555,136.000 287.565,143.500 278.038,138.000" fill="#e6e3db"/><path d="M278.038,138.000 L291.029,130.500 L300.555,136.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<ellipse cx="287.565" cy="137.400" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M286.565,137.400 L288.565,137.400" fill="none" stroke="#e4e3dc" stroke-width=".45"/>
+<g data-solid="upright-foot"><polygon points="422.665,515.500 401.014,528.000 401.014,520.000 422.665,507.500" fill="#afada3"/><polygon points="384.560,518.500 401.014,528.000 401.014,520.000 384.560,510.500" fill="#96958e"/><polygon points="406.210,498.000 422.665,507.500 401.014,520.000 384.560,510.500" fill="#c8c5bb"/><path d="M384.560,510.500 L406.210,498.000 L422.665,507.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="rear-upright"><polygon points="414.004,508.500 403.612,514.500 403.612,142.500 414.004,136.500" fill="#c5c2b8"/><polygon points="394.086,509.000 403.612,514.500 403.612,142.500 394.086,137.000" fill="#aaa99f"/><polygon points="404.478,131.000 414.004,136.500 403.612,142.500 394.086,137.000" fill="#e6e3db"/><path d="M394.086,137.000 L404.478,131.000 L414.004,136.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="frame-bracket"><polygon points="403.612,482.500 390.622,490.000 390.622,483.000 403.612,475.500" fill="#c5c2b8"/><polygon points="381.095,484.500 390.622,490.000 390.622,483.000 381.095,477.500" fill="#aaa99f"/><polygon points="394.086,470.000 403.612,475.500 390.622,483.000 381.095,477.500" fill="#e6e3db"/><path d="M381.095,477.500 L394.086,470.000 L403.612,475.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<ellipse cx="390.622" cy="476.900" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M389.622,476.900 L391.622,476.900" fill="none" stroke="#e4e3dc" stroke-width=".45"/>
+<g data-solid="frame-bracket"><polygon points="403.612,352.500 390.622,360.000 390.622,353.000 403.612,345.500" fill="#c5c2b8"/><polygon points="381.095,354.500 390.622,360.000 390.622,353.000 381.095,347.500" fill="#aaa99f"/><polygon points="394.086,340.000 403.612,345.500 390.622,353.000 381.095,347.500" fill="#e6e3db"/><path d="M381.095,347.500 L394.086,340.000 L403.612,345.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<ellipse cx="390.622" cy="346.900" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M389.622,346.900 L391.622,346.900" fill="none" stroke="#e4e3dc" stroke-width=".45"/>
+<g data-solid="frame-bracket"><polygon points="403.612,202.500 390.622,210.000 390.622,203.000 403.612,195.500" fill="#c5c2b8"/><polygon points="381.095,204.500 390.622,210.000 390.622,203.000 381.095,197.500" fill="#aaa99f"/><polygon points="394.086,190.000 403.612,195.500 390.622,203.000 381.095,197.500" fill="#e6e3db"/><path d="M381.095,197.500 L394.086,190.000 L403.612,195.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<ellipse cx="390.622" cy="196.900" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M389.622,196.900 L391.622,196.900" fill="none" stroke="#e4e3dc" stroke-width=".45"/>
+<g data-solid="upper-crossbeam"><polygon points="414.004,136.500 356.847,169.500 356.847,159.500 414.004,126.500" fill="#c5c2b8"/><polygon points="244.263,104.500 356.847,169.500 356.847,159.500 244.263,94.500" fill="#aaa99f"/><polygon points="301.421,61.500 414.004,126.500 356.847,159.500 244.263,94.500" fill="#e6e3db"/><path d="M244.263,94.500 L301.421,61.500 L414.004,126.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g></g>
+<g class="rig-part" data-part="catch" id="rig-catch"><g data-solid="catcher-floor"><polygon points="385.426,508.000 343.856,532.000 343.856,523.000 385.426,499.000" fill="#596369"/><polygon points="274.574,492.000 343.856,532.000 343.856,523.000 274.574,483.000" fill="#434d52"/><polygon points="316.144,459.000 385.426,499.000 343.856,523.000 274.574,483.000" fill="#737b80"/><path d="M274.574,483.000 L316.144,459.000 L385.426,499.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="tray-lip"><polygon points="385.426,499.000 381.095,501.500 381.095,493.500 385.426,491.000" fill="#afada3"/><polygon points="311.813,461.500 381.095,501.500 381.095,493.500 311.813,453.500" fill="#96958e"/><polygon points="316.144,451.000 385.426,491.000 381.095,493.500 311.813,453.500" fill="#c8c5bb"/><path d="M311.813,453.500 L316.144,451.000 L385.426,491.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="tray-lip"><polygon points="348.187,520.500 343.856,523.000 343.856,515.000 348.187,512.500" fill="#afada3"/><polygon points="274.574,483.000 343.856,523.000 343.856,515.000 274.574,475.000" fill="#96958e"/><polygon points="278.905,472.500 348.187,512.500 343.856,515.000 274.574,475.000" fill="#c8c5bb"/><path d="M274.574,475.000 L278.905,472.500 L348.187,512.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="tray-end"><polygon points="316.144,464.000 283.235,483.000 283.235,475.000 316.144,456.000" fill="#afada3"/><polygon points="278.905,480.500 283.235,483.000 283.235,475.000 278.905,472.500" fill="#96958e"/><polygon points="311.813,453.500 316.144,456.000 283.235,475.000 278.905,472.500" fill="#c8c5bb"/><path d="M278.905,472.500 L311.813,453.500 L316.144,456.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="tray-end"><polygon points="381.095,501.500 348.187,520.500 348.187,512.500 381.095,493.500" fill="#afada3"/><polygon points="343.856,518.000 348.187,520.500 348.187,512.500 343.856,510.000" fill="#96958e"/><polygon points="376.765,491.000 381.095,493.500 348.187,512.500 343.856,510.000" fill="#c8c5bb"/><path d="M343.856,510.000 L376.765,491.000 L381.095,493.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="catch-pad"><polygon points="375.033,499.000 343.856,517.000 343.856,502.000 375.033,484.000" fill="#596369"/><polygon points="284.967,483.000 343.856,517.000 343.856,502.000 284.967,468.000" fill="#434d52"/><polygon points="316.144,450.000 375.033,484.000 343.856,502.000 284.967,468.000" fill="#737b80"/><path d="M284.967,468.000 L316.144,450.000 L375.033,484.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g></g>
+<g class="rig-part" data-part="gates" id="rig-gates"><g id="rig-gate-0" data-level="75"><g data-solid="gate-mount"><polygon points="317.876,419.000 284.967,438.000 284.967,424.000 317.876,405.000" fill="#afada3"/><polygon points="272.842,431.000 284.967,438.000 284.967,424.000 272.842,417.000" fill="#96958e"/><polygon points="305.751,398.000 317.876,405.000 284.967,424.000 272.842,417.000" fill="#c8c5bb"/><path d="M272.842,417.000 L305.751,398.000 L317.876,405.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g><g data-solid="gate-sensor"><polygon points="307.483,428.000 293.627,436.000 293.627,428.000 307.483,420.000" fill="#596369"/><polygon points="288.431,433.000 293.627,436.000 293.627,428.000 288.431,425.000" fill="#434d52"/><polygon points="302.287,417.000 307.483,420.000 293.627,428.000 288.431,425.000" fill="#737b80"/><path d="M288.431,425.000 L302.287,417.000 L307.483,420.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g><g data-solid="gate-mount"><polygon points="399.282,466.000 366.373,485.000 366.373,471.000 399.282,452.000" fill="#afada3"/><polygon points="354.249,478.000 366.373,485.000 366.373,471.000 354.249,464.000" fill="#96958e"/><polygon points="387.158,445.000 399.282,452.000 366.373,471.000 354.249,464.000" fill="#c8c5bb"/><path d="M354.249,464.000 L387.158,445.000 L399.282,452.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g><g data-solid="gate-sensor"><polygon points="371.569,465.000 357.713,473.000 357.713,465.000 371.569,457.000" fill="#596369"/><polygon points="352.517,470.000 357.713,473.000 357.713,465.000 352.517,462.000" fill="#434d52"/><polygon points="366.373,454.000 371.569,457.000 357.713,465.000 352.517,462.000" fill="#737b80"/><path d="M352.517,462.000 L366.373,454.000 L371.569,457.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g><path d="M300.555,428.000 L359.445,462.000" fill="none" stroke="#c7cbd1" stroke-width=".7" stroke-dasharray="2 3"/></g>
+<g id="rig-gate-1" data-level="190"><g data-solid="gate-mount"><polygon points="317.876,304.000 284.967,323.000 284.967,309.000 317.876,290.000" fill="#afada3"/><polygon points="272.842,316.000 284.967,323.000 284.967,309.000 272.842,302.000" fill="#96958e"/><polygon points="305.751,283.000 317.876,290.000 284.967,309.000 272.842,302.000" fill="#c8c5bb"/><path d="M272.842,302.000 L305.751,283.000 L317.876,290.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g><g data-solid="gate-sensor"><polygon points="307.483,313.000 293.627,321.000 293.627,313.000 307.483,305.000" fill="#596369"/><polygon points="288.431,318.000 293.627,321.000 293.627,313.000 288.431,310.000" fill="#434d52"/><polygon points="302.287,302.000 307.483,305.000 293.627,313.000 288.431,310.000" fill="#737b80"/><path d="M288.431,310.000 L302.287,302.000 L307.483,305.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g><g data-solid="gate-mount"><polygon points="399.282,351.000 366.373,370.000 366.373,356.000 399.282,337.000" fill="#afada3"/><polygon points="354.249,363.000 366.373,370.000 366.373,356.000 354.249,349.000" fill="#96958e"/><polygon points="387.158,330.000 399.282,337.000 366.373,356.000 354.249,349.000" fill="#c8c5bb"/><path d="M354.249,349.000 L387.158,330.000 L399.282,337.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g><g data-solid="gate-sensor"><polygon points="371.569,350.000 357.713,358.000 357.713,350.000 371.569,342.000" fill="#596369"/><polygon points="352.517,355.000 357.713,358.000 357.713,350.000 352.517,347.000" fill="#434d52"/><polygon points="366.373,339.000 371.569,342.000 357.713,350.000 352.517,347.000" fill="#737b80"/><path d="M352.517,347.000 L366.373,339.000 L371.569,342.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g><path d="M300.555,313.000 L359.445,347.000" fill="none" stroke="#c7cbd1" stroke-width=".7" stroke-dasharray="2 3"/></g>
+<g id="rig-gate-2" data-level="320"><g data-solid="gate-mount"><polygon points="317.876,174.000 284.967,193.000 284.967,179.000 317.876,160.000" fill="#afada3"/><polygon points="272.842,186.000 284.967,193.000 284.967,179.000 272.842,172.000" fill="#96958e"/><polygon points="305.751,153.000 317.876,160.000 284.967,179.000 272.842,172.000" fill="#c8c5bb"/><path d="M272.842,172.000 L305.751,153.000 L317.876,160.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g><g data-solid="gate-sensor"><polygon points="307.483,183.000 293.627,191.000 293.627,183.000 307.483,175.000" fill="#596369"/><polygon points="288.431,188.000 293.627,191.000 293.627,183.000 288.431,180.000" fill="#434d52"/><polygon points="302.287,172.000 307.483,175.000 293.627,183.000 288.431,180.000" fill="#737b80"/><path d="M288.431,180.000 L302.287,172.000 L307.483,175.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g><g data-solid="gate-mount"><polygon points="399.282,221.000 366.373,240.000 366.373,226.000 399.282,207.000" fill="#afada3"/><polygon points="354.249,233.000 366.373,240.000 366.373,226.000 354.249,219.000" fill="#96958e"/><polygon points="387.158,200.000 399.282,207.000 366.373,226.000 354.249,219.000" fill="#c8c5bb"/><path d="M354.249,219.000 L387.158,200.000 L399.282,207.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g><g data-solid="gate-sensor"><polygon points="371.569,220.000 357.713,228.000 357.713,220.000 371.569,212.000" fill="#596369"/><polygon points="352.517,225.000 357.713,228.000 357.713,220.000 352.517,217.000" fill="#434d52"/><polygon points="366.373,209.000 371.569,212.000 357.713,220.000 352.517,217.000" fill="#737b80"/><path d="M352.517,217.000 L366.373,209.000 L371.569,212.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g><path d="M300.555,183.000 L359.445,217.000" fill="none" stroke="#c7cbd1" stroke-width=".7" stroke-dasharray="2 3"/></g></g>
+<g id="rigBall" data-time="0" data-height="50" data-fallen="0" data-speed="0"><circle cx="330" cy="161" r="9" fill="url(#rig-sphere)" stroke="#243b80" stroke-width=".8"/><circle cx="327.6" cy="158" r="1.5" fill="#fff" stroke="none"/></g>
+<g class="rig-part" data-part="scale" id="rig-scale"><g data-solid="ruler-bracket"><polygon points="393.220,537.500 380.229,545.000 380.229,520.000 393.220,512.500" fill="#afada3"/><polygon points="367.239,537.500 380.229,545.000 380.229,520.000 367.239,512.500" fill="#96958e"/><polygon points="380.229,505.000 393.220,512.500 380.229,520.000 367.239,512.500" fill="#c8c5bb"/><path d="M367.239,512.500 L380.229,505.000 L393.220,512.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="ruler-bracket"><polygon points="393.220,182.500 380.229,190.000 380.229,165.000 393.220,157.500" fill="#afada3"/><polygon points="367.239,182.500 380.229,190.000 380.229,165.000 367.239,157.500" fill="#96958e"/><polygon points="380.229,150.000 393.220,157.500 380.229,165.000 367.239,157.500" fill="#c8c5bb"/><path d="M367.239,157.500 L380.229,150.000 L393.220,157.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="ruler-strip"><polygon points="385.426,515.000 381.095,517.500 381.095,187.500 385.426,185.000" fill="#d7d2c6"/><polygon points="372.435,512.500 381.095,517.500 381.095,187.500 372.435,182.500" fill="#b8b5ab"/><polygon points="376.765,180.000 385.426,185.000 381.095,187.500 372.435,182.500" fill="#eeeae1"/><path d="M372.435,182.500 L376.765,180.000 L385.426,185.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<path d="M372.435,504.500 L378.497,508.000" fill="none" stroke="#5b6263" stroke-width=".7"/>
+<path d="M372.435,496.850 L375.466,498.600" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,489.200 L375.466,490.950" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,481.550 L375.466,483.300" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,473.900 L375.466,475.650" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,466.250 L378.497,469.750" fill="none" stroke="#5b6263" stroke-width=".7"/>
+<path d="M372.435,458.600 L375.466,460.350" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,450.950 L375.466,452.700" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,443.300 L375.466,445.050" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,435.650 L375.466,437.400" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,428.000 L378.497,431.500" fill="none" stroke="#5b6263" stroke-width=".7"/>
+<path d="M372.435,420.350 L375.466,422.100" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,412.700 L375.466,414.450" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,405.050 L375.466,406.800" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,397.400 L375.466,399.150" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,389.750 L378.497,393.250" fill="none" stroke="#5b6263" stroke-width=".7"/>
+<path d="M372.435,382.100 L375.466,383.850" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,374.450 L375.466,376.200" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,366.800 L375.466,368.550" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,359.150 L375.466,360.900" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,351.500 L378.497,355.000" fill="none" stroke="#5b6263" stroke-width=".7"/>
+<path d="M372.435,343.850 L375.466,345.600" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,336.200 L375.466,337.950" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,328.550 L375.466,330.300" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,320.900 L375.466,322.650" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,313.250 L378.497,316.750" fill="none" stroke="#5b6263" stroke-width=".7"/>
+<path d="M372.435,305.600 L375.466,307.350" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,297.950 L375.466,299.700" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,290.300 L375.466,292.050" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,282.650 L375.466,284.400" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,275.000 L378.497,278.500" fill="none" stroke="#5b6263" stroke-width=".7"/>
+<path d="M372.435,267.350 L375.466,269.100" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,259.700 L375.466,261.450" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,252.050 L375.466,253.800" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,244.400 L375.466,246.150" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,236.750 L378.497,240.250" fill="none" stroke="#5b6263" stroke-width=".7"/>
+<path d="M372.435,229.100 L375.466,230.850" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,221.450 L375.466,223.200" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,213.800 L375.466,215.550" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,206.150 L375.466,207.900" fill="none" stroke="#8e9390" stroke-width=".7"/>
+<path d="M372.435,198.500 L378.497,202.000" fill="none" stroke="#5b6263" stroke-width=".7"/></g>
+<g class="rig-part" data-part="release" id="rig-release"><g data-solid="head-bracket"><polygon points="371.569,131.000 331.732,154.000 331.732,144.000 371.569,121.000" fill="#c5c2b8"/><polygon points="288.431,129.000 331.732,154.000 331.732,144.000 288.431,119.000" fill="#aaa99f"/><polygon points="328.268,96.000 371.569,121.000 331.732,144.000 288.431,119.000" fill="#e6e3db"/><path d="M288.431,119.000 L328.268,96.000 L371.569,121.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="electromagnet"><polygon points="360.311,144.500 330.866,161.500 330.866,147.500 360.311,130.500" fill="#596369"/><polygon points="299.689,143.500 330.866,161.500 330.866,147.500 299.689,129.500" fill="#434d52"/><polygon points="329.134,112.500 360.311,130.500 330.866,147.500 299.689,129.500" fill="#737b80"/><path d="M299.689,129.500 L329.134,112.500 L360.311,130.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="pole-piece"><polygon points="342.990,152.500 330.866,159.500 330.866,151.500 342.990,144.500" fill="#afada3"/><polygon points="317.010,151.500 330.866,159.500 330.866,151.500 317.010,143.500" fill="#96958e"/><polygon points="329.134,136.500 342.990,144.500 330.866,151.500 317.010,143.500" fill="#c8c5bb"/><path d="M317.010,143.500 L329.134,136.500 L342.990,144.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<ellipse cx="301.421" cy="118.400" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M300.421,118.400 L302.421,118.400" fill="none" stroke="#e4e3dc" stroke-width=".45"/>
+<ellipse cx="332.598" cy="136.400" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M331.598,136.400 L333.598,136.400" fill="none" stroke="#e4e3dc" stroke-width=".45"/></g>
+<g class="rig-part" data-part="door" id="rig-door"><g data-solid="front-upright-foot"><polygon points="374.167,543.500 356.847,553.500 356.847,545.500 374.167,535.500" fill="#afada3"/><polygon points="340.392,544.000 356.847,553.500 356.847,545.500 340.392,536.000" fill="#96958e"/><polygon points="357.713,526.000 374.167,535.500 356.847,545.500 340.392,536.000" fill="#c8c5bb"/><path d="M340.392,536.000 L357.713,526.000 L374.167,535.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="front-upright"><polygon points="367.239,535.500 356.847,541.500 356.847,169.500 367.239,163.500" fill="#c5c2b8"/><polygon points="347.321,536.000 356.847,541.500 356.847,169.500 347.321,164.000" fill="#aaa99f"/><polygon points="357.713,158.000 367.239,163.500 356.847,169.500 347.321,164.000" fill="#e6e3db"/><path d="M347.321,164.000 L357.713,158.000 L367.239,163.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="inspection-cover"><polygon points="347.321,509.000 343.856,511.000 343.856,168.000 347.321,166.000" fill="#d7d2c6"/><polygon points="337.794,507.500 343.856,511.000 343.856,168.000 337.794,164.500" fill="#b8b5ab"/><polygon points="341.258,162.500 347.321,166.000 343.856,168.000 337.794,164.500" fill="#eeeae1"/><path d="M337.794,164.500 L341.258,162.500 L347.321,166.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="hinge"><polygon points="357.713,488.000 349.053,493.000 349.053,479.000 357.713,474.000" fill="#afada3"/><polygon points="341.258,488.500 349.053,493.000 349.053,479.000 341.258,474.500" fill="#96958e"/><polygon points="349.919,469.500 357.713,474.000 349.053,479.000 341.258,474.500" fill="#c8c5bb"/><path d="M341.258,474.500 L349.919,469.500 L357.713,474.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<ellipse cx="349.053" cy="473.900" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M348.053,473.900 L350.053,473.900" fill="none" stroke="#e4e3dc" stroke-width=".45"/>
+<g data-solid="hinge"><polygon points="357.713,208.000 349.053,213.000 349.053,199.000 357.713,194.000" fill="#afada3"/><polygon points="341.258,208.500 349.053,213.000 349.053,199.000 341.258,194.500" fill="#96958e"/><polygon points="349.919,189.500 357.713,194.000 349.053,199.000 341.258,194.500" fill="#c8c5bb"/><path d="M341.258,194.500 L349.919,189.500 L357.713,194.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<ellipse cx="349.053" cy="193.900" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M348.053,193.900 L350.053,193.900" fill="none" stroke="#e4e3dc" stroke-width=".45"/>
+<g data-solid="cover-handle"><polygon points="343.856,343.000 338.660,346.000 338.660,304.000 343.856,301.000" fill="#596369"/><polygon points="334.330,343.500 338.660,346.000 338.660,304.000 334.330,301.500" fill="#434d52"/><polygon points="339.526,298.500 343.856,301.000 338.660,304.000 334.330,301.500" fill="#737b80"/><path d="M334.330,301.500 L339.526,298.500 L343.856,301.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g></g>
+<g class="rig-part" data-part="console" id="rig-console"><g data-solid="console-foot"><polygon points="527.454,604.000 472.028,636.000 472.028,616.000 527.454,584.000" fill="#afada3"/><polygon points="392.354,590.000 472.028,636.000 472.028,616.000 392.354,570.000" fill="#96958e"/><polygon points="447.779,538.000 527.454,584.000 472.028,616.000 392.354,570.000" fill="#c8c5bb"/><path d="M392.354,570.000 L447.779,538.000 L527.454,584.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="instrument-case"><polygon points="523.990,584.000 472.028,614.000 472.028,577.000 523.990,547.000" fill="#596369"/><polygon points="395.818,570.000 472.028,614.000 472.028,577.000 395.818,533.000" fill="#434d52"/><polygon points="447.779,503.000 523.990,547.000 472.028,577.000 395.818,533.000" fill="#737b80"/><path d="M395.818,533.000 L447.779,503.000 L523.990,547.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="instrument-face"><polygon points="517.061,547.000 472.028,573.000 472.028,571.000 517.061,545.000" fill="#d7d2c6"/><polygon points="402.746,533.000 472.028,573.000 472.028,571.000 402.746,531.000" fill="#b8b5ab"/><polygon points="447.779,505.000 517.061,545.000 472.028,571.000 402.746,531.000" fill="#eeeae1"/><path d="M402.746,531.000 L447.779,505.000 L517.061,545.000" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<ellipse cx="447.779" cy="508.900" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M446.779,508.900 L448.779,508.900" fill="none" stroke="#e4e3dc" stroke-width=".45"/>
+<ellipse cx="509.267" cy="544.400" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M508.267,544.400 L510.267,544.400" fill="none" stroke="#e4e3dc" stroke-width=".45"/>
+<ellipse cx="410.540" cy="530.400" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M409.540,530.400 L411.540,530.400" fill="none" stroke="#e4e3dc" stroke-width=".45"/>
+<ellipse cx="472.028" cy="565.900" rx="1.9" ry="1.0" fill="#60686b" stroke="none"/><path d="M471.028,565.900 L473.028,565.900" fill="none" stroke="#e4e3dc" stroke-width=".45"/>
+<g data-solid="control-neck"><polygon points="429.593,531.500 422.665,535.500 422.665,532.500 429.593,528.500" fill="#afada3"/><polygon points="415.737,531.500 422.665,535.500 422.665,532.500 415.737,528.500" fill="#96958e"/><polygon points="422.665,524.500 429.593,528.500 422.665,532.500 415.737,528.500" fill="#c8c5bb"/><path d="M415.737,528.500 L422.665,524.500 L429.593,528.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="control-knob"><polygon points="431.325,528.500 422.665,533.500 422.665,528.500 431.325,523.500" fill="#596369"/><polygon points="414.004,528.500 422.665,533.500 422.665,528.500 414.004,523.500" fill="#434d52"/><polygon points="422.665,518.500 431.325,523.500 422.665,528.500 414.004,523.500" fill="#737b80"/><path d="M414.004,523.500 L422.665,518.500 L431.325,523.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<path d="M424.397,523.500 L424.397,520.500" fill="none" stroke="#aaa99f" stroke-width=".5"/>
+<path d="M426.995,525.000 L426.995,522.000" fill="none" stroke="#aaa99f" stroke-width=".5"/>
+<path d="M429.593,526.500 L429.593,523.500" fill="none" stroke="#aaa99f" stroke-width=".5"/>
+<g data-solid="control-neck"><polygon points="476.358,558.500 469.430,562.500 469.430,559.500 476.358,555.500" fill="#afada3"/><polygon points="462.502,558.500 469.430,562.500 469.430,559.500 462.502,555.500" fill="#96958e"/><polygon points="469.430,551.500 476.358,555.500 469.430,559.500 462.502,555.500" fill="#c8c5bb"/><path d="M462.502,555.500 L469.430,551.500 L476.358,555.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<g data-solid="control-knob"><polygon points="478.090,555.500 469.430,560.500 469.430,555.500 478.090,550.500" fill="#596369"/><polygon points="460.770,555.500 469.430,560.500 469.430,555.500 460.770,550.500" fill="#434d52"/><polygon points="469.430,545.500 478.090,550.500 469.430,555.500 460.770,550.500" fill="#737b80"/><path d="M460.770,550.500 L469.430,545.500 L478.090,550.500" fill="none" stroke="#faf8f2" stroke-width=".65"/></g>
+<path d="M471.162,550.500 L471.162,547.500" fill="none" stroke="#aaa99f" stroke-width=".5"/>
+<path d="M473.760,552.000 L473.760,549.000" fill="none" stroke="#aaa99f" stroke-width=".5"/>
+<path d="M476.358,553.500 L476.358,550.500" fill="none" stroke="#aaa99f" stroke-width=".5"/>
+<g transform="translate(464.234,533.500) scale(1,.5)">
+<circle r="20" fill="#f9f6ef" stroke="#6f7676" stroke-width="1.4"/>
+<path d="M-9.642,11.491 L-12.213,14.555" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M-13.753,9.992 L-15.371,11.168" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M-15.762,6.368 L-17.616,7.118" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M-16.835,2.366 L-18.815,2.644" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M-16.907,-1.777 L-18.896,-1.986" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M-14.095,-5.130 L-17.854,-6.498" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M-14.094,-9.506 L-15.752,-10.625" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M-11.375,-12.633 L-12.713,-14.120" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M-7.981,-15.010 L-8.920,-16.776" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M-4.113,-16.495 L-4.597,-18.436" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M0.000,-15.000 L0.000,-19.000" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M4.113,-16.495 L4.597,-18.436" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M7.981,-15.010 L8.920,-16.776" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M11.375,-12.633 L12.713,-14.120" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M14.094,-9.506 L15.752,-10.625" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M14.095,-5.130 L17.854,-6.498" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M16.907,-1.777 L18.896,-1.986" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M16.835,2.366 L18.815,2.644" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M15.762,6.368 L17.616,7.118" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M13.753,9.992 L15.371,11.168" fill="none" stroke="#596369" stroke-width=".8"/>
+<path d="M9.642,11.491 L12.213,14.555" fill="none" stroke="#596369" stroke-width=".8"/>
+<path id="rigNeedle" d="M0 3 V-15" transform="rotate(-140)" stroke="#2b4ac4" stroke-width="1.4"/>
+<circle r="2" fill="#596369" stroke="none"/></g></g>
+</svg>
+<!-- LEAP_RIG_END -->
+            </div>
+            <div>
+              <div class="visual-toolbar" role="group" aria-label="实验塔观察方式">
+                <button class="btn btn--outline" id="rigAssembled" type="button" data-rig-mode="assembled" aria-pressed="true">整机</button>
+                <button class="btn btn--outline" id="rigCutaway" type="button" data-rig-mode="cutaway" aria-pressed="false">剖面</button>
+                <button class="btn btn--outline" id="rigExploded" type="button" data-rig-mode="exploded" aria-pressed="false">拆解</button>
+              </div>
+              <div class="rig-parts" role="group" aria-label="突出实验塔部件">
+                <button class="btn btn--outline" type="button" data-rig-part="release" aria-pressed="false">01 释放头</button>
+                <button class="btn btn--outline" type="button" data-rig-part="gates" aria-pressed="false">02 光门</button>
+                <button class="btn btn--outline" type="button" data-rig-part="catch" aria-pressed="false">03 承接盘</button>
+                <button class="btn btn--outline" type="button" data-rig-part="scale" aria-pressed="false">04 归一化标尺</button>
+                <button class="btn btn--outline" type="button" data-rig-part="console" aria-pressed="false">05 速度表</button>
+                <button class="btn btn--outline" type="button" data-rig-part="all" aria-pressed="true">显示全部</button>
+              </div>
+              <p id="rigPartInfo" role="status">整机：支架固定参照，释放后小球只受重力；点击部件查看它与模型的关系。</p>
+              <div class="rig-readout" aria-live="off"><span>t = <output id="rigElapsed">0.000</output> s</span><span>s = <output id="rigDistance">0.000</output> m</span><span>v = <output id="rigSpeed">0.000</output> m/s</span></div>
+              <div class="slider-row" style="margin-top:16px"><label class="sr-label" for="fallScrub">选定下落时刻（释放至落地前，%）</label><input id="fallScrub" type="range" min="0" max="1000" step="1" value="0" aria-label="下落时间进度，0为释放、1000为落地前"><p class="visual-caption" id="fallScrubStatus" aria-live="off">0%：t=0s；使用方向键也可控制，无需播放动画。</p></div>
+              <div class="stage-ctrl">
+                <button class="btn btn--primary" id="btnPlay" type="button" aria-pressed="false">播放</button>
+                <button class="btn btn--outline" id="btnBack" type="button">后退一步</button>
+                <button class="btn btn--outline" id="btnStep" type="button">单步</button>
+                <button class="btn btn--outline" id="btnReset" type="button">重置</button>
+              </div>
+              <p class="visual-caption">← → 单步 · 空格播放或暂停。动画从静止开始；离开实验区或切走标签页即暂停，返回后由你继续。减少动态效果时，播放键只推进一步。</p>
+            </div>
+          </div>
+          <p class="visual-caption" id="rigCaption">实验塔是归一化示意，不是按米绘制的真实装置。标尺表示剩余高度占 H 的比例，表针表示速率占落地前速率的比例；SI 数值以读数为准。拆解只改变观察位置，不改变运动。</p>
+          <details><summary>图例与模型边界：哪些部件会影响小球？</summary><p>释放头只规定零初速的起点，释放后不再施力。光门是非接触检测的示意，变蓝表示小球已通过该高度，不表示有推力。承接盘标记首次碰地的位置，之后的碰撞、反弹和形变不在本模型内。支架、外盖与标尺只帮助观察，不参与受力；速度表由同一公式计算，不冒充真实测量数据。</p></details>
+          <p><strong>静态分镜：时间过半 ≠ 距离过半。</strong>三帧始终可读；点击可把共享时间轴移到对应时刻。</p>
+          <div class="rig-story" role="group" aria-label="自由落体静态分镜">
+            <button type="button" id="rigFrameStart" data-rig-frame="0" aria-pressed="true"><svg viewBox="0 0 160 150" aria-hidden="true"><path d="M40 20V132H130 M35 20H45 M35 76H45 M35 132H45 M82 32V126"/><circle data-story-ball="" cx="82" cy="20" r="7"/></svg><strong>① 释放：t = 0</strong><span>s = 0，v = 0</span></button>
+            <button type="button" id="rigFrameMid" data-rig-frame="500" aria-pressed="false"><svg viewBox="0 0 160 150" aria-hidden="true"><path d="M40 20V132H130 M35 20H45 M35 76H45 M35 132H45 M82 58V126"/><circle data-story-ball="" cx="82" cy="48" r="7"/><path d="M82 20V38" stroke-dasharray="2 3"/></svg><strong>② 时间过半：t = T/2</strong><span>s = H/4，v = V/2</span></button>
+            <button type="button" id="rigFrameEnd" data-rig-frame="1000" aria-pressed="false"><svg viewBox="0 0 160 150" aria-hidden="true"><path d="M40 20V132H130 M35 20H45 M35 76H45 M35 132H45"/><path d="M82 20V115" stroke-dasharray="2 3"/><circle data-story-ball="" cx="82" cy="132" r="7"/></svg><strong>③ 碰地前：t = T</strong><span>s = H，v = V</span></button>
+          </div>
+          <table class="lesson-table" id="fallStoryTable"><caption>分镜算例：H = 45 m，g = 10 m/s²，T = 3 s，V = 30 m/s；向下为正。</caption><thead><tr><th scope="col">时刻 t / s</th><th scope="col">位移 s / m</th><th scope="col">距地 / m</th><th scope="col">速率 v / (m/s)</th></tr></thead><tbody><tr><td>0</td><td>0</td><td>45</td><td>0</td></tr><tr><td>1.5</td><td>11.25</td><td>33.75</td><td>15</td></tr><tr><td>3（碰地前）</td><td>45</td><td>0</td><td>30</td></tr></tbody></table>
+          <p class="visual-caption">半程时 s = ½g(T/2)² = H/4，距地还有 3H/4；小球正在加速，所以后半段时间走过更多距离。静态表格固定使用 45 m 与 10 m/s²，调整模拟参数后请以实时读数核对。</p>
+        </figure>
 
         <div class="sim-grid">
           <div class="sim-panel">
@@ -712,13 +942,6 @@ button,input,textarea{font:inherit;color:inherit}
           </div>
         </div>
 
-<div class="slider-row" style="margin-top:24px"><label class="sr-label" for="fallScrub">选定下落时刻（释放至落地前，%）</label><input id="fallScrub" type="range" min="0" max="1000" step="1" value="0" aria-label="下落时间进度，0为释放、1000为落地前"><p class="visual-caption" id="fallScrubStatus" role="status">0%：t=0s；使用方向键也可控制，无需播放动画。</p></div>
-        <div class="stage-ctrl">
-          <button class="btn btn--primary" id="btnPlay" type="button">播放</button>
-          <button class="btn btn--outline" id="btnStep" type="button">单步</button>
-          <button class="btn btn--outline" id="btnReset" type="button">重置</button>
-          <span class="kbd-hint">← → 单步　·　空格 播放 / 暂停</span>
-        </div>
         <p class="legend" style="margin-top:var(--s-4)">拖动滑块即可实时改变动画、读数与曲线；曲线与圆点共用同一条时间轴，小球落地时曲线同时到达终点。单步按固定时间片推进。</p>
       </div>
 
@@ -1219,32 +1442,46 @@ window.LEAP = createLeapBridge({"example_id":"free-fall","subject":"physics","no
     $("fallScrubStatus").textContent = (sim.t/sim.tTotal*100).toFixed(1) + "%：t=" + sim.t.toFixed(3) + "s，s=" + st.fallen.toFixed(3) + "m，距地=" + st.curH.toFixed(3) + "m；速率=" + st.curV.toFixed(3) + "m/s" + (sim.t >= sim.tTotal ? "（首次碰地前的瞬时值，模型在此结束）。" : "。");
     document.dispatchEvent(new CustomEvent("leap-fall-frame", {detail:{h:sim.h,g:sim.g,t:sim.t,tTotal:sim.tTotal,fallen:st.fallen,speed:st.curV,height:st.curH}}));
   }
-  function updatePlayBtn() { $("btnPlay").textContent = sim.playing ? "暂停" : "播放"; }
+  var motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  function updatePlayBtn() {
+    $("btnPlay").textContent = sim.playing ? "暂停" : "播放";
+    $("btnPlay").setAttribute("aria-pressed", String(sim.playing));
+    $("simStage").dataset.playing = String(sim.playing);
+  }
   function frame(ts) {
     if (!sim.playing) return;
     if (!sim.last) sim.last = ts;
-    var dt = (ts - sim.last) / 1000; sim.last = ts;
+    var dt = Math.min(Math.max(0, (ts - sim.last) / 1000), 1/30); sim.last = ts;
     sim.t += dt;
     if (sim.t >= sim.tTotal) { sim.t = sim.tTotal; sim.playing = false; updatePlayBtn(); }
     draw();
     if (sim.playing) sim.raf = requestAnimationFrame(frame);
   }
   function play() {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { step(); return; }
+    if (motionQuery.matches) { step(); return; }
+    var bounds = $("simStage").getBoundingClientRect();
+    if (document.hidden || bounds.bottom <= 0 || bounds.top >= window.innerHeight) return;
     if (sim.playing) return;
     if (sim.t >= sim.tTotal) sim.t = 0;
     sim.last = 0; sim.playing = true; updatePlayBtn();
     sim.raf = requestAnimationFrame(frame);
   }
-  function pause() { sim.playing = false; updatePlayBtn(); if (sim.raf) cancelAnimationFrame(sim.raf); }
+  function pause() { sim.playing = false; updatePlayBtn(); if (sim.raf) cancelAnimationFrame(sim.raf); sim.raf = null; }
   function togglePlay() { sim.playing ? pause() : play(); }
   function step() { pause(); sim.t = Math.min(sim.tTotal, sim.t + sim.tTotal / 24); draw(); }
+  function back() { pause(); sim.t = Math.max(0, sim.t - sim.tTotal / 24); draw(); }
   function reset() { pause(); sim.t = 0; draw(); }
 
   $("btnPlay").addEventListener("click", togglePlay);
-  $("btnStep").addEventListener("click", function () { stopPlay2(); step(); });
-  function stopPlay2() { pause(); }
+  $("btnStep").addEventListener("click", step);
+  $("btnBack").addEventListener("click", back);
   $("btnReset").addEventListener("click", reset);
+  document.addEventListener("leap-fall-pause", pause);
+  document.addEventListener("visibilitychange", function(){ if (document.hidden) pause(); });
+  motionQuery.addEventListener("change", function(){ if (motionQuery.matches) pause(); });
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(function(entries){ if (!entries[0].isIntersecting) pause(); }).observe($("simStage"));
+  }
 
   $("fallScrub").addEventListener("input", function(){pause();sim.t=sim.tTotal*Number(this.value)/1000;draw();});
   $("fallScrub").addEventListener("change",function(){window.LEAP.pushEvent("reflection_recorded",{item_id:"fall-time-explorer",answer:"progress="+this.value+" t="+sim.t+" displacement="+curState().fallen,hint_level:0});});
@@ -1270,11 +1507,11 @@ window.LEAP = createLeapBridge({"example_id":"free-fall","subject":"physics","no
     var t = e.target.tagName;
     if (/^(INPUT|TEXTAREA|SELECT|BUTTON|SUMMARY|A)$/.test(t)) return;
     if (e.key === "ArrowRight") { pause(); step(); e.preventDefault(); }
-    else if (e.key === "ArrowLeft") { pause(); sim.t = Math.max(0, sim.t - sim.tTotal / 24); draw(); e.preventDefault(); }
+    else if (e.key === "ArrowLeft") { back(); e.preventDefault(); }
     else if (e.key === " " || e.code === "Space") { togglePlay(); e.preventDefault(); }
   });
 
-  recompute(); draw();   /* 初始渲染；不自动播放（prefers-reduced-motion 友好） */
+  updatePlayBtn(); recompute(); draw();   /* 初始渲染；不自动播放（prefers-reduced-motion 友好） */
 
   /* ── 3. 提示阶梯 ───────────────────────────────────────── */
   var HINTS = {
@@ -1557,6 +1794,59 @@ window.LEAP = createLeapBridge({"example_id":"free-fall","subject":"physics","no
   view();renderSteps();
 })();
 
+(function(){
+  "use strict";
+  var $=function(id){return document.getElementById(id);}, drawing=$("rigDrawing");
+  var state={h:50,g:9.8,t:0,tTotal:Math.sqrt(100/9.8),fallen:0,speed:0,height:50};
+  var descriptions={
+    all:"支架固定参照，释放后小球只受重力；点击部件查看它与模型的关系。",
+    release:"释放头规定零初速起点；释放后不再施力。拆开的释放头不会把小球拉上去。",
+    gates:"光门以非接触方式示意检测。小球通过后光路变蓝，表示经过该高度，不产生推力。",
+    catch:"承接盘标记首次碰地的位置。读数在碰地前结束，不模拟反弹、形变或碰撞力。",
+    scale:"归一化标尺表示剩余高度占 H 的比例。改变 H 后装置仍占相同画面高度，米数以读数为准。",
+    console:"速度表与小球、曲线共用一个模型。表针显示当前速率与落地前速率的比值，不是真实传感器读数。"
+  };
+  var modes={assembled:"整机",cutaway:"剖面",exploded:"拆解"};
+  function describe(){ $("rigPartInfo").textContent=modes[drawing.dataset.mode]+"："+descriptions[drawing.dataset.focus]; }
+  function record(id,answer){window.LEAP.pushEvent("reflection_recorded",{item_id:id,answer:answer,hint_level:0});}
+  document.querySelectorAll("[data-rig-mode]").forEach(function(button){
+    button.addEventListener("click",function(){
+      document.dispatchEvent(new CustomEvent("leap-fall-pause"));
+      drawing.dataset.mode=button.dataset.rigMode;
+      document.querySelectorAll("[data-rig-mode]").forEach(function(b){b.setAttribute("aria-pressed",String(b===button));});
+      describe();record("fall-rig-view",drawing.dataset.mode);
+    });
+  });
+  document.querySelectorAll("[data-rig-part]").forEach(function(button){
+    button.addEventListener("click",function(){
+      drawing.dataset.focus=button.dataset.rigPart;
+      document.querySelectorAll("[data-rig-part]").forEach(function(b){b.setAttribute("aria-pressed",String(b===button));});
+      drawing.querySelectorAll(".rig-part").forEach(function(p){p.classList.toggle("is-focus",p.dataset.part===drawing.dataset.focus);});
+      describe();record("fall-rig-part",drawing.dataset.focus);
+    });
+  });
+  document.querySelectorAll("[data-rig-frame]").forEach(function(button){
+    button.addEventListener("click",function(){
+      $("fallScrub").value=button.dataset.rigFrame;
+      $("fallScrub").dispatchEvent(new Event("input",{bubbles:true}));
+      $("fallScrub").dispatchEvent(new Event("change",{bubbles:true}));
+    });
+  });
+  function render(){
+    var fraction=state.h?state.fallen/state.h:0,q=state.tTotal?state.t/state.tTotal:0,ball=$("rigBall");
+    ball.setAttribute("transform","translate(0,"+(306*fraction).toFixed(6)+")");
+    ["time","height","fallen","speed"].forEach(function(key){ball.dataset[key]=Number(key==="time"?state.t:state[key]).toFixed(6);});
+    $("rigNeedle").setAttribute("transform","rotate("+(-140+280*q).toFixed(6)+")");
+    $("rigElapsed").textContent=state.t.toFixed(3);$("rigDistance").textContent=state.fallen.toFixed(3);$("rigSpeed").textContent=state.speed.toFixed(3);
+    drawing.querySelectorAll("[data-level]").forEach(function(gate){
+      var passed=359-306*fraction<=Number(gate.dataset.level);
+      gate.dataset.passed=String(passed);gate.classList.toggle("rig-gate-passed",passed);
+    });
+    document.querySelectorAll("[data-rig-frame]").forEach(function(b){b.setAttribute("aria-pressed",String(Math.abs(q*1000-Number(b.dataset.rigFrame))<.001));});
+  }
+  document.addEventListener("leap-fall-frame",function(e){state=e.detail;render();});
+  render();
+})();
 </script>
 </body>
 </html>

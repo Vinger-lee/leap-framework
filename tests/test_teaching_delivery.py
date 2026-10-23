@@ -6,6 +6,39 @@ from leap.tools import ToolError
 from tests.teaching_fixture import teaching_pair, register_pair
 
 
+@pytest.mark.parametrize("omission", [False, True])
+def test_package_validation_parses_html_and_normalizes_each_passage_once(monkeypatch, omission):
+    import leap.runtime.delivery as delivery
+
+    md, html, manifest = teaching_pair()
+    passage = "A separate equation check supplies another complete explanation."
+    html = html.replace("</body>", f"<p>{passage}</p></body>")
+    if not omission:
+        md += "\n" + passage
+    feeds, normalizations = [], []
+    original_feed = delivery.VisibleTeaching.feed
+    original_normalize = delivery.normalize_text
+
+    def count_feed(parser, data):
+        feeds.append(data)
+        return original_feed(parser, data)
+
+    def count_normalize(text):
+        if text == passage:
+            normalizations.append(text)
+        return original_normalize(text)
+
+    monkeypatch.setattr(delivery.VisibleTeaching, "feed", count_feed)
+    monkeypatch.setattr(delivery, "normalize_text", count_normalize)
+    report = delivery.validate_teaching_package(md, html, manifest)
+
+    assert report["valid"] is not omission
+    if omission:
+        assert any("coverage" in error for error in report["errors"])
+    assert feeds == [html]
+    assert normalizations == [passage]
+
+
 def test_actual_teaching_pair_and_more_complete_markdown():
     md, html, manifest = teaching_pair()
     checked = validate_teaching_package(md, html, manifest)

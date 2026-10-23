@@ -147,20 +147,23 @@ def validate_teaching_package(markdown: str, html: str, manifest: Any) -> dict:
         errors.append("Markdown needs a foldable detail callout")
     if not re.search(r"学习资源|Learning resources|Reference resources", markdown[:2000], re.I):
         errors.append("Markdown needs learning resources before teaching content")
-    if not re.search(r"学习资源|Learning resources|Reference resources", html_teaching_text(html)[:1800], re.I):
-        errors.append("HTML needs learning resources before teaching content")
-    errors.extend(validate_resources(manifest.get("resources")))
     parser = VisibleTeaching()
     parser.feed(html)
+    visible_text = " ".join(parser.parts)
+    if not re.search(r"学习资源|Learning resources|Reference resources", visible_text[:1800], re.I):
+        errors.append("HTML needs learning resources before teaching content")
+    errors.extend(validate_resources(manifest.get("resources")))
     md = normalize_text(markdown)
-    projected = normalize_text(" ".join(parser.parts))
+    projected = normalize_text(visible_text)
     resources = manifest.get("resources") or {}
     if isinstance(resources, dict):
         for tier, values in (resources.get("keywords") or {}).items():
             if isinstance(values, list):
                 for query in values:
-                    if isinstance(query, str) and (normalize_text(query) not in md or normalize_text(query) not in projected):
-                        errors.append(f"resources.keywords.{tier} must appear in both delivered bodies")
+                    if isinstance(query, str):
+                        normalized_query = normalize_text(query)
+                        if normalized_query not in md or normalized_query not in projected:
+                            errors.append(f"resources.keywords.{tier} must appear in both delivered bodies")
     points = manifest.get("teaching_points")
     if not isinstance(points, list) or not points:
         errors.append("Every package must declare its teaching_points")
@@ -200,16 +203,17 @@ def validate_teaching_package(markdown: str, html: str, manifest: Any) -> dict:
         errors.append("html_segments must identify projected teaching prose")
         coverage = []
     for i, segment in enumerate(coverage):
-        if not isinstance(segment, str) or not normalize_text(segment):
+        normalized_segment = normalize_text(segment) if isinstance(segment, str) else ""
+        if not normalized_segment:
             errors.append(f"html_segments[{i}] is empty")
-        elif normalize_text(segment) not in md or normalize_text(segment) not in projected:
+        elif normalized_segment not in md or normalized_segment not in projected:
             errors.append(f"html_segments[{i}] must be present in both bodies")
     if len(md) <= len(projected):
         errors.append("Canonical Markdown must contain more teaching content than the entire HTML visible text")
     # Compare every actual HTML text run, not host-selected excerpts or a
     # permissive 95% sampling threshold. This includes folded solutions and SVG
     # labels; script-only dynamic feedback needs a separate host/browser audit.
-    passages = [normalize_text(p) for p in parser.passages if normalize_text(p)]
+    passages = [text for p in parser.passages if (text := normalize_text(p))]
     missing = [p for p in passages if p not in md]
     ratio = (len(passages) - len(missing)) / len(passages) if passages else 0.0
     if missing or not passages:
@@ -219,7 +223,8 @@ def validate_teaching_package(markdown: str, html: str, manifest: Any) -> dict:
         errors.append("markdown_extensions must identify additional explanation beyond HTML")
     else:
         for i, detail in enumerate(extra):
-            if not isinstance(detail, str) or len(normalize_text(detail)) < 40 or normalize_text(detail) not in md or normalize_text(detail) in projected:
+            normalized_detail = normalize_text(detail) if isinstance(detail, str) else ""
+            if len(normalized_detail) < 40 or normalized_detail not in md or normalized_detail in projected:
                 errors.append(f"markdown_extensions[{i}] needs a real additional explanation in Markdown")
     return {"valid": not errors, "errors": errors, "policy_version": _policy()["version"],
             "markdown_teaching_characters": len(md), "html_teaching_characters": len(projected),

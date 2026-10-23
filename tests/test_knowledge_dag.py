@@ -6,12 +6,55 @@ later. ``save_knowledge_edges`` therefore validates the *combined* graph.
 
 from __future__ import annotations
 
+import sys
+
 import pytest
 
 from leap.tools import ToolError
 
 
 class TestDagValidation:
+    def test_deep_chain_is_saved_and_a_closing_cycle_is_rejected(self, service):
+        size = sys.getrecursionlimit() + 100
+        sid = service.create_session("deep-graph-learner", "long prerequisite chain")["session_id"]
+        node_ids = [f"chain-{i:05d}" for i in range(size)]
+        service.save_knowledge_nodes(sid, [{"node_id": node_id} for node_id in node_ids])
+        edges = [{"pre_node_id": pre, "post_node_id": post}
+                 for pre, post in zip(node_ids, node_ids[1:])]
+
+        saved = service.save_knowledge_edges(sid, edges)
+
+        assert saved["validation"]["valid"] is True
+        assert saved["validation"]["warnings"] == []
+        with pytest.raises(ToolError) as exc:
+            service.save_knowledge_edges(sid, [
+                {"pre_node_id": node_ids[-1], "post_node_id": node_ids[0]},
+            ])
+        assert exc.value.code == "invalid_knowledge_dag"
+        assert exc.value.details["errors"] == [
+            {"code": "illegal_cycle", "cycle": node_ids + [node_ids[0]]},
+        ]
+        assert service.get_knowledge_edges(sid)["count"] == size - 1
+
+    def test_cycle_diagnostics_keep_depth_first_order(self, service):
+        nodes = [{"node_id": node_id} for node_id in "edcbaz"]
+        edges = [{"pre_node_id": pre, "post_node_id": post, "relation_type": relation}
+                 for pre, post, relation in [
+                     ("a", "b", "prerequisite"), ("b", "a", "extension"),
+                     ("a", "c", "prerequisite"), ("b", "c", "prerequisite"),
+                     ("c", "a", "prerequisite"), ("d", "e", "prerequisite"),
+                     ("e", "d", "prerequisite"), ("z", "a", "support"),
+                 ]]
+
+        report = service._validate_graph(nodes, edges)
+
+        assert report["errors"] == [
+            {"code": "illegal_cycle", "cycle": ["a", "b", "a"]},
+            {"code": "illegal_cycle", "cycle": ["a", "b", "c", "a"]},
+            {"code": "illegal_cycle", "cycle": ["d", "e", "d"]},
+        ]
+        assert report["warnings"] == [{"code": "isolated_nodes", "node_ids": ["z"]}]
+
     def test_valid_chain_is_accepted(self, grounded_service, dag):
         report = grounded_service.validate_knowledge_dag(dag)
         assert report["valid"] is True

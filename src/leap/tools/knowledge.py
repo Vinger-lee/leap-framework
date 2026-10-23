@@ -333,9 +333,10 @@ class KnowledgeTools(LeapToolMixin):
         for cycle in cycles:
             errors.append({"code": "illegal_cycle", "cycle": cycle})
 
+        incoming = {target for targets in adjacency.values() for target in targets}
         isolated = sorted(
             nid for nid in node_ids
-            if not adjacency.get(nid) and not any(nid in targets for targets in adjacency.values())
+            if not adjacency.get(nid) and nid not in incoming
         )
         if isolated:
             warnings.append({"code": "isolated_nodes", "node_ids": isolated})
@@ -350,32 +351,41 @@ class KnowledgeTools(LeapToolMixin):
 
     @staticmethod
     def _find_cycles(adjacency: Mapping[str, set[str]]) -> list[list[str]]:
-        """Return elementary cycles in the directed dependency subgraph (DFS)."""
+        """Return dependency cycles in stable DFS order without recursion limits."""
         WHITE, GREY, BLACK = 0, 1, 2
         colour: dict[str, int] = {node: WHITE for node in adjacency}
-        stack: list[str] = []
+        path: list[str] = []
+        positions: dict[str, int] = {}
         cycles: list[list[str]] = []
         seen_signatures: set[tuple] = set()
 
-        def visit(node: str) -> None:
-            colour[node] = GREY
-            stack.append(node)
-            for neighbour in sorted(adjacency.get(node, ())):
-                if colour.get(neighbour, WHITE) == WHITE:
-                    visit(neighbour)
-                elif colour.get(neighbour) == GREY:
-                    if neighbour in stack:
-                        cycle = stack[stack.index(neighbour):] + [neighbour]
-                        signature = tuple(sorted(cycle[:-1]))
-                        if signature not in seen_signatures:
-                            seen_signatures.add(signature)
-                            cycles.append(cycle)
-            stack.pop()
-            colour[node] = BLACK
-
         for node in sorted(adjacency):
-            if colour.get(node) == WHITE:
-                visit(node)
+            if colour.get(node) != WHITE:
+                continue
+            colour[node] = GREY
+            positions[node] = len(path)
+            path.append(node)
+            # Each frame retains its neighbour iterator, matching recursive DFS.
+            frames = [(node, iter(sorted(adjacency.get(node, ()))))]
+            while frames:
+                current, neighbours = frames[-1]
+                neighbour = next(neighbours, None)
+                if neighbour is None:
+                    frames.pop()
+                    path.pop()
+                    positions.pop(current)
+                    colour[current] = BLACK
+                elif colour.get(neighbour, WHITE) == WHITE:
+                    colour[neighbour] = GREY
+                    positions[neighbour] = len(path)
+                    path.append(neighbour)
+                    frames.append((neighbour, iter(sorted(adjacency.get(neighbour, ())))))
+                elif colour.get(neighbour) == GREY:
+                    cycle = path[positions[neighbour]:] + [neighbour]
+                    signature = tuple(sorted(cycle[:-1]))
+                    if signature not in seen_signatures:
+                        seen_signatures.add(signature)
+                        cycles.append(cycle)
         return cycles
 
     @staticmethod

@@ -47,6 +47,76 @@ def test_actual_teaching_pair_and_more_complete_markdown():
     assert checked["content_verified_by_runtime"] is False
 
 
+def visual_pair():
+    md, html, manifest = teaching_pair()
+    caption = "The moving marker and readout share the same elapsed-time model."
+    label = "Elapsed time in seconds"
+    source = "One elapsed-time model drives the marker position and numeric output."
+    extra = ('<figure id="rig"><svg id="still" role="img" aria-label="Three time states"></svg>'
+             f'<figcaption>{caption}</figcaption><p>{label}</p><output id="time">0</output></figure>'
+             '<button id="play">Play or pause</button><button id="reset">Reset</button>'
+             '<input id="scrub" type="range" aria-label="Elapsed time">')
+    html = html.replace("</body>", extra + "</body>")
+    md += f"\n{caption}\n{label}\n{source}\nReleased\nAt the stop\n0\nPlay or pause\nReset\n"
+    manifest["visual_contract"] = {"profile": "anatomy.v1", "figures": [{
+        "id": "motion", "role": "mechanism", "selector": "#rig", "caption": caption,
+        "labels": [label], "static_frame": "#still", "animated": True,
+        "model_binding": {"source": source, "quantities": [{"name": "elapsed time", "unit": "s", "selector": "#time"}]},
+        "controls": {"play_pause": "#play", "reset": "#reset", "scrub": "#scrub"},
+        "states": ["Released", "At the stop"],
+    }]}
+    return md, html, manifest
+
+
+def test_visual_contract_accepts_real_targets_without_claiming_model_truth():
+    md, html, manifest = visual_pair()
+    report = validate_teaching_package(md, html, manifest)
+    assert report["valid"], report["errors"]
+    assert report["content_verified_by_runtime"] is False
+
+
+@pytest.mark.parametrize("defect", ["missing_still", "fake_still", "fake_control", "hidden_control",
+    "duplicate_target", "caption", "label", "output", "model", "states", "reversible", "duplicate_figure"])
+def test_visual_contract_rejects_unusable_or_unexplained_figures(defect):
+    md, html, manifest = visual_pair()
+    figure = manifest["visual_contract"]["figures"][0]
+    if defect == "missing_still":
+        figure.pop("static_frame")
+    elif defect == "fake_still":
+        figure["static_frame"] = "#rig"  # A container is not the promised static graphic.
+    elif defect == "fake_control":
+        figure["controls"]["play_pause"] = "#time"  # Output cannot be pressed.
+    elif defect == "hidden_control":
+        html = html.replace('id="play"', 'id="play" hidden')
+    elif defect == "duplicate_target":
+        html = html.replace("</body>", '<button id="reset">Reset</button></body>')
+    elif defect == "caption":
+        figure["caption"] = "An unsupported new claim absent from the lesson."
+    elif defect == "label":
+        figure["labels"] = ["An unnamed part"]
+    elif defect == "output":
+        figure["model_binding"]["quantities"][0]["selector"] = "#nonexistent"
+    elif defect == "model":
+        figure.pop("model_binding")
+    elif defect == "states":
+        figure["states"] = ["Released"]
+    elif defect == "reversible":
+        figure["controls"].pop("scrub")
+    else:
+        manifest["visual_contract"]["figures"].append(copy.deepcopy(figure))
+    report = validate_teaching_package(md, html, manifest)
+    assert not report["valid"]
+    assert any(error.startswith("visual_contract.") for error in report["errors"]), report
+
+
+@pytest.mark.parametrize("contract", [None, [], {}, {"profile": "unknown"},
+    {"profile": "anatomy.v1", "figures": [None, {"id": [], "role": {}, "selector": 1, "static_frame": [], "animated": True, "controls": []}]}])
+def test_malformed_visual_contract_is_rejected_without_crashing(contract):
+    md, html, manifest = teaching_pair()
+    manifest["visual_contract"] = contract
+    assert not validate_teaching_package(md, html, manifest)["valid"]
+
+
 @pytest.mark.parametrize("defect", ["omission", "extension", "visual", "resource", "shallow"])
 def test_pair_rejects_coverage_and_delivery_defects(defect):
     md, html, manifest = teaching_pair()

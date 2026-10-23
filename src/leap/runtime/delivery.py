@@ -32,6 +32,7 @@ def delivery_policy(*, complete: bool = False) -> dict:
         "teaching_point_fields": list(policy["teaching_point_fields"]),
         "resource_rule": "verified relevant video or core/extension/advanced search keywords at document top",
         "layout": dict(policy["layout"]),
+        "visual_authoring_profile": policy["visualization"]["authoring_profile"],
         "registration_tool": "save_teaching_package",
         "next_generation": "get_teaching_delivery_policy -> full Markdown -> interactive HTML -> save_teaching_package -> item registration -> browser checks",
         "truth_boundary": policy["verification"]["runtime"],
@@ -58,11 +59,14 @@ class VisibleTeaching(HTMLParser):
         self.passages: list[str] = []
         self.ids: set[str] = set()
         self.classes: set[str] = set()
+        self.elements: dict[str, list[tuple[str, dict]]] = {}
 
     def handle_starttag(self, tag, attrs):
         attributes = dict(attrs)
         if attributes.get("id"):
             self.ids.add(attributes["id"])
+            if not self.hidden and tag not in {"script", "style", "head"}:
+                self.elements.setdefault(attributes["id"], []).append((tag, attributes))
         self.classes.update((attributes.get("class") or "").split())
         if tag in {"script", "style", "head"}:
             self.hidden += 1
@@ -88,6 +92,90 @@ def html_teaching_text(body: str) -> str:
 def normalize_text(text: str) -> str:
     text = unicodedata.normalize("NFKC", text)
     return "".join(c.casefold() for c in text if c.isalnum())
+
+
+def _validate_visual_contract(contract: Any, parser: VisibleTeaching, md: str, projected: str) -> list[str]:
+    """Check explicit visual records, never execute a host model or claim it true."""
+    errors: list[str] = []
+    rules = _policy()["visualization"]["contract"]
+    if not isinstance(contract, dict) or contract.get("profile") != rules["profile"]:
+        return ["visual_contract.profile must be anatomy.v1"]
+    figures = contract.get("figures")
+    if not isinstance(figures, list) or not figures:
+        return ["visual_contract.figures needs at least one explained figure"]
+
+    def target(selector: Any, field: str, tags: set[str] | None = None) -> None:
+        matches = parser.elements.get(selector[1:], []) if isinstance(selector, str) and re.fullmatch(r"#[A-Za-z_][\w-]*", selector) else []
+        if len(matches) != 1:
+            errors.append(f"{field} must identify a unique actual #id")
+        elif tags and (matches[0][0] not in tags or "hidden" in matches[0][1]
+                       or "disabled" in matches[0][1] or matches[0][1].get("type") == "hidden"):
+            errors.append(f"{field} needs an enabled visible element of type {', '.join(sorted(tags))}")
+
+    def text_record(value: Any, field: str, *, both: bool = True) -> None:
+        normalized = normalize_text(value) if isinstance(value, str) else ""
+        if not normalized or normalized not in md or (both and normalized not in projected):
+            errors.append(f"{field} must be explained in {'both delivered bodies' if both else 'canonical Markdown'}")
+
+    seen: set[str] = set()
+    for i, figure in enumerate(figures):
+        field = f"visual_contract.figures[{i}]"
+        if not isinstance(figure, dict):
+            errors.append(f"{field} must be an object")
+            continue
+        identifier = figure.get("id")
+        if not isinstance(identifier, str) or not identifier.strip() or identifier in seen:
+            errors.append(f"{field}.id must be a nonempty unique name")
+        else:
+            seen.add(identifier)
+        if figure.get("role") not in rules["roles"]:
+            errors.append(f"{field}.role must describe a supported teaching purpose")
+        target(figure.get("selector"), f"{field}.selector", {"svg", "canvas", "figure", "div", "section", "table", "img"})
+        target(figure.get("static_frame"), f"{field}.static_frame", {"svg", "img", "table"})
+        text_record(figure.get("caption"), f"{field}.caption")
+        labels = figure.get("labels")
+        if not isinstance(labels, list) or not labels:
+            errors.append(f"{field}.labels must explain the parts or quantities")
+        else:
+            for label in labels:
+                text_record(label, f"{field}.labels")
+        animated = figure.get("animated", False)
+        if not isinstance(animated, bool):
+            errors.append(f"{field}.animated must be boolean")
+        binding = figure.get("model_binding")
+        if animated or "model_binding" in figure:
+            if not isinstance(binding, dict):
+                errors.append(f"{field}.model_binding must describe the shared source and quantities")
+            else:
+                text_record(binding.get("source"), f"{field}.model_binding.source", both=False)
+                quantities = binding.get("quantities")
+                if not isinstance(quantities, list) or not quantities:
+                    errors.append(f"{field}.model_binding.quantities must name outputs and units")
+                else:
+                    for quantity in quantities:
+                        if not isinstance(quantity, dict) or any(not isinstance(quantity.get(k), str) or not quantity[k].strip() for k in ("name", "unit")):
+                            errors.append(f"{field}.model_binding.quantities needs name and unit")
+                            continue
+                        target(quantity.get("selector"), f"{field}.model_binding.quantity.selector")
+        if animated:
+            controls = figure.get("controls")
+            if not isinstance(controls, dict):
+                controls = {}
+            for name in ("play_pause", "reset"):
+                target(controls.get(name), f"{field}.controls.{name}", {"button", "input", "select"})
+            if not (("step_forward" in controls and "step_back" in controls)
+                    or "scrub" in controls or "parameter" in controls):
+                errors.append(f"{field}.controls needs reversible steps, scrub or parameter control")
+            for name, selector in controls.items():
+                if name not in {"play_pause", "reset"}:
+                    target(selector, f"{field}.controls.{name}", {"button", "input", "select"})
+            states = figure.get("states")
+            if not isinstance(states, list) or len(states) < 2:
+                errors.append(f"{field}.states needs at least two explained animation states")
+            else:
+                for state in states:
+                    text_record(state, f"{field}.states", both=False)
+    return errors
 
 
 def validate_resources(resources: Any) -> list[str]:
@@ -155,6 +243,8 @@ def validate_teaching_package(markdown: str, html: str, manifest: Any) -> dict:
     errors.extend(validate_resources(manifest.get("resources")))
     md = normalize_text(markdown)
     projected = normalize_text(visible_text)
+    if "visual_contract" in manifest:
+        errors.extend(_validate_visual_contract(manifest["visual_contract"], parser, md, projected))
     resources = manifest.get("resources") or {}
     if isinstance(resources, dict):
         for tier, values in (resources.get("keywords") or {}).items():

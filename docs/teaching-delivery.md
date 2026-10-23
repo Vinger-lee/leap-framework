@@ -33,6 +33,43 @@ MD 必须覆盖全部实际 HTML 文本节点，包括折叠解析和图示标�
 
 图示要标明对象、输入、方向、单位、适用条件。分步控件保留中间状态，用户能暂停、前进、后退和重置。缩小运动模式给出静态步骤。PC 容器最大宽 1800px，侧栏 420px；1440/1920px 屏幕内容使用率至少 88%，375px 不出现整页横向溢出。
 
+## 图解教学：Anatomy 创作方式
+
+图解用来解释结构、机制、过程、数据与反例。一个教学点可组合剖面/拆解图、因果图、带单位的数据图和静态分镜；数量取决于要解释的问题。先写真实对象与概念的对应关系，再设计部件、相互遮挡、图例与控件。物理实验可画成可拆解实验台；编程用真实状态与执行轨迹，电路用连接与电流路径，数学用几何变换与数量关系，化学用粒子和守恒。不为了追求立体效果编造机构或科学事实。
+
+作者参考 [Anatomy skill](https://github.com/wheresryan22/anatomy)，固定参考版本 `1482e8469b0a9e0d8cc18ea2740a01423d29ae80`（MIT）。它是可选的创作工具。交付仍是离线内联 SVG/Canvas/HTML，框架运行时不依赖该技能或其 JavaScript kit。自由落体示例的几何为项目原创，构建脚本可重现图形。
+
+每个会动的部件、图中曲线与读数必须由同一个领域模型驱动。说明哪些量按比例绘制、哪些只是示意、哪些数据来自计算。默认静止，主动播放，可暂停、后退、前进或拖动时间并重置；控件有键盘操作和焦点状态。离屏、隐藏标签页时暂停；减少动态效果时保留静态帧与数值探索。连续读数不逐帧向屏幕阅读器播报。
+
+新建或修改的图解教学包采用 `visual_contract.profile: anatomy.v1`。旧包未声明此字段时继续兼容。契约示例：
+
+```json
+{
+  "visual_contract": {
+    "profile": "anatomy.v1",
+    "figures": [{
+      "id": "free-fall-rig",
+      "role": "mechanism",
+      "selector": "#fallRigFigure",
+      "caption": "自由落体实验塔：看清部件，再追踪运动",
+      "labels": ["释放头", "光门", "承接盘"],
+      "static_frame": "#fallRig",
+      "animated": true,
+      "model_binding": {
+        "source": "同一运动状态驱动小球位置与读数。",
+        "quantities": [{"name": "elapsed time", "unit": "s", "selector": "#rigElapsed"}]
+      },
+      "controls": {"play_pause": "#btnPlay", "reset": "#btnReset", "scrub": "#fallScrub"},
+      "states": ["释放：位移和速率为零。", "碰地前：位移等于初始高度。"]
+    }]
+  }
+}
+```
+
+所有 selector 指向唯一实际 `#id`。静态帧必须是 SVG、图片或表格；动画另需共享模型来源、输出量与单位、播放/暂停、重置，以及可逆步骤、拖动或参数控件之一。标题、图例在 HTML 与规范笔记中都有解释，模型与状态说明保存在笔记中。Runtime 只验证结构与说明记录；它不执行宿主代码，也不判断 SVG 画得是否正确、控件是否真正联动或公式是否真实。
+
+浏览器检查各观察方式、开始/中间/结束、前进/后退/重置、暂停后不再变化、键盘、无 JavaScript 静态可读、减少动态效果，以及 1440/1920/375px 布局。放大到 4 倍检查机构和对象的遮挡、连接、刻度与标签。针对已知参数独立计算，然后同时核对图形位置、曲线、表针和读数，不能只断言元素存在。完整实现见 [[examples/04-physics-free-fall/knowledge]] 与其交互页面；可运行 `build_figure.py --check` 和对应的浏览器场景。
+
 ## 教学包注册与不可绕过的门禁
 
 `save_teaching_package` 接收 `session_id, node_id, subject, markdown, html, manifest` 的实际内容。manifest 的 `teaching_points` 保存每个必需字段；`resources` 保存核验视频或三层关键词；`html_segments` 标明正文，`markdown_extensions` 标明扩展推导，`source_ids` 关联本会话真实阅读记录。可视化 selector 必须匹配实际 HTML id/class。

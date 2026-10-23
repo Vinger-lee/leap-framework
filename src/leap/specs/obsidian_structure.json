@@ -114,8 +114,8 @@
     "No verified video: insert topic-specific core/extension/advanced search queries at the top."
   ],
   "templates": {
-    "knowledge_node": "---\ntitle: <specific skill>\ntags: [leap, <subject>, lesson]\naliases: [<descriptive alias>]\nnode_id: <runtime node id>\nunit_tag: <runtime unit tag>\nstate_kind: runtime_snapshot\nupdated_at: <Unix seconds>\n---\n\n# <specific skill>\n\n> [!info] Learning resources\n> Verified video records only after accessibility and topical content checks.\n> Otherwise core: <topic + operation + beginner>; extension: <conditions + comparison>; advanced: <proof + transfer>.\n\nRelated: [[01_Knowledge/Knowledge_Map]] · [[01_Knowledge/Nodes/<prerequisite>]]\n\n## Prerequisite refresher and symbol glossary\n\nExplain every prerequisite operation and check it with a short example.\n\n## Principle, assumptions and mechanism\n\nState precisely what is true, when it is true, and why it works.\n\n## Labeled diagram and controllable walkthrough\n\nInclude a structure/process Mermaid diagram and a corresponding step trace or parameter view in HTML.\n\n## Complete worked example\n\n1. State exact inputs, units and domain constraints.\n2. Show each operation and its reason, preserving intermediate results.\n3. Check the final result independently and against boundary cases.\n\n## Misconceptions, boundaries and contrasting cases\n\nShow an incorrect method, explain the failure, repair it, and compare a valid nearby case.\n\n## Graduated practice and full solutions\n\nBasic, variation and challenge tasks each include conditions, full derivation and error analysis.\n\n## Transfer and delayed review\n\nChange parameters or context. Require a fresh learner answer; answer reveal is not evidence of mastery.\n\n> [!example]- Extended derivation beyond the HTML projection\n> Include additional original reasoning, annotated steps, alternate methods, counterexamples and extra practice here.\n\n## Sources, limitations and projection coverage\n\nRecord actual source URL, locator, excerpt, date and checks; do not imply syllabus alignment from general sources.\nMap each HTML teaching section to a full note section. Register both bodies through save_teaching_package.\n\n## Backlinks and next concepts\n\n[[01_Knowledge/Knowledge_Map]] · [[02_Lessons/<successor>]]\n",
-    "lesson": "---\ntitle: <specific skill>\ntags: [leap, <subject>, lesson]\naliases: [<descriptive alias>]\nnode_id: <runtime node id>\nunit_tag: <runtime unit tag>\nstate_kind: runtime_snapshot\nupdated_at: <Unix seconds>\n---\n\n# <specific skill>\n\n> [!info] Learning resources\n> Verified video records only after accessibility and topical content checks.\n> Otherwise core: <topic + operation + beginner>; extension: <conditions + comparison>; advanced: <proof + transfer>.\n\nRelated: [[01_Knowledge/Knowledge_Map]] · [[01_Knowledge/Nodes/<prerequisite>]]\n\n## Prerequisite refresher and symbol glossary\n\nExplain every prerequisite operation and check it with a short example.\n\n## Principle, assumptions and mechanism\n\nState precisely what is true, when it is true, and why it works.\n\n## Labeled diagram and controllable walkthrough\n\nInclude a structure/process Mermaid diagram and a corresponding step trace or parameter view in HTML.\n\n## Complete worked example\n\n1. State exact inputs, units and domain constraints.\n2. Show each operation and its reason, preserving intermediate results.\n3. Check the final result independently and against boundary cases.\n\n## Misconceptions, boundaries and contrasting cases\n\nShow an incorrect method, explain the failure, repair it, and compare a valid nearby case.\n\n## Graduated practice and full solutions\n\nBasic, variation and challenge tasks each include conditions, full derivation and error analysis.\n\n## Transfer and delayed review\n\nChange parameters or context. Require a fresh learner answer; answer reveal is not evidence of mastery.\n\n> [!example]- Extended derivation beyond the HTML projection\n> Include additional original reasoning, annotated steps, alternate methods, counterexamples and extra practice here.\n\n## Sources, limitations and projection coverage\n\nRecord actual source URL, locator, excerpt, date and checks; do not imply syllabus alignment from general sources.\nMap each HTML teaching section to a full note section. Register both bodies through save_teaching_package.\n\n## Backlinks and next concepts\n\n[[01_Knowledge/Knowledge_Map]] · [[02_Lessons/<successor>]]\n",
+    "knowledge_node": "---\ntitle: <specific skill>\ntags: [leap, <subject>, lesson]\naliases: [<descriptive alias>]\nnode_id: <runtime node id>\nunit_tag: <runtime unit tag>\nstate_kind: runtime_snapshot\nupdated_at: <Unix seconds>\n---\n\n# <specific skill>\n\n> [!info] Learning resources\n> Verified video records only after accessibility and topical content checks.\n> Otherwise core: <topic + operation + beginner>; extension: <conditions + comparison>; advanced: <proof + transfer>.\n\nRelated: [[01_Knowledge/Knowledge_Map]] · [[01_Knowledge/Nodes/<prerequisite>]]\n\n## Prerequisite refresher and symbol glossary\n\nExplain every prerequisite operation and check it with a short example.\n\n## Principle, assumptions and mechanism\n\nState precisely what is true, when it is true, and why it works.\n\n## Labeled diagram and controllable walkthrough\n\nChoose a faithful structure/cutaway, causal/state trace, data plot or comparison view.\nExplain every part name, quantity, unit and model limit. Link a controllable HTML view\nto a static SVG/storyboard or table; retain the complete explanation in this note.\nFor new visual deliveries declare visual_contract (anatomy.v1), with real selectors,\ncaptions, labels, static_frame and shared model_binding for animated figures.\n\n## Complete worked example\n\n1. State exact inputs, units and domain constraints.\n2. Show each operation and its reason, preserving intermediate results.\n3. Check the final result independently and against boundary cases.\n\n## Misconceptions, boundaries and contrasting cases\n\nShow an incorrect method, explain the failure, repair it, and compare a valid nearby case.\n\n## Graduated practice and full solutions\n\nBasic, variation and challenge tasks each include conditions, full derivation and error analysis.\n\n## Transfer and delayed review\n\nChange parameters or context. Require a fresh learner answer; answer reveal is not evidence of mastery.\n\n> [!example]- Extended derivation beyond the HTML projection\n> Include additional original reasoning, annotated steps, alternate methods, counterexamples and extra practice here.\n\n## Sources, limitations and projection coverage\n\nRecord actual source URL, locator, excerpt, date and checks; do not imply syllabus alignment from general sources.\nMap each HTML teaching section to a full note section. Register both bodies through save_teaching_package.\n\n## Backlinks and next concepts\n\n[[01_Knowledge/Knowledge_Map]] · [[02_Lessons/<successor>]]\n",
+    "lesson": "---\ntitle: <specific skill>\ntags: [leap, <subject>, lesson]\naliases: [<descriptive alias>]\nnode_id: <runtime node id>\nunit_tag: <runtime unit tag>\nstate_kind: runtime_snapshot\nupdated_at: <Unix seconds>\n---\n\n# <specific skill>\n\n> [!info] Learning resources\n> Verified video records only after accessibility and topical content checks.\n> Otherwise core: <topic + operation + beginner>; extension: <conditions + comparison>; advanced: <proof + transfer>.\n\nRelated: [[01_Knowledge/Knowledge_Map]] · [[01_Knowledge/Nodes/<prerequisite>]]\n\n## Prerequisite refresher and symbol glossary\n\nExplain every prerequisite operation and check it with a short example.\n\n## Principle, assumptions and mechanism\n\nState precisely what is true, when it is true, and why it works.\n\n## Labeled diagram and controllable walkthrough\n\nChoose a faithful structure/cutaway, causal/state trace, data plot or comparison view.\nExplain every part name, quantity, unit and model limit. Link a controllable HTML view\nto a static SVG/storyboard or table; retain the complete explanation in this note.\nFor new visual deliveries declare visual_contract (anatomy.v1), with real selectors,\ncaptions, labels, static_frame and shared model_binding for animated figures.\n\n## Complete worked example\n\n1. State exact inputs, units and domain constraints.\n2. Show each operation and its reason, preserving intermediate results.\n3. Check the final result independently and against boundary cases.\n\n## Misconceptions, boundaries and contrasting cases\n\nShow an incorrect method, explain the failure, repair it, and compare a valid nearby case.\n\n## Graduated practice and full solutions\n\nBasic, variation and challenge tasks each include conditions, full derivation and error analysis.\n\n## Transfer and delayed review\n\nChange parameters or context. Require a fresh learner answer; answer reveal is not evidence of mastery.\n\n> [!example]- Extended derivation beyond the HTML projection\n> Include additional original reasoning, annotated steps, alternate methods, counterexamples and extra practice here.\n\n## Sources, limitations and projection coverage\n\nRecord actual source URL, locator, excerpt, date and checks; do not imply syllabus alignment from general sources.\nMap each HTML teaching section to a full note section. Register both bodies through save_teaching_package.\n\n## Backlinks and next concepts\n\n[[01_Knowledge/Knowledge_Map]] · [[02_Lessons/<successor>]]\n",
     "knowledge_map": "---\ntitle: Knowledge map\ntags: [leap, index]\naliases: [Knowledge index]\n---\n\n# Knowledge map\n\n> [!info] Learning resources\n> Core: prerequisite graph learning path; extension: concept relations; advanced: transfer design.\n\nLink every node and its canonical lesson with reciprocal [[wikilinks]]. Draw prerequisite Mermaid edges; distinguish learning order from evidence stage.\n",
     "goal": "---\ntitle: Learning goal\ntags: [leap, goal]\naliases: [Session objective]\n---\n\n# Learning goal\n\n> [!info] Learning resources\n> Core: <specific topic beginner>; extension: <topic conditions>; advanced: <topic transfer>.\n\nDefine observable outcome, prerequisites, constraints and assessment. Link [[01_Knowledge/Knowledge_Map]] and the canonical [[02_Lessons/Unit_001/lesson]].\n",
     "profile": "---\ntitle: Learner profile\ntags: [leap, profile]\naliases: [Learner profile note]\n---\n\n# Learner profile\n\n> [!info] Learning resources\n> Core: <topic-specific prerequisite>; extension: <learning conditions>; advanced: <transfer evidence>.\n\nRecord the learner's stated goals, accessibility preferences, prior experience and constraints. Distinguish self-report from assessed evidence.\n\nRelated: [[01_Knowledge/Knowledge_Map]] · [[00_System/learning_goal]]\n\n> [!note]- Interpretation and limitations\n> Include exact observations, assumptions, timestamp and unresolved questions; only Runtime receipts authorize learner-state claims.\n",
@@ -160,5 +160,78 @@
     ],
     "states": "Learner state in Markdown is explicitly a Runtime snapshot, never authoritative local mastery.",
     "coverage": "Compare visible teaching prose and formulas, not HTML/CSS/JS character count. Keep all projected content plus additional original explanation and examples in Markdown."
+  },
+  "visualization": {
+    "priority": "visual first where a picture reveals structure, mechanism or state",
+    "types": [
+      "labeled SVG diagram",
+      "cutaway or exploded structure",
+      "causal mechanism",
+      "process flow",
+      "structure map",
+      "comparison table",
+      "data plot",
+      "parameter simulation",
+      "step trace",
+      "pauseable animation",
+      "static storyboard"
+    ],
+    "required_controls": [
+      "step forward/back or parameter change",
+      "reset",
+      "visible state and explanation",
+      "keyboard equivalent",
+      "reduced motion"
+    ],
+    "no_visual_exception": "Record an explicit pedagogical reason for a nonvisualizable point, not a blanket omission.",
+    "truth_boundary": "Graphs and sampled simulations illustrate; analytical reasoning or full checks establish conclusions.",
+    "authoring_profile": "anatomy.v1",
+    "authoring_rules": [
+      "Make structure, mechanism and change visible. Use a recognizable object or experiment when it maps faithfully to the subject; use a state trace or spatial model when a physical metaphor would mislead.",
+      "Choose complementary views by teaching purpose: cutaway/exploded structure for parts, cause-and-effect or state transitions for mechanism, labeled data plots for quantities, and contrasting cases for model limits. Do not impose a decorative image count.",
+      "Build deliberate, shaded parts in correct depth order. Put explanations and part names in a linked legend; reserve color for the currently relevant subject or a consistent data meaning.",
+      "Use one explicit model for moving parts, charts and live readouts. Explain units, normalized geometry, assumptions and limits; never animate a visual independently of the quantity it claims to show.",
+      "Offer play/pause, reset and reversible steps or scrubbing. Start still; pause offscreen or in a hidden tab, and offer discrete states under reduced motion. Do not announce each animation frame to screen readers.",
+      "Supply a real inline SVG, image or table as a static storyboard with conditions and complete explanations in canonical Markdown; a promise of a fallback is insufficient.",
+      "Declare visual_contract with profile anatomy.v1 in new or revised visual deliveries. Preserve older manifests; the Runtime checks records and targets while browser scenarios and host review check behavior and truth."
+    ],
+    "contract": {
+      "manifest_field": "visual_contract",
+      "profile": "anatomy.v1",
+      "figure_fields": [
+        "id",
+        "role",
+        "selector",
+        "caption",
+        "labels",
+        "static_frame"
+      ],
+      "roles": [
+        "structure",
+        "mechanism",
+        "process",
+        "data",
+        "comparison",
+        "spatial"
+      ],
+      "animated_fields": [
+        "model_binding",
+        "controls",
+        "states"
+      ],
+      "model_binding": "source describes the shared model; quantities lists name, unit and a real output selector. These declarations are not evaluated as code.",
+      "controls": "play_pause and reset plus either step_forward/step_back or scrub/parameter; all targets are actual enabled buttons, inputs or selects.",
+      "states": "At least two explained states, also recorded in canonical Markdown.",
+      "selectors": "Unique #id targets; static_frame points to an actual SVG, image or table. Captions and labels occur in both delivered bodies.",
+      "compatibility": "Optional for existing packages; required by the authoring workflow for newly generated or revised visual packages."
+    },
+    "review": [
+      "inspect desktop and 375px layout",
+      "zoom into joints and overlaps",
+      "check release/intermediate/end states against independent calculations",
+      "exercise every control with pointer and keyboard",
+      "check pause, reset, reduced motion, offscreen and hidden-tab behavior",
+      "read the static storyboard with JavaScript disabled"
+    ]
   }
 }

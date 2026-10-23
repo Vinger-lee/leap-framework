@@ -25,6 +25,7 @@ def update() -> None:
     obs["role"] = "complete canonical human knowledge source, more detailed than HTML"
     obs["learning_resources"] = policy["learning_resources"]
     obs["markdown_requirements"] = policy["markdown"]
+    obs["visualization"] = policy["visualization"]
     obs["linking_rules"] = [
         "Use resolvable vault-root [[wikilinks]]; add reciprocal links on target notes or their real backlink indexes.",
         "Connect prerequisites, successor concepts, misconceptions, worked examples, exercises and source notes.",
@@ -60,7 +61,11 @@ State precisely what is true, when it is true, and why it works.
 
 ## Labeled diagram and controllable walkthrough
 
-Include a structure/process Mermaid diagram and a corresponding step trace or parameter view in HTML.
+Choose a faithful structure/cutaway, causal/state trace, data plot or comparison view.
+Explain every part name, quantity, unit and model limit. Link a controllable HTML view
+to a static SVG/storyboard or table; retain the complete explanation in this note.
+For new visual deliveries declare visual_contract (anatomy.v1), with real selectors,
+captions, labels, static_frame and shared model_binding for animated figures.
 
 ## Complete worked example
 

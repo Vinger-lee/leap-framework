@@ -30,10 +30,33 @@
   },
   "visualization": {
     "priority": "visual first where a picture reveals structure, mechanism or state",
-    "types": ["labeled SVG diagram", "process flow", "structure map", "comparison table", "parameter simulation", "step trace", "pauseable animation"],
+    "types": ["labeled SVG diagram", "cutaway or exploded structure", "causal mechanism", "process flow", "structure map", "comparison table", "data plot", "parameter simulation", "step trace", "pauseable animation", "static storyboard"],
     "required_controls": ["step forward/back or parameter change", "reset", "visible state and explanation", "keyboard equivalent", "reduced motion"],
     "no_visual_exception": "Record an explicit pedagogical reason for a nonvisualizable point, not a blanket omission.",
-    "truth_boundary": "Graphs and sampled simulations illustrate; analytical reasoning or full checks establish conclusions."
+    "truth_boundary": "Graphs and sampled simulations illustrate; analytical reasoning or full checks establish conclusions.",
+    "authoring_profile": "anatomy.v1",
+    "authoring_rules": [
+      "Make structure, mechanism and change visible. Use a recognizable object or experiment when it maps faithfully to the subject; use a state trace or spatial model when a physical metaphor would mislead.",
+      "Choose complementary views by teaching purpose: cutaway/exploded structure for parts, cause-and-effect or state transitions for mechanism, labeled data plots for quantities, and contrasting cases for model limits. Do not impose a decorative image count.",
+      "Build deliberate, shaded parts in correct depth order. Put explanations and part names in a linked legend; reserve color for the currently relevant subject or a consistent data meaning.",
+      "Use one explicit model for moving parts, charts and live readouts. Explain units, normalized geometry, assumptions and limits; never animate a visual independently of the quantity it claims to show.",
+      "Offer play/pause, reset and reversible steps or scrubbing. Start still; pause offscreen or in a hidden tab, and offer discrete states under reduced motion. Do not announce each animation frame to screen readers.",
+      "Supply a real inline SVG, image or table as a static storyboard with conditions and complete explanations in canonical Markdown; a promise of a fallback is insufficient.",
+      "Declare visual_contract with profile anatomy.v1 in new or revised visual deliveries. Preserve older manifests; the Runtime checks records and targets while browser scenarios and host review check behavior and truth."
+    ],
+    "contract": {
+      "manifest_field": "visual_contract",
+      "profile": "anatomy.v1",
+      "figure_fields": ["id", "role", "selector", "caption", "labels", "static_frame"],
+      "roles": ["structure", "mechanism", "process", "data", "comparison", "spatial"],
+      "animated_fields": ["model_binding", "controls", "states"],
+      "model_binding": "source describes the shared model; quantities lists name, unit and a real output selector. These declarations are not evaluated as code.",
+      "controls": "play_pause and reset plus either step_forward/step_back or scrub/parameter; all targets are actual enabled buttons, inputs or selects.",
+      "states": "At least two explained states, also recorded in canonical Markdown.",
+      "selectors": "Unique #id targets; static_frame points to an actual SVG, image or table. Captions and labels occur in both delivered bodies.",
+      "compatibility": "Optional for existing packages; required by the authoring workflow for newly generated or revised visual packages."
+    },
+    "review": ["inspect desktop and 375px layout", "zoom into joints and overlaps", "check release/intermediate/end states against independent calculations", "exercise every control with pointer and keyboard", "check pause, reset, reduced motion, offscreen and hidden-tab behavior", "read the static storyboard with JavaScript disabled"]
   },
   "layout": {
     "desktop_max_width_px": 1800,

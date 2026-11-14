@@ -24,6 +24,7 @@ can share a ``created_at``. Any "before/after" split therefore uses event
 
 from __future__ import annotations
 
+import json
 from typing import Any, Iterable, Mapping
 
 __all__ = ["LearningMetrics", "diagnostic_split", "TARGET_STAGE"]
@@ -45,10 +46,14 @@ def diagnostic_split(db: Any, session_id: str) -> tuple[list[dict], list[dict], 
     """Split assessment results into pre-diagnostic and post-diagnostic.
 
     Returns ``(baseline_results, post_results, diagnostic_completed_at)``.
-    The split point is the position of the first ``diagnostic_completed`` event
-    in the append-ordered event log, mapped onto the attempts recorded before
-    it. Using rowid rather than ``created_at`` matters because a whole teaching
-    turn can land inside the same second.
+    The split point is the first ``diagnostic_completed`` event in the
+    append-ordered event log; a result belongs to the baseline when **its own
+    attempt** was submitted before that event. Counting attempts and using the
+    count as a slice index into the result list was wrong: an unassessed
+    diagnostic attempt made the first post-diagnostic assessment look like the
+    baseline, so learning gain was computed between two post-teaching results.
+    Using rowid rather than ``created_at`` matters because a whole teaching turn
+    can land inside the same second.
     """
     marker = db.query_one(
         "SELECT rowid, created_at FROM event_log "
@@ -67,15 +72,27 @@ def diagnostic_split(db: Any, session_id: str) -> tuple[list[dict], list[dict], 
     if marker is None:
         return [], results, None
 
-    baseline_count = int(
-        db.scalar(
-            "SELECT COUNT(*) FROM event_log "
-            "WHERE session_id = ? AND event_type = 'attempt_submitted' AND rowid < ?",
-            (session_id, int(marker["rowid"])),
-            0,
-        )
+    submitted = db.query(
+        "SELECT payload FROM event_log "
+        "WHERE session_id = ? AND event_type = 'attempt_submitted' AND rowid < ? "
+        "ORDER BY rowid",
+        (session_id, int(marker["rowid"])),
     )
-    return results[:baseline_count], results[baseline_count:], marker["created_at"]
+    baseline_attempts: set[str] = set()
+    for event in submitted:
+        raw = event["payload"]
+        if not raw:
+            continue
+        try:
+            payload = json.loads(raw)
+        except (TypeError, ValueError):
+            continue
+        attempt_id = payload.get("attempt_id") if isinstance(payload, dict) else None
+        if isinstance(attempt_id, str):
+            baseline_attempts.add(attempt_id)
+    baseline = [row for row in results if row.get("attempt_id") in baseline_attempts]
+    post = [row for row in results if row.get("attempt_id") not in baseline_attempts]
+    return baseline, post, marker["created_at"]
 
 
 def _mean(values: Iterable[float]) -> float | None:
@@ -115,7 +132,7 @@ class LearningMetrics:
             "target_stage": TARGET_STAGE,
             "immediate_performance": self.immediate_performance(post or all_results),
             "delayed_retention": self.delayed_retention(learner_id),
-            "transfer_performance": self.transfer_performance(learner_id),
+            "transfer_performance": self.transfer_performance(learner_id, session_id),
             "time_to_target_evidence": self._time_summary(per_node),
             "attempts_to_target_evidence": self._attempts_summary(per_node),
             "hint_dependency": self.hint_dependency(all_results),
@@ -168,14 +185,16 @@ class LearningMetrics:
             "note": "null until at least one review has happened after the configured interval",
         }
 
-    def transfer_performance(self, learner_id: str) -> dict:
-        rows = [
-            dict(r)
-            for r in self._db.query(
-                "SELECT transfer_type, score FROM transfer_results WHERE learner_id = ?",
-                (learner_id,),
-            )
-        ]
+    def transfer_performance(self, learner_id: str, session_id: str | None = None) -> dict:
+        """Transfer evidence for one learner, scoped to a session when known."""
+        sql = "SELECT transfer_type, score FROM transfer_results WHERE learner_id = ?"
+        params: list[Any] = [learner_id]
+        if session_id:
+            # Legacy rows recorded before the column/backfill existed have NULL
+            # session_id and stay attributable to the learner.
+            sql += " AND (session_id IS NULL OR session_id = ?)"
+            params.append(session_id)
+        rows = [dict(r) for r in self._db.query(sql, tuple(params))]
         scores = [r["score"] for r in rows if r.get("score") is not None]
         by_type: dict[str, list[float]] = {}
         for row in rows:
@@ -186,6 +205,7 @@ class LearningMetrics:
             "mean_score": _mean(scores),
             "by_type": {k: _mean(v) for k, v in sorted(by_type.items())},
             "pass_score": float(self._get("transfer_pass_score", 0.70)),
+            "session_id": session_id,
         }
 
     def time_to_target_evidence(self, session_id: str) -> dict:

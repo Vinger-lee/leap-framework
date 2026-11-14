@@ -22,6 +22,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 import unicodedata
 from dataclasses import dataclass, field
@@ -304,6 +305,23 @@ def iter_files(root: Path, skip_dirs: set[str], skip_suffixes: set[str]) -> Iter
             yield path
 
 
+def publishable_files(root: Path) -> Iterator[Path]:
+    """List tracked and non-ignored files, including force-added paths."""
+    names = subprocess.check_output(
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+        cwd=root,
+    ).decode("utf-8").split("\0")
+    for name in sorted(set(names) - {""}):
+        path = root / name
+        if path.suffix.lower() in DEFAULT_SKIP_SUFFIXES:
+            continue
+        try:
+            if path.is_file() and path.stat().st_size <= MAX_FILE_BYTES:
+                yield path
+        except OSError:
+            continue
+
+
 def read_text(path: Path) -> str | None:
     try:
         raw = path.read_bytes()
@@ -480,6 +498,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--root", default=".", help="repository root (default: current directory)")
     parser.add_argument("--md", default=None, help="write a Markdown report to this path")
     parser.add_argument("--json", dest="json_out", default=None, help="write findings as JSON")
+    parser.add_argument(
+        "--publishable", action="store_true",
+        help="scan tracked and non-ignored files in the Git repository",
+    )
     parser.add_argument("--quiet", action="store_true", help="only print the summary line")
     args = parser.parse_args(argv)
 
@@ -488,7 +510,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"error: not a directory: {root}", file=sys.stderr)
         return 1
 
-    files = list(iter_files(root, DEFAULT_SKIP_DIRS, DEFAULT_SKIP_SUFFIXES))
+    if args.publishable:
+        try:
+            files = list(publishable_files(root))
+        except (OSError, subprocess.CalledProcessError) as exc:
+            print(f"error: cannot read Git file list: {exc}", file=sys.stderr)
+            return 1
+    else:
+        files = list(iter_files(root, DEFAULT_SKIP_DIRS, DEFAULT_SKIP_SUFFIXES))
     findings: list[Finding] = []
     for path in files:
         findings.extend(scan_file(path, root, RULES))

@@ -150,11 +150,37 @@ def describe_modes(locale: str | None = None) -> list[dict]:
     return out
 
 
+#: Tokens that negate the trigger they precede. Substring matching alone turned
+#: "我不想准备考试" into exam_prep; a trigger inside a negated clause must not win.
+_NEGATIONS: tuple[str, ...] = (
+    "不", "别", "没", "无", "勿", "非", "否", "不要", "不用", "无需", "拒绝",
+    "not", "dont", "don't", "no", "never", "without", "avoid", "skip",
+)
+_NEGATION_WINDOW = 6
+
+
+def _is_negated(needle: str, trigger: str) -> bool:
+    """True when every occurrence of ``trigger`` sits inside a negated clause."""
+    start = 0
+    found = False
+    while True:
+        index = needle.find(trigger, start)
+        if index < 0:
+            break
+        found = True
+        prefix = needle[max(0, index - _NEGATION_WINDOW):index]
+        if not any(token in prefix for token in _NEGATIONS):
+            return False
+        start = index + max(1, len(trigger))
+    return found
+
+
 def resolve_mode(request: str | None) -> str | None:
     """Map a free-text request onto a known mode name.
 
-    Returns ``None`` when nothing matches, so the caller can tell the user
-    instead of silently doing nothing.
+    Returns ``None`` when nothing matches (including negated mentions such as
+    "don't prepare for exams"), so the caller can tell the user instead of
+    silently choosing the wrong mode.
     """
     if not request:
         return None
@@ -165,7 +191,8 @@ def resolve_mode(request: str | None) -> str | None:
         return needle
     for name, spec in LEARNING_MODES.items():
         for trigger in spec["triggers"]:
-            if trigger.lower() in needle:
+            lowered = trigger.lower()
+            if lowered in needle and not _is_negated(needle, lowered):
                 return name
     return None
 

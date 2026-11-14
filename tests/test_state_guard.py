@@ -115,10 +115,19 @@ class TestUnitAdvance:
         after = grounded_service.get_session_info(dag)["session"]["state_version"]
         assert before == after
 
-    def test_manual_override_is_recorded_and_allows(self, grounded_service, dag):
-        result = grounded_service.advance_unit(dag, unit_tag="u1", manual_override=True)
-        assert result["ok"] is True
-        assert node_checks(result, "n1")["manual_override"] is True
+    def test_manual_override_is_internal_and_not_host_reachable(self, grounded_service, dag):
+        """The guard still supports an operator override; the host has no switch."""
+        import inspect
+
+        decision = grounded_service.guard.check_unit(dag, "u1", manual_override=True)
+        assert decision.allowed is True
+        assert decision.details["nodes"]["n1"]["manual_override"] is True
+        for method in (
+            grounded_service.advance_unit,
+            grounded_service.check_advance_unit,
+            grounded_service.advance_lesson,
+        ):
+            assert "manual_override" not in inspect.signature(method).parameters
 
 
 class TestPrerequisites:

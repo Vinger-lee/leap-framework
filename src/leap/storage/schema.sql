@@ -237,6 +237,7 @@ CREATE TABLE IF NOT EXISTS transfer_results (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     learner_id    TEXT NOT NULL REFERENCES learners(learner_id),
     node_id       TEXT NOT NULL REFERENCES knowledge_nodes(node_id) ON DELETE CASCADE,
+    session_id    TEXT REFERENCES learning_sessions(session_id) ON DELETE SET NULL,
     transfer_type TEXT NOT NULL
                   CHECK (transfer_type IN ('near', 'variation', 'far', 'integrated')),
     score         REAL,
@@ -378,6 +379,7 @@ CREATE TABLE IF NOT EXISTS request_log (
     tool_name       TEXT NOT NULL,
     session_id      TEXT,
     response        TEXT,
+    arguments_hash  TEXT,
     created_at      INTEGER NOT NULL
 );
 

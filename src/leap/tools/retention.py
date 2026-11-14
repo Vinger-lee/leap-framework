@@ -54,7 +54,10 @@ class RetentionTools(LeapToolMixin):
         """Create a review item for a node if one does not exist yet."""
         learner_id = self.require_text(learner_id, "learner_id")
         node_id = self.require_text(node_id, "node_id")
-        self.require_node(node_id)
+        if session_id:
+            self.require_node(node_id, session_id)
+        else:
+            self.require_node(node_id)
 
         existing = self.db.query_one(
             "SELECT * FROM review_items WHERE learner_id = ? AND node_id = ? LIMIT 1",
@@ -115,38 +118,40 @@ class RetentionTools(LeapToolMixin):
         request_id: str | None = None,
     ) -> dict:
         """Submit an FSRS rating (1=Again, 2=Hard, 3=Good, 4=Easy) and reschedule."""
-        row = self.db.query_one(
-            "SELECT * FROM review_items WHERE review_item_id = ?", (review_item_id,)
-        )
-        if row is None:
-            raise ToolError("unknown_review_item", f"review item not found: {review_item_id}")
-        row = dict(row)
-
-        try:
-            rating_int = int(rating)
-        except (TypeError, ValueError) as exc:
-            raise ToolError("invalid_rating", "rating must be an integer 1-4") from exc
-        if not 1 <= rating_int <= 4:
-            raise ToolError("invalid_rating", f"rating must be within 1..4, got {rating_int}")
-
-        self.events.emit(
-            "review_started", session_id=session_id, learner_id=row["learner_id"],
-            node_id=row["node_id"],
-            payload={"review_item_id": review_item_id, "rating": rating_int,
-                     "review_count": int(row.get("review_count") or 0)},
-            request_id=request_id,
-        )
-
-        outcome = self.scheduler.review(
-            rating=rating_int,
-            stability=row.get("stability"),
-            difficulty=row.get("difficulty"),
-            due_at=row.get("next_review_at"),
-            last_review_at=row.get("last_review_at"),
-            review_count=int(row.get("review_count") or 0),
-        )
-        ts = now_ts()
         with self.db.transaction():
+            row = self.db.query_one(
+                "SELECT * FROM review_items WHERE review_item_id = ?", (review_item_id,)
+            )
+            if row is None:
+                raise ToolError("unknown_review_item", f"review item not found: {review_item_id}")
+            row = dict(row)
+            node = self.require_node(row["node_id"], session_id)
+            resolved_session_id = node["session_id"]
+
+            try:
+                rating_int = int(rating)
+            except (TypeError, ValueError) as exc:
+                raise ToolError("invalid_rating", "rating must be an integer 1-4") from exc
+            if not 1 <= rating_int <= 4:
+                raise ToolError("invalid_rating", f"rating must be within 1..4, got {rating_int}")
+
+            self.events.emit(
+                "review_started", session_id=resolved_session_id, learner_id=row["learner_id"],
+                node_id=row["node_id"],
+                payload={"review_item_id": review_item_id, "rating": rating_int,
+                         "review_count": int(row.get("review_count") or 0)},
+                request_id=request_id,
+            )
+
+            outcome = self.scheduler.review(
+                rating=rating_int,
+                stability=row.get("stability"),
+                difficulty=row.get("difficulty"),
+                due_at=row.get("next_review_at"),
+                last_review_at=row.get("last_review_at"),
+                review_count=int(row.get("review_count") or 0),
+            )
+            ts = now_ts()
             self.db.execute(
                 "UPDATE review_items SET stability=?, difficulty=?, retrievability=?, "
                 " last_review_at=?, next_review_at=?, review_count=review_count+1, last_rating=?, "
@@ -157,31 +162,36 @@ class RetentionTools(LeapToolMixin):
                     outcome.scheduler_version, ts, review_item_id,
                 ),
             )
-        self._sync_review_cache(row["learner_id"], row["node_id"])
+            self._sync_review_cache(row["learner_id"], row["node_id"])
 
-        # A successful spaced review is retention evidence (section 11.4).
-        stage_after = None
-        if rating_int >= 2:
-            stage_after = self.reevaluate_evidence_stage(  # type: ignore[attr-defined]
-                row["learner_id"], row["node_id"], session_id
+            # A successful spaced review is retention evidence (section 11.4).
+            # The owning session is resolved from the node when the caller omitted
+            # it: passing an empty session made the evidence query see zero attempts
+            # and demoted the node to `estimated` on a perfectly good review.
+            stage_after = None
+            if rating_int >= 2:
+                stage_after = self.reevaluate_evidence_stage(  # type: ignore[attr-defined]
+                    row["learner_id"], row["node_id"], resolved_session_id
+                )
+
+            self.events.emit(
+                "review_completed", session_id=resolved_session_id, learner_id=row["learner_id"],
+                node_id=row["node_id"],
+                payload={"review_item_id": review_item_id, "rating": rating_int,
+                         "interval_days": outcome.interval_days, "stage_after": stage_after},
+                request_id=request_id,
             )
-
-        self.events.emit(
-            "review_completed", session_id=session_id, learner_id=row["learner_id"],
-            node_id=row["node_id"],
-            payload={"review_item_id": review_item_id, "rating": rating_int,
-                     "interval_days": outcome.interval_days, "stage_after": stage_after},
-            request_id=request_id,
-        )
-        return self.ok(
-            review_item_id=review_item_id,
-            rating=rating_int,
-            next_review_at=outcome.due_at,
-            interval_days=outcome.interval_days,
-            stability=outcome.stability,
-            difficulty=outcome.difficulty,
-            evidence_stage=stage_after,
-        )
+            return self.ok(
+                review_item_id=review_item_id,
+                rating=rating_int,
+                next_review_at=outcome.due_at,
+                interval_days=outcome.interval_days,
+                stability=outcome.stability,
+                difficulty=outcome.difficulty,
+                evidence_stage=stage_after,
+                session_id=resolved_session_id,
+                session_inferred=session_id is None,
+            )
 
     def get_due_reviews(
         self, learner_id: str, *, limit: int = 50, session_id: str | None = None
@@ -192,7 +202,16 @@ class RetentionTools(LeapToolMixin):
         per-node Policy + State Guard decision.
         """
         learner_id = self.require_text(learner_id, "learner_id")
-        due = self.policy.due_reviews(learner_id)[:limit]
+        due = self.policy.due_reviews(learner_id)
+        if session_id is not None:
+            session = self.require_session(session_id)
+            if session["learner_id"] != learner_id:
+                raise ToolError("invalid_session", "session does not belong to the learner")
+            node_ids = {row["node_id"] for row in self.db.query(
+                "SELECT node_id FROM knowledge_nodes WHERE session_id = ?", (session_id,)
+            )}
+            due = [item for item in due if item["node_id"] in node_ids]
+        due = due[:limit]
         for item in due:
             item["retrievability_now"] = self.scheduler.retrievability(
                 stability=item.get("stability"), last_review_at=item.get("last_review_at")

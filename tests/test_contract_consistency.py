@@ -6,16 +6,35 @@ from leap.config import REPO_ROOT
 from leap.server import build_server
 from scripts.generate_tool_reference import registered_tools, render
 
+# Public-facing documents are rendered by GitHub and PyPI, where Obsidian
+# ``[[wikilinks]]`` are shown verbatim. They use standard Markdown links instead;
+# the repository vault keeps using wikilinks.
+PUBLIC_READMES = ("README.md", "README_CN.md")
+I18N_READMES = "docs/i18n"
+
 
 def test_reference_matches_registered_mcp_catalog():
     names = {n.name for n in registered_tools()}
     catalog = asyncio.run(build_server().list_tools())
     assert names == {t.name for t in catalog}
     assert (REPO_ROOT / "docs/mcp-tools.md").read_text(encoding="utf-8") == render()
-    for name in ("README.md", "README_CN.md"):
+    for name in PUBLIC_READMES:
         readme = (REPO_ROOT / name).read_text(encoding="utf-8")
         assert f"MCP-{len(names)}%20tools" in readme
-        assert "[[docs/mcp-tools|" in readme
+        assert "](docs/mcp-tools.md)" in readme
+
+
+def test_public_readmes_render_on_github_and_pypi():
+    names = {n.name for n in registered_tools()}
+    for name in PUBLIC_READMES:
+        readme = (REPO_ROOT / name).read_text(encoding="utf-8")
+        assert "[[" not in readme, f"{name}: Obsidian wikilink leaks into a public README"
+        assert "](docs/mcp-tools.md)" in readme, f"{name}: tool reference link missing"
+        assert f"MCP-{len(names)}%20tools" in readme, f"{name}: tool-count badge is stale"
+    for document in sorted((REPO_ROOT / I18N_READMES).glob("README.*.md")):
+        text = document.read_text(encoding="utf-8")
+        assert "[[" not in text, f"{document.name}: Obsidian wikilink leaks into a public README"
+        assert f"MCP-{len(names)}%20tools" in text, f"{document.name}: tool-count badge is stale"
 
 
 def test_bridge_tools_exist_and_packaged_schema_matches():

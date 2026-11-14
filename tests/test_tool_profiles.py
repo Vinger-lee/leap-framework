@@ -85,7 +85,7 @@ def test_quickstart_is_a_narrow_true_subset():
     assert quickstart < full
     assert len(quickstart) < len(full)
     # The fine-grained tools an integration does not need on day one stay hidden.
-    for hidden in ("commit_assessment", "submit_attempt", "advance_unit", "get_decision_log"):
+    for hidden in ("submit_attempt", "advance_unit", "get_decision_log"):
         assert hidden not in quickstart
 
 
@@ -103,6 +103,9 @@ def test_quickstart_keeps_every_facade_tool_and_the_setup_path():
         "save_assessment_item",
         "generate_diagnostic",
         "generate_final_report",
+        "commit_assessment",
+        "resolve_misconception",
+        "complete_session",
     ):
         assert required in quickstart
 
@@ -116,6 +119,33 @@ def test_every_profile_name_is_registered_in_the_full_catalog():
             continue
         unknown = sorted(set(names) - full)
         assert not unknown, f"profile {profile!r} lists unregistered tools: {unknown}"
+
+
+def test_quickstart_can_execute_the_misconception_next_call(dag, grounded_service, monkeypatch):
+    import asyncio
+    import json
+    import leap.server as server_module
+
+    misconception = grounded_service.assess_misconception(
+        "learner-test", "n1", "Synthetic misconception", session_id=dag,
+    )
+    monkeypatch.setattr(server_module, "get_service", lambda: grounded_service)
+    server = build_server("quickstart")
+
+    async def exercise():
+        response = await server.call_tool("continue_lesson", {"session_id": dag, "node_id": "n1"})
+        lesson = response.structured_content or json.loads(response.content[0].text)
+        target = lesson["next_call"]["tool"]
+        assert target == "resolve_misconception"
+        assert target in registered_tool_names(server)
+        response = await server.call_tool(target, {
+            "misconception_id": misconception["misconception_id"], "session_id": dag,
+        })
+        resolved = response.structured_content or json.loads(response.content[0].text)
+        assert resolved["status"] == "resolved"
+        assert grounded_service.get_mastery_status(dag, "n1")["misconception_ids"] == []
+
+    asyncio.run(exercise())
 
 
 def test_unknown_profile_is_refused_instead_of_silently_widening():

@@ -11,6 +11,11 @@ from pathlib import Path
 
 PAGE = Path(__file__).with_name("leap-04-physics-free-fall.html")
 START, END = "<!-- LEAP_RIG_START -->", "<!-- LEAP_RIG_END -->"
+PART_LABELS = {
+    "base": "底座", "frame": "固定支架", "catch": "承接盘",
+    "gates": "光门", "scale": "归一化标尺", "release": "释放头",
+    "door": "观察门", "console": "速度表",
+}
 TONES = {
     "base": ("#c8c5bb", "#96958e", "#afada3"),
     "frame": ("#e6e3db", "#aaa99f", "#c5c2b8"),
@@ -50,7 +55,10 @@ def screw(x, y, z):
 
 
 def assembly(name, parts):
-    return f'<g class="rig-part" data-part="{name}" id="rig-{name}">' + "\n".join(parts) + '</g>'
+    label = PART_LABELS.get(name, name)
+    return (f'<g class="rig-part" data-part="{name}" id="rig-{name}" '
+            f'role="button" tabindex="0" aria-label="{label}">'
+            + "\n".join(parts) + '</g>')
 
 
 def build():

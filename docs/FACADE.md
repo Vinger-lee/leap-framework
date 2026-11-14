@@ -12,7 +12,7 @@ delivery_policy: '3.0'
 > Advanced: `LEAP coarse tutor API facade next_call tool profiles invariants verification transfer`
 > These are search queries; no video has been certified for this note.
 
-Related: [[Knowledge_Index]] · [[docs/INTEGRATION]] · [[docs/mcp-tools]] · [[docs/FACADE_CN]] · [[docs/scope-and-limits]] · [[README]]
+Related: [[Knowledge_Index]] · [[docs/INTEGRATION]] · [[docs/mcp-tools]] · [[docs/FACADE_CN]] · [[docs/scope-and-limits]] · [[README]] · [[docs/host-config]]
 
 # Coarse tutor API and tool profiles
 
@@ -23,7 +23,7 @@ ordered calls, and ordering mistakes are the most common integration failure.
 
 This page documents the two things that remove most of that cost: the **coarse tutor API** (eight
 tools that compose the fine-grained ones server-side) and **tool profiles** (a `quickstart`
-catalog of about twenty-five tools instead of seventy).
+catalog limited to the tools needed for the ordinary teaching workflow).
 
 ## 1. The coarse tutor API
 
@@ -34,6 +34,10 @@ See [[docs/mcp-tools|the generated reference]] for coarse tool names, compositio
 
 Every response carries `next_call`: the single next tool call to make, with its arguments and the
 reason. The facade therefore guides the agent instead of requiring it to memorise the lifecycle.
+`next_call` only guarantees that the target tool exists in the current profile; arguments that
+encode a semantic decision (for example a review rating: `next_call` supplies `review_item_id`,
+`session_id` and `allowed_ratings` but no score to copy) must come from the real observation.
+After a session is closed, `next_call` is null.
 
 ### What the facade does not change
 
@@ -49,8 +53,9 @@ reason. The facade therefore guides the agent instead of requiring it to memoris
   mismatch error between attempt and assessment.
 - **Mastery is still estimated server-side.** `mastery_probability` is never accepted from the
   agent, and the configured estimator remains the only producer of that number.
-- **Delivery policy 3.0 still applies.** The coarse envelope carries the versioned policy once;
-  nested sub-responses have their duplicate copy removed.
+- **Delivery policy 3.0 still applies.** Responses use a compact envelope carrying only
+  `policy_version`; fetch the full policy once with `get_teaching_delivery_policy()` and do not
+  quote it from memory.
 - **Grounding and item gates still apply.** `submit_answer` and `continue_lesson` fail with
   `domain_grounding_required` exactly like the fine-grained tools do.
 
@@ -60,6 +65,34 @@ With scores it stores the attempt *and* commits the assessment in one call. With
 stores only the attempt and returns `next_call` pointing at `commit_assessment`, which is the
 correct mode when free-text reasoning still needs your semantic review. Never derive scores from
 keywords.
+
+Both profiles expose `commit_assessment`: preserve the returned `attempt_id`, fix
+the reported cause and commit the original answer and supported scores without
+recording another attempt. Both also expose `assess_misconception` (record a new
+misconception) and `resolve_misconception`, so the facade's misconception branch has
+executable steps in each direction. Collect correction evidence before marking a
+misconception resolved.
+
+When the learner decides to skip Domain Grounding after session creation, both profiles
+also expose `set_domain_grounding_skip(session_id, allow_skip=True, reason=...)`: show the
+notice and obtain explicit informed confirmation first, then record the choice. Never
+open a second session and never skip on your own.
+
+`start_learning` resumes an active session for the same learner+topic by default
+(`existing_session=true`); pass `force_new=True` only when a second session is really
+intended. The `get_review_queue` next_call supplies `review_item_id`, `session_id`,
+`allowed_ratings` and `required_arguments=["rating"]` but no score to copy.
+
+### Reports and closure
+
+`generate_final_report` generates and saves a report; `complete_session` changes
+session status. Confirm the report receipt, then close and check `session_status`
+with `get_learner_snapshot`. Report success and closure failure separately.
+Repeated closure is idempotent and does not emit another completion event;
+`request_id` is an audit/idempotency correlation, never a substitute for a receipt.
+After closure `next_call` is null and teaching calls return `session_closed`; stop
+teaching and reopen explicitly per user intent with
+`complete_session(status="active", reopen=True)`.
 
 ```text
 # One teaching turn, coarse path
@@ -71,7 +104,8 @@ submit_answer(session_id, "<learner answer>", node_id="py.recursion.base_case",
               item_id="recursion.v1", correctness=1.0, reasoning_quality=0.9)
   → assessed: true · stage_after: demonstrated · next_call: advance_lesson
 advance_lesson(session_id, unit_tag="python-recursion")
-  → advanced: true · next_node_id: py.recursion.recursive_case
+  → advanced: true · next_unit_tag: ... · has_next_unit: true · next_call: continue_lesson
+    (next_call points at generate_final_report when no unit remains)
 get_learner_snapshot(session_id)
   → node_states: [...] · due_review_count: 2 · setup_gaps: []
 ```
@@ -81,10 +115,25 @@ get_learner_snapshot(session_id)
 A profile decides how much of the catalog an MCP client sees. Registration is identical in every
 profile, so the runtime keeps every capability and switching profiles needs no migration.
 
-| Profile | Tools | Contents |
-|---|---|---|
-| `quickstart` | 25 | The coarse tutor API plus the setup tools a complete lesson needs: grounding, the knowledge DAG, the canonical teaching package, registered items, diagnosis, transfer, reflection and the closing report |
-| `full` | 70 | Every registered tool (the default) |
+| Profile | Contents |
+|---|---|
+| `quickstart` | Coarse tutor API, grounding, DAG, teaching packages, items, diagnosis, assessment recovery, misconception recording and resolution, domain-grounding skip recording, transfer, reflection, reports and explicit closure; `continue_lesson` returns a compact summary by default |
+| `full` | Every registered tool (the default), including detailed evidence reads and page bridging |
+
+Counts and per-tool membership come from the [[docs/mcp-tools|generated reference]].
+Check the host's actual catalog for `next_call` and its follow-ups. The existing
+HTML outbox bridge and fine-grained evidence reads need `full`; session lookup with
+`find_session` works in both profiles. If quickstart cannot
+confirm a specific write after an uncertain result, stop that write and obtain
+the required read capability before retrying. For repository-skill hosts, see
+[leap-tutor setup and acceptance](agent-skill.md); copy-paste MCP/Skill configuration
+is in [[docs/host-config|host configuration]].
+
+Response cost: after the fix every call carries only a compact `policy_version`;
+fetch the full delivery policy once with `get_teaching_delivery_policy()`.
+`continue_lesson()` returns only the current-node summary by default; pass
+`verbose=True` when the full teaching context is needed. `quickstart` additionally
+cuts the one-off tool schema from about 54 KB to about 26 KB.
 
 Selection order:
 
@@ -125,4 +174,4 @@ committing one. Both APIs operate on the same rows, events and versions.
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[README]] · [[docs/FACADE_CN]] · [[docs/INTEGRATION]] · [[docs/scope-and-limits]]
+[[Knowledge_Index]] · [[README]] · [[docs/FACADE_CN]] · [[docs/INTEGRATION]] · [[docs/scope-and-limits]] · [[docs/host-config]] · [[docs/agent-skill]]

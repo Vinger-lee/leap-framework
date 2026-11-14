@@ -23,9 +23,24 @@ class TeachingTools(LeapToolMixin):
     # ------------------------------------------------------------------
     # 22.4 Teaching context
     # ------------------------------------------------------------------
-    def get_teaching_context(self, session_id: str, node_id: str | None = None) -> dict:
-        """Return the full teaching context in one call to reduce round trips."""
+    def get_teaching_context(
+        self,
+        session_id: str,
+        node_id: str | None = None,
+        *,
+        include_template: bool = False,
+    ) -> dict:
+        """Return the full teaching context in one call to reduce round trips.
+
+        ``include_template=False`` (default) omits the 14 KB authoring template;
+        pass ``include_template=True`` once, while authoring the lesson, instead
+        of re-sending it on every teaching turn.
+        """
         self.require_grounding(session_id)
+        if node_id:
+            # A node id is a global primary key: never build a session's context
+            # from another session's node.
+            self.require_node(node_id, session_id)
         context = self.policy.build_teaching_context(session_id, node_id)
         node_id = node_id or context["session"].get("current_node_id")
 
@@ -51,8 +66,10 @@ class TeachingTools(LeapToolMixin):
             "register_lesson_before_items": "save_teaching_package",
             "canonical_source": "complete Obsidian Markdown with reciprocal wikilinks and more detail than HTML",
         }
-        from leap.runtime.delivery import teaching_point_template
-        context["teaching_point_template"] = teaching_point_template()
+        if include_template:
+            from leap.runtime.delivery import teaching_point_template
+
+            context["teaching_point_template"] = teaching_point_template()
         context["lesson_packages"] = self.rows(
             "SELECT artifact_id, metadata FROM artifacts WHERE session_id=? "
             "AND artifact_type='teaching_package' ORDER BY rowid DESC", (session_id,)
@@ -215,8 +232,15 @@ class TeachingTools(LeapToolMixin):
         node_id: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Set the current teaching focus to a unit or node."""
+        """Set the current teaching focus to a unit or node.
+
+        The unit's entry node follows the DAG: prerequisites/extension edges are
+        ordered topologically (ties broken by node id), instead of a plain
+        lexicographic ``node_id`` sort that could start a lesson on a node whose
+        prerequisites are later in the same unit.
+        """
         session = self.require_session(session_id)
+        self.require_active_session(session)
         self.require_grounding(session_id)
         resolved_node = self._resolve_entry_node(session_id, unit_tag, node_id)
         ts = now_ts()
@@ -238,15 +262,19 @@ class TeachingTools(LeapToolMixin):
         *,
         unit_tag: str | None = None,
         node_id: str | None = None,
-        manual_override: bool = False,
         expected_state_version: int | None = None,
     ) -> dict:
-        """Dry-run the State Guard for an advance request without changing state."""
+        """Dry-run the State Guard for an advance request without changing state.
+
+        ``manual_override`` is intentionally not exposed to the host: the guard
+        may only be overridden by an operator-level entry point, never by prompt
+        text or a tool argument.
+        """
+        self.require_session(session_id)
         resolved_tag = self._resolve_unit_tag(session_id, unit_tag, node_id)
         decision = self.guard.check_unit(
             session_id,
             resolved_tag,
-            manual_override=manual_override,
             expected_state_version=expected_state_version,
         )
         return self.ok(session_id=session_id, unit_tag=resolved_tag, guard=decision.as_dict())
@@ -257,40 +285,43 @@ class TeachingTools(LeapToolMixin):
         *,
         unit_tag: str | None = None,
         node_id: str | None = None,
-        manual_override: bool = False,
         expected_state_version: int | None = None,
         request_id: str | None = None,
     ) -> dict:
         """Request the next unit.
 
         Every node sharing the unit_tag must pass its own node-level guard;
-        one failure rejects the whole request. There is no unit table.
+        one failure rejects the whole request. There is no unit table. On
+        success the focus moves to the next unit's entry node; when the last
+        unit is passed the result says so explicitly (``has_next_unit=False``)
+        instead of silently restarting the current unit.
         """
-        session = self.require_session(session_id)
-        resolved_tag = self._resolve_unit_tag(session_id, unit_tag, node_id)
-        decision = self.guard.check_unit(
-            session_id,
-            resolved_tag,
-            manual_override=manual_override,
-            expected_state_version=expected_state_version,
-        )
-
-        if not decision.allowed:
-            self.events.emit(
-                "state_guard_rejected", session_id=session_id, learner_id=session["learner_id"],
-                payload={"tool": "advance_unit", "unit_tag": resolved_tag, **decision.as_dict()},
-                request_id=request_id,
+        with self.db.transaction():
+            session = self.require_session(session_id)
+            self.require_active_session(session)
+            resolved_tag = self._resolve_unit_tag(session_id, unit_tag, node_id)
+            decision = self.guard.check_unit(
+                session_id,
+                resolved_tag,
+                expected_state_version=expected_state_version,
             )
-            raise ToolError("state_guard_rejected", decision.reason, decision.as_dict())
 
-        return self._commit_unit_advance(session, resolved_tag, decision, request_id)
+            if decision.allowed:
+                return self._commit_unit_advance(session, resolved_tag, decision, request_id)
+
+        self.events.emit(
+            "state_guard_rejected", session_id=session_id, learner_id=session["learner_id"],
+            payload={"tool": "advance_unit", "unit_tag": resolved_tag, **decision.as_dict()},
+            request_id=request_id,
+        )
+        raise ToolError("state_guard_rejected", decision.reason, decision.as_dict())
 
     def _commit_unit_advance(
         self, session: dict, resolved_tag: str, decision: GuardDecision, request_id: str | None,
     ) -> dict:
         """Apply a unit transition after the caller's guard allowed it."""
         session_id = session["session_id"]
-        next_node = self._next_unit_entry(session_id, resolved_tag)
+        next_unit_tag, next_node = self._next_unit_after(session_id, resolved_tag)
         ts = now_ts()
         with self.db.transaction():
             self.db.execute(
@@ -298,11 +329,16 @@ class TeachingTools(LeapToolMixin):
                 "updated_at = ? WHERE session_id = ?",
                 (next_node, ts, session_id),
             )
-        version = self.guard.bump_state_version(session_id)
+            version = self.guard.bump_state_version(session_id)
         self.events.emit(
             "unit_advanced", session_id=session_id, learner_id=session["learner_id"],
             node_id=next_node,
-            payload={"unit_tag": resolved_tag, "guard": decision.as_dict()},
+            payload={
+                "unit_tag": resolved_tag,
+                "next_unit_tag": next_unit_tag,
+                "has_next_unit": next_node is not None,
+                "guard": decision.as_dict(),
+            },
             request_id=request_id,
         )
         return self.ok(
@@ -310,8 +346,16 @@ class TeachingTools(LeapToolMixin):
             unit_tag=resolved_tag,
             advanced=True,
             next_node_id=next_node,
+            next_unit_tag=next_unit_tag,
+            has_next_unit=next_node is not None,
             state_version=version,
             guard=decision.as_dict(),
+            guidance=(
+                "The guard released the unit. Teach next_node_id when present."
+                if next_node
+                else "This was the last unit: no next node was selected. Generate the closing "
+                "report and close the session."
+            ),
         )
 
     def rollback_unit(
@@ -325,7 +369,7 @@ class TeachingTools(LeapToolMixin):
         """Move the teaching focus back to an earlier node."""
         session = self.require_session(session_id)
         target_node_id = self.require_text(target_node_id, "target_node_id")
-        self.require_node(target_node_id)
+        self.require_node(target_node_id, session_id)
         ts = now_ts()
         with self.db.transaction():
             self.db.execute(
@@ -343,24 +387,90 @@ class TeachingTools(LeapToolMixin):
             state_version=version, reason=reason,
         )
 
+    _STATUSES = ("active", "paused", "completed", "abandoned")
+
     def complete_session(
-        self, session_id: str, *, status: str = "completed", request_id: str | None = None
+        self,
+        session_id: str,
+        *,
+        status: str = "completed",
+        reopen: bool = False,
+        require_final_report: bool = True,
+        request_id: str | None = None,
     ) -> dict:
-        """Set the session status (active/paused/completed/abandoned)."""
-        session = self.require_session(session_id)
-        if status not in {"completed", "paused", "abandoned", "active"}:
-            raise ToolError("invalid_status", f"unsupported session status: {status}")
+        """Set the session status with explicit transition rules.
+
+        * ``completed`` requires a persisted final report (the closing receipt)
+          unless ``require_final_report=False``; closing twice is idempotent and
+          emits the completion event only once.
+        * reopening a completed session requires ``reopen=True`` (``active``).
+        """
         with self.db.transaction():
+            session = self.require_session(session_id)
+            if status not in self._STATUSES:
+                raise ToolError(
+                    "invalid_status",
+                    f"unsupported session status: {status}",
+                    {"allowed": list(self._STATUSES)},
+                )
+            current = str(session.get("status") or "active")
+            report_id = self.final_report_artifact_id(session_id)
+
+            if status == current:
+                return self.ok(
+                    session_id=session_id,
+                    status=status,
+                    previous_status=current,
+                    already_applied=True,
+                    final_report_artifact_id=report_id,
+                    note="the session already has this status; nothing was written",
+                )
+
+            if status == "completed":
+                if require_final_report and not report_id:
+                    raise ToolError(
+                        "final_report_required",
+                        "generate_final_report must succeed before the session can be completed",
+                        {"session_id": session_id, "retryable": False,
+                         "hint": "call generate_final_report first"},
+                    )
+                if current == "abandoned":
+                    raise ToolError(
+                        "invalid_transition",
+                        "an abandoned session cannot be completed directly",
+                        {"from": current, "to": status},
+                    )
+            elif status == "active":
+                if current == "completed" and not reopen:
+                    raise ToolError(
+                        "invalid_transition",
+                        "reopening a completed session requires reopen=true",
+                        {"from": current, "to": status, "reopen": False},
+                    )
+
             self.db.execute(
                 "UPDATE learning_sessions SET status = ?, updated_at = ? WHERE session_id = ?",
                 (status, now_ts(), session_id),
             )
-        if status == "completed":
-            self.events.emit(
-                "session_completed", session_id=session_id, learner_id=session["learner_id"],
-                payload={}, request_id=request_id,
+            version = self.guard.bump_state_version(session_id)
+            if status == "completed":
+                # Literal call site: the event-vocabulary contract test scans
+                # emit() calls statically.
+                self.events.emit(
+                    "session_completed",
+                    session_id=session_id,
+                    learner_id=session["learner_id"],
+                    payload={"final_report_artifact_id": report_id},
+                    request_id=request_id,
+                )
+            return self.ok(
+                session_id=session_id,
+                status=status,
+                previous_status=current,
+                already_applied=False,
+                final_report_artifact_id=report_id,
+                state_version=version,
             )
-        return self.ok(session_id=session_id, status=status)
 
     # ------------------------------------------------------------------
     # internals
@@ -396,7 +506,7 @@ class TeachingTools(LeapToolMixin):
         self, session_id: str, unit_tag: str | None, node_id: str | None
     ) -> str:
         if node_id:
-            self.require_node(node_id)
+            self.require_node(node_id, session_id)
             return node_id
         if unit_tag:
             entry = self._next_unit_entry(session_id, unit_tag)
@@ -405,10 +515,66 @@ class TeachingTools(LeapToolMixin):
             raise ToolError("unknown_unit", f"unit '{unit_tag}' has no nodes in this session")
         raise ToolError("invalid_argument", "either unit_tag or node_id is required")
 
-    def _next_unit_entry(self, session_id: str, unit_tag: str) -> str | None:
-        """First node of the unit in topological-ish (id) order."""
-        return self.db.scalar(
-            "SELECT node_id FROM knowledge_nodes WHERE session_id = ? AND unit_tag = ? "
-            "ORDER BY node_id LIMIT 1",
-            (session_id, unit_tag),
+    #: Relations that impose teaching order.
+    _DEPENDENCY_RELATIONS = frozenset({"prerequisite", "extension"})
+
+    def _teaching_order(self, session_id: str) -> list[dict]:
+        """Return the session's nodes in dependency order (deterministic).
+
+        Prerequisite/extension edges are respected (Kahn's algorithm, ties
+        broken by ``node_id``); cycles fall back to node-id order so a malformed
+        DAG can never make a unit unreachable.
+        """
+        nodes = self.rows(
+            "SELECT * FROM knowledge_nodes WHERE session_id = ? ORDER BY node_id",
+            (session_id,),
         )
+        edges = self.rows(
+            "SELECT pre_node_id, post_node_id, relation_type FROM knowledge_edges "
+            "WHERE session_id = ? ORDER BY rowid",
+            (session_id,),
+        )
+        by_id = {node["node_id"]: node for node in nodes}
+        dependencies: dict[str, set[str]] = {node_id: set() for node_id in by_id}
+        for edge in edges:
+            relation = str(edge.get("relation_type") or "")
+            pre, post = edge.get("pre_node_id"), edge.get("post_node_id")
+            if relation in self._DEPENDENCY_RELATIONS and pre in by_id and post in by_id and pre != post:
+                dependencies[post].add(pre)
+        remaining = set(by_id)
+        ordered: list[dict] = []
+        while remaining:
+            ready = sorted(node_id for node_id in remaining if not (dependencies[node_id] & remaining))
+            if not ready:  # cycle: keep the order deterministic instead of failing
+                ready = sorted(remaining)
+            for node_id in ready:
+                ordered.append(by_id[node_id])
+                remaining.discard(node_id)
+        return ordered
+
+    def _unit_order(self, session_id: str) -> list[str]:
+        """Unit tags in the order their first node appears in the teaching order."""
+        ordered: list[str] = []
+        for node in self._teaching_order(session_id):
+            tag = node.get("unit_tag")
+            if tag and tag not in ordered:
+                ordered.append(tag)
+        return ordered
+
+    def _next_unit_entry(self, session_id: str, unit_tag: str) -> str | None:
+        """Entry node of a unit: the first of its nodes in dependency order."""
+        for node in self._teaching_order(session_id):
+            if node.get("unit_tag") == unit_tag:
+                return node["node_id"]
+        return None
+
+    def _next_unit_after(self, session_id: str, unit_tag: str) -> tuple[str | None, str | None]:
+        """Return ``(next unit tag, its entry node)`` after ``unit_tag``."""
+        units = self._unit_order(session_id)
+        if unit_tag not in units:
+            return None, None
+        index = units.index(unit_tag) + 1
+        if index >= len(units):
+            return None, None
+        next_tag = units[index]
+        return next_tag, self._next_unit_entry(session_id, next_tag)

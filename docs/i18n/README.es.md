@@ -15,7 +15,7 @@ delivery_policy: '3.0'
 > Advanced: `LEAP 🎓 LEAP Framework invariants verification transfer`
 > These are search queries; no video has been certified for this note.
 
-Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+Related: [Knowledge_Index](../../Knowledge_Index.md) · [docs/teaching-delivery](../teaching-delivery.md)
 
 # 🎓 LEAP Framework
 
@@ -23,21 +23,21 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
   <img src="https://img.shields.io/github/stars/Vinger-lee/leap-framework?style=social" alt="Stars">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-70%20tools-22bb33" alt="MCP Tools">
+  <img src="https://img.shields.io/badge/MCP-71%20tools-22bb33" alt="MCP Tools">
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
   <b>🤖 Dale a tu agente de IA un motor de tutoría real, no solo un prompt.</b>
 </p>
 
 <p align="center">
-  [[README|English]] ·
-  [[README_CN|中文]] ·
-  [[docs/i18n/README.ja|日本語]] ·
-  [[docs/i18n/README.ko|한국어]] ·
-  [[docs/i18n/README.fr|Français]] ·
-  [[docs/i18n/README.es|Español]] ·
-  [[docs/i18n/README.ru|Русский]] ·
-  [[docs/i18n/README.ar|العربية]]
+  <a href="../../README.md">English</a> ·
+  <a href="../../README_CN.md">中文</a> ·
+  <a href="README.ja.md">日本語</a> ·
+  <a href="README.ko.md">한국어</a> ·
+  <a href="README.fr.md">Français</a> ·
+  <a href="README.es.md">Español</a> ·
+  <a href="README.ru.md">Русский</a> ·
+  <a href="README.ar.md">العربية</a>
 </p>
 
 ---
@@ -104,7 +104,7 @@ Una respuesta correcta produce evidencia, no dominio. Las etapas **retroceden** 
 
 ## 🔧 Herramientas MCP
 
-[[docs/mcp-tools|Referencia MCP generada: nombres, parámetros y perfiles]].
+[Referencia MCP generada: nombres, parámetros y perfiles](../mcp-tools.md).
 
 ## 🧩 Diseño conectable
 
@@ -121,11 +121,11 @@ Seis componentes se resuelven mediante un registro de plugins: una implementaci�
 
 ## 📚 Saber más
 
-- [[docs/ARCHITECTURE|Arquitectura]]
-- [[docs/INTEGRATION|Guía de integración del agente anfitrión]]
-- [[docs/EXAMPLES|Páginas de ejemplo]]
-- [[docs/LOCALIZATION|Internacionalización]]
-- [[README|English README]] · [[README_CN|中文说明]]
+- [Arquitectura](../ARCHITECTURE.md)
+- [Guía de integración del agente anfitrión](../INTEGRATION.md)
+- [Páginas de ejemplo](../EXAMPLES.md)
+- [Internacionalización](../LOCALIZATION.md)
+- [English README](../../README.md) · [中文说明](../../README_CN.md)
 
 > La especificación de diseño de referencia y el sistema de diseño visual los mantiene el autor del proyecto por separado y no forman parte de este repositorio.
 
@@ -139,8 +139,12 @@ Seis componentes se resuelven mediante un registro de plugins: una implementaci�
 > For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
 > After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
 
+## 🤖 Agent Skill (opcional)
+
+La skill `.agents/skills/leap-tutor/` solo está disponible en hosts que cargan skills del repositorio; consulta [docs/agent-skill.md](../../docs/agent-skill.md) para el alcance y [docs/host-config.md](../../docs/host-config.md) para ejemplos de `mcpServers`. No se afirman hosts no verificados.
+
 <!-- LEAP_BACKLINKS -->
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]]
+[Knowledge_Index](../../Knowledge_Index.md) · [README](../../README.md) · [README_CN](../../README_CN.md) · [docs/i18n/README.ar](README.ar.md) · [docs/i18n/README.fr](README.fr.md) · [docs/i18n/README.ja](README.ja.md) · [docs/i18n/README.ko](README.ko.md) · [docs/i18n/README.ru](README.ru.md)

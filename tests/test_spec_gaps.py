@@ -423,43 +423,60 @@ class TestLearningMetrics:
 
 
 # ---------------------------------------------------------------------------
-# G6 - section 18.1 events
+# G6 - event vocabulary (section 18.1)
 # ---------------------------------------------------------------------------
 class TestEventCoverage:
-    def _spec_events(self) -> list[str]:
-        spec_path = REPO_ROOT / "（作者维护的框架设计文档，不在本仓库）"
-        if not spec_path.exists():
-            pytest.skip("design document is not in this public repository")
-        spec = spec_path.read_text(encoding="utf-8")
-        lines = spec.splitlines()
-        start, body = None, []
-        for i, line in enumerate(lines):
-            m = re.match(r"^#\s*(\d+)\.\s", line)
-            if m and int(m.group(1)) == 18:
-                start = i + 1
+    """The audit-trail vocabulary is documented inside this repository.
+
+    The author's framework design document is not part of the public repository,
+    so the section 18.1 vocabulary is maintained in ``docs/ARCHITECTURE.md`` and
+    checked in both directions here.
+    """
+
+    ARCHITECTURE = "docs/ARCHITECTURE.md"
+    MARKER = "### Event vocabulary"
+
+    def _documented_events(self) -> list[str]:
+        architecture = (REPO_ROOT / self.ARCHITECTURE).read_text(encoding="utf-8")
+        if self.MARKER not in architecture:
+            pytest.fail(f"{self.MARKER!r} section missing from {self.ARCHITECTURE}")
+        section = architecture.split(self.MARKER, 1)[1]
+        heading = re.search(r"^## ", section, re.M)
+        if heading:
+            section = section[: heading.start()]
+        block = re.search(r"```text\n(.*?)```", section, re.S)
+        if block is None:
+            pytest.fail(f"event vocabulary block missing from {self.ARCHITECTURE}")
+        return re.findall(r"^([a-z_]+)$", block.group(1), re.M)
+
+    @staticmethod
+    def _emitted_events() -> set[str]:
+        emitted: set[str] = set()
+        for path in (REPO_ROOT / "src" / "leap").rglob("*.py"):
+            if path.name == "events.py" or "__pycache__" in path.parts:
                 continue
-            if start is not None and m:
-                break
-            if start is not None:
-                body.append(line)
-        text = "\n".join(body)
-        block = text.split("```text")[1].split("```")[0]
-        return re.findall(r"^\s*([a-z_]+),?$", block, re.M)
+            text = path.read_text(encoding="utf-8")
+            emitted.update(re.findall(r'emit\(\s*"([a-z_]+)"', text))
+        return emitted
+
+    def test_documented_events_are_unique_snake_case(self):
+        events = self._documented_events()
+        assert events, "documented event list is empty"
+        assert events == sorted(set(events)), "documented event list must be sorted and unique"
+        assert all(re.fullmatch(r"[a-z][a-z0-9_]*", event) for event in events)
 
     def test_every_documented_event_has_an_emit_call_site(self):
-        sources = {
-            p: p.read_text(encoding="utf-8")
-            for p in (REPO_ROOT / "src" / "leap").rglob("*.py")
-        }
-        missing = []
-        for event in self._spec_events():
-            if not any(
-                f'"{event}"' in text
-                for path, text in sources.items()
-                if path.name != "events.py"
-            ):
-                missing.append(event)
+        emitted = self._emitted_events()
+        missing = [event for event in self._documented_events() if event not in emitted]
         assert missing == [], f"documented but never emitted: {missing}"
+
+    def test_every_emitted_event_is_documented(self):
+        documented = set(self._documented_events())
+        missing = sorted(self._emitted_events() - documented)
+        assert missing == [], (
+            "emitted but undocumented; add them to the Event vocabulary section in "
+            f"{self.ARCHITECTURE}: {missing}"
+        )
 
     def test_policy_evaluated_is_emitted_with_a_state_snapshot(self, grounded_service, dag):
         grounded_service.evaluate_pedagogical_policy(dag, "n1")

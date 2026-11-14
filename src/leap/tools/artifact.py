@@ -56,10 +56,22 @@ class ArtifactTools(LeapToolMixin):
         """Validate and store canonical Markdown and projected HTML with teaching records.
 
         Supply actual complete bodies, resources, teaching_points, html_segments,
-        markdown_extensions and source_ids. Missing depth or coverage is rejected.
-        Accepted records are structurally checked, not semantically certified.
+        markdown_extensions and source_ids. New and revised visuals must declare
+        ``visual_contract`` with profile ``anatomy.v2`` (research +
+        evidence_source_id links, parts/inspection and model checks); the full
+        schema is returned by get_teaching_delivery_policy. A brand-new teaching
+        package for a node is rejected unless it is anatomy.v2, the lesson is
+        text-only (every teaching_point has ``no_visual_reason``), or the host
+        explicitly opts into legacy compatibility with ``allow_legacy: true``
+        (recorded in artifact metadata and returned as warnings). For a v2
+        package every research ``evidence_source_id`` must come from the latest
+        completed save_benchmark_report and every ``checked_at`` must not be in
+        the future. ``source_ids`` must be the ``sources_saved`` ids from
+        save_benchmark_report (shipped example manifests contain a placeholder
+        that has to be replaced). Accepted records are structurally checked, not
+        semantically certified.
         """
-        from leap.runtime.delivery import validate_teaching_package
+        from leap.runtime.delivery import validate_teaching_package, validate_visual_source_links
         session = self.require_session(session_id)
         self.require_grounding(session_id)
         node = self.require_node(node_id)
@@ -69,16 +81,62 @@ class ArtifactTools(LeapToolMixin):
         result = validate_teaching_package(markdown, html, manifest)
         if not result["valid"]:
             raise ToolError("teaching_package_incomplete", "Teaching pair does not meet the permanent delivery policy", result)
+        visual = result["visual_authoring"]
+        contract_state = visual["visual_contract_state"]
+        report_source_ids = self._latest_report_source_ids(session)
+        if contract_state == "current" and report_source_ids is None:
+            raise ToolError(
+                "domain_grounding_required",
+                "anatomy.v2 research must link the latest completed save_benchmark_report, "
+                "but no completed report source_ids could be read for this session")
         source_ids = manifest.get("source_ids")
         if not isinstance(source_ids, list) or not source_ids or any(not isinstance(s, str) for s in source_ids):
-            raise ToolError("invalid_source", "Teaching package must name its actual session source records")
+            raise ToolError(
+                "invalid_source",
+                "Teaching package must name its actual session source records: pass the "
+                "sources_saved ids returned by save_benchmark_report as manifest.source_ids "
+                "(shipped example manifests contain a placeholder that must be replaced)")
+        sources = {}
         for source_id in source_ids:
-            if not self.db.query_one("SELECT 1 FROM evidence_sources WHERE source_id=? AND session_id=?", (source_id, session_id)):
+            source = self.db.query_one("SELECT * FROM evidence_sources WHERE source_id=? AND session_id=?", (source_id, session_id))
+            if source is None:
                 raise ToolError("invalid_source", "Teaching source must belong to this session")
+            sources[source_id] = dict(source)
+        source_errors = validate_visual_source_links(manifest, sources, report_source_ids=report_source_ids)
+        if source_errors:
+            raise ToolError("invalid_source", "Visual research must match this package's stored session sources", {"errors": source_errors})
+        is_new, prior_current = self._package_registration_history(session_id, node_id)
+        allow_legacy = manifest.get("allow_legacy") is True
+        warnings: list[str] = []
+        if contract_state == "not_applicable":
+            warnings.append(
+                "text-only lesson: visual_contract is not required because every "
+                "teaching point declares no_visual_reason")
+        elif contract_state != "current":
+            if is_new or prior_current:
+                if not allow_legacy:
+                    raise ToolError(
+                        "visual_contract_required",
+                        "A new or revised teaching package must declare visual_contract with "
+                        "profile anatomy.v2 (see get_teaching_delivery_policy). Text-only lessons "
+                        "need no_visual_reason on every teaching point; an intentionally preserved "
+                        "legacy contract needs allow_legacy=true in the manifest.",
+                        {"visual_contract_state": contract_state, "is_new": is_new,
+                         "prior_current_contract": prior_current,
+                         "hint": "only set allow_legacy=true for a deliberately preserved legacy package"})
+                warnings.append(
+                    f"legacy visual contract accepted explicitly: state={contract_state}, "
+                    "allow_legacy=true")
+            else:
+                warnings.append(
+                    f"legacy visual contract accepted for an existing package: state={contract_state}")
         artifact_id = new_id("art")
         ts = now_ts()
         content = {"markdown": markdown, "html": html, "manifest": manifest}
         metadata = {"node_id": node_id, "subject": subject, "validation": result,
+                    "visual_contract_state": contract_state,
+                    "allow_legacy": allow_legacy and contract_state != "current",
+                    "warnings": warnings,
                     "markdown_sha256": hashlib.sha256(markdown.encode("utf-8")).hexdigest(),
                     "html_sha256": hashlib.sha256(html.encode("utf-8")).hexdigest()}
         self.db.execute(
@@ -86,8 +144,57 @@ class ArtifactTools(LeapToolMixin):
             (artifact_id, session["learner_id"], session_id, "teaching_package", self._dumps(content), self._dumps(metadata), "3.0", ts),
         )
         self.events.emit("teaching_package_saved", session_id=session_id, learner_id=session["learner_id"], node_id=node_id,
-                         payload={"artifact_id": artifact_id, "policy_version": "3.0", "content_verified_by_runtime": False}, request_id=request_id)
-        return self.ok(package_id=artifact_id, validation=result, content_hashes=metadata)
+                         payload={"artifact_id": artifact_id, "policy_version": "3.0",
+                                  "visual_contract_state": contract_state,
+                                  "content_verified_by_runtime": False}, request_id=request_id)
+        return self.ok(package_id=artifact_id, validation=result, warnings=warnings,
+                       visual_contract_state=contract_state, content_hashes=metadata)
+
+    # -- teaching-package registration internals ------------------------
+    def _latest_report_source_ids(self, session: dict) -> set[str] | None:
+        """Source ids of the latest completed benchmark report, or None."""
+        artifact_id = session.get("benchmark_report_artifact_id")
+        if not artifact_id:
+            return None
+        row = self.db.query_one(
+            "SELECT metadata FROM artifacts WHERE artifact_id=? AND session_id=?",
+            (artifact_id, session["session_id"]))
+        if row is None:
+            return None
+        try:
+            metadata = json.loads(row["metadata"] or "{}")
+        except ValueError:
+            return None
+        if not isinstance(metadata, dict):
+            return None
+        ids = metadata.get("source_ids")
+        if not isinstance(ids, list):
+            return None
+        return {source_id for source_id in ids if isinstance(source_id, str)}
+
+    def _package_registration_history(self, session_id: str, node_id: str) -> tuple[bool, bool]:
+        """Return ``(is_new, prior_current_contract)`` for this session+node."""
+        rows = self.rows(
+            "SELECT metadata FROM artifacts WHERE session_id=? AND artifact_type='teaching_package'",
+            (session_id,))
+        is_new = True
+        prior_current = False
+        for row in rows:
+            try:
+                metadata = json.loads(row.get("metadata") or "{}")
+            except ValueError:
+                continue
+            if not isinstance(metadata, dict) or metadata.get("node_id") != node_id:
+                continue
+            is_new = False
+            validation = metadata.get("validation")
+            visual = validation.get("visual_authoring") if isinstance(validation, dict) else None
+            state = (visual or {}).get("visual_contract_state") if isinstance(visual, dict) else None
+            if state is None:
+                state = metadata.get("visual_contract_state")
+            if state == "current":
+                prior_current = True
+        return is_new, prior_current
 
     # ------------------------------------------------------------------
     # 22.10 Artifact
@@ -214,7 +321,14 @@ class ArtifactTools(LeapToolMixin):
     def export_session_data(
         self, session_id: str, *, output_path: str | None = None
     ) -> dict:
-        """Export the full session bundle as JSON, optionally to a file path."""
+        """Export the full session bundle as JSON, optionally to a controlled path.
+
+        ``output_path`` is resolved inside the configured ``artifact_root``: a
+        relative path is joined to that root and an absolute path must already
+        live under it. ``..`` traversal, symlink escapes and arbitrary host
+        paths are rejected with ``invalid_path`` instead of writing anywhere the
+        caller names.
+        """
         self.require_session(session_id)
         bundle = {
             "exported_at": now_ts(),
@@ -258,11 +372,30 @@ class ArtifactTools(LeapToolMixin):
             ),
         }
         if output_path:
-            target = Path(output_path)
+            target = self._export_target(output_path)
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(self._dumps(bundle), encoding="utf-8")
             bundle["written_to"] = str(target)
         return self.ok(export=bundle)
+
+    def _export_target(self, output_path: str) -> Path:
+        """Resolve an export path inside the configured artifact root only."""
+        from leap.config import resolve_path
+
+        root = resolve_path(str(self.conf("artifact_root", "artifacts"))).resolve()
+        raw = Path(str(output_path)).expanduser()
+        candidate = raw if raw.is_absolute() else root / raw
+        resolved = candidate.resolve()
+        try:
+            resolved.relative_to(root)
+        except ValueError:
+            raise ToolError(
+                "invalid_path",
+                f"export path must stay inside the artifact root ({root}); "
+                "use a relative path or an absolute path under that root") from None
+        if resolved == root:
+            raise ToolError("invalid_path", "export path must name a file inside the artifact root")
+        return resolved
 
     def get_learning_metrics(self, session_id: str) -> dict:
         """Return the section 26.1 learning-outcome indicators.

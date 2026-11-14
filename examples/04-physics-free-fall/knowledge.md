@@ -634,3 +634,65 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
 ## Backlinks / 反向关联
 
 [[Knowledge_Index]] · [[docs/subject-knowledge-map]] · [[examples/02-math-linear-equation/README]] · [[examples/02-math-linear-equation/README_CN]] · [[examples/02-math-linear-equation/knowledge]] · [[examples/04-physics-free-fall/README]] · [[examples/04-physics-free-fall/README_CN]] · [[examples/08-electronics-ohms-law/knowledge]]
+
+<!-- LEAP_ANATOMY_V2_RESEARCH -->
+
+## Research, model limits and anatomy.v2 records
+
+研究来源（NIST CODATA，仅固定标准重力加速度与 SI 单位）：
+
+- source: https://physics.nist.gov/cgi-bin/cuu/Value?gn
+- locator: CODATA Value: standard acceleration of gravity (2022 CODATA)
+- excerpt: standard acceleration of gravity 9.806 65 m s-2 (exact)
+- checked_at: 2026-11-08
+
+研究限制：来源只固定标准重力加速度与 SI 单位；实验塔几何为项目原创示意图，不是真实仪器的复现，模型忽略空气阻力。
+
+### 部件与模型记录（anatomy.v2）
+
+- 释放头：用电磁铁释放小球并给出初始时刻。
+  - 关系：释放头位于支架顶部，与光门共用同一竖直轴线。
+  - 依据：释放头的电磁铁与顶梁为示意结构，课程只使用其释放功能。
+- 光门：记录小球经过三个高度的时刻。
+  - 关系：光门沿支架竖直排列，与承接盘共同定义下落区间。
+  - 依据：光门数量与间距为教学示意，不对应真实测量装置。
+- 承接盘：在落地边界终止模拟。
+  - 关系：承接盘在光门下方定义落地边界。
+  - 依据：承接盘尺寸为示意比例，碰撞过程不在模型范围内。
+- 归一化标尺：按高度比例标出下落位置。
+  - 关系：归一化标尺沿支架标出高度比例，与读数共用同一运动状态。
+  - 依据：标尺按高度归一化绘制，不作真实长度测量工具。
+- 速度表：用同一运动状态显示瞬时速率。
+  - 关系：速度表指针由与小球、曲线相同的运动状态驱动。
+  - 依据：表盘刻度为示意，实际 SI 数值以页面读数为准。
+
+模型假设：小球只受重力，忽略空气阻力；g 取 10 m/s² 作为教学近似；时间从释放瞬间开始计。
+
+适用域：H ≥ 0 且 g > 0；初速度 v₀ = 0；模拟在首次碰地前停止。
+
+模型限制：模型不含空气阻力、g 随高度变化和碰撞过程；实验塔几何为示意，不作工程尺寸使用。
+
+### 独立检查
+
+- typical：
+  - 输入：H = 45 m、g = 10 m/s²、v₀ = 0
+  - 预期：t = 3 s、v = 30 m/s
+  - 方法：由 s = ½gt² 反解 t = sqrt(2H/g)，再乘 g 得速率
+  - 结果：网页在 t = 3 s 时读数与独立计算一致
+- boundary：
+  - 输入：H = 0 m、g = 10 m/s²
+  - 预期：t = 0 s、v = 0 m/s、位移 s = 0 m
+  - 方法：初始落地边界直接取 t = 0
+  - 结果：表针与曲线停在下落开始时，无额外位移
+
+### 动画状态
+
+- 释放状态：小球静止释放，t = 0，速度为零，表针与曲线从零点开始。
+- 时间中点状态：t = T/2，累计下落高度为 H/4，读数与解析式一致。
+- 落地前状态：t = T，累计位移达到 H，模拟在首次碰地前停止。
+
+### 部件交互说明
+
+悬停或聚焦部件可预览名称与作用；点击、Enter 或空格选中该部件；离开预览恢复已选部件；按 Escape 或点击“显示全部”清除选择并回到总览。
+
+释放头：用电磁铁释放小球并给出初始时刻。光门：记录小球经过三个高度的时刻。承接盘：在落地边界终止模拟。归一化标尺：按高度比例标出下落位置。速度表：用同一运动状态显示瞬时速率。

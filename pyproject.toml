@@ -24,7 +24,7 @@ classifiers = [
     "Topic :: Education",
 ]
 dependencies = [
-    "mcp>=1.2",
+    "mcp>=2.3,<3",
     "fsrs>=5",
     "PyYAML>=6",
 ]
@@ -56,9 +56,16 @@ package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
+# specs/, storage/ and config/ are data-only subdirectories, not packages. Keep
+# namespace-package discovery off so they cannot shadow real modules and so a
+# data directory never turns into an empty package entry in the wheel.
+namespaces = false
 
 [tool.setuptools.package-data]
-leap = ["storage/*.sql", "specs/*.json"]
+# config/default.yaml is mirrored from the repository root (which stays the file
+# developers edit) so an installed wheel keeps working configuration;
+# tests/test_packaging.py asserts the two copies stay byte-identical.
+leap = ["storage/*.sql", "specs/*.json", "config/*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

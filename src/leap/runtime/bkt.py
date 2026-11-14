@@ -16,8 +16,8 @@ One update step, in order:
 2. **Evidence update** - classic BKT posterior with ``p_guess`` / ``p_slip``.
    Partial credit is handled by blending the correct and incorrect posteriors
    with the observed score.
-3. **Transition** - probability that the learner *learned* from the attempt
-   (``p_transit``).
+3. **Transition** - learning probability (``p_transit``) weighted by the
+   observed score. A fully incorrect attempt gets no transition credit.
 4. **Spontaneous forgetting** - a small per-opportunity leak (``p_forget``).
 
 Every parameter is an engineering heuristic (section 30). This class is a
@@ -45,6 +45,11 @@ class BKTParams:
     p_slip: float = 0.10
     p_forget: float = 0.02
     forget_halflife_days: float = 30.0
+    #: Hard lower bound for the estimate. Exponential decay without a floor
+    #: reported "1% mastery" for a mastered node after a long break, which the
+    #: host would show to the learner as measured forgetting. The floor keeps
+    #: the number in "no positive evidence" territory instead.
+    mastery_floor: float = 0.05
 
     @classmethod
     def from_config(cls, cfg: Any) -> "BKTParams":
@@ -59,6 +64,7 @@ class BKTParams:
             forget_halflife_days=float(
                 get("bkt.forget_halflife_days", cls.forget_halflife_days)
             ),
+            mastery_floor=float(get("bkt.mastery_floor", cls.mastery_floor)),
         )
 
     def validate(self) -> "BKTParams":
@@ -70,6 +76,10 @@ class BKTParams:
             raise ValueError("p_guess + p_slip must be < 1 for a discriminative model")
         if self.forget_halflife_days <= 0:
             raise ValueError("forget_halflife_days must be > 0")
+        if not 0.0 <= self.mastery_floor < 1.0:
+            raise ValueError(
+                f"bkt.mastery_floor must be in [0, 1), got {self.mastery_floor}"
+            )
         return self
 
 
@@ -86,14 +96,35 @@ class BKTEstimator:
     # -- primitives --------------------------------------------------------
     def initial(self) -> float:
         """Prior mastery for a node with no evidence yet."""
-        return self.params.p_init
+        return max(self.params.mastery_floor, self.params.p_init)
 
     def time_decay(self, prior: float, elapsed_days: float) -> float:
-        """Exponential retention decay toward zero over ``elapsed_days``."""
+        """Exponential retention decay toward the configured floor."""
         if elapsed_days <= 0 or self.params.forget_halflife_days <= 0:
-            return prior
+            return max(self.params.mastery_floor, prior)
         factor = 0.5 ** (elapsed_days / self.params.forget_halflife_days)
-        return prior * factor
+        return max(self.params.mastery_floor, prior * factor)
+
+    def interpret(self, value: float | None) -> dict[str, Any]:
+        """Describe the estimated mastery and how new evidence affects it."""
+        if value is None:
+            return {}
+        bounded = max(self.params.mastery_floor, min(1.0, float(value)))
+        return {
+            "value": round(bounded, 6),
+            "scale": "0..1 model estimate, not a measured score",
+            "lower_bound": self.params.mastery_floor,
+            "note": (
+                "Server-side BKT estimate from recorded evidence. It is not a grade "
+                "and must not be presented as one."
+            ),
+            "caveats": [
+                "p_transit contributes in proportion to the observed score; a fully "
+                "incorrect attempt cannot raise the estimate",
+                "long gaps decay the estimate toward bkt.mastery_floor instead of proving "
+                "that the learner forgot everything",
+            ],
+        }
 
     def _posterior(self, prior: float, correct: bool) -> float:
         p = self.params
@@ -107,8 +138,8 @@ class BKTEstimator:
             return prior
         return numerator / denominator
 
-    def _transition(self, posterior: float) -> float:
-        t = self.params.p_transit
+    def _transition(self, posterior: float, score: float) -> float:
+        t = self.params.p_transit * score
         return posterior + (1.0 - posterior) * t
 
     def _spontaneous_forgetting(self, value: float) -> float:
@@ -144,18 +175,23 @@ class BKTEstimator:
 
         if score is None and correct is None:
             # No new evidence: only time passed.
-            return _clamp(self._spontaneous_forgetting(decayed))
+            return self._bounded(self._spontaneous_forgetting(decayed))
 
         if score is None:
             posterior = self._posterior(decayed, bool(correct))
+            s = float(bool(correct))
         else:
             s = _clamp(float(score))
             posterior = s * self._posterior(decayed, True) + (1.0 - s) * self._posterior(
                 decayed, False
             )
 
-        learned = self._transition(posterior)
-        return _clamp(self._spontaneous_forgetting(learned))
+        learned = self._transition(posterior, s)
+        return self._bounded(self._spontaneous_forgetting(learned))
+
+    def _bounded(self, value: float) -> float:
+        """Clamp to [mastery_floor, 1] so decay never reports "near zero"."""
+        return max(self.params.mastery_floor, _clamp(value))
 
     def confidence_weighted(
         self,
@@ -175,7 +211,7 @@ class BKTEstimator:
         updated = self.update(prior, score=score, elapsed_days=elapsed_days)
         base = self.initial() if prior is None else _clamp(prior)
         w = _clamp(assessor_confidence)
-        return _clamp(base + (updated - base) * w)
+        return self._bounded(base + (updated - base) * w)
 
 
 def _clamp(value: float, lo: float = 0.0, hi: float = 1.0) -> float:

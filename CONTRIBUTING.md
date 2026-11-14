@@ -34,36 +34,53 @@ pytest -q
 Python 3.11 or newer is required.
 
 ## Before you open a pull request
-
-Use the development environment above for the core checks:
+Use the development environment above for the core checks. Run every command
+from the repository root; all of them must exit successfully before a pull
+request, and CI runs the same sequence.
 
 ```bash
 python -m pytest -q
+python -m leap.doctor
 python scripts/generate_tool_reference.py --check
 python scripts/security_scan.py --root .
 python scripts/verify_example.py --all
 python scripts/verify_teaching_repository.py
 python scripts/apply_leap_bridge.py --check
+python examples/04-physics-free-fall/build_figure.py --check
 ```
 
-Browser and real page-to-MCP checks additionally need the examples dependencies and Chromium:
+Write generated reports outside the checkout, or into the ignored `reports/`
+directory, so the teaching-repository gate never reads them as vault notes:
+
+```bash
+python scripts/security_scan.py --root . --publishable --md reports/security-scan.md
+python scripts/verify_teaching_repository.py --json reports/teaching-verification.json
+```
+
+Browser and real page-to-MCP checks additionally need the optional `examples`
+dependencies and a Chromium build. Playwright is optional: it is not required by
+`pip install -e ".[dev]"` and is only needed for the two commands below.
 
 ```bash
 python -m pip install -e ".[dev,examples]"
-python -m playwright install chromium
-python scripts/verify_example_runtime.py --all --json runtime-verification.json
+python -m playwright install chromium        # add --with-deps on Linux CI
+python scripts/verify_example_runtime.py --all --json reports/runtime-verification.json
 python scripts/verify_mcp_bridge.py
 ```
 
-All commands must exit successfully; the static example and security scanners also use exit `2`
-for warnings. Review those warnings; security findings at P0/P1 and any example error block release.
-The generated reference check compares bytes, the teaching repository check validates reciprocal
-links and complete paired bodies, and runtime checks validate the declared scenarios and real
-transport receipts. None of these checks certifies subject-matter correctness.
+Exit codes: `verify_example.py` and `security_scan.py` use `0` (clean), `1`
+(blocking errors or P0/P1 security findings) and `2` (warnings or P2 findings
+only). CI fails on `1` and tolerates `2` so warnings stay reviewable; the
+verifier commands and the test suite exit non-zero on any failure. The generated
+reference check compares bytes, the teaching repository check validates
+reciprocal links and complete paired bodies, the drop-tower check proves the
+committed SVG matches its builder, and the runtime checks validate declared
+scenarios plus real transport receipts. None of these checks certifies
+subject-matter correctness.
 
-This is the shared verification sequence. `.github/workflows/ci.yml` defines the automated subset;
-CI installs Chromium with `--with-deps` on Linux. Focused tests are useful during development, but
-run the full core suite before submitting a change.
+GitHub Actions runs the same commands on every push and pull request; the
+workflow file is `.github/workflows/ci.yml`. If you cannot install Chromium
+locally, run the core commands above and say so in the pull request.
 
 ## Code conventions
 

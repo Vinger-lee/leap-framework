@@ -57,7 +57,7 @@ window.LEAP原有hydrate、getInteractionResult及outbox接口保留。demo作�
 
 用Tab进入按钮与折叠解答，Enter/Space执行，方向键调整滑块。减少动效时播放改为单步，数值探索仍完整可用；控件获得焦点时保留原生键盘行为。
 
-小球、光门、归一化表针、曲线与读数共用同一运动状态。动画默认静止，离屏或切走标签页暂停，回到页面后手动继续。拆解只改变观察位置。实验塔的高度与表针归一化，实际 SI 数值以读数为准；静态算例固定 H=45m、g=10m/s²。通用规范见 [[docs/teaching-delivery]] 的 `anatomy.v1` 契约，原生 SVG 可用 `python examples/04-physics-free-fall/build_figure.py --check` 检查再现性。
+小球、光门、归一化表针、曲线与读数共用同一运动状态。动画默认静止，离屏或切走标签页暂停，回到页面后手动继续。拆解只改变观察位置。实验塔的高度与表针归一化，实际 SI 数值以读数为准；静态算例固定 H=45m、g=10m/s²。本页是仓库的 `anatomy.v2` 示例：manifest 含带 `evidence_source_id` 的研究记录、五个部件的 parts/inspection 记录、共享模型绑定（假设/范围/限制与独立的典型/边界检查）。通用规范见 [[docs/teaching-delivery]] 契约。示例中的 `source_ids` 与 `evidence_source_id` 使用文档化占位 `<source id returned by save_benchmark_report>`，仓库门禁会在内存会话中替换它并执行真实注册仿真，因此该 manifest 不是可直接提交的会话数据。原生 SVG 可用 `python examples/04-physics-free-fall/build_figure.py --check` 检查再现性。
 
 runtime.json覆盖正确/错误/部分正确评分、原始答案关联、方向切换、图解控制、质量条件、时间滑块、所有原有模拟控制及单位错误。验证入口在scripts/verify_example.py与scripts/verify_example_runtime.py。
 

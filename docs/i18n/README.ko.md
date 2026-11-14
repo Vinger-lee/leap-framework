@@ -15,7 +15,7 @@ delivery_policy: '3.0'
 > Advanced: `LEAP 🎓 LEAP Framework invariants verification transfer`
 > These are search queries; no video has been certified for this note.
 
-Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+Related: [Knowledge_Index](../../Knowledge_Index.md) · [docs/teaching-delivery](../teaching-delivery.md)
 
 # 🎓 LEAP Framework
 
@@ -23,21 +23,21 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
   <img src="https://img.shields.io/github/stars/Vinger-lee/leap-framework?style=social" alt="Stars">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-70%20tools-22bb33" alt="MCP Tools">
+  <img src="https://img.shields.io/badge/MCP-71%20tools-22bb33" alt="MCP Tools">
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
   <b>🤖 AI 에이전트에 프롬프트가 아닌 진짜 튜터링 엔진을 제공하세요.</b>
 </p>
 
 <p align="center">
-  [[README|English]] ·
-  [[README_CN|中文]] ·
-  [[docs/i18n/README.ja|日本語]] ·
-  [[docs/i18n/README.ko|한국어]] ·
-  [[docs/i18n/README.fr|Français]] ·
-  [[docs/i18n/README.es|Español]] ·
-  [[docs/i18n/README.ru|Русский]] ·
-  [[docs/i18n/README.ar|العربية]]
+  <a href="../../README.md">English</a> ·
+  <a href="../../README_CN.md">中文</a> ·
+  <a href="README.ja.md">日本語</a> ·
+  <a href="README.ko.md">한국어</a> ·
+  <a href="README.fr.md">Français</a> ·
+  <a href="README.es.md">Español</a> ·
+  <a href="README.ru.md">Русский</a> ·
+  <a href="README.ar.md">العربية</a>
 </p>
 
 ---
@@ -104,7 +104,7 @@ State Guard는 상태 전이를 승인할 수 있는 유일한 컴포넌트입�
 
 ## 🔧 MCP 도구
 
-[[docs/mcp-tools|자동 생성 MCP 도구 참조: 이름, 매개변수, 프로필]].
+[자동 생성 MCP 도구 참조: 이름, 매개변수, 프로필](../mcp-tools.md).
 
 ## 🧩 플러그인 설계
 
@@ -121,11 +121,11 @@ State Guard는 상태 전이를 승인할 수 있는 유일한 컴포넌트입�
 
 ## 📚 더 보기
 
-- [[docs/ARCHITECTURE|아키텍처]]
-- [[docs/INTEGRATION|호스트 에이전트 통합 가이드]]
-- [[docs/EXAMPLES|예시 페이지]]
-- [[docs/LOCALIZATION|다국어 지원]]
-- [[README|English README]] · [[README_CN|中文说明]]
+- [아키텍처](../ARCHITECTURE.md)
+- [호스트 에이전트 통합 가이드](../INTEGRATION.md)
+- [예시 페이지](../EXAMPLES.md)
+- [다국어 지원](../LOCALIZATION.md)
+- [English README](../../README.md) · [中文说明](../../README_CN.md)
 
 > 공식 프레임워크 설계 문서와 비주얼 디자인 시스템은 프로젝트 저자가 별도로 관리하며 이 저장소에는 포함되지 않습니다.
 
@@ -139,8 +139,12 @@ State Guard는 상태 전이를 승인할 수 있는 유일한 컴포넌트입�
 > For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
 > After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
 
+## 🤖 Agent Skill(선택)
+
+`.agents/skills/leap-tutor/`는 저장소 Skill을 읽을 수 있는 호스트에서만 사용할 수 있습니다. 지원 범위는 [docs/agent-skill.md](../../docs/agent-skill.md), 설정 예시는 [docs/host-config.md](../../docs/host-config.md)를 참고하세요. 검증되지 않은 호스트는 주장하지 않습니다.
+
 <!-- LEAP_BACKLINKS -->
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ru]]
+[Knowledge_Index](../../Knowledge_Index.md) · [README](../../README.md) · [README_CN](../../README_CN.md) · [docs/i18n/README.ar](README.ar.md) · [docs/i18n/README.es](README.es.md) · [docs/i18n/README.fr](README.fr.md) · [docs/i18n/README.ja](README.ja.md) · [docs/i18n/README.ru](README.ru.md)

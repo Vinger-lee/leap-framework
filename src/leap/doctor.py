@@ -26,7 +26,7 @@ import tempfile
 from typing import Any, Callable, Mapping, Sequence
 
 from leap import __version__
-from leap.config import REPO_ROOT, load_config
+from leap.config import REPO_ROOT, load_config, resolve_path
 from leap.runtime.profiles import available_profiles, resolve_profile
 from leap.storage import Database
 
@@ -34,6 +34,11 @@ __all__ = ["run_checks", "render", "main"]
 
 MIN_PYTHON = (3, 11)
 RUNTIME_DEPENDENCIES = ("mcp", "fsrs", "yaml")
+#: The MCP SDK API server.py imports. ``mcp`` 1.x does not ship it, so the
+#: dependency lower bound is checked here explicitly instead of failing at
+#: server start with an ImportError.
+MCP_MODULE = "mcp.server.mcpserver"
+MCP_MIN_VERSION = (2, 3)
 
 
 def _check(name: str, fn: Callable[[], Any]) -> dict:
@@ -76,21 +81,24 @@ def _dependencies() -> tuple[str, str]:
 
 def _configuration() -> tuple[str, str]:
     cfg = load_config()
-    key_count = len(cfg.as_dict())
-    return "ok", (
-        f"config loaded from {REPO_ROOT / 'config' / 'default.yaml'} "
-        f"({key_count} keys) | locale={cfg.get('locale')} | "
+    data = cfg.as_dict()
+    key_count = len(data)
+    source = getattr(cfg, "source", None) or REPO_ROOT / "config" / "default.yaml"
+    status = "ok" if key_count else "warn"
+    detail = (
+        f"config loaded from {source} ({key_count} keys) | locale={cfg.get('locale')} | "
         f"database_path={cfg.get('database_path')} | "
         f"tool_profile={cfg.get('tool_profile', 'unset')}"
     )
+    if not key_count:
+        detail += " | no configuration file found: built-in defaults are in use"
+    return status, detail
 
 
 def _database() -> tuple[str, str]:
     cfg = load_config()
     raw = str(cfg.get("database_path", "data/leap.db"))
-    path = Path(raw)
-    if not path.is_absolute():
-        path = REPO_ROOT / path
+    path = resolve_path(raw)
     parent = path.parent
     if not parent.exists():
         return "warn", f"database directory does not exist yet: {parent} (created on first run)"
@@ -113,9 +121,7 @@ def _schema() -> tuple[str, str]:
 def _artifact_root() -> tuple[str, str]:
     cfg = load_config()
     raw = str(cfg.get("artifact_root", "artifacts"))
-    root = Path(raw)
-    if not root.is_absolute():
-        root = REPO_ROOT / root
+    root = resolve_path(raw)
     probe = root
     while not probe.exists() and probe != probe.parent:
         probe = probe.parent
@@ -141,6 +147,30 @@ def _catalogues() -> tuple[str, str]:
     )
 
 
+def _mcp_sdk() -> tuple[str, str]:
+    """Verify the installed MCP SDK exposes the API the server imports."""
+    try:
+        sdk = importlib.import_module("mcp")
+        server_module = importlib.import_module(MCP_MODULE)
+    except ImportError as exc:
+        return "fail", (
+            f"the installed MCP SDK does not provide {MCP_MODULE} ({exc}); "
+            "LEAP needs mcp>=2.3,<3 - reinstall with the declared dependency range"
+        )
+    version = getattr(sdk, "__version__", None)
+    if version is None:  # pragma: no cover - SDK without __version__
+        try:
+            from importlib.metadata import version as dist_version
+
+            version = dist_version("mcp")
+        except Exception:
+            version = None
+    return "ok", (
+        f"mcp{f' {version}' if version else ''} exposes {MCP_MODULE} "
+        f"({getattr(server_module, 'MCPServer').__name__})"
+    )
+
+
 def _tool_profiles() -> tuple[str, str]:
     from leap.server import build_server, registered_tool_names
 
@@ -160,6 +190,7 @@ def _tool_profiles() -> tuple[str, str]:
 CHECKS: tuple[tuple[str, Callable[[], Any]], ...] = (
     ("python", _python),
     ("dependencies", _dependencies),
+    ("mcp_sdk", _mcp_sdk),
     ("configuration", _configuration),
     ("database", _database),
     ("schema", _schema),

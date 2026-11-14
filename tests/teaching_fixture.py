@@ -25,7 +25,9 @@ def teaching_pair():
     extension = "An independent inverse-operation check starts from x=5, multiplies both sides by three, adds five to both sides and recovers 3x+5=20. This explains why the solution sets coincide rather than merely testing one candidate."
     md = "---\ntitle: Controlled equation fixture\ntags: [test, equation]\naliases: [Synthetic pair]\n---\n\n# Learning resources\n\n[[Knowledge_Index]]\n\n" + "\n\n".join(text) + "\n\n> [!example]- Extended inverse check\n> " + extension + "\n"
     return md, html, {"resources": resources, "teaching_points": [point], "html_segments": text,
-                      "markdown_extensions": [extension]}
+                      "markdown_extensions": [extension],
+                      # Structural workflow fixture: intentionally legacy, not a new v2 delivery.
+                      "allow_legacy": True}
 
 
 def register_pair(service, session_id, node_id="fixture.equation"):

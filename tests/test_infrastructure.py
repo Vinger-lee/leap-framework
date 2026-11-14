@@ -276,12 +276,25 @@ class TestSecurityScanner:
         assert "Security & Privacy Scan Report" in report
         assert "No findings" in report
 
+    def test_publishable_scan_keeps_force_added_files_in_scope(self, tmp_path):
+        import subprocess
+
+        subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+        (tmp_path / ".gitignore").write_text("/scratch/\n", encoding="utf-8")
+        scratch = tmp_path / "scratch"
+        scratch.mkdir()
+        (scratch / "private.md").write_text("draft", encoding="utf-8")
+        (scratch / "staged.md").write_text("staged", encoding="utf-8")
+        subprocess.run(["git", "-C", str(tmp_path), "add", "-f", "scratch/staged.md"], check=True)
+        (tmp_path / "untracked.md").write_text("new source", encoding="utf-8")
+
+        files = {path.relative_to(tmp_path).as_posix() for path in SCANNER.publishable_files(tmp_path)}
+        assert files == {".gitignore", "scratch/staged.md", "untracked.md"}
+
     def test_repository_itself_is_clean(self):
         """The project must stay publishable - this is the regression gate."""
         findings: list = []
-        files = list(
-            SCANNER.iter_files(REPO_ROOT, SCANNER.DEFAULT_SKIP_DIRS, SCANNER.DEFAULT_SKIP_SUFFIXES)
-        )
+        files = list(SCANNER.publishable_files(REPO_ROOT))
         for path in files:
             findings.extend(SCANNER.scan_file(path, REPO_ROOT, SCANNER.RULES))
         blocking = [f for f in SCANNER.dedupe(findings) if f.severity in ("P0", "P1")]

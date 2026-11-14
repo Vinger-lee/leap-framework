@@ -23,7 +23,10 @@ LEAP 是教学状态 Runtime。领域学习、资料检索、出题和自由文�
 
 ## 1. 先确认真实连接
 
-先通过宿主连接器调用 `get_available_actions`，保留成功响应。读取规范、复制示例、模拟 `get_teaching_context` 只能证明本地开发流程。客户端没有注册 `leap` 时，交付说明必须写明尚未接入；不要声称已调用 MCP。
+先检查真实目录，通过宿主连接器调用 `get_teaching_delivery_policy`，保留成功响应；此只读工具在两个档位均可用。读取规范、复制示例、模拟 `get_teaching_context` 只能证明本地开发流程。客户端没有注册 `leap` 时，交付说明必须写明尚未接入；不要声称已调用 MCP。
+
+支持仓库 Skill 时可按需加载 [leap-tutor](../.agents/skills/leap-tutor/SKILL.md)
+及其内容质量参考，发现、激活与真实调用分别验收，见 [Skill 接入](agent-skill.md)。
 
 客户端注册路径与信任操作取决于宿主产品。本项目不会修改客户端配置或替用户点击信任。
 
@@ -62,6 +65,8 @@ LEAP 是教学状态 Runtime。领域学习、资料检索、出题和自由文�
 所有学习模式与学科均先读取 `get_teaching_delivery_policy`。宿主建立知识节点后，先完成最全面的 Obsidian Markdown，再派生离线交互 HTML；双方头部包含核验视频或三层精确检索词。向 `save_teaching_package(session_id, node_id, subject, markdown, html, manifest)` 提交实际正文，不能仅传文件路径或“已核验”声明。
 
 manifest 提供 `teaching_points`、`resources`、`html_segments`、`markdown_extensions`、同会话 `source_ids`。每点包含前置补习、机制与条件、完整步骤、例题与独立核对、误解、边界、比较、梯度练习、迁移和图示策略；可视化 selector 对应实际元素。Markdown 覆盖实际 HTML 静态文字，另有可定位的推导或案例。动态反馈和图示仍需浏览器与内容审校。
+
+未来生成的图解遵循 [[docs/teaching-delivery|研究、建模、部件说明与 anatomy.v2 契约]]。先读取真实结构或形式资料并保存会话证据，再映射来源、部件/状态、连接关系、假设与限制，独立检查模型后构造动画。悬停/聚焦说明、点击/键盘/触摸选择、预览退出恢复与清除有统一行为，图形与曲线/读数共用状态。v2 注册核对研究记录与包内同会话来源；旧包兼容标记不能当成新版通过。静态校验不能证明真实阅读、科学正确或交互已执行。
 
 接受后的包 ID 作为 `teaching_package_id` 传给同节点题目和教学产物。正文版本变化须重新登记教学包，再以新题目 ID 登记变更的题目。结构接受只证明字段、正文覆盖、记录及关联符合要求，不能证明学科命题真实。
 

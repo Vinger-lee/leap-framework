@@ -53,9 +53,36 @@ class TestSessionLifecycle:
 
     def test_complete_session_validates_status(self, service):
         session = service.create_session("L1", "recursion")
-        with pytest.raises(ToolError):
-            service.complete_session(session["session_id"], status="finished")
-        assert service.complete_session(session["session_id"])["status"] == "completed"
+        sid = session["session_id"]
+        with pytest.raises(ToolError) as excinfo:
+            service.complete_session(sid, status="finished")
+        assert excinfo.value.code == "invalid_status"
+        # A closing receipt is required by default.
+        with pytest.raises(ToolError) as report_error:
+            service.complete_session(sid)
+        assert report_error.value.code == "final_report_required"
+        service.generate_final_report(sid)
+        assert service.complete_session(sid)["status"] == "completed"
+
+    def test_complete_session_is_idempotent(self, service):
+        session = service.create_session("L1", "recursion")
+        sid = session["session_id"]
+        service.generate_final_report(sid)
+        assert service.complete_session(sid)["already_applied"] is False
+        again = service.complete_session(sid)
+        assert again["already_applied"] is True
+        assert service.events.count(sid, "session_completed") == 1
+
+    def test_reopening_a_completed_session_requires_reopen(self, service):
+        session = service.create_session("L1", "recursion")
+        sid = session["session_id"]
+        service.generate_final_report(sid)
+        service.complete_session(sid)
+        with pytest.raises(ToolError) as excinfo:
+            service.complete_session(sid, status="active")
+        assert excinfo.value.code == "invalid_transition"
+        reopened = service.complete_session(sid, status="active", reopen=True)
+        assert reopened["status"] == "active"
 
 
 class TestAssessmentContract:

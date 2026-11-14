@@ -15,7 +15,7 @@ delivery_policy: '3.0'
 > Advanced: `LEAP 🎓 LEAP Framework invariants verification transfer`
 > These are search queries; no video has been certified for this note.
 
-Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+Related: [Knowledge_Index](Knowledge_Index.md) · [docs/teaching-delivery](docs/teaching-delivery.md)
 
 # 🎓 LEAP Framework
 
@@ -25,7 +25,7 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
   <img src="https://img.shields.io/github/v/release/Vinger-lee/leap-framework" alt="Release">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-70%20tools-22bb33" alt="MCP 工具">
+  <img src="https://img.shields.io/badge/MCP-71%20tools-22bb33" alt="MCP 工具">
   [![Tests](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml)
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
@@ -33,14 +33,14 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
 </p>
 
 <p align="center">
-  [[README|English]] ·
-  [[README_CN|中文]] ·
-  [[docs/i18n/README.ja|日本語]] ·
-  [[docs/i18n/README.ko|한국어]] ·
-  [[docs/i18n/README.fr|Français]] ·
-  [[docs/i18n/README.es|Español]] ·
-  [[docs/i18n/README.ru|Русский]] ·
-  [[docs/i18n/README.ar|العربية]]
+  <a href="README.md">English</a> ·
+  <a href="README_CN.md">中文</a> ·
+  <a href="docs/i18n/README.ja.md">日本語</a> ·
+  <a href="docs/i18n/README.ko.md">한국어</a> ·
+  <a href="docs/i18n/README.fr.md">Français</a> ·
+  <a href="docs/i18n/README.es.md">Español</a> ·
+  <a href="docs/i18n/README.ru.md">Русский</a> ·
+  <a href="docs/i18n/README.ar.md">العربية</a>
 </p>
 
 ---
@@ -77,9 +77,10 @@ pip install -e ".[dev]"
 ```
 
 运行测试：
+运行测试：
 
 ```bash
-pytest -q        # inspect the current test result
+pytest -q        # 运行完整测试套件
 ```
 
 启动 MCP Server：
@@ -88,7 +89,37 @@ pytest -q        # inspect the current test result
 python -m leap.server      # 或：leap-mcp
 ```
 
-内置教学页面的验证依赖、命令和验收规则统一见 [[CONTRIBUTING|贡献指南]]。
+### 📦 作为包安装
+
+```bash
+pip install "leap-framework"          # 需要验证教学页面时再加 [examples]
+leap-doctor                           # 安装自检
+leap-mcp --tool-profile quickstart    # stdio MCP Server（默认档位：full）
+```
+
+pip 安装的 wheel 内已包含同一份默认配置（`leap/config/default.yaml`），因此无需仓库检出即可运行
+`leap-doctor` 与 server。配置优先级从低到高：
+
+- YAML 文件 —— 仓库内的 `config/default.yaml`，否则使用打包副本；
+- 环境变量覆盖，如 `LEAP__DATABASE_PATH`、`LEAP__ARTIFACT_ROOT`、`LEAP__TOOL_PROFILE`（嵌套键用双下划线）；
+- 工具档位 —— `--tool-profile`、`LEAP_TOOL_PROFILE` 或配置里的 `tool_profile`。
+
+`database_path` 与 `artifact_root` 在设置 `LEAP_HOME` 时相对该目录解析，否则相对当前工作目录解析 ——
+永远不会落到安装目录里，所以 `data/leap.db` 与 `artifacts/` 不会写进 `site-packages`。稳定部署建议把
+`LEAP_HOME` 指向可写目录：
+
+```bash
+LEAP_HOME=/var/lib/leap leap-mcp --tool-profile quickstart
+```
+
+**工具档位**：`full` 暴露完整工具目录（默认）；`quickstart` 暴露面向小宿主的粗粒度教学路径。
+`leap-doctor` 会打印当前安装版本的档位数量。
+
+**Agent Skill（可选）**：支持仓库技能的宿主可直接打开 `.agents/skills/leap-tutor/`（配置样例见
+[docs/host-config.md](docs/host-config.md)）；不支持 Skill 的宿主按集成指南接入。两种方式的运行时门禁完全一致
+—— Skill 只改变 Agent 的引导方式，不改变服务端允许的操作。
+
+内置教学页面的验证依赖、命令和验收规则统一见 [贡献指南](CONTRIBUTING.md)。
 
 ## 🧠 学习闭环
 
@@ -131,18 +162,28 @@ State Guard 是唯一有权批准状态迁移的组件。当工具返回 `REJECT
 
 ## 🔧 MCP 工具
 
-完整工具名称、参数、宿主说明和档位归属统一见 [[docs/mcp-tools|自动生成的 MCP 工具参考]]。
+完整工具名称、参数、宿主说明和档位归属统一见 [自动生成的 MCP 工具参考](docs/mcp-tools.md)。
 
 粗粒度 API 在服务端组合教学步骤，每个回包给出下一次调用 `next_call`。State Guard 负责推进裁决；
 被拒的推进不写状态，评估失败保留已提交作答，掌握度由服务端估计。初次接入推荐显式选择
-`--tool-profile quickstart`；默认档位保持 `full`。使用方式见 [[docs/FACADE_CN|粗粒度 API 与工具档位]]，
-能力边界见 [[docs/scope-and-limits_CN|范围与边界]]。
+`--tool-profile quickstart`；默认档位保持 `full`。使用方式见 [粗粒度 API 与工具档位](docs/FACADE_CN.md)，
+能力边界见 [范围与边界](docs/scope-and-limits_CN.md)。
+
+支持仓库技能的宿主可加载 [leap-tutor](.agents/skills/leap-tutor/SKILL.md)，
+按需读取学习生命周期、内容制作与恢复参考。接入与验收见 [docs/agent-skill.md](docs/agent-skill.md)，
+可直接复制的 `mcpServers` 配置样例与各宿主发现规则（例如 Claude Code 扫描 `.claude/skills`
+而不是 `.agents/skills`）见 [docs/host-config.md](docs/host-config.md)。Skill 仍是草案，
+宿主发现、激活与 MCP 连接需要分别验证。`quickstart` 档位是一条完整教学路径：可记录新误解
+（`assess_misconception`）、记录学习者知情选择跳过领域校准（`set_domain_grounding_skip`）、
+恢复拆分评估并显式结课；已关闭的会话不再建议教学调用。回包只带紧凑的 `policy_version`
+而非完整政策，`continue_lesson` 默认只返回摘要（`verbose=True` 才展开）。现有 HTML outbox
+桥接仍需 `full` 档位。
 
 领域校准现在要求 `save_benchmark_report(verification=...)` 提供来源定位、摘录、关联论断、复核例题和不确定性；仅保存文字报告会保持 pending，教学入口也受门禁约束。宿主必须自行阅读资料，出题前用 `save_assessment_item` 登记题目条件、答案、推导与独立检查。自由文本推理必须由宿主做语义评估：LEAP 检查记录并估计学习状态，不能证明学科答案正确。
 
-参见[[docs/content-quality|内容质量与真实联调流程]]及[[docs/quality-audit-2026-10-10|本次交付物审计]]。浏览器场景、真实 MCP 联调、内容审校分别验收。
+参见[内容质量与真实联调流程](docs/content-quality.md)及[本次交付物审计](docs/quality-audit-2026-10-10.md)。浏览器场景、真实 MCP 联调、内容审校分别验收。
 
-所有模式永久执行完整教学、可控图示、宽屏、完整 Obsidian 原始知识源和头部精准资源规则。先登记实际 Markdown/HTML 正文对 `save_teaching_package`，再登记题目；规范详见 [[docs/teaching-delivery]]。学科目录包含11类领域，八个示例配有完整知识笔记与行为清单。课程配方独立于框架维护；通用交付同步入口为 `scripts/sync_delivery.py`。
+所有模式永久执行完整教学、可控图示、宽屏、完整 Obsidian 原始知识源和头部精准资源规则。先登记实际 Markdown/HTML 正文对 `save_teaching_package`，再登记题目；规范详见 [docs/teaching-delivery](docs/teaching-delivery.md)。学科目录包含11类领域，八个示例配有完整知识笔记与行为清单。课程配方独立于框架维护；通用交付同步入口为 `scripts/sync_delivery.py`。
 
 ## 🧩 可插拔设计
 
@@ -223,7 +264,7 @@ leap-framework/
 
 ## 🔍 质量门禁
 
-完整验证顺序、浏览器依赖安装和通过判据统一见 [[CONTRIBUTING|贡献指南]]；自动执行范围由
+完整验证顺序、浏览器依赖安装和通过判据统一见 [贡献指南](CONTRIBUTING.md)；自动执行范围由
 `.github/workflows/ci.yml` 定义。工具目录由 CI 对照自动生成参考逐字节校验。
 
 AI 助手工作区和本地临时目录不参与发布；`.gitignore`、扫描器与 CI 测试共同检查索引及历史中未包含此类文件。
@@ -232,21 +273,21 @@ AI 助手工作区和本地临时目录不参与发布；`.gitignore`、扫描�
 
 | 文档 | 内容 |
 |---|---|
-| [[README|README.md]] | English |
-| [[docs/ARCHITECTURE|docs/ARCHITECTURE.md]] | 架构与设计决策 |
-| [[docs/INTEGRATION|docs/INTEGRATION.md]] | 宿主 Agent 接入指南 |
-| [[docs/EXAMPLES|docs/EXAMPLES.md]] | 八个教学页面及其契约 |
+| [README.md](README.md) | English |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 架构与设计决策 |
+| [docs/INTEGRATION.md](docs/INTEGRATION.md) | 宿主 Agent 接入指南 |
+| [docs/EXAMPLES.md](docs/EXAMPLES.md) | 八个教学页面及其契约 |
 | [`docs/i18n/`](docs/i18n/) | 多语言翻译 |
-| [[CHANGELOG|CHANGELOG.md]] | 版本历史 |
-| [[CONTRIBUTING|CONTRIBUTING.md]] | 如何参与贡献 |
-| [[SECURITY|SECURITY.md]] | 漏洞报告方式 |
+| [CHANGELOG.md](CHANGELOG.md) | 版本历史 |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | 如何参与贡献 |
+| [SECURITY.md](SECURITY.md) | 漏洞报告方式 |
 
 > 权威的框架设计文档与视觉设计规范由项目作者另行维护，**不包含在本仓库**。
 > 本仓库的实现遵循这些文档。
 
 ## 🤝 参与贡献
 
-欢迎提交 issue 与 pull request。请先阅读 [[CONTRIBUTING|CONTRIBUTING.md]]。
+欢迎提交 issue 与 pull request。请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 📄 许可证
 
@@ -262,4 +303,4 @@ AI 助手工作区和本地临时目录不参与发布；`.gitignore`、扫描�
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[README]] · [[docs/ARCHITECTURE_CN]] · [[docs/FACADE_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]] · [[docs/scope-and-limits_CN]] · [[docs/teaching-upgrade-plan]] · [[examples/01-python-recursion/knowledge]] · [[examples/05-logic-flowchart/knowledge]]
+[Knowledge_Index](Knowledge_Index.md) · [README](README.md) · [docs/ARCHITECTURE_CN](docs/ARCHITECTURE_CN.md) · [docs/FACADE_CN](docs/FACADE_CN.md) · [docs/i18n/README.ar](docs/i18n/README.ar.md) · [docs/i18n/README.es](docs/i18n/README.es.md) · [docs/i18n/README.fr](docs/i18n/README.fr.md) · [docs/i18n/README.ja](docs/i18n/README.ja.md) · [docs/i18n/README.ko](docs/i18n/README.ko.md) · [docs/i18n/README.ru](docs/i18n/README.ru.md) · [docs/scope-and-limits_CN](docs/scope-and-limits_CN.md) · [docs/teaching-upgrade-plan](docs/teaching-upgrade-plan.md) · [examples/01-python-recursion/knowledge](examples/01-python-recursion/knowledge.md) · [examples/05-logic-flowchart/knowledge](examples/05-logic-flowchart/knowledge.md)

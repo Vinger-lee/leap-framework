@@ -68,9 +68,14 @@ def test_continue_lesson_returns_state_and_a_next_call(dag, grounded_service):
         "resolve_misconception",
         "get_review_queue",
     }
+    # Teaching turns are compact by default: the full context is opt-in.
+    assert "teaching_context" not in result
+    assert result.get("teaching_context_omitted") is True
+    assert result["teaching_context_hint"]["tool"] == "get_teaching_context"
+    verbose = grounded_service.continue_lesson(dag, "n1", verbose=True)
     # The nested context must not repeat the delivery policy that the envelope carries.
-    assert "teaching_delivery_policy" not in result["teaching_context"]
-    assert result["teaching_delivery_policy"]
+    assert "teaching_delivery_policy" not in verbose["teaching_context"]
+    assert verbose["teaching_delivery_policy"]["version"]
 
 
 def test_continue_lesson_requires_domain_grounding(service):
@@ -169,8 +174,7 @@ def test_advance_lesson_reports_a_rejection_without_writing(dag, grounded_servic
     assert after["current_node_id"] == before["current_node_id"]
 
 
-@pytest.mark.parametrize("manual_override", [False, True])
-def test_advance_lesson_checks_the_guard_once(dag, grounded_service, monkeypatch, manual_override):
+def test_advance_lesson_checks_the_guard_once(dag, grounded_service, monkeypatch):
     calls = []
     check_unit = grounded_service.guard.check_unit
 
@@ -180,15 +184,32 @@ def test_advance_lesson_checks_the_guard_once(dag, grounded_service, monkeypatch
         return decision
 
     monkeypatch.setattr(grounded_service.guard, "check_unit", counted_check)
-    result = grounded_service.advance_lesson(dag, unit_tag="u1", manual_override=manual_override)
+    result = grounded_service.advance_lesson(dag, unit_tag="u1")
 
     assert len(calls) == 1
     assert result["advanced"] is calls[0].allowed
     assert result["guard"] == calls[0].as_dict()
 
 
-def test_advance_lesson_advances_when_the_guard_allows_it(dag, grounded_service):
-    result = grounded_service.advance_lesson(dag, unit_tag="u1", manual_override=True)
+def test_host_facing_advance_has_no_manual_override_switch(dag, grounded_service):
+    """The guard may only be overridden by an operator entry point, never a tool arg."""
+    import inspect
+
+    for method in (
+        grounded_service.advance_lesson,
+        grounded_service.advance_unit,
+        grounded_service.check_advance_unit,
+    ):
+        assert "manual_override" not in inspect.signature(method).parameters
+
+
+def test_advance_lesson_advances_when_the_guard_allows_it(dag, grounded_service, monkeypatch):
+    from leap.runtime.state_guard import GuardDecision
+
+    monkeypatch.setattr(
+        grounded_service.guard, "check_unit", lambda *args, **kwargs: GuardDecision.allow("test")
+    )
+    result = grounded_service.advance_lesson(dag, unit_tag="u1")
 
     assert result["advanced"] is True
     assert result["guard_allowed"] is True

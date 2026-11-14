@@ -4,7 +4,7 @@
 Checks a single-file example HTML against:
 
 * ``examples/_shared/leap-web-spec.md``            - structure and data contract
-* ``（作者维护的视觉规范，不在本仓库）``                 - visual rules and anti-patterns
+* ``docs/EXAMPLES.md`` ("Static checks and design tokens") - visual rules and anti-patterns
 * ``examples/_shared/interaction-output.schema.json`` - the JSON contract
 
 This is deliberately **static analysis**: it reads the file as text. It cannot

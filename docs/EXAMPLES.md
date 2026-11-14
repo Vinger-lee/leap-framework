@@ -31,9 +31,9 @@ shows how a real teaching page talks to the LEAP runtime.
 | 3 | [`examples/03-cs-osi-model/`](../examples/03-cs-osi-model/) | Computer science — OSI model |
 | 4 | [`examples/04-physics-free-fall/`](../examples/04-physics-free-fall/) | Physics — free fall |
 | 5 | [`examples/05-logic-flowchart/`](../examples/05-logic-flowchart/) | Logic — flowcharts |
-| 6 | `examples/06-statistics-probability/` | Statistics — conditional probability |
-| 7 | `examples/07-chemistry-stoichiometry/` | Chemistry — stoichiometry |
-| 8 | `examples/08-electronics-ohms-law/` | Electronics — Ohm law |
+| 6 | [`examples/06-statistics-probability/`](../examples/06-statistics-probability/) | Statistics — conditional probability |
+| 7 | [`examples/07-chemistry-stoichiometry/`](../examples/07-chemistry-stoichiometry/) | Chemistry — stoichiometry |
+| 8 | [`examples/08-electronics-ohms-law/`](../examples/08-electronics-ohms-law/) | Electronics — Ohm law |
 
 ## What every page must do
 
@@ -70,6 +70,40 @@ call argument — mastery is decided server-side.
 
 Before injection the page runs in `demo` mode: locally derived numbers are flagged
 `assessment.provisional = true` and labelled as unconfirmed feedback. Demo mode never advances mastery or evidence stage; hosted mode alone does not confirm a new assessment.
+
+## Static checks and design tokens
+
+`scripts/verify_example.py` is the static gate (CI runs `python scripts/verify_example.py --all`).
+Checks have stable IDs; run with `--verbose` to list every one:
+
+| Prefix | Scope |
+|---|---|
+| `A1`–`A6` | single file and offline: no CDN, external script, network call or external image |
+| `B1`–`B6` | output contract: `#leap-interaction-output`, `window.LEAP`, append-only events |
+| `C*`/`D*` | the three required zones and the practice/console components |
+| `E1`–`E7` | payload identity: `leap_version`, `example_id`, learner/session placeholders |
+| `F1`–`F17` | visual rules: tokens, fonts, spacing, motion, no gradients/images/emoji |
+| `G0` | subject-specific component presence |
+| `H1`–`H9` | host bridge: hydration, outbox, no locally computed mastery |
+| `I1` | every `#id` referenced from script or CSS exists in the page |
+
+The design tokens the gate requires in `:root` (a media query may override them). These are the
+values every shipped example uses, and the executable checks remain the source of truth:
+
+| Token | Value | Token | Value |
+|---|---|---|---|
+| `--paper` | `#FAF9F6` | `--surface-sunk` | `#F3F1EC` |
+| `--ink` | `#191B20` | `--hairline` | `#E8E4DC` |
+| `--accent` | `#2B4AC4` | `--ok` | `#2E7D5B` |
+| `--warn` | `#B3861A` | `--err` | `#B4432F` |
+| `--fs-display` | `32px` | `--fs-h2` | `22px` |
+| `--fs-h3` | `17px` | `--fs-body` | `15.5px` |
+| `--fs-small` | `13px` | `--fs-micro` | `11.5px` |
+
+Evidence-stage colours (`--ev-estimated` `#9AA1AD` … `--ev-transferred` `#B3861A`), hint-ladder
+colours (`--hint-1` … `--hint-4`) and the 4pt spacing grid (`--s-1` `4px` … `--s-20` `80px`) are
+checked as warnings. Layout rules: wide desktop containers up to 1800px, a 320–420px side rail,
+no horizontal overflow at 375px.
 
 ## Verification
 

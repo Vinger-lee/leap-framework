@@ -114,8 +114,8 @@
     "No verified video: insert topic-specific core/extension/advanced search queries at the top."
   ],
   "templates": {
-    "knowledge_node": "---\ntitle: <specific skill>\ntags: [leap, <subject>, lesson]\naliases: [<descriptive alias>]\nnode_id: <runtime node id>\nunit_tag: <runtime unit tag>\nstate_kind: runtime_snapshot\nupdated_at: <Unix seconds>\n---\n\n# <specific skill>\n\n> [!info] Learning resources\n> Verified video records only after accessibility and topical content checks.\n> Otherwise core: <topic + operation + beginner>; extension: <conditions + comparison>; advanced: <proof + transfer>.\n\nRelated: [[01_Knowledge/Knowledge_Map]] · [[01_Knowledge/Nodes/<prerequisite>]]\n\n## Prerequisite refresher and symbol glossary\n\nExplain every prerequisite operation and check it with a short example.\n\n## Principle, assumptions and mechanism\n\nState precisely what is true, when it is true, and why it works.\n\n## Labeled diagram and controllable walkthrough\n\nChoose a faithful structure/cutaway, causal/state trace, data plot or comparison view.\nExplain every part name, quantity, unit and model limit. Link a controllable HTML view\nto a static SVG/storyboard or table; retain the complete explanation in this note.\nFor new visual deliveries declare visual_contract (anatomy.v1), with real selectors,\ncaptions, labels, static_frame and shared model_binding for animated figures.\n\n## Complete worked example\n\n1. State exact inputs, units and domain constraints.\n2. Show each operation and its reason, preserving intermediate results.\n3. Check the final result independently and against boundary cases.\n\n## Misconceptions, boundaries and contrasting cases\n\nShow an incorrect method, explain the failure, repair it, and compare a valid nearby case.\n\n## Graduated practice and full solutions\n\nBasic, variation and challenge tasks each include conditions, full derivation and error analysis.\n\n## Transfer and delayed review\n\nChange parameters or context. Require a fresh learner answer; answer reveal is not evidence of mastery.\n\n> [!example]- Extended derivation beyond the HTML projection\n> Include additional original reasoning, annotated steps, alternate methods, counterexamples and extra practice here.\n\n## Sources, limitations and projection coverage\n\nRecord actual source URL, locator, excerpt, date and checks; do not imply syllabus alignment from general sources.\nMap each HTML teaching section to a full note section. Register both bodies through save_teaching_package.\n\n## Backlinks and next concepts\n\n[[01_Knowledge/Knowledge_Map]] · [[02_Lessons/<successor>]]\n",
-    "lesson": "---\ntitle: <specific skill>\ntags: [leap, <subject>, lesson]\naliases: [<descriptive alias>]\nnode_id: <runtime node id>\nunit_tag: <runtime unit tag>\nstate_kind: runtime_snapshot\nupdated_at: <Unix seconds>\n---\n\n# <specific skill>\n\n> [!info] Learning resources\n> Verified video records only after accessibility and topical content checks.\n> Otherwise core: <topic + operation + beginner>; extension: <conditions + comparison>; advanced: <proof + transfer>.\n\nRelated: [[01_Knowledge/Knowledge_Map]] · [[01_Knowledge/Nodes/<prerequisite>]]\n\n## Prerequisite refresher and symbol glossary\n\nExplain every prerequisite operation and check it with a short example.\n\n## Principle, assumptions and mechanism\n\nState precisely what is true, when it is true, and why it works.\n\n## Labeled diagram and controllable walkthrough\n\nChoose a faithful structure/cutaway, causal/state trace, data plot or comparison view.\nExplain every part name, quantity, unit and model limit. Link a controllable HTML view\nto a static SVG/storyboard or table; retain the complete explanation in this note.\nFor new visual deliveries declare visual_contract (anatomy.v1), with real selectors,\ncaptions, labels, static_frame and shared model_binding for animated figures.\n\n## Complete worked example\n\n1. State exact inputs, units and domain constraints.\n2. Show each operation and its reason, preserving intermediate results.\n3. Check the final result independently and against boundary cases.\n\n## Misconceptions, boundaries and contrasting cases\n\nShow an incorrect method, explain the failure, repair it, and compare a valid nearby case.\n\n## Graduated practice and full solutions\n\nBasic, variation and challenge tasks each include conditions, full derivation and error analysis.\n\n## Transfer and delayed review\n\nChange parameters or context. Require a fresh learner answer; answer reveal is not evidence of mastery.\n\n> [!example]- Extended derivation beyond the HTML projection\n> Include additional original reasoning, annotated steps, alternate methods, counterexamples and extra practice here.\n\n## Sources, limitations and projection coverage\n\nRecord actual source URL, locator, excerpt, date and checks; do not imply syllabus alignment from general sources.\nMap each HTML teaching section to a full note section. Register both bodies through save_teaching_package.\n\n## Backlinks and next concepts\n\n[[01_Knowledge/Knowledge_Map]] · [[02_Lessons/<successor>]]\n",
+    "knowledge_node": "---\ntitle: <specific skill>\ntags: [leap, <subject>, lesson]\naliases: [<descriptive alias>]\nnode_id: <runtime node id>\nunit_tag: <runtime unit tag>\nstate_kind: runtime_snapshot\nupdated_at: <Unix seconds>\n---\n\n# <specific skill>\n\n> [!info] Learning resources\n> Verified video records only after accessibility and topical content checks.\n> Otherwise core: <topic + operation + beginner>; extension: <conditions + comparison>; advanced: <proof + transfer>.\n\nRelated: [[01_Knowledge/Knowledge_Map]] · [[01_Knowledge/Nodes/<prerequisite>]]\n\n## Prerequisite refresher and symbol glossary\n\nExplain every prerequisite operation and check it with a short example.\n\n## Principle, assumptions and mechanism\n\nState precisely what is true, when it is true, and why it works.\n\n## Research and structure before construction\n\nRead actual authoritative knowledge and the real structure/manual first. Record each\nsource URL/path, precise locator, excerpt, reading date, supported claim and limits.\nMap meaningful parts to their functions, connections and references. Distinguish\nreferenced structure from schematic geometry and invented analogies. Never infer\nresearch or physical accuracy from visual detail.\n\nWrite the shared model, units, domain, transitions and stopping conditions before\ngeometry. Independently check release/intermediate/end and boundary cases, keeping\ninputs, expected result, check method and result. Save benchmark/source records;\nuse the resulting session source_ids when registering the teaching package.\n\n## Labeled diagram and controllable walkthrough\n\nChoose a faithful structure/cutaway, causal/state trace, data plot or comparison view.\nExplain every part name, quantity, unit and model limit. Link a controllable HTML view\nto a static SVG/storyboard or table; retain the complete explanation in this note.\nFor new visual deliveries declare visual_contract (anatomy.v2), with real selectors,\ncaptions, labels, static_frame and shared model_binding for animated figures. Map each\nresearch source through figure.source_refs, a part, or model_binding; use figure.source_refs\nfor formal state traces without physical parts.\nRecord research sources with evidence_source_id from save_benchmark_report; source,\nlocator and excerpt match that saved record. Include these ids in package source_ids.\nStructure/mechanism/spatial figures include parts and inspection; other views use\nfaithful quantities, formal states and transitions without an invented machine.\nEach part explains its function, relationship, representation and source basis.\nAnimated model_binding includes assumptions, domain, limits, source_refs and checks\nwith case kind, inputs, expected, method and result (representative and boundary).\nAn inspectable structure links each real part selector to a named explanation:\nhover/focus previews, click/Enter/Space/touch selects, leaving restores selection,\nEscape/clear restores context. Keep a stable explanation panel and static part list;\ninspecting structure never changes the model's physical or logical state. Check real\npointer hit areas, selection restoration, keyboard, touch and synchronized outputs\nbefore registering. Structural acceptance never certifies these browser behaviors.\n\n## Complete worked example\n\n1. State exact inputs, units and domain constraints.\n2. Show each operation and its reason, preserving intermediate results.\n3. Check the final result independently and against boundary cases.\n\n## Misconceptions, boundaries and contrasting cases\n\nShow an incorrect method, explain the failure, repair it, and compare a valid nearby case.\n\n## Graduated practice and full solutions\n\nBasic, variation and challenge tasks each include conditions, full derivation and error analysis.\n\n## Transfer and delayed review\n\nChange parameters or context. Require a fresh learner answer; answer reveal is not evidence of mastery.\n\n> [!example]- Extended derivation beyond the HTML projection\n> Include additional original reasoning, annotated steps, alternate methods, counterexamples and extra practice here.\n\n## Sources, limitations and projection coverage\n\nRecord actual source URL, locator, excerpt, date and checks; do not imply syllabus alignment from general sources.\nMap each HTML teaching section to a full note section. Register both bodies through save_teaching_package.\n\n## Backlinks and next concepts\n\n[[01_Knowledge/Knowledge_Map]] · [[02_Lessons/<successor>]]\n",
+    "lesson": "---\ntitle: <specific skill>\ntags: [leap, <subject>, lesson]\naliases: [<descriptive alias>]\nnode_id: <runtime node id>\nunit_tag: <runtime unit tag>\nstate_kind: runtime_snapshot\nupdated_at: <Unix seconds>\n---\n\n# <specific skill>\n\n> [!info] Learning resources\n> Verified video records only after accessibility and topical content checks.\n> Otherwise core: <topic + operation + beginner>; extension: <conditions + comparison>; advanced: <proof + transfer>.\n\nRelated: [[01_Knowledge/Knowledge_Map]] · [[01_Knowledge/Nodes/<prerequisite>]]\n\n## Prerequisite refresher and symbol glossary\n\nExplain every prerequisite operation and check it with a short example.\n\n## Principle, assumptions and mechanism\n\nState precisely what is true, when it is true, and why it works.\n\n## Research and structure before construction\n\nRead actual authoritative knowledge and the real structure/manual first. Record each\nsource URL/path, precise locator, excerpt, reading date, supported claim and limits.\nMap meaningful parts to their functions, connections and references. Distinguish\nreferenced structure from schematic geometry and invented analogies. Never infer\nresearch or physical accuracy from visual detail.\n\nWrite the shared model, units, domain, transitions and stopping conditions before\ngeometry. Independently check release/intermediate/end and boundary cases, keeping\ninputs, expected result, check method and result. Save benchmark/source records;\nuse the resulting session source_ids when registering the teaching package.\n\n## Labeled diagram and controllable walkthrough\n\nChoose a faithful structure/cutaway, causal/state trace, data plot or comparison view.\nExplain every part name, quantity, unit and model limit. Link a controllable HTML view\nto a static SVG/storyboard or table; retain the complete explanation in this note.\nFor new visual deliveries declare visual_contract (anatomy.v2), with real selectors,\ncaptions, labels, static_frame and shared model_binding for animated figures. Map each\nresearch source through figure.source_refs, a part, or model_binding; use figure.source_refs\nfor formal state traces without physical parts.\nRecord research sources with evidence_source_id from save_benchmark_report; source,\nlocator and excerpt match that saved record. Include these ids in package source_ids.\nStructure/mechanism/spatial figures include parts and inspection; other views use\nfaithful quantities, formal states and transitions without an invented machine.\nEach part explains its function, relationship, representation and source basis.\nAnimated model_binding includes assumptions, domain, limits, source_refs and checks\nwith case kind, inputs, expected, method and result (representative and boundary).\nAn inspectable structure links each real part selector to a named explanation:\nhover/focus previews, click/Enter/Space/touch selects, leaving restores selection,\nEscape/clear restores context. Keep a stable explanation panel and static part list;\ninspecting structure never changes the model's physical or logical state. Check real\npointer hit areas, selection restoration, keyboard, touch and synchronized outputs\nbefore registering. Structural acceptance never certifies these browser behaviors.\n\n## Complete worked example\n\n1. State exact inputs, units and domain constraints.\n2. Show each operation and its reason, preserving intermediate results.\n3. Check the final result independently and against boundary cases.\n\n## Misconceptions, boundaries and contrasting cases\n\nShow an incorrect method, explain the failure, repair it, and compare a valid nearby case.\n\n## Graduated practice and full solutions\n\nBasic, variation and challenge tasks each include conditions, full derivation and error analysis.\n\n## Transfer and delayed review\n\nChange parameters or context. Require a fresh learner answer; answer reveal is not evidence of mastery.\n\n> [!example]- Extended derivation beyond the HTML projection\n> Include additional original reasoning, annotated steps, alternate methods, counterexamples and extra practice here.\n\n## Sources, limitations and projection coverage\n\nRecord actual source URL, locator, excerpt, date and checks; do not imply syllabus alignment from general sources.\nMap each HTML teaching section to a full note section. Register both bodies through save_teaching_package.\n\n## Backlinks and next concepts\n\n[[01_Knowledge/Knowledge_Map]] · [[02_Lessons/<successor>]]\n",
     "knowledge_map": "---\ntitle: Knowledge map\ntags: [leap, index]\naliases: [Knowledge index]\n---\n\n# Knowledge map\n\n> [!info] Learning resources\n> Core: prerequisite graph learning path; extension: concept relations; advanced: transfer design.\n\nLink every node and its canonical lesson with reciprocal [[wikilinks]]. Draw prerequisite Mermaid edges; distinguish learning order from evidence stage.\n",
     "goal": "---\ntitle: Learning goal\ntags: [leap, goal]\naliases: [Session objective]\n---\n\n# Learning goal\n\n> [!info] Learning resources\n> Core: <specific topic beginner>; extension: <topic conditions>; advanced: <topic transfer>.\n\nDefine observable outcome, prerequisites, constraints and assessment. Link [[01_Knowledge/Knowledge_Map]] and the canonical [[02_Lessons/Unit_001/lesson]].\n",
     "profile": "---\ntitle: Learner profile\ntags: [leap, profile]\naliases: [Learner profile note]\n---\n\n# Learner profile\n\n> [!info] Learning resources\n> Core: <topic-specific prerequisite>; extension: <learning conditions>; advanced: <transfer evidence>.\n\nRecord the learner's stated goals, accessibility preferences, prior experience and constraints. Distinguish self-report from assessed evidence.\n\nRelated: [[01_Knowledge/Knowledge_Map]] · [[00_System/learning_goal]]\n\n> [!note]- Interpretation and limitations\n> Include exact observations, assumptions, timestamp and unresolved questions; only Runtime receipts authorize learner-state claims.\n",
@@ -185,27 +185,60 @@
     ],
     "no_visual_exception": "Record an explicit pedagogical reason for a nonvisualizable point, not a blanket omission.",
     "truth_boundary": "Graphs and sampled simulations illustrate; analytical reasoning or full checks establish conclusions.",
-    "authoring_profile": "anatomy.v1",
+    "authoring_profile": "anatomy.v2",
+    "construction_workflow": [
+      "Research: actually open authoritative subject references and, for a real device or organism, primary manuals, drawings or structural references. Record source, precise locator, excerpt and reading date. Search snippets, guessed URLs and prior model knowledge do not count as reading.",
+      "Reconcile: list the claims each source supports and its limits. Resolve conflicts before illustrating a factual claim; label an unresolved mechanism or switch to a verified static explanation instead of inventing a realistic animation.",
+      "Map: for every meaningful part state its function, connection or causal role, source_refs and representation (reference, schematic or analogy). Explain the basis for dimensions, topology and omissions; label invented supports, normalized geometry and metaphors explicitly.",
+      "Model: write assumptions, units, parameter domain, transitions and stopping conditions before geometry. Independently derive release/intermediate/end and boundary checks; use one model for geometry, plots and readouts.",
+      "Construct: build the canonical Markdown, then offline geometry and interaction. Use direct part hover/focus preview and click/Enter/Space/touch selection, an adjacent stable explanation panel and an explicit clear action. Viewing or selecting a part must not change domain state.",
+      "Verify: execute real pointer hit tests, keyboard and touch, preview exit/selection restoration, reset, reduced motion and static fallback. Inspect desktop/mobile and 4x detail. Record what was actually checked; Runtime validates records, not truth or browser behavior."
+    ],
     "authoring_rules": [
       "Make structure, mechanism and change visible. Use a recognizable object or experiment when it maps faithfully to the subject; use a state trace or spatial model when a physical metaphor would mislead.",
       "Choose complementary views by teaching purpose: cutaway/exploded structure for parts, cause-and-effect or state transitions for mechanism, labeled data plots for quantities, and contrasting cases for model limits. Do not impose a decorative image count.",
       "Build deliberate, shaded parts in correct depth order. Put explanations and part names in a linked legend; reserve color for the currently relevant subject or a consistent data meaning.",
       "Use one explicit model for moving parts, charts and live readouts. Explain units, normalized geometry, assumptions and limits; never animate a visual independently of the quantity it claims to show.",
+      "Teach directly on the model: hovering or keyboard focus previews a named part and its function; clicking, Enter/Space or touch selects it. Leaving preview restores the selected part; Escape/clear restores context. Keep information in a stable adjacent panel, available without hovering; do not log pointer movement as learner evidence or narrate every frame.",
       "Offer play/pause, reset and reversible steps or scrubbing. Start still; pause offscreen or in a hidden tab, and offer discrete states under reduced motion. Do not announce each animation frame to screen readers.",
       "Supply a real inline SVG, image or table as a static storyboard with conditions and complete explanations in canonical Markdown; a promise of a fallback is insufficient.",
-      "Declare visual_contract with profile anatomy.v1 in new or revised visual deliveries. Preserve older manifests; the Runtime checks records and targets while browser scenarios and host review check behavior and truth."
+      "Declare visual_contract with profile anatomy.v2 in new or revised visual deliveries. Preserve older manifests; the Runtime checks records and targets while browser scenarios and host review check behavior and truth."
     ],
+    "presentation": {
+      "hierarchy": "Learning question and scope -> structure overview -> linked part inspection -> controllable mechanism/states -> synchronized quantities and explanation -> comparison/limits -> practice. Show one primary mechanism at a time; complementary diagrams answer distinct questions.",
+      "inspection": "Place the model beside a stable explanation panel on desktop; stack them on mobile. Keep current part name, function, relationships and conditions visible without covering geometry or shifting controls. Supply a static part/quantity list readable without JavaScript.",
+      "focus": "Keep the selected part distinct from a temporary hover/focus preview. Dim context gently without hiding relationships; retain a visible keyboard focus indicator. Do not rely on color alone.",
+      "quantities": "Align readouts, curves and motion to one state and visible units. Separate explanatory callouts from animation frames; announce deliberate inspection/step changes only.",
+      "progression": "Offer overview, guided steps and free exploration. Pause at a causal change with a concise explanation; inspection does not advance lessons or create assessment evidence."
+    },
+    "inspection_behavior": {
+      "state": "Keep previewed_part and selected_part separate from domain/model state. Display previewed_part, else selected_part, else the overview.",
+      "preview": "Pointer enter and keyboard focus on actual geometry preview its explanation. Pointer leave and blur remove only their own preview; moving across nested SVG children must not flicker. A focused part remains available when the pointer leaves.",
+      "select": "Click, Enter, Space and touch select the same part. A selection remains after preview exit; prevent Space from scrolling the page. Touch must work without hover.",
+      "clear": "Escape and an explicitly labeled clear button clear preview and selection and restore the overview. Reset clears inspection and returns the model to its initial state; ordinary inspection never changes model state.",
+      "hit_testing": "Use reachable hit areas on the actual part or its linked button, correct depth order and pointer-events on decorative overlays. Verify real screen coordinates rather than dispatching synthetic events to an obscured element.",
+      "accessibility": "Use native buttons or role=button, tabindex=0 and an accessible name on geometry. Preserve visible focus, readable touch targets and an adjacent persistent explanation; expose all part descriptions statically. Do not announce continuous motion."
+    },
     "contract": {
       "manifest_field": "visual_contract",
-      "profile": "anatomy.v1",
+      "profile": "anatomy.v2",
+      "accepted_profiles": [
+        "anatomy.v1",
+        "anatomy.v2"
+      ],
+      "enforcement": "A new teaching package for a session+node (the first accepted package for that node) must use anatomy.v2. anatomy.v1 or an absent contract is accepted only when the host sets manifest.allow_legacy=true; that opt-in is recorded in artifact metadata and every legacy acceptance is returned as warnings. A pure-text lesson needs no visual_contract when every teaching_point declares visualization.no_visual_reason and no visualization.type; its validation reports visual_contract_state=not_applicable. A revised package may not silently downgrade an accepted anatomy.v2 package. Otherwise save_teaching_package fails with error code visual_contract_required.",
+      "manifest_policy_fields": "anatomy.v2 manifests also declare policy_id and policy_version equal to the active delivery policy (leap.teaching.delivery / 3.0). Unknown top-level manifest fields are rejected so a typo such as visualContract cannot silently downgrade a package; visual_contract=null is treated as absent.",
       "figure_fields": [
         "id",
         "role",
         "selector",
         "caption",
         "labels",
-        "static_frame"
+        "static_frame",
+        "source_refs"
       ],
+      "figure_selector": "figure.selector targets a real svg, canvas, figure, img or table element. Ordinary prose div/section elements cannot impersonate a figure.",
+      "controllable_figures": "When any teaching_point declares visualization.type, the package needs at least one controllable figure: animated=true with controls and states, or a parameter control. A static page of data is not a controllable visual.",
       "roles": [
         "structure",
         "mechanism",
@@ -219,19 +252,124 @@
         "controls",
         "states"
       ],
-      "model_binding": "source describes the shared model; quantities lists name, unit and a real output selector. These declarations are not evaluated as code.",
-      "controls": "play_pause and reset plus either step_forward/step_back or scrub/parameter; all targets are actual enabled buttons, inputs or selects.",
-      "states": "At least two explained states, also recorded in canonical Markdown.",
-      "selectors": "Unique #id targets; static_frame points to an actual SVG, image or table. Captions and labels occur in both delivered bodies.",
-      "compatibility": "Optional for existing packages; required by the authoring workflow for newly generated or revised visual packages."
+      "model_binding": "source describes the shared model; quantities lists name, unit and a real output selector and both name and unit occur in canonical Markdown. These declarations are not evaluated as code.",
+      "controls": "play_pause and reset plus either step_forward/step_back or scrub/parameter; all targets are actual enabled visible buttons, inputs or selects. Declaring controls or states requires animated=true.",
+      "states": "At least two explained states, also recorded in canonical Markdown. For a v2 formal state trace without parts or model_binding, figure.source_refs maps the research supporting those states; the figure must still be animated and explain both states.",
+      "research": "Required in anatomy.v2: visual_contract.research contains sources (unique local id, evidence_source_id returned by save_benchmark_report, source URL or document path, locator, actual excerpt, checked_at ISO YYYY-MM-DD date not in the future) and limitations. Source, locator, excerpt, date and limitations occur in canonical Markdown. At registration each evidence_source_id must be in package source_ids, belong to the same session and to the source_ids of the latest completed save_benchmark_report, and match the stored source, locator and excerpt exactly (surrounding whitespace ignored). Every research local id must be mapped by figure.source_refs, a part source_refs or model_binding.source_refs. Use figure.source_refs for a figure-level claim or a formal state trace without physical parts. Local ids are not Runtime evidence source ids.",
+      "parts": "Required in anatomy.v2 for structure, mechanism and spatial roles, and whenever inspection is declared: nonempty parts list; each part records selector, name, explanation, relationship, representation (reference/schematic/analogy), basis and source_refs to research local ids. Explain relationship and basis in Markdown. Reference parts require references; deliberately schematic/analogy parts may have none with an explicit basis. Names/explanations occur in both bodies. Part selectors may target SVG geometry (g, path, circle, polygon, rect, line, ellipse, polyline, text, use, image) or linked buttons; they must be unique within the figure.",
+      "inspection": "Required in anatomy.v2 for structure/mechanism/spatial figures or whenever parts are declared. panel may be a p, div, section, output, aside, dl, article or figure; clear is a button; help explains preview/selection/restore in both bodies. Each part is a named focusable button (native button or SVG role=button, tabindex=0, aria-label). Browser tests establish hit testing and actual behavior.",
+      "model_checks": "Required in anatomy.v2 model_binding: assumptions, domain, limits in Markdown, source_refs to research local ids and checks recording kind, inputs, expected, method and result. Check kinds: initial, intermediate, terminal, typical, boundary. Animated figures need a boundary case and at least one other kind; independently check initial/intermediate/terminal wherever applicable. These are evidence records; Runtime does not run the calculation or certify it.",
+      "selectors": "Selectors are a single #id: any actual HTML id is accepted (digits and CJK included) and must exist exactly once as an enabled visible element; hidden subtrees, aria-hidden, inline display:none and disabled elements are rejected. Static_frame points to an actual SVG, image or table. Captions and labels occur in both delivered bodies. CSS-generated text (content:) is a host browser check, not a static check.",
+      "text_minimums": "Missing records are rejected and empty shells are too: prose fields (caption, help, part explanation/relationship/basis, model assumptions/domain/limits, check inputs/expected/method/result, states, research limitations) need meaningful text (at least 8 Latin characters or 6 CJK characters) and labels/part names need at least 2 characters. quantities.name and quantities.unit must appear in canonical Markdown.",
+      "source_binding": "research.sources[].evidence_source_id must be in the latest completed benchmark report for this session, and source_ids must be the sources_saved ids from save_benchmark_report. Reusing an unrelated earlier session source is rejected.",
+      "visible_text": "Visible-text coverage counts only rendered text: script, style, head, title, desc, defs, template, noscript, option and datalist text and hidden/aria-hidden/inline-hidden subtrees are excluded. Text produced by CSS content or a stylesheet class is a host browser check.",
+      "status_fields": "validate_teaching_package returns visual_authoring.visual_contract_state (absent|not_applicable|legacy_v1|current|invalid), visual_contract_valid, package_valid, text_only and visual_contract_required. A success response for legacy acceptance includes warnings.",
+      "policy_reload": "The policy file is reloaded when its modification time changes (reload_policy() forces it); get_teaching_delivery_policy always returns the active version.",
+      "compatibility": "Absent contracts and anatomy.v1 remain readable for legacy packages and are reported as absent or legacy_v1 (not_applicable for text-only lessons). Registering a new package with a legacy contract requires the explicit manifest.allow_legacy=true opt-in and returns warnings; structural acceptance never claims anatomy.v2 compliance. New/revised authoring must use anatomy.v2.",
+      "template_rule": "The manifest_fragment below is an authoring scaffold, not researched content or a valid ready-made delivery. Replace every placeholder with actual records, body text, source ids, calculations and unique DOM targets. Add teaching_points, resources, html_segments and markdown_extensions as required by the full package policy.",
+      "manifest_fragment": {
+        "source_ids": [
+          "<source id returned by save_benchmark_report>"
+        ],
+        "visual_contract": {
+          "profile": "anatomy.v2",
+          "research": {
+            "sources": [
+              {
+                "id": "primary",
+                "evidence_source_id": "<source id returned by save_benchmark_report>",
+                "source": "<actual source URL or document path>",
+                "locator": "<precise section or page>",
+                "excerpt": "<actual excerpt supporting the structure/model>",
+                "checked_at": "<YYYY-MM-DD>"
+              }
+            ],
+            "limitations": "<what the sources do and do not establish>"
+          },
+          "figures": [
+            {
+              "id": "main-structure",
+              "role": "mechanism",
+              "selector": "#diagram",
+              "caption": "<what this figure explains and under which conditions>",
+              "labels": [
+                "<part or quantity name>"
+              ],
+              "static_frame": "#static-storyboard",
+              "animated": true,
+              "parts": [
+                {
+                  "selector": "#part-sensor",
+                  "name": "<part name>",
+                  "explanation": "<function and teaching significance>",
+                  "relationship": "<connection to other parts or causal states>",
+                  "representation": "reference",
+                  "basis": "<source-supported topology, dimensions and explicit simplifications>",
+                  "source_refs": [
+                    "primary"
+                  ]
+                }
+              ],
+              "inspection": {
+                "panel": "#part-info",
+                "clear": "#clear-part",
+                "help": "Hover/focus previews; click, Enter, Space or touch selects. Leaving preview restores selection; Escape/clear restores the overview."
+              },
+              "model_binding": {
+                "source": "<one pure model drives geometry, charts and readouts>",
+                "assumptions": "<model assumptions and units>",
+                "domain": "<valid parameter/input ranges>",
+                "limits": "<omitted effects and stopping conditions>",
+                "source_refs": [
+                  "primary"
+                ],
+                "quantities": [
+                  {
+                    "name": "<output name>",
+                    "unit": "<unit or dimensionless>",
+                    "selector": "#readout"
+                  }
+                ],
+                "checks": [
+                  {
+                    "kind": "typical",
+                    "inputs": "<representative input>",
+                    "expected": "<independently derived expected result>",
+                    "method": "<independent derivation or reference>",
+                    "result": "<actual comparison and discrepancy>"
+                  },
+                  {
+                    "kind": "boundary",
+                    "inputs": "<domain boundary input>",
+                    "expected": "<independently derived boundary result>",
+                    "method": "<independent boundary reasoning>",
+                    "result": "<actual comparison and discrepancy>"
+                  }
+                ]
+              },
+              "controls": {
+                "play_pause": "#play-pause",
+                "reset": "#reset",
+                "scrub": "#scrub"
+              },
+              "states": [
+                "<initial state and explanation>",
+                "<terminal state and explanation>"
+              ]
+            }
+          ]
+        }
+      }
     },
     "review": [
+      "read actual source evidence and source-to-part/model mapping",
       "inspect desktop and 375px layout",
       "zoom into joints and overlaps",
       "check release/intermediate/end states against independent calculations",
-      "exercise every control with pointer and keyboard",
+      "exercise geometry hover/focus, click/Enter/Space, Escape and touch; preview must restore the selected part without changing domain state",
       "check pause, reset, reduced motion, offscreen and hidden-tab behavior",
-      "read the static storyboard with JavaScript disabled"
+      "read the static storyboard and part explanations with JavaScript disabled"
     ]
-  }
+  },
+  "generation_requirements": "Fetch get_teaching_delivery_policy before authoring in every mode. Read authoritative knowledge and real structural references with host tools, then save_benchmark_report with source-linked verification. Map sources to parts or formal states; state model assumptions, domain and limits; independently check typical and boundary states before geometry. Write complete Obsidian Markdown before offline interactive HTML. New/revised visuals use anatomy.v2 with research, source/part/model mapping and accessible inspection; a new package for a session+node is rejected unless it is anatomy.v2, every teaching point is text-only (no_visual_reason) or the manifest sets allow_legacy=true for an intentionally preserved legacy package. Test pointer, keyboard, touch, selection restoration, shared-model outputs, reduced motion, static and responsive views before save_teaching_package and assessment item registration. Runtime checks records, not scientific truth or browser behavior."
 }

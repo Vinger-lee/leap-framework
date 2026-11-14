@@ -10,6 +10,7 @@ from __future__ import annotations
 import inspect
 import json
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import Any, Callable, Mapping, Sequence
 
 from leap.config import Config, load_config
@@ -18,6 +19,25 @@ from leap.runtime.state_guard import StateGuard
 from leap.storage import new_id, new_request_id, now_ts
 
 __all__ = ["ToolError", "ToolContext", "LeapToolMixin", "json_dumps", "mcp_parameters"]
+
+
+@lru_cache(maxsize=1)
+def compact_policy() -> dict:
+    """The small every-response policy receipt.
+
+    Responses used to embed the whole ~2.4 KB delivery summary, which dominates
+    the token cost of a lesson. Every response now carries only the identity of
+    the active policy; the full contract is served by
+    ``get_teaching_delivery_policy`` (and stays in the server instructions).
+    """
+    from leap.runtime.delivery import delivery_policy
+
+    policy = delivery_policy()
+    return {
+        "policy_id": policy.get("policy_id"),
+        "version": policy.get("version"),
+        "mandatory": True,
+    }
 
 
 def mcp_parameters(
@@ -43,18 +63,40 @@ class ToolError(Exception):
 
     The runtime must never turn a failure into a silent state update
     (section 29.1), so every tool either returns a value or raises this.
+    ``retryable`` tells the host whether repeating the identical call can work.
     """
 
-    def __init__(self, code: str, message: str, details: Mapping[str, Any] | None = None) -> None:
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        details: Mapping[str, Any] | None = None,
+        *,
+        retryable: bool = False,
+    ) -> None:
         super().__init__(message)
         self.code = code
         self.message = message
         self.details = dict(details or {})
+        self.retryable = bool(retryable)
 
     def as_dict(self) -> dict:
-        from leap.runtime.delivery import delivery_policy
-        return {"ok": False, "error": {"code": self.code, "message": self.message, "details": self.details},
-                "teaching_delivery_policy": delivery_policy()}
+        payload = {
+            "ok": False,
+            "error": {
+                "code": self.code,
+                "message": self.message,
+                "details": self.details,
+                "retryable": self.retryable,
+            },
+            "policy_version": compact_policy()["version"],
+            "teaching_delivery_policy": compact_policy(),
+        }
+        return payload
+
+
+class PartialResultError(ToolError):
+    """The tool deliberately persisted an artifact whose ID is in the error receipt."""
 
 
 def json_dumps(value: Any) -> str:
@@ -200,11 +242,84 @@ class LeapToolMixin:
             raise ToolError("unknown_session", f"session not found: {session_id}")
         return dict(row)
 
-    def require_node(self, node_id: str) -> dict:
-        row = self.db.query_one("SELECT * FROM knowledge_nodes WHERE node_id = ?", (node_id,))
+    def require_node(self, node_id: str, session_id: str | None = None) -> dict:
+        """Return a knowledge node, optionally enforcing session ownership.
+
+        Node ids are global primary keys, so an unscoped lookup lets session A
+        focus on session B's node. Every tool that receives a ``node_id`` from
+        the host must pass the session it is acting on.
+        """
+        if session_id is None:
+            row = self.db.query_one(
+                "SELECT * FROM knowledge_nodes WHERE node_id = ?", (node_id,)
+            )
+        else:
+            row = self.db.query_one(
+                "SELECT * FROM knowledge_nodes WHERE node_id = ? AND session_id = ?",
+                (node_id, session_id),
+            )
         if row is None:
-            raise ToolError("unknown_node", f"knowledge node not found: {node_id}")
+            if session_id is None:
+                raise ToolError("unknown_node", f"knowledge node not found: {node_id}")
+            raise ToolError(
+                "invalid_node",
+                f"knowledge node {node_id} does not belong to this session",
+                {"node_id": node_id, "session_id": session_id},
+            )
         return dict(row)
+
+    def session_of_node(self, node_id: str) -> str | None:
+        """Return the session that owns a node id (nodes live in one session)."""
+        return self.db.scalar(
+            "SELECT session_id FROM knowledge_nodes WHERE node_id = ?", (node_id,)
+        )
+
+    def require_active_session(self, session: Mapping[str, Any]) -> dict:
+        """Reject teaching calls on a closed session with a recoverable error."""
+        status = str(session.get("status") or "active")
+        if status in {"completed", "abandoned"}:
+            raise ToolError(
+                "session_closed",
+                f"session is {status}; teaching is closed. Start a new session or "
+                "reopen this one with complete_session(status='active', reopen=True).",
+                {"session_id": session.get("session_id"), "status": status,
+                 "retryable": False},
+            )
+        return dict(session)
+
+    def final_report_artifact_id(self, session_id: str) -> str | None:
+        return self.db.scalar(
+            "SELECT artifact_id FROM artifacts WHERE session_id = ? "
+            "AND artifact_type = 'final_report' ORDER BY created_at DESC, rowid DESC LIMIT 1",
+            (session_id,),
+        )
+
+    def diagnostic_completed(self, session_id: str) -> bool:
+        """True once a diagnostic summary was persisted for the session."""
+        return bool(
+            self.db.query_one(
+                "SELECT 1 FROM artifacts WHERE session_id = ? AND artifact_type = 'diagnostic_result' "
+                "UNION ALL "
+                "SELECT 1 FROM event_log WHERE session_id = ? AND event_type = 'diagnostic_completed' "
+                "LIMIT 1",
+                (session_id, session_id),
+            )
+        )
+
+    # -- effective configuration ------------------------------------------
+    def effective_conf(self, session_id: str | None, key: str, default: Any = None) -> Any:
+        """Read a config value through the session's learning-mode overrides.
+
+        The policy engine already resolves overrides this way; tools and the
+        State Guard must use the same value or a mode silently stops working.
+        """
+        if session_id:
+            from leap.runtime.state_guard import session_overrides
+
+            overrides = session_overrides(self.db, session_id)
+            if key in overrides:
+                return overrides[key]
+        return self.conf(key, default)
 
     def require_grounding(self, session_id: str) -> None:
         decision = self.guard.check_domain_grounding(session_id)
@@ -232,8 +347,17 @@ class LeapToolMixin:
     # -- response envelope -------------------------------------------------
     @staticmethod
     def ok(**payload: Any) -> dict:
-        from leap.runtime.delivery import delivery_policy
-        return {"ok": True, **payload, "teaching_delivery_policy": delivery_policy()}
+        """Return the success envelope.
+
+        Carries the compact policy receipt (identity only) instead of the whole
+        delivery contract; the full contract is one explicit call away.
+        """
+        return {
+            "ok": True,
+            **payload,
+            "policy_version": compact_policy()["version"],
+            "teaching_delivery_policy": compact_policy(),
+        }
 
     def new_request_id(self) -> str:
         return new_request_id()

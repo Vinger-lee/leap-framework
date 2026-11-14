@@ -126,7 +126,6 @@
     "通常先减 5 再除以 3 更简洁，",
     "次序不是唯一的",
     "。也可以先把整个等式两边除以 3，得到 x+5/3=20/3，再两边减 5/3，得到 x=15/3=5。只除 3x 而不除同侧的 5，就改变了等式。",
-    "等式天平与同步操作",
     "x",
     "x",
     "x",
@@ -144,11 +143,8 @@
     "高亮两边相同操作",
     "比较错误移项",
     "第 1/5 步：3x+5=20。先识别系数 3 与常数项 5。",
-    "正确：两边都减 5",
     "3x",
     "15",
-    "x=5，检验 20=20",
-    "(3x+5)−5=20−5 → 3x=15 → x=5。",
     "错误：把 +5 再加到右边",
     "原式左边 30",
     "右边 20",
@@ -310,7 +306,6 @@
     "这里会给一个你现在就能执行的动作。",
     "ASSESSMENT · 多维评分",
     "transfer 与 hint_dependency 不参与 overall_score 聚合，仅作为 Policy 输入。",
-    "POST-VERIFICATION · 后置验证（完整答案后必做）",
     "你已经看过完整答案。要证明你理解的是",
     "原理",
     "而不是这一段文字，请回答下面这个问题——这是本次任务结束的唯一条件。",
@@ -342,10 +337,7 @@
     "错误的 3x+2−2x=12 漏乘括号中的 2；错误的 3(x+2)−2x=1 漏乘右边。",
     "边界 5 · 2x+3=2x+8 有怎样的解集？",
     "先同减 2x，再分类",
-    "请选择",
-    "唯一解 x=5",
     "无解",
-    "所有实数都成立",
     "检查分类",
     "边界 5 的完整解答",
     "两边同减 2x：(2x+3)−2x=(2x+8)−2x → 3=8，矛盾，所以无解。改成 2x+3=2x+3 则化简成 3=3，每个实数都是解；这时不能再除以 0。",
@@ -375,6 +367,11 @@
   "markdown_extensions": [
     "先处理内括号：$2(x-1)=2x-2$，加 1 后为 $2x-1$。再分配外部 3，得到 $6x-3=2x+11$。两边同减 $2x$ 得 $4x-3=11$；两边同加 3 得 $4x=14$；两边同除以 4 得 $x=7/2$。"
   ],
-  "source_ids": [],
-  "host_semantic_audit": "Actual cited authoritative pages read; calculations independently substituted; semantic answers preserved for host review; source IDs supplied at session registration."
+  "source_ids": [
+    "<source id returned by save_benchmark_report>"
+  ],
+  "host_semantic_audit": "Actual cited authoritative pages read; calculations independently substituted; semantic answers preserved for host review; source IDs supplied at session registration.",
+  "policy_id": "leap.teaching.delivery",
+  "policy_version": "3.0",
+  "allow_legacy": true
 }

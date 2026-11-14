@@ -15,7 +15,7 @@ delivery_policy: '3.0'
 > Advanced: `LEAP 🎓 LEAP Framework invariants verification transfer`
 > These are search queries; no video has been certified for this note.
 
-Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
+Related: [Knowledge_Index](../../Knowledge_Index.md) · [docs/teaching-delivery](../teaching-delivery.md)
 
 # 🎓 LEAP Framework
 
@@ -23,21 +23,21 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
   <img src="https://img.shields.io/github/stars/Vinger-lee/leap-framework?style=social" alt="Stars">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-70%20tools-22bb33" alt="MCP Tools">
+  <img src="https://img.shields.io/badge/MCP-71%20tools-22bb33" alt="MCP Tools">
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
   <b>🤖 Дайте вашему ИИ-агенту настоящий тьюторский движок, а не просто промпт.</b>
 </p>
 
 <p align="center">
-  [[README|English]] ·
-  [[README_CN|中文]] ·
-  [[docs/i18n/README.ja|日本語]] ·
-  [[docs/i18n/README.ko|한국어]] ·
-  [[docs/i18n/README.fr|Français]] ·
-  [[docs/i18n/README.es|Español]] ·
-  [[docs/i18n/README.ru|Русский]] ·
-  [[docs/i18n/README.ar|العربية]]
+  <a href="../../README.md">English</a> ·
+  <a href="../../README_CN.md">中文</a> ·
+  <a href="README.ja.md">日本語</a> ·
+  <a href="README.ko.md">한국어</a> ·
+  <a href="README.fr.md">Français</a> ·
+  <a href="README.es.md">Español</a> ·
+  <a href="README.ru.md">Русский</a> ·
+  <a href="README.ar.md">العربية</a>
 </p>
 
 ---
@@ -104,7 +104,7 @@ State Guard — единственный компонент, который мо
 
 ## 🔧 Инструменты MCP
 
-[[docs/mcp-tools|Генерируемый справочник MCP: имена, параметры и профили]].
+[Генерируемый справочник MCP: имена, параметры и профили](../mcp-tools.md).
 
 ## 🧩 Подключаемая архитектура
 
@@ -121,11 +121,11 @@ State Guard — единственный компонент, который мо
 
 ## 📚 Подробнее
 
-- [[docs/ARCHITECTURE|Архитектура]]
-- [[docs/INTEGRATION|Руководство по интеграции хостового агента]]
-- [[docs/EXAMPLES|Примеры страниц]]
-- [[docs/LOCALIZATION|Локализация]]
-- [[README|English README]] · [[README_CN|中文说明]]
+- [Архитектура](../ARCHITECTURE.md)
+- [Руководство по интеграции хостового агента](../INTEGRATION.md)
+- [Примеры страниц](../EXAMPLES.md)
+- [Локализация](../LOCALIZATION.md)
+- [English README](../../README.md) · [中文说明](../../README_CN.md)
 
 > Авторская спецификация фреймворка и визуальная дизайн-система поддерживаются отдельно и не входят в этот репозиторий.
 
@@ -139,8 +139,12 @@ State Guard — единственный компонент, который мо
 > For a failure, preserve the original input, the exact rejection reason and the corrected next action. A successful transport call is evidence of execution, not of domain correctness or learning.
 > After the worked case, change one condition and state which conclusion still follows. Store the result as a timestamped observation rather than promoting evidence locally.
 
+## 🤖 Agent Skill (необязательно)
+
+Skill `.agents/skills/leap-tutor/` доступен только в хостах, которые загружают skills из репозитория; поддерживаемый объём — [docs/agent-skill.md](../../docs/agent-skill.md), примеры настройки — [docs/host-config.md](../../docs/host-config.md). Непроверенные хосты не заявляются.
+
 <!-- LEAP_BACKLINKS -->
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]]
+[Knowledge_Index](../../Knowledge_Index.md) · [README](../../README.md) · [README_CN](../../README_CN.md) · [docs/i18n/README.ar](README.ar.md) · [docs/i18n/README.es](README.es.md) · [docs/i18n/README.fr](README.fr.md) · [docs/i18n/README.ja](README.ja.md) · [docs/i18n/README.ko](README.ko.md)

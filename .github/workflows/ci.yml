@@ -1,8 +1,9 @@
 name: CI
 
+# Every branch and pull request runs the same checks a maintainer runs locally;
+# see CONTRIBUTING.md for the manual sequence.
 on:
   push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -13,6 +14,7 @@ jobs:
   privacy-scan:
     name: Privacy & secret scan
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,11 +23,33 @@ jobs:
         with:
           python-version: "3.12"
       - name: Scan repository for secrets and PII
-        run: python scripts/security_scan.py --root . --md security-scan.md
+        run: |
+          set +e
+          python scripts/security_scan.py --root . \
+            --md "$RUNNER_TEMP/security-scan.md" \
+            --json "$RUNNER_TEMP/security-scan.json"
+          status=$?
+          set -e
+          # 0 = clean, 1 = P0/P1 findings (fail the build), 2 = P2 only (reviewed,
+          # tolerated like the static example warnings). Reports never touch the
+          # checkout so they cannot break the teaching-repository gate.
+          if [ "$status" -eq 1 ]; then
+            echo "::error::P0/P1 privacy or secret findings - see the uploaded artifact"
+            exit 1
+          fi
+          echo "Privacy scan finished with status $status"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-scan
+          path: |
+            ${{ runner.temp }}/security-scan.md
+            ${{ runner.temp }}/security-scan.json
 
   examples:
     name: Front-end example spec compliance
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -34,7 +58,7 @@ jobs:
       - name: Verify every example against the web spec
         run: |
           set +e
-          python scripts/verify_example.py --all --md example-verification.md
+          python scripts/verify_example.py --all --md "$RUNNER_TEMP/example-verification.md"
           status=$?
           set -e
           # 0 = clean, 1 = errors (fail the build), 2 = warnings only (tolerated)
@@ -48,11 +72,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: example-verification
-          path: example-verification.md
+          path: ${{ runner.temp }}/example-verification.md
 
   example-runtime:
-    name: Browser scenarios and real MCP bridge
+    name: Repository gate, browser scenarios and real MCP bridge
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -60,19 +85,30 @@ jobs:
           python-version: "3.12"
       - run: pip install -e ".[dev,examples]"
       - run: python -m playwright install --with-deps chromium
-      - run: python scripts/generate_tool_reference.py --check
-      - run: python scripts/verify_teaching_repository.py --json teaching-verification.json
-      - run: python scripts/verify_example_runtime.py --all --json runtime-verification.json
-      - run: python scripts/verify_mcp_bridge.py
+      - name: Generated tool reference is current
+        run: python scripts/generate_tool_reference.py --check
+      - name: Installation self-check
+        run: python -m leap.doctor
+      - name: Generated drop-tower SVG is current
+        run: python examples/04-physics-free-fall/build_figure.py --check
+      - name: Obsidian links and canonical teaching pairs
+        run: python scripts/verify_teaching_repository.py --json "$RUNNER_TEMP/teaching-verification.json"
+      - name: Browser scenarios for every example
+        run: python scripts/verify_example_runtime.py --all --json "$RUNNER_TEMP/runtime-verification.json"
+      - name: Real page-to-MCP stdio bridge
+        run: python scripts/verify_mcp_bridge.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: runtime-verification
-          path: runtime-verification.json
+          path: |
+            ${{ runner.temp }}/runtime-verification.json
+            ${{ runner.temp }}/teaching-verification.json
 
   test:
     name: Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:

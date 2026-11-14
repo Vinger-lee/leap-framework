@@ -8,17 +8,34 @@ handles *loading* and *lookup*, never policy decisions.
 from __future__ import annotations
 
 import copy
+import importlib.resources
+import logging
 import os
 from pathlib import Path
 from typing import Any, Iterator, Mapping
 
 import yaml
 
-__all__ = ["Config", "load_config", "REPO_ROOT", "DEFAULT_CONFIG_PATH"]
+__all__ = [
+    "Config",
+    "load_config",
+    "resolve_path",
+    "REPO_ROOT",
+    "DEFAULT_CONFIG_PATH",
+    "PACKAGED_CONFIG_RESOURCE",
+]
 
-# src/leap/config.py -> src/leap -> src -> <repo root>
+LOGGER = logging.getLogger(__name__)
+
+# src/leap/config.py -> src/leap -> src -> <repo root>. Kept for repository
+# layouts; installed wheels resolve data paths through resolve_path() instead.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG_PATH = REPO_ROOT / "config" / "default.yaml"
+#: Config bundled inside the ``leap`` package (used when the repository file is
+#: absent, e.g. after ``pip install``). Packaging that file is up to
+#: pyproject.toml; when it is missing the loader warns instead of silently
+#: running with an empty configuration.
+PACKAGED_CONFIG_RESOURCE = "config/default.yaml"
 
 _ENV_PREFIX = "LEAP__"
 
@@ -99,6 +116,44 @@ class Config:
         return f"Config(source={self.source}, keys={len(self._data)})"
 
 
+def _load_packaged_config() -> tuple[dict, Path | None]:
+    """Read ``leap/config/default.yaml`` from the installed package, if bundled."""
+    try:
+        resource = importlib.resources.files("leap").joinpath(PACKAGED_CONFIG_RESOURCE)
+        if resource.is_file():
+            text = resource.read_text(encoding="utf-8")
+            target = Path(str(resource))
+            loaded = yaml.safe_load(text) or {}
+            if not isinstance(loaded, Mapping):
+                raise ValueError(f"configuration root must be a mapping: {target}")
+            return dict(loaded), target
+    except (FileNotFoundError, ModuleNotFoundError, NotADirectoryError):
+        return {}, None
+    except Exception:  # pragma: no cover - defensive for exotic import loaders
+        LOGGER.debug("packaged configuration could not be read", exc_info=True)
+    return {}, None
+
+
+def resolve_path(value: str | Path, *, default_base: Path | None = None) -> Path:
+    """Resolve a configured path to an absolute one.
+
+    Rules (documented, one behaviour for database and artifact paths):
+
+    * absolute paths are returned unchanged;
+    * a relative path is resolved against ``LEAP_HOME`` when that environment
+      variable is set (the recommended deployment form: one data directory);
+    * otherwise it is resolved against the current working directory, not the
+      installed package location, so ``data/leap.db`` cannot end up inside
+      ``site-packages``.
+    """
+    path = Path(str(value)).expanduser()
+    if path.is_absolute():
+        return path
+    home = os.environ.get("LEAP_HOME")
+    base = Path(home).expanduser() if home else (default_base or Path.cwd())
+    return base / path
+
+
 def load_config(
     path: str | Path | None = None,
     overrides: Mapping[str, Any] | None = None,
@@ -107,20 +162,38 @@ def load_config(
     """Load configuration from YAML, then apply overrides.
 
     Precedence (lowest to highest): file -> environment -> explicit overrides.
+    When the default repository file is missing (installed wheel), the packaged
+    ``leap/config/default.yaml`` resource is tried next; if neither exists the
+    loader logs a warning instead of silently running with no settings.
     """
     config_path = Path(path) if path else DEFAULT_CONFIG_PATH
     data: dict = {}
+    resolved_source: Path | None = None
     if config_path.exists():
         loaded = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
         if not isinstance(loaded, Mapping):
             raise ValueError(f"configuration root must be a mapping: {config_path}")
         data = dict(loaded)
+        resolved_source = config_path
     elif path is not None:
         raise FileNotFoundError(f"configuration file not found: {config_path}")
+    else:
+        packaged, packaged_path = _load_packaged_config()
+        if packaged:
+            data = packaged
+            resolved_source = packaged_path
+        else:
+            LOGGER.warning(
+                "no configuration file found (looked at %s and the packaged %r resource); "
+                "running with built-in defaults. Set LEAP__DATABASE_PATH to control the "
+                "database location.",
+                config_path,
+                PACKAGED_CONFIG_RESOURCE,
+            )
 
     if use_env:
         _deep_merge(data, _env_overrides())
     if overrides:
         _deep_merge(data, overrides)
 
-    return Config(data, source=config_path if config_path.exists() else None)
+    return Config(data, source=resolved_source)

@@ -13,6 +13,7 @@ def update() -> None:
     web["delivery_policy_version"] = policy["version"]
     web["teaching_depth"] = policy["depth"]
     web["visualization"] = policy["visualization"]
+    web["generation_requirements"] = policy["host_guidance"]["generation"]
     web["layout"] = policy["layout"]
     web["learning_resources"] = policy["learning_resources"]
     web["canonical_source"] = policy["markdown"]
@@ -26,6 +27,7 @@ def update() -> None:
     obs["learning_resources"] = policy["learning_resources"]
     obs["markdown_requirements"] = policy["markdown"]
     obs["visualization"] = policy["visualization"]
+    obs["generation_requirements"] = policy["host_guidance"]["generation"]
     obs["linking_rules"] = [
         "Use resolvable vault-root [[wikilinks]]; add reciprocal links on target notes or their real backlink indexes.",
         "Connect prerequisites, successor concepts, misconceptions, worked examples, exercises and source notes.",
@@ -59,13 +61,41 @@ Explain every prerequisite operation and check it with a short example.
 
 State precisely what is true, when it is true, and why it works.
 
+## Research and structure before construction
+
+Read actual authoritative knowledge and the real structure/manual first. Record each
+source URL/path, precise locator, excerpt, reading date, supported claim and limits.
+Map meaningful parts to their functions, connections and references. Distinguish
+referenced structure from schematic geometry and invented analogies. Never infer
+research or physical accuracy from visual detail.
+
+Write the shared model, units, domain, transitions and stopping conditions before
+geometry. Independently check release/intermediate/end and boundary cases, keeping
+inputs, expected result, check method and result. Save benchmark/source records;
+use the resulting session source_ids when registering the teaching package.
+
 ## Labeled diagram and controllable walkthrough
 
 Choose a faithful structure/cutaway, causal/state trace, data plot or comparison view.
 Explain every part name, quantity, unit and model limit. Link a controllable HTML view
 to a static SVG/storyboard or table; retain the complete explanation in this note.
-For new visual deliveries declare visual_contract (anatomy.v1), with real selectors,
-captions, labels, static_frame and shared model_binding for animated figures.
+For new visual deliveries declare visual_contract (anatomy.v2), with real selectors,
+captions, labels, static_frame and shared model_binding for animated figures. Map each
+research source through figure.source_refs, a part, or model_binding; use figure.source_refs
+for formal state traces without physical parts.
+Record research sources with evidence_source_id from save_benchmark_report; source,
+locator and excerpt match that saved record. Include these ids in package source_ids.
+Structure/mechanism/spatial figures include parts and inspection; other views use
+faithful quantities, formal states and transitions without an invented machine.
+Each part explains its function, relationship, representation and source basis.
+Animated model_binding includes assumptions, domain, limits, source_refs and checks
+with case kind, inputs, expected, method and result (representative and boundary).
+An inspectable structure links each real part selector to a named explanation:
+hover/focus previews, click/Enter/Space/touch selects, leaving restores selection,
+Escape/clear restores context. Keep a stable explanation panel and static part list;
+inspecting structure never changes the model's physical or logical state. Check real
+pointer hit areas, selection restoration, keyboard, touch and synchronized outputs
+before registering. Structural acceptance never certifies these browser behaviors.
 
 ## Complete worked example
 

@@ -52,13 +52,42 @@ agent, and which claims would need evidence that does not exist yet.
   not whether the decomposition is academically right.
 
 ## 3. Engineering limits of this release
+## 3. Engineering limits of this release
 
 - **Single machine, single learner (P0).** The MCP transport is stdio, authentication is not implemented, and
   there is no learner account system, multi-tenancy, permissions or content moderation. A
   school-facing deployment needs all of that and LEAP does not provide it.
+- **Concurrency inside one process.** Tool calls handled by one server process are serialized at
+  the database layer (a re-entrant lock), so parallel host tool calls cannot interleave a single
+  SQLite transaction or leave partial writes behind. Several processes or machines writing the
+  same SQLite file are still unsupported.
 - **One implementation per pluggable seam.** All six seams are wired, but the shipped defaults are a
   simplified BKT estimator, a weighted aggregator, the rule-based policy engine, `py-fsrs`, SQLite
   and a local artifact store. Alternatives are additive, not yet proven in production.
+- **Visual contract scope.** A new or revised teaching package must declare an `anatomy.v2`
+  visual contract; `anatomy.v1` or an absent contract is accepted only as an explicit
+  legacy-compatibility path, reported with a warning, and never as current authoring. The runtime
+  validates records, targets and prose coverage — not scientific truth or browser behaviour.
+- **Configuration and data locations.** A wheel ships the default configuration at
+  `leap/config/default.yaml`; a repository checkout keeps using `config/default.yaml`.
+  `database_path` and `artifact_root` resolve against `LEAP_HOME` when it is set, otherwise
+  against the current working directory — never against the install directory. `LEAP__*`
+  environment variables override the YAML values.
+- **Agent Skill support.** The `leap-tutor` skill is a repository-level draft: only hosts that
+  scan `.agents/skills/` discover it (Claude Code scans `.claude/skills`; see
+  [host configuration](host-config.md)), and hosts without skill support connect over MCP without
+  it. Runtime gates are identical in both cases; the skill changes how the agent is guided, not
+  what the server allows.
+- **Closed sessions and per-response payloads.** Closing a session makes
+  `continue_lesson`/`submit_answer` return `session_closed`, sets `next_call` to null and is
+  idempotent; `complete_session` requires the final report unless explicitly overridden. Every
+  response carries a compact `policy_version`; the full policy is returned only by
+  `get_teaching_delivery_policy`. `continue_lesson` returns a summary by default (`verbose=True`
+  for the full teaching context) and `get_teaching_context` takes `include_template=False`.
+- **Tool profiles change navigation, not authority.** `quickstart` (32 tools) is a complete
+  teaching path including `assess_misconception` and `set_domain_grounding_skip`; `full` (71
+  tools) adds the fine-grained and HTML-outbox surface. `python -m leap.doctor` and the generated
+  tool reference print the live counts.
 - **Operational footprint.** The host runs an MCP stdio process, a SQLite file and a YAML config.
   `python -m leap.doctor` checks those prerequisites, and the `quickstart` tool profile reduces the
   catalog an agent must navigate, but the process still has to be supervised like any other local
@@ -66,6 +95,7 @@ agent, and which claims would need evidence that does not exist yet.
 - **Cost of a teaching turn.** The coarse tutor API reduces the call count; it does not reduce the
   token cost of the content the host must author.
 
+## 4. Claims that have no evidence yet
 ## 4. Claims that have no evidence yet
 
 Stated plainly, because a framework should not borrow credibility from its architecture:

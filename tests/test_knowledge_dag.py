@@ -161,6 +161,52 @@ class TestNodePersistence:
                 ],
             )
         assert exc.value.code == "unit_budget_exceeded"
+        assert exc.value.details["budget"] == budget
+
+    def test_learning_mode_narrows_the_unit_budget(self, grounded_service, session_id):
+        service = grounded_service
+        mode = service.set_learning_configuration(session_id, request="只学核心内容，尽快学会")
+        assert mode["mode"] == "core_only"
+        lowered = int(service.effective_conf(session_id, "unit_concept_budget"))
+        assert lowered == 5
+        with pytest.raises(ToolError) as exc:
+            service.save_knowledge_nodes(
+                session_id,
+                [
+                    {"node_id": f"c{i}", "title": f"node {i}", "unit_tag": "core"}
+                    for i in range(lowered + 1)
+                ],
+            )
+        assert exc.value.code == "unit_budget_exceeded"
+        assert exc.value.details["budget"] == lowered
+        # The template advertises the same effective budget.
+        assert service.decompose_topic(session_id)["unit_concept_budget"] == lowered
+
+    def test_node_without_unit_tag_is_saved_with_a_warning(self, grounded_service, session_id):
+        result = grounded_service.save_knowledge_nodes(
+            session_id, [{"node_id": "untagged", "title": "no unit"}]
+        )
+        assert result["warnings"]
+        warning = result["warnings"][0]
+        assert warning["code"] == "missing_unit_tag"
+        assert warning["node_ids"] == ["untagged"]
+        # It still cannot be advanced as a unit, which is what the warning says.
+        grounded_service.start_unit(session_id, node_id="untagged")
+        with pytest.raises(ToolError) as exc:
+            grounded_service.advance_unit(session_id)
+        assert exc.value.code == "unknown_unit"
+
+    def test_require_unit_tag_makes_the_warning_a_rejection(
+        self, grounded_service, session_id, monkeypatch
+    ):
+        monkeypatch.setitem(grounded_service.cfg._data, "require_unit_tag", True)
+        with pytest.raises(ToolError) as exc:
+            grounded_service.save_knowledge_nodes(
+                session_id, [{"node_id": "untagged2", "title": "no unit"}]
+            )
+        assert exc.value.code == "unit_tag_required"
+        assert exc.value.details["node_ids"] == ["untagged2"]
+        assert grounded_service.get_knowledge_nodes(session_id)["count"] == 0
 
     def test_decompose_topic_returns_a_template_only(self, grounded_service, session_id):
         result = grounded_service.decompose_topic(session_id, "recursion")

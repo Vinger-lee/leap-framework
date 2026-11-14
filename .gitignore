@@ -104,5 +104,21 @@ ai-cache/
 # Kept on disk for traceability, never published. See _archive/README.md.
 _archive/
 
-# --- Generated scan output -------------------------------------------------
-reports/security-scan.*.json
+# --- Generated verification reports (never commit) -------------------------
+# The scanners and verifiers accept explicit output paths. These names are the
+# documented local defaults; ignoring them keeps a local run from leaving
+# untracked Markdown that the teaching-repository gate would read as a
+# knowledge note (reports are output, not vault content).
+security-scan.md
+security-scan.json
+runtime-verification.json
+teaching-verification.json
+example-verification.md
+doctor-report.json
+reports/
+
+# Local review evidence and the separately maintained math curriculum.
+/.leap-review/
+/LEAP_Framework_实战审查_*.md
+/LEAP_Framework_全部修复报告_*.md
+/leap-curricula-math1/

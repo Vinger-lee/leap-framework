@@ -49,6 +49,9 @@ def test_actual_teaching_pair_and_more_complete_markdown():
 
 def visual_pair():
     md, html, manifest = teaching_pair()
+    # This fixture exercises a legacy contract that is *not* opted into: only the
+    # shared workflow fixture sets allow_legacy.
+    manifest.pop("allow_legacy", None)
     caption = "The moving marker and readout share the same elapsed-time model."
     label = "Elapsed time in seconds"
     source = "One elapsed-time model drives the marker position and numeric output."
@@ -73,6 +76,258 @@ def test_visual_contract_accepts_real_targets_without_claiming_model_truth():
     report = validate_teaching_package(md, html, manifest)
     assert report["valid"], report["errors"]
     assert report["content_verified_by_runtime"] is False
+
+
+def researched_visual_pair():
+    md, html, manifest = visual_pair()
+    source = {
+        "id": "manual", "source": "https://example.org/instrument-manual",
+        "locator": "Assembly, optical sensor", "excerpt": "The object interrupts a light beam.",
+        "checked_at": "2026-10-23",
+    }
+    explanation = "The optical sensor detects passage without applying force."
+    basis = "The mounting dimensions are schematic; the beam interruption is documented."
+    help_text = "Hover or focus to preview; click, Enter or Space to select; clear to restore."
+    check = {"inputs": "Elapsed time = 2 seconds", "expected": "Output = 2 seconds",
+             "method": "Substitute time in the identity model", "result": "The independent result agrees"}
+    extra = (f'<g id="sensor" role="button" tabindex="0" aria-label="Optical sensor"></g>'
+             f'<p>{explanation}</p><p>{help_text}</p><p id="part-info">Part information</p>'
+             '<button id="clear-part">Clear selection</button>')
+    html = html.replace("</svg>", extra[:extra.index("<p>")] + "</svg>", 1)
+    html = html.replace("</body>", extra[extra.index("<p>"):] + "</body>")
+    md += "\n" + "\n".join([*source.values(), explanation, basis, help_text,
+                                  *check.values(), "Part information", "Clear selection",
+                                  "Sources support the principle, not a certified replica."])
+    contract = manifest["visual_contract"]
+    contract["research"] = {"sources": [source], "limitations": "Sources support the principle, not a certified replica."}
+    figure = contract["figures"][0]
+    figure["parts"] = [{"selector": "#sensor", "name": "Optical sensor", "explanation": explanation,
+                        "representation": "reference", "basis": basis, "source_refs": ["manual"]}]
+    figure["inspection"] = {"panel": "#part-info", "clear": "#clear-part", "help": help_text}
+    figure["model_binding"]["checks"] = [check]
+    return md, html, manifest
+
+
+def test_researched_visual_records_are_traceable_without_certifying_science():
+    md, html, manifest = researched_visual_pair()
+    report = validate_teaching_package(md, html, manifest)
+    assert report["valid"], report["errors"]
+    assert report["content_verified_by_runtime"] is False
+
+
+def current_visual_pair():
+    """Synthetic v2 evidence; not an actual researched instrument."""
+    md, html, manifest = researched_visual_pair()
+    contract = manifest["visual_contract"]
+    contract["profile"] = "anatomy.v2"
+    contract["research"]["sources"][0]["evidence_source_id"] = "fixture.visual-source"
+    manifest["source_ids"] = ["fixture.visual-source"]
+    manifest["policy_id"] = "leap.teaching.delivery"
+    manifest["policy_version"] = "3.0"
+    figure = contract["figures"][0]
+    relationship = "The beam crosses the object's path; the sensor is mounted on the frame."
+    figure["parts"][0]["relationship"] = relationship
+    binding = figure["model_binding"]
+    binding.update(assumptions="Time is a nonnegative independent input.",
+                   domain="Elapsed time ranges from zero to two seconds.",
+                   limits="This identity model only demonstrates elapsed time, not dynamics.",
+                   source_refs=["manual"])
+    binding["checks"][0]["kind"] = "typical"
+    boundary = {"kind": "boundary", "inputs": "Elapsed time = 0 seconds",
+                "expected": "Output = 0 seconds", "method": "Evaluate the initial identity state",
+                "result": "The boundary value is zero"}
+    binding["checks"].append(boundary)
+    md += "\n" + "\n".join([relationship, binding["assumptions"], binding["domain"], binding["limits"],
+                              *boundary.values()])
+    return md, html, manifest
+
+
+def test_current_contract_requires_research_model_and_inspection_but_preserves_legacy():
+    current = validate_teaching_package(*current_visual_pair())
+    assert current["valid"], current["errors"]
+    assert current["visual_authoring"]["visual_contract_state"] == "current"
+    assert current["visual_authoring"]["visual_contract_valid"] is True
+    assert current["visual_authoring"]["browser_behavior_verified_by_runtime"] is False
+    for pair, state in ((teaching_pair(), "absent"), (visual_pair(), "legacy_v1")):
+        legacy = validate_teaching_package(*pair)
+        assert legacy["valid"], legacy["errors"]
+        assert legacy["visual_authoring"]["visual_contract_state"] == state
+        assert legacy["visual_authoring"]["visual_contract_valid"] is False
+
+
+@pytest.mark.parametrize("defect", ["research", "evidence_source_id", "parts", "inspection", "relationship",
+    "assumptions", "domain", "limits", "model_sources", "checks", "boundary", "check_kind"])
+def test_current_contract_rejects_missing_grounding_model_or_inspection(defect):
+    md, html, manifest = current_visual_pair()
+    contract = manifest["visual_contract"]
+    figure = contract["figures"][0]
+    if defect == "research":
+        contract.pop("research")
+    elif defect == "evidence_source_id":
+        contract["research"]["sources"][0].pop(defect)
+    elif defect in ("parts", "inspection"):
+        figure.pop(defect)
+    elif defect == "relationship":
+        figure["parts"][0].pop(defect)
+    elif defect == "model_sources":
+        figure["model_binding"]["source_refs"] = ["not-read"]
+    elif defect == "boundary":
+        figure["model_binding"]["checks"].pop()
+    elif defect == "check_kind":
+        figure["model_binding"]["checks"][0]["kind"] = []
+    else:
+        figure["model_binding"].pop(defect)
+    report = validate_teaching_package(md, html, manifest)
+    assert not report["valid"], defect
+    assert report["visual_authoring"]["visual_contract_state"] == "invalid"
+
+
+def test_formal_process_can_use_states_instead_of_mechanical_parts():
+    md, html, manifest = current_visual_pair()
+    figure = manifest["visual_contract"]["figures"][0]
+    figure["role"] = "process"
+    figure.pop("parts")
+    figure.pop("inspection")
+    report = validate_teaching_package(md, html, manifest)
+    assert report["valid"], report["errors"]
+
+
+def test_current_contract_requires_mapping_each_research_source():
+    md, html, manifest = current_visual_pair()
+    figure = manifest["visual_contract"]["figures"][0]
+    figure.update(role="process", animated=False)
+    figure.pop("states")
+    for field in ("parts", "inspection", "model_binding", "controls"):
+        figure.pop(field)
+    manifest["teaching_points"][0]["visualization"] = {
+        "no_visual_reason": "The fixture intentionally uses a formal state trace instead of a figure."}
+
+    unmapped = validate_teaching_package(md, html, manifest)
+    assert not unmapped["valid"]
+    assert any("unreferenced ids" in error for error in unmapped["errors"])
+
+    figure["source_refs"] = ["manual"]
+    mapped = validate_teaching_package(md, html, manifest)
+    assert mapped["valid"], mapped["errors"]
+
+
+def test_visual_status_only_reflects_visual_contract_errors():
+    md, html, manifest = current_visual_pair()
+    manifest["markdown_extensions"] = ["An unrelated invalid extension"]
+
+    report = validate_teaching_package(md, html, manifest)
+
+    assert not report["valid"]
+    assert report["visual_authoring"]["visual_contract_state"] == "current"
+    assert report["visual_authoring"]["package_valid"] is False
+
+
+def store_visual_source(service, session_id, manifest):
+    source = manifest["visual_contract"]["research"]["sources"][0]
+    saved = service.save_benchmark_report(session_id, "Synthetic visual source fixture", source_refs=[{
+        "source_id": source["evidence_source_id"], "source_type": "test_fixture",
+        **{key: source[key] for key in ("source", "locator", "excerpt")},
+    }], verification={
+        "scope": "Synthetic optical sensor registration test",
+        "claims": [{"claim": source["excerpt"], "source_index": 0}],
+        "worked_examples": [{"problem": "Elapsed time = 2", "solution": "Output = 2",
+                             "check_method": "Identity", "check_result": "Equal"}],
+        "limitations": ["Fixture is not real research"],
+    })
+    assert saved["domain_grounding_stage"] == "completed"
+
+
+@pytest.mark.parametrize("defect", [None, "wrong_session", "not_in_package", "source", "locator", "excerpt"])
+def test_visual_registration_uses_matching_session_reading_records(service, defect):
+    sid = service.create_session("visual-learner", "Synthetic instrument")["session_id"]
+    service.save_knowledge_nodes(sid, [{"node_id": "sensor", "title": "Optical sensor", "unit_tag": "optics"}])
+    md, html, manifest = current_visual_pair()
+    store_visual_source(service, sid, manifest)
+    source = manifest["visual_contract"]["research"]["sources"][0]
+    if defect == "wrong_session":
+        other = service.create_session("other-learner", "Other topic")["session_id"]
+        copy_manifest = copy.deepcopy(manifest)
+        copy_manifest["visual_contract"]["research"]["sources"][0]["evidence_source_id"] = "other-source"
+        store_visual_source(service, other, copy_manifest)
+        manifest["source_ids"] = ["other-source"]
+        source["evidence_source_id"] = "other-source"
+    elif defect == "not_in_package":
+        source["evidence_source_id"] = "not-in-package"
+    elif defect:
+        source[defect] = "Different source content, not the saved reading record."
+        md += "\n" + source[defect]
+    before = service.db.scalar("SELECT COUNT(*) FROM artifacts WHERE artifact_type='teaching_package'")
+    if defect:
+        with pytest.raises(ToolError) as error:
+            service.save_teaching_package(sid, "sensor", "physics", md, html, manifest)
+        assert error.value.code == "invalid_source"
+        assert service.db.scalar("SELECT COUNT(*) FROM artifacts WHERE artifact_type='teaching_package'") == before
+    else:
+        saved = service.save_teaching_package(sid, "sensor", "physics", md, html, manifest)
+        assert saved["validation"]["visual_authoring"]["visual_contract_state"] == "current"
+        assert saved["visual_contract_state"] == "current"
+        assert isinstance(saved["warnings"], list)
+        assert saved["validation"]["content_verified_by_runtime"] is False
+        assert service.db.scalar("SELECT COUNT(*) FROM artifacts WHERE artifact_type='teaching_package'") == before + 1
+
+
+@pytest.mark.parametrize("defect", ["research", "missing_excerpt", "invalid_date", "duplicate_source",
+    "unknown_source", "unreferenced_real_part", "missing_part", "unexplained_part", "basis",
+    "duplicate_part", "representation", "keyboard", "inspection_panel", "inspection_clear", "check"])
+def test_researched_visual_rejects_broken_evidence_and_inspection_records(defect):
+    md, html, manifest = researched_visual_pair()
+    contract = manifest["visual_contract"]
+    figure = contract["figures"][0]
+    if defect == "research":
+        contract.pop("research")
+    elif defect == "missing_excerpt":
+        contract["research"]["sources"][0].pop("excerpt")
+    elif defect == "invalid_date":
+        contract["research"]["sources"][0]["checked_at"] = "2026-02-30"
+    elif defect == "duplicate_source":
+        contract["research"]["sources"] *= 2
+    elif defect == "unknown_source":
+        figure["parts"][0]["source_refs"] = ["unread-manual"]
+    elif defect == "unreferenced_real_part":
+        figure["parts"][0]["source_refs"] = []
+    elif defect == "missing_part":
+        figure["parts"][0]["selector"] = "#imaginary"
+    elif defect == "unexplained_part":
+        figure["parts"][0]["explanation"] = "This claim was never included in the lesson."
+    elif defect == "basis":
+        figure["parts"][0].pop("basis")
+    elif defect == "duplicate_part":
+        figure["parts"] *= 2
+    elif defect == "representation":
+        figure["parts"][0]["representation"] = "realistic"
+    elif defect == "keyboard":
+        html = html.replace('tabindex="0"', 'tabindex="-1"')
+    elif defect == "inspection_panel":
+        figure["inspection"]["panel"] = "#nonexistent"
+    elif defect == "inspection_clear":
+        figure["inspection"]["clear"] = "#time"
+    else:
+        figure["model_binding"]["checks"][0].pop("expected")
+    report = validate_teaching_package(md, html, manifest)
+    assert not report["valid"], defect
+    assert any(error.startswith("visual_contract.") for error in report["errors"]), report
+
+
+@pytest.mark.parametrize("field,value", [("research", []), ("parts", [None]), ("parts", []),
+    ("inspection", []), ("source_refs", [None]), ("checks", [None])])
+def test_malformed_research_and_part_records_do_not_crash(field, value):
+    md, html, manifest = researched_visual_pair()
+    contract = manifest["visual_contract"]
+    figure = contract["figures"][0]
+    if field == "research":
+        contract[field] = value
+    elif field == "checks":
+        figure["model_binding"][field] = value
+    elif field == "source_refs":
+        figure["parts"][0][field] = value
+    else:
+        figure[field] = value
+    assert not validate_teaching_package(md, html, manifest)["valid"]
 
 
 @pytest.mark.parametrize("defect", ["missing_still", "fake_still", "fake_control", "hidden_control",
@@ -114,7 +369,13 @@ def test_visual_contract_rejects_unusable_or_unexplained_figures(defect):
 def test_malformed_visual_contract_is_rejected_without_crashing(contract):
     md, html, manifest = teaching_pair()
     manifest["visual_contract"] = contract
-    assert not validate_teaching_package(md, html, manifest)["valid"]
+    report = validate_teaching_package(md, html, manifest)
+    if contract is None:
+        # visual_contract: null is documented as equivalent to an absent contract.
+        assert report["valid"]
+        assert report["visual_authoring"]["visual_contract_state"] == "absent"
+    else:
+        assert not report["valid"]
 
 
 @pytest.mark.parametrize("defect", ["omission", "extension", "visual", "resource", "shallow"])

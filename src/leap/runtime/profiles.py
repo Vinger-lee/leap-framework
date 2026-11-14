@@ -17,7 +17,8 @@ Profiles
     ``submit_answer``, ``advance_lesson``, ...) plus the authoring and setup
     tools a complete lesson genuinely needs: domain grounding, the knowledge
     DAG, the canonical teaching package, assessment items, diagnosis, transfer,
-    reflection and the closing report. ~25 tools instead of 70.
+    reflection, assessment recovery, misconception detection/resolution and
+    session closure.
 ``full``
     Every registered tool. This is the default, so an existing integration is
     never silently narrowed.
@@ -61,6 +62,7 @@ ALL_TOOL_NAMES: tuple[str, ...] = FACADE_TOOL_NAMES + (
     "create_session",
     "find_session",
     "get_session_info",
+    "set_domain_grounding_skip",
     "save_learning_goal",
     "get_learning_goal",
     "set_learning_configuration",
@@ -127,8 +129,12 @@ ALL_TOOL_NAMES: tuple[str, ...] = FACADE_TOOL_NAMES + (
 QUICKSTART_SETUP_TOOL_NAMES: tuple[str, ...] = (
     # Domain grounding + delivery contract
     "save_benchmark_report",
+    "set_domain_grounding_skip",
     "get_teaching_delivery_policy",
     "get_subject_catalog",
+    # Session recovery and the full teaching context (next_call targets)
+    "find_session",
+    "get_teaching_context",
     # Knowledge structure
     "decompose_topic",
     "save_knowledge_nodes",
@@ -137,6 +143,10 @@ QUICKSTART_SETUP_TOOL_NAMES: tuple[str, ...] = (
     # Canonical lesson + registered items
     "save_teaching_package",
     "save_assessment_item",
+    # Split/failed assessment and the facade's misconception next_call
+    "commit_assessment",
+    "assess_misconception",
+    "resolve_misconception",
     # Diagnosis
     "generate_diagnostic",
     "submit_diagnostic",
@@ -147,6 +157,7 @@ QUICKSTART_SETUP_TOOL_NAMES: tuple[str, ...] = (
     "record_transfer_result",
     "record_reflection",
     "generate_final_report",
+    "complete_session",
 )
 
 QUICKSTART_TOOL_NAMES: tuple[str, ...] = FACADE_TOOL_NAMES + QUICKSTART_SETUP_TOOL_NAMES

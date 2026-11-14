@@ -5,6 +5,13 @@ Design notes
 * The connection runs in autocommit mode (``isolation_level=None``); write
   operations opt into an explicit ``BEGIN IMMEDIATE`` transaction so that the
   optimistic-concurrency checks of section 19.4 are applied atomically.
+* **Every access is serialized by a single re-entrant lock.** One MCP server
+  process owns one connection while the MCP transport dispatches synchronous
+  tool handlers on different threads. Without the lock those handlers
+  interleave ``BEGIN IMMEDIATE``/``COMMIT`` on the same connection and corrupt
+  each other ("cannot start a transaction within a transaction", partial
+  writes). The lock is re-entrant so a tool may call helpers that open their
+  own transaction; nested ``transaction()`` calls become SQLite SAVEPOINTs.
 * Every timestamp written by LEAP is a Unix timestamp in seconds.
 * All access goes through this class so the rest of the codebase never has to
   care about SQLite specifics.
@@ -12,13 +19,17 @@ Design notes
 
 from __future__ import annotations
 
+import logging
 import secrets
 import sqlite3
+import threading
 import time
 import uuid
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator, Mapping, Sequence
+
+LOGGER = logging.getLogger(__name__)
 
 __all__ = [
     "Database",
@@ -39,6 +50,36 @@ SCHEMA_VERSION = "2.0.0"
 ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
     ("learning_sessions", "learning_mode", "learning_mode TEXT NOT NULL DEFAULT 'balanced'"),
     ("learning_sessions", "policy_overrides", "policy_overrides TEXT"),
+    ("request_log", "arguments_hash", "arguments_hash TEXT"),
+    (
+        "transfer_results",
+        "session_id",
+        "session_id TEXT REFERENCES learning_sessions(session_id) ON DELETE SET NULL",
+    ),
+)
+
+
+#: Indexes added after the initial release, as ``(label, sql)``. These carry the
+#: uniqueness guarantees that turn a partial/duplicate write into a detectable
+#: conflict. They are created after the base schema so databases created by an
+#: older build are upgraded in place; a database that already violates the
+#: invariant gets a readable migration error instead of a silent pass.
+POST_MIGRATION_INDEXES: tuple[tuple[str, str], ...] = (
+    (
+        "assessment_results.attempt_id must be unique (one committed assessment per attempt)",
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_results_attempt_unique "
+        "ON assessment_results (attempt_id)",
+    ),
+    (
+        "learning_attempts (session_id, node_id, attempt_index) must be unique",
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_attempts_unique "
+        "ON learning_attempts (session_id, COALESCE(node_id, ''), attempt_index)",
+    ),
+    (
+        "transfer_results.session_id index",
+        "CREATE INDEX IF NOT EXISTS idx_transfer_session "
+        "ON transfer_results (session_id, learner_id, node_id)",
+    ),
 )
 
 
@@ -87,21 +128,28 @@ class Database:
         if self.path != ":memory:":
             self._conn.execute("PRAGMA journal_mode = WAL")
             self._conn.execute("PRAGMA synchronous = NORMAL")
+        #: Serializes every access from this process. Re-entrant because tools
+        #: call helper methods that open their own transaction.
+        self._lock = threading.RLock()
+        self._tx_depth = 0
 
     # -- lifecycle ---------------------------------------------------------
     def initialize(self) -> "Database":
         """Apply ``schema.sql`` and ``seed.sql``; safe to call repeatedly."""
         if not self._schema_path.exists():
             raise FileNotFoundError(f"schema not found: {self._schema_path}")
-        self._conn.executescript(self._schema_path.read_text(encoding="utf-8"))
-        if self._seed_path.exists():
-            self._conn.executescript(self._seed_path.read_text(encoding="utf-8"))
-        self._migrate()
-        self._conn.execute(
-            "INSERT INTO schema_meta (key, value) VALUES ('schema_version', ?) "
-            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-            (SCHEMA_VERSION,),
-        )
+        with self._lock:
+            self._conn.executescript(self._schema_path.read_text(encoding="utf-8"))
+            if self._seed_path.exists():
+                self._conn.executescript(self._seed_path.read_text(encoding="utf-8"))
+            with self.transaction():
+                self._migrate()
+                self._post_migrate()
+                self._conn.execute(
+                    "INSERT INTO schema_meta (key, value) VALUES ('schema_version', ?) "
+                    "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+                    (SCHEMA_VERSION,),
+                )
         return self
 
     def _migrate(self) -> None:
@@ -114,20 +162,35 @@ class Database:
         for table, column, ddl in ADDED_COLUMNS:
             if self._has_column(table, column):
                 continue
-            try:
-                self._conn.execute(f"ALTER TABLE {table} ADD COLUMN {ddl}")
-            except sqlite3.OperationalError:  # pragma: no cover - table absent
-                continue
+            self._conn.execute(f"ALTER TABLE {table} ADD COLUMN {ddl}")
 
     def _has_column(self, table: str, column: str) -> bool:
         rows = self._conn.execute(f"PRAGMA table_info({table})").fetchall()
         return any(row["name"] == column for row in rows)
 
+    def _post_migrate(self) -> None:
+        """Create the uniqueness indexes that make duplicate writes detectable.
+
+        A database that already contains duplicates cannot take the index. That
+        is a real data problem, so it surfaces as a readable startup error that
+        names the invariant and the repair action instead of a raw sqlite error.
+        """
+        for label, statement in POST_MIGRATION_INDEXES:
+            try:
+                self._conn.execute(statement)
+            except sqlite3.IntegrityError as exc:  # pragma: no cover - needs dirty DB
+                raise RuntimeError(
+                    f"database migration failed: {label}. Existing rows violate the "
+                    f"invariant ({exc}). Back up the database and repair the affected "
+                    "records before restarting LEAP."
+                ) from exc
+
     def close(self) -> None:
-        try:
-            self._conn.close()
-        except sqlite3.Error:  # pragma: no cover - defensive
-            pass
+        with self._lock:
+            try:
+                self._conn.close()
+            except sqlite3.Error:  # pragma: no cover - defensive
+                pass
 
     def __enter__(self) -> "Database":
         return self
@@ -141,16 +204,20 @@ class Database:
         return self._conn
 
     def execute(self, sql: str, params: Sequence[Any] = ()) -> sqlite3.Cursor:
-        return self._conn.execute(sql, tuple(params))
+        with self._lock:
+            return self._conn.execute(sql, tuple(params))
 
     def executemany(self, sql: str, seq: Sequence[Sequence[Any]]) -> sqlite3.Cursor:
-        return self._conn.executemany(sql, [tuple(p) for p in seq])
+        with self._lock:
+            return self._conn.executemany(sql, [tuple(p) for p in seq])
 
     def query(self, sql: str, params: Sequence[Any] = ()) -> list[sqlite3.Row]:
-        return self._conn.execute(sql, tuple(params)).fetchall()
+        with self._lock:
+            return self._conn.execute(sql, tuple(params)).fetchall()
 
     def query_one(self, sql: str, params: Sequence[Any] = ()) -> sqlite3.Row | None:
-        return self._conn.execute(sql, tuple(params)).fetchone()
+        with self._lock:
+            return self._conn.execute(sql, tuple(params)).fetchone()
 
     def scalar(self, sql: str, params: Sequence[Any] = (), default: Any = None) -> Any:
         row = self.query_one(sql, params)
@@ -160,14 +227,46 @@ class Database:
 
     @contextmanager
     def transaction(self) -> Iterator[sqlite3.Connection]:
-        """Explicit write transaction with rollback on any exception."""
-        self._conn.execute("BEGIN IMMEDIATE")
-        try:
-            yield self._conn
-        except BaseException:
-            self._conn.execute("ROLLBACK")
-            raise
-        self._conn.execute("COMMIT")
+        """Explicit write transaction with rollback on any exception.
+
+        Re-entrant: a nested ``transaction()`` on the same thread becomes a
+        SQLite SAVEPOINT, so composing tools keeps one atomic unit. The
+        process-wide lock is held for the whole outermost transaction, which is
+        what stops concurrent MCP tool handlers from interleaving BEGIN/COMMIT
+        on the single connection.
+        """
+        with self._lock:
+            if self._tx_depth:
+                depth = self._tx_depth
+                savepoint = f"leap_sp_{depth}"
+                self._conn.execute(f"SAVEPOINT {savepoint}")
+                self._tx_depth = depth + 1
+                try:
+                    yield self._conn
+                except BaseException:
+                    self._tx_depth = depth
+                    self._conn.execute(f"ROLLBACK TO {savepoint}")
+                    self._conn.execute(f"RELEASE {savepoint}")
+                    raise
+                else:
+                    self._tx_depth = depth
+                    self._conn.execute(f"RELEASE {savepoint}")
+                return
+
+            self._conn.execute("BEGIN IMMEDIATE")
+            self._tx_depth = 1
+            try:
+                yield self._conn
+                self._conn.execute("COMMIT")
+            except BaseException:
+                if self._conn.in_transaction:
+                    try:
+                        self._conn.execute("ROLLBACK")
+                    except sqlite3.Error:
+                        LOGGER.debug("rollback after failure could not run", exc_info=True)
+                raise
+            finally:
+                self._tx_depth = 0
 
     # -- introspection -----------------------------------------------------
     def table_names(self) -> list[str]:
@@ -186,18 +285,26 @@ class Database:
         )
         return row["response"] if row else None
 
+    def request_record(self, idempotency_key: str) -> sqlite3.Row | None:
+        return self.query_one(
+            "SELECT tool_name, arguments_hash, response FROM request_log WHERE idempotency_key = ?",
+            (idempotency_key,),
+        )
+
     def remember_request(
         self,
         idempotency_key: str,
         tool_name: str,
         session_id: str | None,
         response: str,
+        *,
+        arguments_hash: str | None = None,
     ) -> None:
         self.execute(
-            "INSERT INTO request_log (idempotency_key, tool_name, session_id, response, created_at) "
-            "VALUES (?, ?, ?, ?, ?) "
-            "ON CONFLICT(idempotency_key) DO NOTHING",
-            (idempotency_key, tool_name, session_id, response, now_ts()),
+            "INSERT INTO request_log "
+            "(idempotency_key, tool_name, session_id, response, arguments_hash, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(idempotency_key) DO NOTHING",
+            (idempotency_key, tool_name, session_id, response, arguments_hash, now_ts()),
         )
 
     # -- convenience -------------------------------------------------------

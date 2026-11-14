@@ -117,7 +117,6 @@
     "，已经下落的距离 s(t)，当前距地高度 z(t)=H−s(t)。H 不随时间变化，s 从 0 增到 H，z 从 H 减到 0。落地时才有 s(T)=H。因此教材中的 h=½gt² 若把 h 用作“已经下落的距离”，不能同时把它当作剩余高度。",
     "2 · 方向先约定：g 是正的大小，a 才带方向",
     "默认从释放点向下为正：s₀=0，v₀=0，a=+g，v=+gt，s=+½gt²。改为从地面向上为正：y₀=H，a=−g，v_y=−gt，y=H−½gt²。两种写法描述同一条运动，速率 |v|=gt 都为正。",
-    "参考轴与物理位置",
     "释放点为原点",
     "向下正：s 增大",
     "地面为原点",
@@ -148,7 +147,6 @@
     "⑦ 落地时 s=H：H=½gT²；同乘2、同除g得 T²=2H/g。",
     "⑧ 代数上 T=±√(2H/g)，但经过的时间 T≥0，因此取 T=√(2H/g)。落地前速率 V=gT=√(2gH)。",
     "每一步都先保证 g>0、H≥0。单位检验：2H/g 的单位 m/(m/s²)=s²，开方后是 s；2gH 的单位 m²/s²，开方后是 m/s。单位不同的量不能直接相加，H/g 自身也还不是时间。",
-    "v–t 图：斜率是 g，面积是位移",
     "速率 |v| (m/s)",
     "时间 t (s)",
     "0",
@@ -163,10 +161,7 @@
     "强调三角形面积",
     "比较常见错误",
     "第1/6步：只受重力，v₀=0，向下正，a=g 恒定。",
-    "正确：图下面积",
-    "½ × t × gt",
     "s=½gt²",
-    "取 g=10、t=2s：v=20m/s，s=½×2×20=20m。",
     "错误：把末速度当平均速度",
     "t × gt，面积多一倍",
     "错误 s=gt²",
@@ -175,7 +170,6 @@
     "完整验证：½×9.8×(√(90/9.8))²=45m；V²=(√882)²=882m²/s²=2×9.8×45。用取整后的 3.03s 验算得到 44.98641m，约 0.03% 的差异来自舍入，不是公式失效。",
     "4 · 等时间段：路程为什么越走越多？",
     "取 g=10m/s²，累计位移 s(t)=5t²：0、1、2、3s 时分别是 0、5、20、45m。相邻一秒内的位移要相减：第一秒 5−0=5m，第二秒 20−5=15m，第三秒 45−20=25m，比例 1:3:5。",
-    "等时间间隔的位移",
     "第1秒",
     "第2秒",
     "第3秒",
@@ -188,7 +182,6 @@
     "若落地时刻 T≥1s，最后一秒指从 T−1 到 T，位移是 s(T)−s(T−1)=½g[T²−(T−1)²]=g(T−½)。H=45m、g=10 时 T=3s，最后一秒为 10×(3−½)=25m；s(1)=5m 是第一秒。若 T<1s，则不存在完整的“最后一秒”，应说明题意或只算整个过程。",
     "5 · 同时落地的条件与模型边界",
     "重力 F=mg，牛顿第二定律 F=ma。只受重力时 mg=ma，物体质量 m>0，两边同除以 m 得 a=g。质量较大时重力与惯性一起变大；因此同地点、同释放时刻、同高度、同初速度且真空条件下，质量不会改变落地时间。",
-    "质量与空气阻力的区别",
     "阻力方向向上",
     "铁球",
     "羽毛",
@@ -240,8 +233,6 @@
     "自由落体实验塔：看清部件，再追踪运动",
     "零初速 · 恒定 g · 忽略阻力",
     "先切换整机、剖面和拆解，辨认释放头、光门与承接盘；再拖动时间，核对小球、速度表与曲线。蓝色小球是研究对象，灰色结构只作参照。",
-    "自由落体实验塔的剖面与拆解",
-    "固定支架上方是释放头，中间是竖直运动的小球与光门，底部是承接盘，右侧为归一化标尺和速度表。",
     "整机",
     "剖面",
     "拆解",
@@ -336,7 +327,6 @@
     "这里会给一个你现在就能执行的动作。",
     "ASSESSMENT · 多维评分",
     "transfer 与 hint_dependency 不参与 overall_score 聚合，仅作为 Policy 输入。",
-    "POST-VERIFICATION · 后置验证（完整答案后必做）",
     "你已经看过完整答案。要证明你理解的是",
     "原理",
     "而不是这一段数字，请完成下面这道变式题——这是本次任务结束的唯一条件。",
@@ -370,10 +360,7 @@
     "T′/T=√[(2H/(4g))/(2H/g)]=√(1/4)=1/2；V′/V=√[(2×4g×H)/(2gH)]=√4=2。注意“时间减少”不表示“落地速率减少”；两者关系不同。",
     "边界 6 · g=0、H=10m、从静止释放，会自行落地吗？",
     "选择物理结果",
-    "请选择",
-    "时间为 0s，立即落地",
     "保持静止，不会自行落地",
-    "10s 后落地",
     "检查边界",
     "边界 6 的完整解答",
     "v=v₀+at=0，s=0×t+½×0×t²=0；距地高度仍为 10m，不会自行落地。T=√(2H/g) 的推导用了同除以 g，只在 g>0 的参数域有效。",
@@ -400,7 +387,7 @@
     "LEAP_视觉设计理念_给Gemini.md"
   ],
   "visual_contract": {
-    "profile": "anatomy.v1",
+    "profile": "anatomy.v2",
     "figures": [
       {
         "id": "free-fall-rig",
@@ -420,24 +407,46 @@
           "source": "sim.h、sim.g、sim.t 经 curState() 统一驱动小球、光门、表针、曲线与读数。",
           "quantities": [
             {
-              "name": "elapsed time",
+              "name": "下落时间",
               "unit": "s",
               "selector": "#rigElapsed"
             },
             {
-              "name": "displacement",
+              "name": "位移",
               "unit": "m",
               "selector": "#rigDistance"
             },
             {
-              "name": "speed",
+              "name": "速率",
               "unit": "m/s",
               "selector": "#rigSpeed"
             },
             {
-              "name": "remaining height",
+              "name": "当前距地高度",
               "unit": "m",
               "selector": "#roH"
+            }
+          ],
+          "assumptions": "小球只受重力，忽略空气阻力；g 取 10 m/s² 作为教学近似；时间从释放瞬间开始计。",
+          "domain": "H ≥ 0 且 g > 0；初速度 v₀ = 0；模拟在首次碰地前停止。",
+          "limits": "模型不含空气阻力、g 随高度变化和碰撞过程；实验塔几何为示意，不作工程尺寸使用。",
+          "source_refs": [
+            "codata-g"
+          ],
+          "checks": [
+            {
+              "kind": "typical",
+              "inputs": "H = 45 m、g = 10 m/s²、v₀ = 0",
+              "expected": "t = 3 s、v = 30 m/s",
+              "method": "由 s = ½gt² 反解 t = sqrt(2H/g)，再乘 g 得速率",
+              "result": "网页在 t = 3 s 时读数与独立计算一致"
+            },
+            {
+              "kind": "boundary",
+              "inputs": "H = 0 m、g = 10 m/s²",
+              "expected": "t = 0 s、v = 0 m/s、位移 s = 0 m",
+              "method": "初始落地边界直接取 t = 0",
+              "result": "表针与曲线停在下落开始时，无额外位移"
             }
           ]
         },
@@ -450,10 +459,65 @@
           "parameter": "#hSlider"
         },
         "states": [
-          "① 释放：t = 0",
-          "② 时间过半：t = T/2",
-          "③ 碰地前：t = T"
-        ]
+          "释放状态：小球静止释放，t = 0，速度为零，表针与曲线从零点开始。",
+          "时间中点状态：t = T/2，累计下落高度为 H/4，读数与解析式一致。",
+          "落地前状态：t = T，累计位移达到 H，模拟在首次碰地前停止。"
+        ],
+        "source_refs": [
+          "codata-g"
+        ],
+        "parts": [
+          {
+            "selector": "#rig-release",
+            "name": "释放头",
+            "explanation": "用电磁铁释放小球并给出初始时刻。",
+            "relationship": "释放头位于支架顶部，与光门共用同一竖直轴线。",
+            "representation": "schematic",
+            "basis": "释放头的电磁铁与顶梁为示意结构，课程只使用其释放功能。",
+            "source_refs": []
+          },
+          {
+            "selector": "#rig-gates",
+            "name": "光门",
+            "explanation": "记录小球经过三个高度的时刻。",
+            "relationship": "光门沿支架竖直排列，与承接盘共同定义下落区间。",
+            "representation": "schematic",
+            "basis": "光门数量与间距为教学示意，不对应真实测量装置。",
+            "source_refs": []
+          },
+          {
+            "selector": "#rig-catch",
+            "name": "承接盘",
+            "explanation": "在落地边界终止模拟。",
+            "relationship": "承接盘在光门下方定义落地边界。",
+            "representation": "schematic",
+            "basis": "承接盘尺寸为示意比例，碰撞过程不在模型范围内。",
+            "source_refs": []
+          },
+          {
+            "selector": "#rig-scale",
+            "name": "归一化标尺",
+            "explanation": "按高度比例标出下落位置。",
+            "relationship": "归一化标尺沿支架标出高度比例，与读数共用同一运动状态。",
+            "representation": "schematic",
+            "basis": "标尺按高度归一化绘制，不作真实长度测量工具。",
+            "source_refs": []
+          },
+          {
+            "selector": "#rig-console",
+            "name": "速度表",
+            "explanation": "用同一运动状态显示瞬时速率。",
+            "relationship": "速度表指针由与小球、曲线相同的运动状态驱动。",
+            "representation": "schematic",
+            "basis": "表盘刻度为示意，实际 SI 数值以页面读数为准。",
+            "source_refs": []
+          }
+        ],
+        "inspection": {
+          "panel": "#rigPartInfo",
+          "clear": "#rigPartClear",
+          "help": "悬停或聚焦部件可预览名称与作用；点击、Enter 或空格选中该部件；离开预览恢复已选部件；按 Escape 或点击“显示全部”清除选择并回到总览。"
+        }
       },
       {
         "id": "free-fall-storyboard",
@@ -469,11 +533,28 @@
         "static_frame": "#fallStoryTable",
         "animated": false
       }
-    ]
+    ],
+    "research": {
+      "sources": [
+        {
+          "id": "codata-g",
+          "evidence_source_id": "<source id returned by save_benchmark_report>",
+          "source": "https://physics.nist.gov/cgi-bin/cuu/Value?gn",
+          "locator": "CODATA Value: standard acceleration of gravity (2022 CODATA)",
+          "excerpt": "standard acceleration of gravity 9.806 65 m s-2 (exact)",
+          "checked_at": "2026-11-08"
+        }
+      ],
+      "limitations": "来源只固定标准重力加速度与 SI 单位；实验塔几何为项目原创示意图，不是真实仪器的复现，模型忽略空气阻力。"
+    }
   },
   "markdown_extensions": [
     "“平均速度为首末速度平均”不是任意运动都成立的公式。这里 $v(t)=gt$ 是一条直线，将一段速度图上下翻转后拼在一起，恰好得到底为 $t$、高为 $gt$ 的长方形，原图所占面积为一半。因此"
   ],
-  "source_ids": [],
-  "host_semantic_audit": "Actual cited authoritative pages read; calculations independently substituted; semantic answers preserved for host review; source IDs supplied at session registration."
+  "source_ids": [
+    "<source id returned by save_benchmark_report>"
+  ],
+  "host_semantic_audit": "Example fixture for the anatomy.v2 contract. Research cites the NIST CODATA standard acceleration of gravity for the constant-g model; the drop-tower geometry is an invented schematic. source_ids and evidence_source_id use a placeholder that the repository registration simulation replaces with a synthetic session source; this is not evidence of real reading for the learner.",
+  "policy_id": "leap.teaching.delivery",
+  "policy_version": "3.0"
 }

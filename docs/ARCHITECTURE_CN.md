@@ -73,6 +73,13 @@ LEAP Learning Runtime
 | 契约 | `runtime/contracts.py` | 替换实现必须满足的协议 |
 | 事件 | `runtime/events.py` | 只追加日志；每个决策都可回放 |
 
+### 事件词表
+
+事件日志（`event_log`）使用 snake_case 事件名，词表由仓库内
+[ARCHITECTURE.md](ARCHITECTURE.md) 的 “Event vocabulary” 一节维护；
+`tests/test_spec_gaps.py` 双向校验（文档 → emit 调用点、emit 调用点 → 文档）。
+新增事件时同步该节；原始设计文档（§18.1）不在公开仓库内，因此以仓库内词表为准。
+
 ## 4. 数据模型
 
 SQLite，教学实体只有 `knowledge_node`。**unit 是业务聚合标签**（`knowledge_nodes.unit_tag`），

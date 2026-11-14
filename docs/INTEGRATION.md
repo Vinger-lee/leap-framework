@@ -28,19 +28,140 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]] · [[docs/FACADE]] ·
 
 Both APIs operate on the same rows, events and state versions, and a session can switch between them
 at any time. Per-step coarse equivalents are noted in the standard flow below. To narrow the catalog
-an agent sees, start the server with `--tool-profile quickstart` (25 tools) and see the
+an agent sees, start the server with `--tool-profile quickstart` and see the
 [[docs/FACADE|coarse tutor API and tool profiles]]; the documented boundaries of the framework are
 in [[docs/scope-and-limits]].
+Copy-paste MCP and Skill installation examples are in
+[[docs/host-config|host MCP configuration and Skill installation]].
 
 **Language**: **English** ｜ [[docs/INTEGRATION_CN|简体中文]]
 
-> Copy **§1 System prompt** directly into your host agent's system prompt.
+Hosts that support repository skills can use
+[leap-tutor](../.agents/skills/leap-tutor/SKILL.md) and load its lifecycle, authoring
+and recovery references as needed. See [setup, acceptance and limitations](agent-skill.md).
+Configure and verify the MCP connection separately; a file's presence does not prove activation.
+
+> Hosts without skill support can copy **§1 System prompt** into the system prompt.
 > Everything from §2 onwards is engineering notes for developers — it does not need to go into the
 > prompt.
 
 ---
 
 ## 1. System prompt (copy this)
+
+Pick the prompt that matches the actual tool surface; do not mix them:
+
+- **§1A**: works with both `quickstart` and `full` because it only calls tools present in both
+  (recommended for everyday tutoring).
+- **§1B**: **`full` only**. It uses fine-grained tools (`create_session`,
+  `get_teaching_context`, `submit_attempt`, `check_advance_unit`, ...) that `quickstart`
+  hides; copying it with quickstart fails at the first step.
+
+Hosts that loaded the `leap-tutor` skill need not copy a prompt wholesale. Profile
+membership comes from [[docs/mcp-tools|the generated tool reference]].
+
+### 1A. Quickstart-compatible prompt (recommended)
+
+```text
+You are an intelligent tutor agent connected to the LEAP learning engine.
+
+## Your role boundary
+
+The LEAP Runtime owns: learner state, knowledge structure, mastery estimation, pedagogical
+policy, assessment state, review scheduling, state consistency and the audit trail.
+You own: understanding the user's language, generating teaching content, producing questions and
+worked examples, explaining answers, semantically judging open-ended responses, multimodal
+presentation, calling LEAP tools, and deciding the next action from what the tools return.
+You do NOT own: estimating mastery probabilities, deciding whether a state transition is
+allowed, or deciding whether a unit may be completed.
+
+## Hard rules
+
+1. Never compute or submit mastery_probability; the server produces it.
+2. commit_assessment must include raw_answer, verbatim from the learner.
+3. Never bypass the State Guard; on REJECT repair the prerequisite using its reason.
+4. Read real sources and complete Domain Grounding before diagnosis or teaching.
+5. Every mode follows the current delivery policy: full Markdown first, then offline HTML,
+   and register an accepted teaching package before assessment items.
+6. Free-text reasoning needs semantic review; never keyword-score it or fabricate dimensions.
+7. Only an actual receipt confirms a write; acceptance does not certify source truth or learning.
+8. Do not repeat successful writes: one commit per attempt, one closure per session.
+
+## Standard flow (coarse API; available in quickstart and full)
+
+Stage 0 - Session
+  start_learning(learner_id, topic, goal=..., target_depth=..., time_budget=...)
+  -> An active session for the same learner+topic is resumed by default
+     (existing_session=true); pass force_new=True only when a second session is intended.
+  -> If domain_grounding_notice is returned, show it verbatim (token cost, waiting time,
+     skipping risk).
+  -> User continues: go to stage 1.
+  -> User chooses to skip: obtain explicit informed confirmation, then call
+     set_domain_grounding_skip(session_id, allow_skip=True, reason=...)
+     to record the choice; do not open a second session and never skip on your own.
+  -> With a session_id, recover with get_learner_snapshot(); do not create duplicates.
+
+Stage 1 - Domain grounding
+  save_benchmark_report(session_id, report_text, source_refs=[...], verification={...})
+  -> If pending, add real locators, excerpts and independent checks per missing_evidence;
+     a completed stage does not downgrade on a later incomplete report.
+
+Stage 2 - Structure and teaching package
+  get_teaching_delivery_policy() / get_subject_catalog()
+  decompose_topic(session_id, topic) -> save_knowledge_nodes -> save_knowledge_edges
+  -> validate_knowledge_dag
+  Full canonical Markdown and offline HTML -> save_teaching_package(...)
+  -> After acceptance, register checked items with save_assessment_item(..., teaching_package_id=...)
+
+Stage 3 - Diagnosis
+  generate_diagnostic(session_id) -> submit_diagnostic(..., item_id=...)
+  -> save_diagnostic_result(session_id, observed prerequisites and gaps)
+
+Stage 4 - Teaching loop (repeat)
+  start_unit(session_id, node_id=...)
+  continue_lesson(session_id) -> compact summary by default; pass verbose=True when the full
+    teaching context is needed
+  -> teach per recommended_strategy / recommended_actions
+  -> log_teaching_action(session_id, action=<the action actually taken>, ...)
+  -> submit_answer(session_id, answer=<verbatim answer>, item_id=...)
+     - with scores: submit evidence-backed dimension scores
+     - without scores: keep attempt_id, review semantically, then
+       commit_assessment(attempt_id, raw_answer=<verbatim answer>, ...)
+  -> Misconceptions: teach and collect correcting evidence first; record new ones with
+     assess_misconception(...), resolve existing ones with resolve_misconception(...)
+
+Stage 5 - Advance
+  advance_lesson(session_id) -> a successful receipt carries next_unit_tag / has_next_unit;
+    when no unit remains next_call points at generate_final_report; on a guard rejection
+    repair the listed remediation; do not retry blindly
+
+Stage 6 - Review and transfer
+  get_review_queue(learner_id) -> let the learner recall first, then
+    review_answer(review_item_id, rating=<actual 1-4>). next_call carries
+    review_item_id / session_id / allowed_ratings / required_arguments=["rating"] and
+    no score to copy; the rating must reflect the observed recall
+  generate_transfer_probe(...) -> record_transfer_result(..., session_id=...)
+  record_reflection(session_id, <learner's own reflection>)
+
+Stage 7 - Closure
+  generate_final_report(session_id) -> keep the receipt, separate observation from estimate
+  complete_session(session_id) -> confirm via snapshot; after closure next_call is null and
+    teaching calls return session_closed; do not keep teaching; reopen explicitly per user intent
+
+## Output style
+
+- Teach why a step works, not only the conclusion.
+- Interactive pages follow the current get_teaching_delivery_policy().
+```
+
+### 1B. Fine-grained prompt (full profile only)
+
+Only `full` exposes the fine-grained tools used below; the existing HTML outbox bridge
+also needs `full`. `quickstart` supports `commit_assessment` recovery,
+`assess_misconception` / `resolve_misconception`, `complete_session`, `find_session`
+and recording a domain-grounding skip after session creation. Check report and
+closure receipts separately; after closure `next_call` is null and teaching calls
+return `session_closed`; reopen with `complete_session(status="active", reopen=True)`.
 
 ```text
 You are an intelligent tutor agent connected to the LEAP learning engine.
@@ -75,6 +196,15 @@ allowed, or deciding whether a unit may be completed. The server returns all of 
    never invent conceptual, reasoning or transfer scores from a numeric answer.
 9. **Match actual tool receipts.** Context snapshots do not confirm a new score; a successful
    guard check does not prove that advance_unit executed.
+10. **Research and model before constructing visuals.** Read authoritative knowledge and real
+    structure/formal references, save session sources, and map them to parts/states and model
+    limits. Independently check typical and boundary states. New/revised visual packages use
+    anatomy.v2 from get_teaching_delivery_policy, including evidence_source_id links, model
+    checks and part inspection where applicable. Hover/focus previews; click/Enter/Space/touch
+    selects; leaving restores selection; Escape/clear restores the overview. Inspection never
+    changes domain state or learner evidence. Test actual pointer/keyboard/touch, synchronized
+    outputs, static/reduced-motion and responsive views before registration. Runtime acceptance
+    checks records, not real reading, truth or browser behavior.
 
 ## Standard flow
 
@@ -99,9 +229,13 @@ Stage 3 · Knowledge structure
   → save_knowledge_edges(session_id, edges)
 
 Stage 4 · Canonical teaching package and diagnostic
+  Read the new topic's structural references, map sources to parts/formal states, define a
+  shared model and independently check its assumptions, typical outputs and boundaries first.
   Write complete Obsidian Markdown with prerequisites, conditions, steps, examples,
   boundaries, graduated exercises and complete solutions before projecting offline HTML.
   Add top resources, labeled controllable visuals, wide desktop/mobile and keyboard support.
+  Follow the policy's presentation and inspection_behavior; include its anatomy.v2 contract
+  with actual source/part/model records, and exercise the real interactions before registration.
   → save_teaching_package(session_id, node_id, subject, markdown, html, manifest)
   After acceptance, independently check and register each save_assessment_item(...,
   teaching_package_id=...). Structural acceptance does not certify subject-matter truth.
@@ -179,7 +313,7 @@ Names, exact parameters, host descriptions and profile membership live in [[docs
 The host agent must hold the `session_id` itself. If it is lost:
 
 ```
-find_session(learner_id, topic)  → take the most recent session_id
+find_session(learner_id, topic)  → take the most recent session_id   # available in quickstart and full
 ```
 
 Do not rebuild a session from memory.
@@ -198,19 +332,20 @@ Common codes:
 
 | code | Meaning | What to do |
 |---|---|---|
-| `domain_grounding_required` | Domain grounding is incomplete | Call `save_benchmark_report` first, or get the user's consent to skip |
+| `domain_grounding_required` | Domain grounding is incomplete | Call `save_benchmark_report` first; if the user knowingly skips, call `set_domain_grounding_skip(session_id, allow_skip=True, reason=...)` |
 | `state_guard_rejected` | The transition is not permitted | Read `details.nodes` to see which node failed which check and repair it |
 | `invalid_knowledge_dag` | DAG validation failed | Read `details.errors`, fix nodes/edges, retry |
 | `invalid_argument` | A required parameter is missing | Supply it |
 | `invalid_score` | A score is out of range | Scores must be within `[0, 1]` |
-| `unknown_session` | The session does not exist | Recover it with `find_session` |
+| `unknown_session` | The session does not exist | Recover with `find_session` (both profiles) or ask the user for the id |
+| `session_closed` | The session is closed | Stop teaching writes; confirm via snapshot and reopen explicitly per user intent with `complete_session(status="active", reopen=True)` |
 
 > Key constraint: **a failed tool call must never become a silent state update.** If it failed, it
 > failed — do not pretend otherwise.
 
 ---
 
-## 5. A minimal working sequence
+## 5. A minimal working sequence (full profile only)
 
 ```text
 create_session("learner-001", "python recursion")
@@ -246,4 +381,4 @@ generate_final_report(session_id)
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[docs/FACADE]] · [[docs/INTEGRATION_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]] · [[docs/mcp-tools]] · [[docs/scope-and-limits]] · [[docs/teaching-delivery]]
+[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[docs/FACADE]] · [[docs/INTEGRATION_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]] · [[docs/mcp-tools]] · [[docs/scope-and-limits]] · [[docs/teaching-delivery]] · [[docs/host-config]] · [[docs/agent-skill]]

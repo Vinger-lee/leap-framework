@@ -1,5 +1,5 @@
 # Runtime dependencies — mirrors the `dependencies` list in pyproject.toml.
 # Development and example-verification extras are declared in pyproject.toml.
-mcp>=1.2
+mcp>=2.3,<3
 fsrs>=5
 PyYAML>=6

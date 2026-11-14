@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any, Mapping
 
+from leap.runtime.delivery import delivery_policy
 from leap.storage import new_id, now_ts
 from leap.tools.base import LeapToolMixin, ToolError, json_dumps
 
@@ -130,13 +131,13 @@ class SessionTools(LeapToolMixin):
         if topic:
             rows = self.rows(
                 "SELECT * FROM learning_sessions WHERE learner_id = ? AND topic = ? "
-                "ORDER BY updated_at DESC LIMIT 20",
+                "ORDER BY updated_at DESC, rowid DESC LIMIT 20",
                 (learner_id, topic),
             )
         else:
             rows = self.rows(
                 "SELECT * FROM learning_sessions WHERE learner_id = ? "
-                "ORDER BY updated_at DESC LIMIT 20",
+                "ORDER BY updated_at DESC, rowid DESC LIMIT 20",
                 (learner_id,),
             )
         return self.ok(learner_id=learner_id, count=len(rows), sessions=rows)
@@ -157,8 +158,76 @@ class SessionTools(LeapToolMixin):
             session=session,
             learning_goal=dict(goal) if goal else None,
             knowledge_node_count=node_count,
+            diagnostic_completed=self.diagnostic_completed(session_id),
             event_count=self.events.count(session_id),
             next_step=self._next_step(session, node_count),
+        )
+
+    def set_domain_grounding_skip(
+        self,
+        session_id: str,
+        allow_skip: bool = True,
+        *,
+        warn_user: bool | None = None,
+        reason: str | None = None,
+        request_id: str | None = None,
+    ) -> dict:
+        """Record the post-creation Domain Grounding decision (skip or require).
+
+        The grounding switches used to be write-once at ``create_session`` time,
+        so when the learner answered "skip it" after seeing the notice the host
+        had to throw the session away and create a new one. This tool lets the
+        decision be recorded on the existing session. Changing the switch does
+        not erase evidence; it only changes the gate for later tool calls.
+        """
+        session = self.require_session(session_id)
+        previous_skip = bool(session.get("allow_skip_domain_grounding"))
+        previous_warn = bool(session.get("domain_grounding_warn_user"))
+        new_skip = bool(allow_skip)
+        new_warn = previous_warn if warn_user is None else bool(warn_user)
+        ts = now_ts()
+        with self.db.transaction():
+            self.db.execute(
+                "UPDATE learning_sessions SET allow_skip_domain_grounding = ?, "
+                "domain_grounding_warn_user = ?, updated_at = ? WHERE session_id = ?",
+                (int(new_skip), int(new_warn), ts, session_id),
+            )
+        # Reuses the documented configuration-change event: this is a
+        # session-scoped configuration decision, not a new lifecycle event.
+        self.events.emit(
+            "learning_configuration_changed",
+            session_id=session_id,
+            learner_id=session["learner_id"],
+            payload={
+                "setting": "domain_grounding_skip",
+                "allow_skip_domain_grounding": new_skip,
+                "previous_allow_skip_domain_grounding": previous_skip,
+                "warn_user": new_warn,
+                "reason": reason,
+            },
+            request_id=request_id,
+        )
+        stage = self.db.scalar(
+            "SELECT domain_grounding_stage FROM learning_sessions WHERE session_id = ?",
+            (session_id,),
+        )
+        return self.ok(
+            session_id=session_id,
+            allow_skip_domain_grounding=new_skip,
+            warn_user=new_warn,
+            previous_allow_skip_domain_grounding=previous_skip,
+            domain_grounding_stage=stage,
+            next_step=(
+                "generate_diagnostic"
+                if new_skip or stage == "completed"
+                else "save_benchmark_report"
+            ),
+            guidance=(
+                "Skipping Domain Grounding is recorded on the session and waives the gate; "
+                "the risk warning stays the learner's responsibility. Nothing was deleted."
+                if new_skip
+                else "The grounding gate is active again; save_benchmark_report must complete first."
+            ),
         )
 
     def save_learning_goal(
@@ -327,7 +396,7 @@ class SessionTools(LeapToolMixin):
             (session_id,),
         )
         goal = dict(goal_row) if goal_row else {}
-        depth = str(self.conf("diagnostic_depth", "adaptive"))
+        depth = str(self.effective_conf(session_id, "diagnostic_depth", "adaptive"))
 
         self.events.emit(
             "diagnostic_started",
@@ -350,11 +419,7 @@ class SessionTools(LeapToolMixin):
                 "submit_diagnostic. Keep the probe short when prior_knowledge is high; extend "
                 "it when prerequisites are unknown."
             ),
-            generation_requirements=(
-                "Fetch get_teaching_delivery_policy; write the full Obsidian Markdown source "
-                "before a shorter HTML projection and register both with save_teaching_package. "
-                "All learning modes retain this requirement."
-            ),
+            generation_requirements=delivery_policy()["generation_requirements"],
             state_guard=decision.as_dict(),
         )
 
@@ -442,15 +507,21 @@ class SessionTools(LeapToolMixin):
     # ------------------------------------------------------------------
     # helpers
     # ------------------------------------------------------------------
-    @staticmethod
-    def _next_step(session: dict, node_count: int) -> str:
+    def _next_step(self, session: dict, node_count: int) -> str:
+        status = str(session.get("status") or "active")
+        if status in {"completed", "abandoned"}:
+            return "closed"
         if session.get("domain_grounding_stage") != "completed" and not session.get(
             "allow_skip_domain_grounding"
         ):
             return "domain_grounding"
-        goal = session.get("session_id")
         if node_count == 0:
             return "knowledge_representation"
         if not session.get("current_node_id"):
+            # A finished diagnostic must not send the host back to
+            # generate_diagnostic forever; the actual next step is selecting the
+            # first teaching unit.
+            if self.diagnostic_completed(str(session.get("session_id"))):
+                return "unit_start"
             return "diagnostic"
         return "teaching"

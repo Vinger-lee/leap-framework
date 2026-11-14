@@ -12,7 +12,7 @@ delivery_policy: '3.0'
 > Advanced: `LEAP 粗粒度教学 API 门面层 next_call 工具档位 invariants verification transfer`
 > These are search queries; no video has been certified for this note.
 
-Related: [[Knowledge_Index]] · [[docs/INTEGRATION_CN]] · [[docs/mcp-tools]] · [[docs/FACADE]] · [[docs/scope-and-limits_CN]] · [[README_CN]]
+Related: [[Knowledge_Index]] · [[docs/INTEGRATION_CN]] · [[docs/mcp-tools]] · [[docs/FACADE]] · [[docs/scope-and-limits_CN]] · [[README_CN]] · [[docs/host-config]]
 
 # 粗粒度教学 API 与工具档位
 
@@ -21,7 +21,7 @@ Runtime 的工具面刻意做成细粒度：每次状态变更都是独立的可
 顺序错误是最常见的接入故障。
 
 本文说明消除这部分成本的两件事：**粗粒度教学 API**（8 个工具，在服务端组合细粒度调用）与
-**工具档位**（`quickstart` 只暴露约 25 个工具，而不是 70 个）。
+**工具档位**（`quickstart` 提供日常教学所需的较小工具集合，实际目录见生成参考）。
 
 ## 1. 粗粒度教学 API
 
@@ -31,7 +31,9 @@ Runtime 的工具面刻意做成细粒度：每次状态变更都是独立的可
 完整的粗粒度工具清单、组合语义、签名与档位归属见 [[docs/mcp-tools|自动生成工具参考]]。
 
 每个回包都带 `next_call`：下一次该调用的工具、参数与原因。门面层因此是自解释的，宿主 Agent
-不必记住生命周期。
+不必记住生命周期。`next_call` 只保证目标工具在当前档位存在；涉及语义决策的参数（例如复习
+评分）必须按真实观察填写；`next_call` 给 `review_item_id`/`session_id`/`allowed_ratings`，
+但不提供可照抄评分；会话关闭后回包 `next_call` 为 null。
 
 ### 门面层没有改变的东西
 
@@ -42,7 +44,8 @@ Runtime 的工具面刻意做成细粒度：每次状态变更都是独立的可
   原因后直接调用 `commit_assessment`，作答不会丢失。
 - **原始作答逐字保存**，并复用为 `raw_answer`，消除 attempt 与 assessment 文本不一致的常见错误。
 - **掌握度仍由服务端估计**，`mastery_probability` 不接受宿主传入。
-- **交付政策 3.0 仍然生效**：粗粒度回包只携带一次政策，嵌套子回包中的重复副本会被移除。
+- **交付政策 3.0 仍然生效**：回包使用紧凑 envelope，只携带 `policy_version`；需要完整政策时
+  调用一次 `get_teaching_delivery_policy()`，不凭记忆复述。
 - **前置与题目门禁仍然生效**：未完成 Domain Grounding 时，`submit_answer` 与 `continue_lesson`
   同样返回 `domain_grounding_required`。
 
@@ -51,15 +54,53 @@ Runtime 的工具面刻意做成细粒度：每次状态变更都是独立的可
 带分数时一次调用同时落库作答与评估；不带分数时只落库作答，并返回指向 `commit_assessment` 的
 `next_call`——这正是自由文本仍待宿主语义评审时应采取的形态。绝不能用关键词推导分数。
 
+两个档位都开放 `commit_assessment`，评分失败时保留 `attempt_id`，修正后直接
+提交原文与评分，不重新记录作答。`assess_misconception`（记录新误解）与
+`resolve_misconception`（解决已有误解）也在两个档位中可用，使教学门面的误解分支
+有真实可执行的后续工具。必须先有纠正证据再标记解决。
+
+建会话后如需记录用户“跳过领域校准”的选择，使用两个档位都提供的
+`set_domain_grounding_skip(session_id, allow_skip=True, reason=...)`：先展示 notice
+并取得明确知情确认，再记录选择；不重开新会话，不自行跳过。
+
+`start_learning` 默认复用同一 learner+topic 的 active 会话（回包
+`existing_session=true`）；确实要新会话时才传 `force_new=True`。
+`advance_lesson` 成功回包带 `next_unit_tag`/`has_next_unit`；没有下一单元时
+`next_call` 指向 `generate_final_report`。`get_review_queue` 的 next_call 提供
+`review_item_id`/`session_id`/`allowed_ratings` 与 `required_arguments=["rating"]`，
+但不预填评分，必须按真实回忆填写 1–4。
+
+### 报告与关闭
+
+`generate_final_report` 只生成并保存报告；`complete_session` 才修改会话状态。
+先核对报告回执，再关闭并用 `get_learner_snapshot` 确认 `session_status`。
+报告成功而关闭失败时分别报告，不能宣称整个结课已完成。重复关闭是幂等的，不再
+重复发出完成事件；`request_id` 只能作为审计/幂等关联，不能替代实际回执。
+关闭后回包 `next_call` 为 null，`continue_lesson`、`submit_answer` 等教学调用返回
+`session_closed`；不得继续教学，需按用户意图用
+`complete_session(status="active", reopen=True)` 显式重开会话。
+
 ## 2. 工具档位
 
 档位决定 MCP 客户端看到多少工具。注册过程在各档位完全一致，runtime 能力不减少，切换档位不需要
 数据迁移。
 
-| 档位 | 工具数 | 内容 |
-|---|---|---|
-| `quickstart` | 25 | 粗粒度教学 API + 完成一节课必需的配置工具：Domain Grounding、知识 DAG、canonical 教学包、题目登记、诊断、迁移、反思与结课报告 |
-| `full` | 70 | 全部已注册工具（默认） |
+| 档位 | 内容 |
+|---|---|
+| `quickstart` | 粗粒度教学 API + Domain Grounding、知识 DAG、canonical 教学包、题目登记、诊断、评估恢复、误解记录与解决、领域校准跳过记录、迁移、反思、报告与显式关闭；`continue_lesson` 默认紧凑摘要 |
+| `full` | 全部已注册工具（默认），含细粒度状态/证据查询和页面桥接 |
+
+数量与逐工具档位归属见 [[docs/mcp-tools|生成工具参考]]。`next_call` 及其后续调用
+仍需检查宿主真实目录。现有 HTML outbox 全套桥接与细粒度证据读取需 `full`；
+会话查找 `find_session` 两个档位都可用；
+quickstart 下无法确认具体写入时暂停该写入，补充查询能力，避免重复写入。
+支持仓库 Skill 的宿主参见 [leap-tutor 接入与验收](agent-skill.md)，MCP/Skill 配置
+样例见 [[docs/host-config|宿主配置]]。
+
+回包成本：修复后每次调用只带紧凑 `policy_version`，完整交付政策用
+`get_teaching_delivery_policy()` 取一次；`continue_lesson()` 默认只回当前节点摘要，
+需要完整上下文时传 `verbose=True`。`quickstart` 还能把一次性工具 schema 从约 54 KB
+降到约 26 KB。
 
 选择顺序：
 
@@ -93,4 +134,4 @@ LEAP_TOOL_PROFILE=quickstart python -m leap.server  # 环境变量
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[README_CN]] · [[docs/FACADE]] · [[docs/INTEGRATION_CN]] · [[docs/scope-and-limits_CN]]
+[[Knowledge_Index]] · [[README_CN]] · [[docs/FACADE]] · [[docs/INTEGRATION_CN]] · [[docs/scope-and-limits_CN]] · [[docs/host-config]] · [[docs/agent-skill]]

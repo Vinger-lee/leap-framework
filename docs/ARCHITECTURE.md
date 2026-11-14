@@ -75,6 +75,49 @@ server-side.
 | Contracts | `runtime/contracts.py` | The protocols a replacement must satisfy |
 | Events | `runtime/events.py` | Append-only log; every decision is replayable |
 
+### Event vocabulary
+
+The `event_log` table is append-only and uses the snake_case vocabulary below.
+It is the in-repository counterpart of section 18.1: the design document that
+originally defined these events is maintained by the project author outside this
+repository, so `tests/test_spec_gaps.py` checks this list in both directions
+(every documented event has an emit call site, and every emit call site is
+documented). Add a name here in the same change that starts emitting it.
+
+```text
+action_executed
+artifact_saved
+assessment_committed
+attempt_submitted
+diagnostic_completed
+diagnostic_started
+domain_grounding_completed
+goal_created
+knowledge_dag_saved
+knowledge_dag_validated
+learning_configuration_changed
+misconception_detected
+node_started
+policy_committed
+policy_evaluated
+reflection_recorded
+review_completed
+review_scheduled
+review_started
+session_completed
+session_created
+state_guard_rejected
+teaching_package_saved
+transfer_completed
+transfer_started
+unit_advanced
+unit_rollback
+```
+
+`runtime/events.py` additionally reserves `domain_grounding_started` and
+`schema_initialized` in `EVENT_TYPES`; neither has an emit call site yet, so
+they are intentionally absent from the list above until they are used.
+
 ## 4. Data model
 
 SQLite, with `knowledge_node` as the only teaching entity. A **unit** is a business aggregation

@@ -51,6 +51,31 @@ class EvidenceTools(LeapToolMixin):
             for key in ("source", "source_type", "locator", "excerpt"):
                 if not isinstance(ref.get(key), str) or not ref[key].strip():
                     missing.append(f"source_refs[{i}].{key}")
+            # Optional structured fields: reject malformed values here instead of
+            # letting an int()/json() coercion fail later as an internal error.
+            for key in ("retrieved_at", "last_verified"):
+                if ref.get(key) is None:
+                    continue
+                value = ref[key]
+                if isinstance(value, bool) or not isinstance(value, (int, str)) or (
+                    isinstance(value, str) and not value.strip().lstrip("-").isdigit()
+                ):
+                    raise ToolError(
+                        "invalid_argument",
+                        f"source_refs[{i}].{key} must be a Unix timestamp in seconds",
+                    )
+            metadata = ref.get("metadata")
+            if metadata is not None and not isinstance(metadata, Mapping):
+                raise ToolError(
+                    "invalid_argument",
+                    f"source_refs[{i}].metadata must be an object",
+                )
+            for key in ("authority", "publication_date", "source_id"):
+                if ref.get(key) is not None and not isinstance(ref[key], str):
+                    raise ToolError(
+                        "invalid_argument",
+                        f"source_refs[{i}].{key} must be a string",
+                    )
         if not isinstance(verification.get("scope"), str) or not verification["scope"].strip():
             missing.append("verification.scope")
         claims = verification.get("claims")
@@ -71,6 +96,13 @@ class EvidenceTools(LeapToolMixin):
         if not isinstance(verification.get("limitations"), list):
             missing.append("verification.limitations: list unresolved uncertainty explicitly")
         stage = "pending" if missing else "completed"
+        previous_stage = str(session.get("domain_grounding_stage") or "pending")
+        stage_downgraded = previous_stage == "completed" and stage == "pending"
+        if previous_stage == "completed":
+            # Grounding evidence can be added after completion, but a partial
+            # follow-up report must never re-lock an already grounded session:
+            # that turned an innocent second call into a re-opened gate.
+            stage = "completed"
         ts = now_ts()
 
         artifact_id = new_id("art")
@@ -109,11 +141,20 @@ class EvidenceTools(LeapToolMixin):
             self.db.execute("UPDATE artifacts SET metadata = ? WHERE artifact_id = ?",
                             (self._dumps(artifact_metadata), artifact_id))
 
-            self.db.execute(
-                "UPDATE learning_sessions SET benchmark_report_artifact_id = ?, "
-                "domain_grounding_stage = ?, updated_at = ? WHERE session_id = ?",
-                (artifact_id, stage, ts, session_id),
-            )
+            if stage_downgraded:
+                # Keep the completed report as the grounding pointer: the guard
+                # validates that artifact, so pointing at a partial follow-up
+                # would re-lock a grounded session.
+                self.db.execute(
+                    "UPDATE learning_sessions SET updated_at = ? WHERE session_id = ?",
+                    (ts, session_id),
+                )
+            else:
+                self.db.execute(
+                    "UPDATE learning_sessions SET benchmark_report_artifact_id = ?, "
+                    "domain_grounding_stage = ?, updated_at = ? WHERE session_id = ?",
+                    (artifact_id, stage, ts, session_id),
+                )
 
         self.events.emit(
             "domain_grounding_completed" if not missing else "domain_grounding_incomplete", session_id=session_id, learner_id=session["learner_id"],
@@ -129,11 +170,20 @@ class EvidenceTools(LeapToolMixin):
             artifact_id=artifact_id,
             session_id=session_id,
             domain_grounding_stage=stage,
+            previous_stage=previous_stage,
+            stage_downgraded=False,
+            stage_downgrade_guard=stage_downgraded,
             missing_evidence=missing,
             evidence_format_version=1,
             content_verified_by_runtime=False,
             sources_saved=saved_sources,
             next_step="save_benchmark_report" if missing else "generate_diagnostic",
+            note=(
+                "grounding already completed; this report was appended and the stage was "
+                "kept at completed"
+                if stage_downgraded
+                else None
+            ),
         )
 
     def save_benchmark_claim(

@@ -41,16 +41,38 @@ Related: [[Knowledge_Index]] · [[docs/FACADE_CN]] · [[docs/INTEGRATION_CN]] ·
   （环、悬空边、前置顺序），不判断分解在学科上是否合理。
 
 ## 3. 本版本的工程限制
+## 3. 本版本的工程限制
 
 - **单机单学员（P0）**：传输为 stdio，未实现认证、学员账号体系、多租户、权限与
   内容审核。面向学校/机构的部署需要这些，LEAP 不提供。
+- **单进程并发**：同一 server 进程内的工具调用在数据库层串行化（可重入锁），宿主并行发起的
+  tool call 不会交错同一个 SQLite 事务、也不会留下部分写入。多进程/多机器写同一个 SQLite
+  文件仍不受支持。
 - **每个可插拔缝隙只有一种实现**：六个缝隙都已接通，但默认实现是简化 BKT、加权聚合、规则策略、
   `py-fsrs`、SQLite 与本地产物存储；替代实现是增量的，尚未在生产验证。
+- **视觉契约的强制范围**：新注册或修订的教学包必须声明 `anatomy.v2` 视觉契约；`anatomy.v1`
+  或缺失契约只作为显式 legacy 兼容被接受，并在回包中带 warning，不能当作当前版本的合规。
+  Runtime 校验记录与结构，不校验科学正确性或浏览器行为。
+- **配置与数据位置**：wheel 内包含默认配置 `leap/config/default.yaml`；仓库检出时优先使用
+  `config/default.yaml`。`database_path` / `artifact_root` 在设置 `LEAP_HOME` 时相对该目录解析，
+  否则相对当前工作目录解析，不会写进安装目录；`LEAP__*` 环境变量覆盖 YAML。
+- **Agent Skill 支持范围**：`leap-tutor` 是仓库级 Skill 草案，只有会扫描 `.agents/skills/` 的
+  宿主能直接发现（Claude Code 扫描的是 `.claude/skills`，见 [宿主配置](host-config.md)）；
+  其他宿主按 MCP 接入指南连接，运行时的门禁完全一致，Skill 只影响引导方式。
+- **已关闭会话与回包体积**：会话关闭后 `continue_lesson`/`submit_answer` 返回 `session_closed`，
+  `next_call` 为 null，重复关闭幂等；`complete_session` 默认要求最终报告（除非显式覆盖）。
+  每个回包只带紧凑的 `policy_version`，完整政策仅在 `get_teaching_delivery_policy` 返回；
+  `continue_lesson` 默认返回摘要（`verbose=True` 才带完整教学上下文），
+  `get_teaching_context` 默认 `include_template=False`。
+- **工具档位改变的是导航范围，不是权威**：`quickstart`（32 个工具）是一条完整教学路径，
+  含 `assess_misconception` 与 `set_domain_grounding_skip`；`full`（71 个工具）额外提供
+  细粒度接口与 HTML outbox 桥接。实时数量以 `python -m leap.doctor` 与生成的工具参考为准。
 - **运维足迹**：宿主需要运行 MCP stdio 进程、SQLite 文件与 YAML 配置。`python -m leap.doctor`
   可自检这些前提，`quickstart` 档位可缩小 Agent 需要面对的工具目录，但进程本身仍需像本地服务一样
   看护。
 - **单个教学回合的成本**：粗粒度 API 减少调用次数，但不减少宿主撰写内容所需的 token 成本。
 
+## 4. 目前没有证据支持的说法
 ## 4. 目前没有证据支持的说法
 
 直说：框架不应该借用架构的可信度。

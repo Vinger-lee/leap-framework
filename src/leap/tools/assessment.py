@@ -16,6 +16,7 @@ from __future__ import annotations
 from typing import Any, Mapping
 
 from leap.runtime.evidence import EvidenceInput, evaluate_stage, stage_index
+from leap.runtime.state_guard import StateVersionConflict
 from leap.storage import new_id, now_ts
 from leap.tools.base import LeapToolMixin, ToolError
 
@@ -235,36 +236,44 @@ class AssessmentTools(LeapToolMixin):
         request_id: str | None = None,
     ) -> dict:
         """Record a learner attempt and return its attempt_id for assessment."""
-        session = self.require_session(session_id)
-        answer = self.require_text(answer, "answer")
-        self.require_grounding(session_id)
-        if item_id:
-            item = self.db.query_one("SELECT session_id, node_id FROM assessment_items WHERE item_id = ?", (item_id,))
-            if not item or item["session_id"] != session_id:
-                raise ToolError("unknown_assessment_item", "Register this session's item with save_assessment_item before submitting answers")
-            if node_id and item["node_id"] and node_id != item["node_id"]:
-                raise ToolError("invalid_node", "attempt node does not match item node")
-            node_id = node_id or item["node_id"]
-        node_id = node_id or session.get("current_node_id")
-
-        max_hint = int(self.conf("max_hint_level", 3))
-        if not 0 <= int(hint_level) <= max_hint + 1:
-            raise ToolError(
-                "invalid_hint_level",
-                f"hint_level must be between 0 and {max_hint + 1}",
-            )
-
-        attempt_index = int(
-            self.db.scalar(
-                "SELECT COUNT(*) FROM learning_attempts WHERE session_id = ? AND node_id IS ?",
-                (session_id, node_id),
-                0,
-            )
-        ) + 1
-        attempt_id = new_id("att")
-        ts = now_ts()
-
         with self.db.transaction():
+            session = self.require_session(session_id)
+            self.require_active_session(session)
+            answer = self.require_text(answer, "answer")
+            self.require_grounding(session_id)
+            if item_id:
+                item = self.db.query_one("SELECT session_id, node_id FROM assessment_items WHERE item_id = ?", (item_id,))
+                if not item or item["session_id"] != session_id:
+                    raise ToolError("unknown_assessment_item", "Register this session's item with save_assessment_item before submitting answers")
+                if node_id and item["node_id"] and node_id != item["node_id"]:
+                    raise ToolError("invalid_node", "attempt node does not match item node")
+                node_id = node_id or item["node_id"]
+            node_id = node_id or session.get("current_node_id")
+            if node_id:
+                # Validate ownership *before* the row is written: an attempt against
+                # an unknown/foreign node used to be stored and only exploded at
+                # commit time with a raw FOREIGN KEY error.
+                self.require_node(node_id, session_id)
+
+            max_hint = int(self.effective_conf(session_id, "max_hint_level", 3))
+            # Strict ceiling: a learning mode that narrows max_hint_level must
+            # actually reject more hints (the old max+1 allowance silently ignored it).
+            if not 0 <= int(hint_level) <= max_hint:
+                raise ToolError(
+                    "invalid_hint_level",
+                    f"hint_level must be between 0 and {max_hint}",
+                )
+
+            attempt_id = new_id("att")
+            ts = now_ts()
+
+            attempt_index = int(
+                self.db.scalar(
+                    "SELECT COUNT(*) FROM learning_attempts WHERE session_id = ? AND node_id IS ?",
+                    (session_id, node_id),
+                    0,
+                )
+            ) + 1
             self.db.execute(
                 "INSERT INTO learning_attempts "
                 "(attempt_id, session_id, item_id, node_id, answer, response_time, hint_level, "
@@ -275,14 +284,14 @@ class AssessmentTools(LeapToolMixin):
             self.db.execute(
                 "UPDATE learning_sessions SET updated_at = ? WHERE session_id = ?", (ts, session_id)
             )
-        self.events.emit(
-            "attempt_submitted", session_id=session_id, learner_id=session["learner_id"],
-            node_id=node_id,
-            payload={"attempt_id": attempt_id, "hint_level": int(hint_level),
-                     "attempt_index": attempt_index},
-            request_id=request_id,
-        )
-        return self.ok(attempt_id=attempt_id, attempt_index=attempt_index, node_id=node_id)
+            self.events.emit(
+                "attempt_submitted", session_id=session_id, learner_id=session["learner_id"],
+                node_id=node_id,
+                payload={"attempt_id": attempt_id, "hint_level": int(hint_level),
+                         "attempt_index": attempt_index},
+                request_id=request_id,
+            )
+            return self.ok(attempt_id=attempt_id, attempt_index=attempt_index, node_id=node_id)
 
     def commit_assessment(
         self,
@@ -320,95 +329,150 @@ class AssessmentTools(LeapToolMixin):
 
         session_id = attempt["session_id"]
         node_id = attempt.get("node_id")
-        session = self.require_session(session_id)
+        try:
+            with self.db.transaction():
+                session = self.require_session(session_id)
 
-        self.require_grounding(session_id)
-        if raw_answer != attempt["answer"]:
-            raise ToolError("raw_answer_mismatch", "raw_answer must match the referenced attempt exactly")
-        if attempt.get("item_id"):
-            import json
-            rubric_text = self.db.scalar("SELECT rubric FROM assessment_items WHERE item_id = ?", (attempt["item_id"],))
-            rubric = json.loads(rubric_text) if rubric_text else {}
-            if rubric.get("assessor_scope") == "host_semantic_review" and assessor_type == "rule":
-                raise ToolError("semantic_review_required", "Host must semantically assess free-text reasoning before committing")
+                self.require_grounding(session_id)
+                if raw_answer != attempt["answer"]:
+                    raise ToolError("raw_answer_mismatch", "raw_answer must match the referenced attempt exactly")
+                if attempt.get("item_id"):
+                    import json
+                    rubric_text = self.db.scalar("SELECT rubric FROM assessment_items WHERE item_id = ?", (attempt["item_id"],))
+                    rubric = json.loads(rubric_text) if rubric_text else {}
+                    if rubric.get("assessor_scope") == "host_semantic_review" and assessor_type == "rule":
+                        raise ToolError("semantic_review_required", "Host must semantically assess free-text reasoning before committing")
 
-        if expected_state_version is not None:
-            version_check = self.guard.check_state_version(session_id, expected_state_version)
-            if not version_check.allowed:
-                raise ToolError("stale_state_version", version_check.reason, version_check.as_dict())
+                existing = self.db.query_one(
+                    "SELECT * FROM assessment_results WHERE attempt_id = ? ORDER BY rowid LIMIT 1",
+                    (attempt_id,),
+                )
+                if existing is not None:
+                    # Retried/duplicated commit: replay the first result instead of
+                    # writing a second one and folding the same attempt into BKT twice.
+                    existing = dict(existing)
+                    current_state = self._load_state(session["learner_id"], node_id) if node_id else None
+                    interpretation = (
+                        self._estimator().interpret(current_state.get("mastery_probability"))
+                        if isinstance(current_state, Mapping) and current_state.get("mastery_probability") is not None
+                        else None
+                    )
+                    return self.ok(
+                        result_id=existing["result_id"],
+                        attempt_id=attempt_id,
+                        overall_score=existing["overall_score"],
+                        scores={
+                            "correctness": existing["correctness"],
+                            "conceptual_understanding": existing["conceptual_understanding"],
+                            "reasoning_quality": existing["reasoning_quality"],
+                            "application": existing["application"],
+                            "transfer": existing["transfer"],
+                            "hint_dependency": existing["hint_dependency"],
+                            "confidence": existing["confidence"],
+                        },
+                        evidence_stage_snapshot=existing["evidence_stage"],
+                        attempt_stage_label=existing["evidence_stage"],
+                        attempt_stage_label_note="immutable per-attempt label; the node stage lives in learner_state",
+                        learner_state=current_state,
+                        mastery_interpretation=interpretation,
+                        already_assessed=True,
+                        stage_before=(current_state or {}).get("evidence_stage", "estimated"),
+                        stage_after=(current_state or {}).get("evidence_stage", "estimated"),
+                        note="this attempt was already committed; the existing assessment is returned unchanged",
+                    )
 
-        scores = self._normalise_scores(
-            {
-                "correctness": correctness,
-                "conceptual_understanding": conceptual_understanding,
-                "reasoning_quality": reasoning_quality,
-                "application": application,
-                "transfer": transfer,
-                "hint_dependency": hint_dependency,
-                "confidence": confidence,
-            }
-        )
-        overall = self._overall_score(scores)
+                self.require_active_session(session)
+                scores = self._normalise_scores(
+                    {
+                        "correctness": correctness,
+                        "conceptual_understanding": conceptual_understanding,
+                        "reasoning_quality": reasoning_quality,
+                        "application": application,
+                        "transfer": transfer,
+                        "hint_dependency": hint_dependency,
+                        "confidence": confidence,
+                    }
+                )
+                overall = self._overall_score(scores)
 
-        learner_id = session["learner_id"]
-        previous_state = self._load_state(learner_id, node_id) if node_id else None
-        stage_before = (previous_state or {}).get("evidence_stage", "estimated")
+                learner_id = session["learner_id"]
+                previous_state = self._load_state(learner_id, node_id) if node_id else None
+                stage_before = (previous_state or {}).get("evidence_stage", "estimated")
 
-        # --- snapshot stage for THIS attempt (immutable history) -----------
-        snapshot_stage = self._snapshot_stage(attempt, scores, overall)
+                # --- snapshot stage for THIS attempt (immutable history) -----------
+                snapshot_stage = self._snapshot_stage(attempt, scores, overall)
 
-        result_id = new_id("res")
-        ts = now_ts()
-        with self.db.transaction():
-            self.db.execute(
-                "INSERT INTO assessment_results "
-                "(result_id, attempt_id, correctness, conceptual_understanding, reasoning_quality, "
-                " application, transfer, hint_dependency, confidence, overall_score, evidence_stage, "
-                " assessor_type, raw_answer, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                (
-                    result_id, attempt_id, scores["correctness"],
-                    scores["conceptual_understanding"], scores["reasoning_quality"],
-                    scores["application"], scores["transfer"], scores["hint_dependency"],
-                    scores["confidence"], overall, snapshot_stage, assessor_type, raw_answer, ts,
-                ),
-            )
+                result_id = new_id("res")
+                ts = now_ts()
+                new_state = None
+                if expected_state_version is not None:
+                    self.guard.bump_state_version(session_id, expected_state_version)
+                self.db.execute(
+                    "INSERT INTO assessment_results "
+                    "(result_id, attempt_id, correctness, conceptual_understanding, reasoning_quality, "
+                    " application, transfer, hint_dependency, confidence, overall_score, evidence_stage, "
+                    " assessor_type, raw_answer, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        result_id, attempt_id, scores["correctness"],
+                        scores["conceptual_understanding"], scores["reasoning_quality"],
+                        scores["application"], scores["transfer"], scores["hint_dependency"],
+                        scores["confidence"], overall, snapshot_stage, assessor_type, raw_answer, ts,
+                    ),
+                )
 
-        new_state = None
-        if node_id:
-            new_state = self._update_learner_state(
-                learner_id=learner_id,
-                node_id=node_id,
-                session_id=session_id,
-                previous=previous_state,
-                scores=scores,
-                overall=overall,
-                assessor_confidence=float(assessor_confidence),
-                hint_level=int(attempt.get("hint_level") or 0),
-                attempt_created_at=int(attempt.get("created_at") or ts),
-            )
+                if node_id:
+                    new_state = self._update_learner_state(
+                        learner_id=learner_id,
+                        node_id=node_id,
+                        session_id=session_id,
+                        previous=previous_state,
+                        scores=scores,
+                        overall=overall,
+                        assessor_confidence=float(assessor_confidence),
+                        hint_level=int(attempt.get("hint_level") or 0),
+                        attempt_created_at=int(attempt.get("created_at") or ts),
+                    )
 
-        self.events.emit(
-            "assessment_committed", session_id=session_id, learner_id=learner_id, node_id=node_id,
-            payload={
-                "result_id": result_id, "attempt_id": attempt_id,
-                "overall_score": overall, "assessor_type": assessor_type,
-                "stage_before": stage_before,
-                "stage_after": (new_state or {}).get("evidence_stage", stage_before),
-            },
-            request_id=request_id,
-        )
-        self.guard.bump_state_version(session_id)
+                if expected_state_version is None:
+                    self.guard.bump_state_version(session_id)
 
-        return self.ok(
-            result_id=result_id,
-            attempt_id=attempt_id,
-            overall_score=overall,
-            scores=scores,
-            evidence_stage_snapshot=snapshot_stage,
-            learner_state=new_state,
-            stage_before=stage_before,
-            stage_after=(new_state or {}).get("evidence_stage", stage_before),
-        )
+                self.events.emit(
+                    "assessment_committed", session_id=session_id, learner_id=learner_id,
+                    node_id=node_id,
+                    payload={
+                        "result_id": result_id, "attempt_id": attempt_id,
+                        "overall_score": overall, "assessor_type": assessor_type,
+                        "stage_before": stage_before,
+                        "stage_after": (new_state or {}).get("evidence_stage", stage_before),
+                    },
+                    request_id=request_id,
+                )
+
+                interpretation = None
+                if new_state:
+                    interpretation = self._estimator().interpret(new_state.get("mastery_probability"))
+                return self.ok(
+                    result_id=result_id,
+                    attempt_id=attempt_id,
+                    overall_score=overall,
+                    scores=scores,
+                    evidence_stage_snapshot=snapshot_stage,
+                    attempt_stage_label=snapshot_stage,
+                    attempt_stage_label_note="immutable per-attempt label; the node stage lives in learner_state",
+                    learner_state=new_state,
+                    mastery_interpretation=interpretation,
+                    already_assessed=False,
+                    stage_before=stage_before,
+                    stage_after=(new_state or {}).get("evidence_stage", stage_before),
+                )
+        except StateVersionConflict as exc:
+            raise ToolError(
+                "stale_state_version",
+                str(exc),
+                {**exc.as_dict(), "retryable": True,
+                 "hint": "re-read the learner state and retry with the current state_version"},
+                retryable=True,
+            ) from exc
 
     # ------------------------------------------------------------------
     # Misconceptions
@@ -427,7 +491,7 @@ class AssessmentTools(LeapToolMixin):
         learner_id = self.require_text(learner_id, "learner_id")
         node_id = self.require_text(node_id, "node_id")
         misconception = self.require_text(misconception, "misconception")
-        self.require_node(node_id)
+        self.require_node(node_id, session_id)
         ts = now_ts()
 
         with self.db.transaction():
@@ -495,6 +559,9 @@ class AssessmentTools(LeapToolMixin):
                 )
             return self.ok(
                 session_id=session_id, node_id=node_id, learner_state=state,
+                mastery_interpretation=self._estimator().interpret(
+                    state.get("mastery_probability")
+                ),
                 misconception_ids=active,
             )
         rows = self.rows(
@@ -537,7 +604,12 @@ class AssessmentTools(LeapToolMixin):
         session_id: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Record a transfer probe result; transfer_type is near/variation/far/integrated."""
+        """Record a transfer probe result; transfer_type is near/variation/far/integrated.
+
+        ``session_id`` is optional but the owning session is always resolved from
+        the node: evidence stage is recomputed from that session's attempts, so
+        recording without a session used to demote the node to ``estimated``.
+        """
         learner_id = self.require_text(learner_id, "learner_id")
         node_id = self.require_text(node_id, "node_id")
         if transfer_type not in {"near", "variation", "far", "integrated"}:
@@ -545,34 +617,56 @@ class AssessmentTools(LeapToolMixin):
                 "invalid_transfer_type",
                 "transfer_type must be one of near | variation | far | integrated",
             )
-        self.require_node(node_id)
-        ts = now_ts()
-
-        self.events.emit(
-            "transfer_started", session_id=session_id, learner_id=learner_id, node_id=node_id,
-            payload={"transfer_type": transfer_type, "score": float(score),
-                     "task_context": task_context},
-            request_id=request_id,
-        )
-
+        try:
+            score_value = float(score)
+        except (TypeError, ValueError) as exc:
+            raise ToolError("invalid_score", f"transfer score must be numeric, got {score!r}") from exc
+        if not 0.0 <= score_value <= 1.0:
+            raise ToolError(
+                "invalid_score",
+                f"transfer score must be within [0, 1], got {score_value}",
+            )
         with self.db.transaction():
-            self.db.execute(
-                "INSERT INTO transfer_results "
-                "(learner_id, node_id, transfer_type, score, task_context, result, created_at) "
-                "VALUES (?,?,?,?,?,?,?)",
-                (learner_id, node_id, transfer_type, float(score), task_context, result, ts),
+            node = self.require_node(node_id, session_id)
+            resolved_session_id = node["session_id"]
+            session = self.require_active_session(self.require_session(resolved_session_id))
+            if session["learner_id"] != learner_id:
+                raise ToolError(
+                    "invalid_learner",
+                    f"learner {learner_id!r} does not own session {resolved_session_id}",
+                    {"learner_id": learner_id, "session_id": resolved_session_id},
+                )
+            ts = now_ts()
+
+            self.events.emit(
+                "transfer_started", session_id=resolved_session_id, learner_id=learner_id,
+                node_id=node_id,
+                payload={"transfer_type": transfer_type, "score": score_value,
+                         "task_context": task_context},
+                request_id=request_id,
             )
 
-        stage_after = self.reevaluate_evidence_stage(learner_id, node_id, session_id)
-        self.events.emit(
-            "transfer_completed", session_id=session_id, learner_id=learner_id, node_id=node_id,
-            payload={"transfer_type": transfer_type, "score": float(score), "stage_after": stage_after},
-            request_id=request_id,
-        )
-        return self.ok(
-            learner_id=learner_id, node_id=node_id, transfer_type=transfer_type,
-            score=float(score), evidence_stage=stage_after,
-        )
+            self.db.execute(
+                "INSERT INTO transfer_results "
+                "(learner_id, node_id, session_id, transfer_type, score, task_context, result, "
+                " created_at) VALUES (?,?,?,?,?,?,?,?)",
+                (learner_id, node_id, resolved_session_id, transfer_type, score_value,
+                 task_context, result, ts),
+            )
+
+            stage_after = self.reevaluate_evidence_stage(learner_id, node_id, resolved_session_id)
+            self.events.emit(
+                "transfer_completed", session_id=resolved_session_id, learner_id=learner_id,
+                node_id=node_id,
+                payload={"transfer_type": transfer_type, "score": score_value,
+                         "stage_after": stage_after},
+                request_id=request_id,
+            )
+            return self.ok(
+                learner_id=learner_id, node_id=node_id, session_id=resolved_session_id,
+                transfer_type=transfer_type, score=score_value, evidence_stage=stage_after,
+                session_inferred=session_id is None,
+            )
 
     def record_reflection(
         self,
@@ -708,7 +802,9 @@ class AssessmentTools(LeapToolMixin):
 
         # Running hint dependency: smoothed so one heavily-hinted attempt does
         # not wipe out an otherwise independent history.
-        observed_hint = min(1.0, hint_level / max(1, int(self.conf("max_hint_level", 3))))
+        observed_hint = min(
+            1.0, hint_level / max(1, int(self.effective_conf(session_id, "max_hint_level", 3)))
+        )
         prev_hint = prev.get("hint_dependency")
         hint_dependency = (
             observed_hint
@@ -772,25 +868,31 @@ class AssessmentTools(LeapToolMixin):
         hint_dependency: float,
     ) -> EvidenceInput:
         attempts = self.rows(
-            "SELECT la.hint_level, ar.overall_score FROM learning_attempts la "
+            "SELECT la.attempt_id, la.hint_level, ar.overall_score FROM learning_attempts la "
             "LEFT JOIN assessment_results ar ON ar.attempt_id = la.attempt_id "
             "WHERE la.session_id = ? AND la.node_id = ?",
             (session_id, node_id),
         )
         valid_attempts = 0
         unassisted = 0
+        counted: set[str] = set()
         for attempt in attempts:
+            attempt_id = str(attempt.get("attempt_id"))
+            if attempt_id in counted:  # duplicate result rows must not double-count
+                continue
             score = attempt.get("overall_score")
             hint = int(attempt.get("hint_level") or 0)
             if score is None or hint_dependency >= 0.9:
                 continue
+            counted.add(attempt_id)
             valid_attempts += 1
             if float(score) >= _SUCCESS_SCORE and hint <= _INDEPENDENT_HINT_MAX:
                 unassisted += 1
 
         probes = self.rows(
-            "SELECT score FROM transfer_results WHERE learner_id = ? AND node_id = ?",
-            (learner_id, node_id),
+            "SELECT score FROM transfer_results WHERE learner_id = ? AND node_id = ? "
+            "AND (session_id IS NULL OR session_id = ?)",
+            (learner_id, node_id, session_id),
         )
         transfer_scores = [float(p["score"]) for p in probes if p["score"] is not None]
         best_transfer = max(transfer_scores) if transfer_scores else None
@@ -805,13 +907,25 @@ class AssessmentTools(LeapToolMixin):
         )
         retention_confirmed = False
         retention_lapsed = False
+        interval_days = float(
+            self.effective_conf(session_id, "retention_interval_days", 1.0)
+        )
         if review:
             review = dict(review)
             retention_confirmed = int(review.get("review_count") or 0) >= 2
-            next_at = review.get("next_review_at")
-            if next_at and not retention_confirmed:
-                overdue_days = (now_ts() - int(next_at)) / 86400.0
-                retention_lapsed = overdue_days > float(self.conf("retention_interval_days", 1.0)) * 7
+            # Regression is driven by "how long since the last successful
+            # review", not by the absence of confirmation: otherwise a node that
+            # once reached `retained` could never decay, which contradicted the
+            # documented evidence-stage model.
+            last_review_at = review.get("last_review_at")
+            if last_review_at:
+                elapsed = (now_ts() - int(last_review_at)) / 86400.0
+                retention_lapsed = elapsed > interval_days * 7
+            else:
+                next_at = review.get("next_review_at")
+                if next_at:
+                    overdue_days = (now_ts() - int(next_at)) / 86400.0
+                    retention_lapsed = overdue_days > interval_days * 7
 
         last_assessed = self.db.scalar(
             "SELECT last_assessed_at FROM learner_knowledge_state "
@@ -839,8 +953,11 @@ class AssessmentTools(LeapToolMixin):
         state = self._load_state(learner_id, node_id)
         if state is None:
             return "estimated"
+        # Never fall back to an empty session id: that made the evidence query
+        # see zero attempts and demote the node to `estimated`.
+        resolved_session_id = session_id or self.session_of_node(node_id) or ""
         evidence = self._evidence_input(
-            learner_id, node_id, session_id or "",
+            learner_id, node_id, resolved_session_id,
             float(state.get("mastery_probability") or 0.0),
             float(state.get("hint_dependency") or 0.0),
         )

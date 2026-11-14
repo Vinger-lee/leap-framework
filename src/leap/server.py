@@ -18,42 +18,99 @@ from __future__ import annotations
 
 import argparse
 import functools
+import hashlib
+import inspect
 import json
 import logging
 import os
+import sqlite3
 import sys
+import threading
 from pathlib import Path
 from typing import Any, Callable, Sequence
 
 from mcp.server.mcpserver import MCPServer
 
 from leap import __version__
-from leap.config import REPO_ROOT, load_config
+from leap.config import load_config, resolve_path
 from leap.runtime.profiles import ALL_TOOL_NAMES, allowed_tool_names, available_profiles, resolve_profile
 from leap.tools import LeapService, ToolError, build_service
+from leap.tools.base import PartialResultError
 
-__all__ = ["server", "main", "get_service", "build_server", "registered_tool_names"]
+__all__ = [
+    "server",
+    "main",
+    "get_service",
+    "get_server",
+    "build_server",
+    "registered_tool_names",
+]
 
 logger = logging.getLogger("leap.server")
 
 _service: LeapService | None = None
+_service_lock = threading.Lock()
+
+#: Built-in default for each pluggable seam. A configured name that is not
+#: registered falls back to this value with a warning instead of killing the
+#: server at startup (``get_plugin_info`` documented that fallback; now it is
+#: true).
+_SEAM_DEFAULTS: dict[str, str] = {
+    "mastery_estimator": "simplified_bkt",
+    "score_aggregator": "weighted",
+    "policy_engine": "rule_based",
+    "review_scheduler": "py-fsrs",
+    "storage_backend": "sqlite",
+    "artifact_store": "local",
+}
 
 
-# ---------------------------------------------------------------------------
-# Service bootstrap
-# ---------------------------------------------------------------------------
+def _effective_config():
+    """Load config, replacing unregistered seam names with their defaults.
+
+    A typo in ``config/default.yaml`` must not turn into "MCP server failed to
+    start" with only a traceback on stderr: warn, keep serving, and let
+    ``get_plugin_info`` report which implementation is actually active.
+    """
+    cfg = load_config()
+    try:
+        from leap.runtime.plugins import describe_plugins
+
+        available = describe_plugins()
+    except Exception:  # pragma: no cover - registry import must not break startup
+        return cfg
+    overrides: dict[str, str] = {}
+    for kind, default in _SEAM_DEFAULTS.items():
+        configured = cfg.get(kind)
+        if configured and str(configured) not in available.get(kind, []):
+            logger.warning(
+                "configured %s=%r is not registered (available: %s); falling back to %r",
+                kind,
+                configured,
+                ", ".join(available.get(kind, ()) or ("(none)",)),
+                default,
+            )
+            overrides[kind] = default
+    return load_config(overrides=overrides) if overrides else cfg
+
+
 def get_service() -> LeapService:
     """Return the process-wide service, creating it on first use."""
     global _service
-    if _service is None:
-        cfg = load_config()
-        raw_path = str(cfg.get("database_path", "data/leap.db"))
-        db_path = Path(raw_path)
-        if not db_path.is_absolute():
-            db_path = REPO_ROOT / db_path
-        _service = build_service(db_path, cfg)
-        logger.info("LEAP runtime ready: db=%s schema=%s", db_path, __version__)
-    return _service
+    with _service_lock:
+        if _service is None:
+            cfg = _effective_config()
+            raw_path = str(cfg.get("database_path", "data/leap.db"))
+            db_path = resolve_path(raw_path)
+            _service = build_service(db_path, cfg)
+            logger.info(
+                "LEAP runtime ready: db=%s (configured as %r, LEAP_HOME=%s) schema=%s",
+                db_path,
+                raw_path,
+                os.environ.get("LEAP_HOME") or "(unset)",
+                __version__,
+            )
+        return _service
 
 
 class _DeferredContext:
@@ -63,33 +120,94 @@ class _DeferredContext:
         return getattr(get_service().ctx, name)
 
 
+#: How a raw sqlite failure is presented to the host. A driver-level error
+#: must never leak as an opaque ``internal_error``: the host needs to know
+#: whether it can retry and what to fix.
+def _sqlite_error(exc: BaseException, tool: str) -> ToolError:
+    message = str(exc)
+    lowered = message.lower()
+    if isinstance(exc, sqlite3.OperationalError) and ("locked" in lowered or "busy" in lowered):
+        return ToolError(
+            "database_busy",
+            f"the database is locked by another process; retry shortly ({message})",
+            {"tool": tool, "retryable": True},
+            retryable=True,
+        )
+    if isinstance(exc, sqlite3.IntegrityError):
+        return ToolError(
+            "data_integrity_error",
+            f"the write violates a database invariant: {message}",
+            {"tool": tool, "hint": "check ids belong to this session and retry with fresh ids",
+             "retryable": False},
+            retryable=False,
+        )
+    return ToolError(
+        "database_error",
+        f"database error while running {tool}: {message}",
+        {"tool": tool, "retryable": True},
+        retryable=True,
+    )
+
+
+def _call_idempotently(
+    fn: Callable[..., Any], request_id: str, arguments: dict[str, Any]
+) -> dict:
+    """Commit the SQLite writes and their replay receipt in the same transaction."""
+    tool_name = fn.__name__
+    encoded = json.dumps(arguments, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    arguments_hash = hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+    db = get_service().db
+    with db.transaction():
+        stored = db.request_record(request_id)
+        if stored is not None:
+            if stored["tool_name"] != tool_name or stored["arguments_hash"] != arguments_hash:
+                raise ToolError(
+                    "request_id_conflict", "request_id belongs to another call; use a fresh request_id"
+                )
+            return {**json.loads(stored["response"]), "idempotent_replay": True, "replayed_tool": tool_name}
+
+        try:
+            result = fn(**arguments)
+        except PartialResultError as exc:
+            # The facade has deliberately kept an attempt for host-side recovery.
+            # Persist the failure receipt so a timeout cannot duplicate that attempt.
+            result = exc.as_dict()
+        session_id = arguments.get("session_id") or result.get("session_id")
+        db.remember_request(
+            request_id, tool_name, session_id, json.dumps(result, ensure_ascii=False),
+            arguments_hash=arguments_hash,
+        )
+        return result
+
+
 def _guard(fn: Callable[..., Any]) -> Callable[..., Any]:
-    """Convert runtime errors into structured, client-safe responses.
-
-    Section 29.1: a failed tool call must return a structured error and must
-    never be turned into a silent state update.
-    """
-
-    signature = getattr(fn, "__mcp_signature__", None)
+    """Return structured errors and replay completed writes with a request ID."""
+    mcp_signature = getattr(fn, "__mcp_signature__", None)
+    signature = mcp_signature or inspect.signature(fn, eval_str=True)
 
     @functools.wraps(fn)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
-            if signature is not None:
-                bound = signature.bind(*args, **kwargs)
-                bound.apply_defaults()
-                return fn(**bound.arguments)
-            return fn(*args, **kwargs)
+            bound = signature.bind(*args, **kwargs)
+            bound.apply_defaults()
+            arguments = dict(bound.arguments)
+            request_id = arguments.get("request_id")
+            if request_id:
+                return _call_idempotently(fn, request_id, arguments)
+            return fn(**arguments)
         except ToolError as exc:
             return exc.as_dict()
         except FileNotFoundError as exc:
             return ToolError("not_found", str(exc)).as_dict()
+        except (sqlite3.IntegrityError, sqlite3.OperationalError) as exc:
+            logger.exception("tool %s hit a database error", fn.__name__)
+            return _sqlite_error(exc, fn.__name__).as_dict()
         except Exception as exc:  # pragma: no cover - defensive boundary
             logger.exception("tool %s failed", fn.__name__)
             return ToolError("internal_error", str(exc), {"tool": fn.__name__}).as_dict()
 
-    if signature is not None:
-        wrapper.__signature__ = signature
+    if mcp_signature is not None:
+        wrapper.__signature__ = mcp_signature
     return wrapper
 
 
@@ -157,10 +275,11 @@ def build_server(profile: str | None = None) -> MCPServer:
         title="LEAP - Learning Evolution & Adaptation Pipeline",
         version=__version__,
         instructions=(
-            "LEAP is a state-driven tutoring runtime. Follow the lifecycle: "
-            "Goal -> Domain Grounding -> Diagnostic -> Knowledge DAG -> State Init -> "
-            "Teaching loop -> Retention/Transfer -> Reflection -> Persistence. "
-            "Domain Grounding is mandatory unless the session allows skipping it; the "
+            "LEAP is a state-driven tutoring runtime. Runtime owns persistent state, evidence, "
+            "mastery estimation and State Guard transitions. Use the current state and policy. "
+            "For detailed workflows, load the repository's leap-tutor Skill when supported; "
+            "otherwise consult the Host Agent integration guide. Skill availability is host-dependent. "
+            "Domain Grounding is mandatory unless the session allows skipping it. "
             "Read relevant authoritative sources yourself using host tools; record precise locators, "
             "excerpts, source-linked claims, worked checks and limitations via save_benchmark_report "
             "(verification). Saving prose alone does not complete grounding. Never claim source "
@@ -172,14 +291,16 @@ def build_server(profile: str | None = None) -> MCPServer:
             "the truth of supplied mathematical answers. mastery_probability is "
             "computed server-side from evidence you submit via commit_assessment - never "
             "send your own probability. Always pass raw_answer when committing an assessment."
-            " Permanent delivery policy 3.0 applies to every subject and learning mode: fetch "
-            "get_teaching_delivery_policy; teach prerequisites and principles with complete explained "
-            "steps, worked checks, misconceptions, boundaries, contrasts and graduated transfer. "
-            "Write the full Obsidian Markdown knowledge source before a shorter interactive offline "
-            "HTML projection; both need verified relevant videos or precise core/extension/advanced "
-            "search keywords at the top, reciprocal wikilinks, meaningful labeled controllable "
-            "visualizations, wide desktop and mobile layouts. Register both bodies through "
-            "save_teaching_package and verify every interaction. Never reduce these rules for core_only."
+            " Never bypass a State Guard rejection or claim success without the matching receipt. "
+            "Preserve IDs after partial failures and recover from the failed step instead of "
+            "repeating successful writes. Check actual profile availability before following next_call. "
+            "Generate the final report and close the session separately; confirm each result. "
+            "Call get_teaching_delivery_policy once before authoring; its permanent requirements "
+            "apply to every subject and mode, including core_only: write full canonical Markdown "
+            "first, derive offline HTML, register both bodies via save_teaching_package before "
+            "items, and verify actual interactions. Runtime acceptance checks records, not subject "
+            "truth or browser behavior. Tool responses carry only policy_version; re-fetch the "
+            "policy explicitly when you need the full contract."
         ),
     )
 
@@ -190,7 +311,27 @@ def build_server(profile: str | None = None) -> MCPServer:
     return server
 
 
-server = build_server()
+_server: MCPServer | None = None
+
+
+def get_server() -> MCPServer:
+    """Return the process-wide default server (built on first use)."""
+    global _server
+    if _server is None:
+        _server = build_server()
+    return _server
+
+
+def __getattr__(name: str) -> Any:
+    """Lazily expose ``leap.server.server`` without paying the build at import.
+
+    The MCP CLI builds exactly the requested profile; an eager default server
+    would build a second, unused tool registry (and its schemas) on every
+    ``--tool-profile`` run.
+    """
+    if name == "server":
+        return get_server()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def main(argv: Sequence[str] | None = None) -> None:
@@ -219,7 +360,9 @@ def main(argv: Sequence[str] | None = None) -> None:
         logger.warning(
             "P0 supports stdio only; requested transport %r. Falling back to stdio.", transport
         )
-    active = server if args.tool_profile is None else build_server(args.tool_profile)
+    # Build only the resolved profile: the default server is created lazily, so
+    # an explicit profile does not pay for a second unused registry.
+    active = build_server(args.tool_profile)
     logger.info(
         "LEAP MCP server ready: profile=%s tools=%d",
         resolve_profile(args.tool_profile, fallback=_configured_profile()),

@@ -64,8 +64,8 @@ Related: [[Knowledge_Index]] · [[docs/FACADE_CN]] · [[docs/INTEGRATION_CN]] ·
   每个回包只带紧凑的 `policy_version`，完整政策仅在 `get_teaching_delivery_policy` 返回；
   `continue_lesson` 默认返回摘要（`verbose=True` 才带完整教学上下文），
   `get_teaching_context` 默认 `include_template=False`。
-- **工具档位改变的是导航范围，不是权威**：`quickstart`（32 个工具）是一条完整教学路径，
-  含 `assess_misconception` 与 `set_domain_grounding_skip`；`full`（71 个工具）额外提供
+- **工具档位改变的是导航范围，不是权威**：`quickstart`（35 个工具）是一条完整教学路径，
+  含 `assess_misconception` 与 `set_domain_grounding_skip`；`full`（74 个工具）额外提供
   细粒度接口与 HTML outbox 桥接。实时数量以 `python -m leap.doctor` 与生成的工具参考为准。
 - **运维足迹**：宿主需要运行 MCP stdio 进程、SQLite 文件与 YAML 配置。`python -m leap.doctor`
   可自检这些前提，`quickstart` 档位可缩小 Agent 需要面对的工具目录，但进程本身仍需像本地服务一样

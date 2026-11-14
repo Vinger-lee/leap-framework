@@ -1,0 +1,499 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; font-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; script-src &#39;sha256-K6TyGWVYZkoqDLhdbem3aqiVeHRJUcBdi1jALO+C9gU=&#39;"><title>一元一次方程 · 讲义与练习</title><style id="leapPaper">@page { size: A4 portrait; margin: 16mm 16mm 16mm 16mm; }</style><style>/* Shared paper and screen styles for learner-facing print editions. */
+:root {
+  --ink: #203249;
+  --muted: #4d6176;
+  --blue: #205c99;
+  --teal: #236e63;
+  --amber: #964821;
+  --blue-wash: #eaf3fc;
+  --teal-wash: #e8f5ef;
+  --amber-wash: #fff1db;
+  --rule: #c0d4e4;
+  color: var(--ink);
+  background: #fff;
+  font: 11pt/1.58 "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", "Noto Sans", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+.print-content { overflow-wrap: anywhere; }
+.print-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 1.25mm 4mm;
+  border-bottom: .55pt solid var(--rule);
+  padding: 0 0 4mm;
+  margin: 0 0 6mm;
+  break-inside: avoid;
+}
+.print-heading p { margin: 0; }
+.print-heading .print-edition {
+  grid-column: 1 / -1;
+  justify-self: start;
+  padding: .4mm 2.5mm .5mm;
+  border-radius: 1mm;
+  background: var(--blue-wash);
+  color: var(--blue);
+  font-size: 9pt;
+  font-weight: 700;
+}
+[data-edition="workbook"] .print-edition { background: var(--amber-wash); color: var(--amber); }
+[data-edition="answers"] .print-edition { background: var(--teal-wash); color: var(--teal); }
+.print-version { color: var(--muted); font-size: 8pt; white-space: nowrap; }
+h1, h2, h3, h4 { line-height: 1.24; break-after: avoid; }
+h1 { font-size: 29pt; margin: 0; letter-spacing: .025em; }
+h2 { font-size: 19pt; margin: 4mm 0 2.3mm; }
+h3 { font-size: 12pt; margin: 4mm 0 1.5mm; color: var(--blue); }
+p { margin: 0 0 2.5mm; orphans: 2; widows: 2; }
+ul, ol { margin: 0 0 3mm; padding-inline-start: 6mm; }
+li + li { margin-top: .6mm; }
+figure { margin: 3.2mm 0; break-inside: avoid; }
+figcaption { font-size: 9pt; color: var(--muted); margin-top: 1.4mm; }
+img, svg { max-width: 100%; max-height: 135mm; vertical-align: middle; }
+img { object-fit: contain; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; padding: 2mm 3mm; border: .5pt solid var(--rule); }
+code, pre, .answer-code { font-family: "Cascadia Mono", "DejaVu Sans Mono", monospace; }
+blockquote { margin: 3mm 0; padding-left: 3mm; border-left: 1pt solid var(--blue); }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 2mm 0; }
+td, th { border: .55pt solid var(--rule); padding: 1.4mm 2mm; text-align: left; vertical-align: top; }
+th { background: var(--blue-wash); color: var(--ink); }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+a { color: var(--blue); }
+
+.lesson-chapter { margin-bottom: 7mm; }
+.lesson-chapter > h2 { margin: 0 0 3mm; }
+.lesson-kicker { color: var(--blue); font-size: 9pt; font-weight: 700; margin: 0 0 .6mm; break-after: avoid; }
+.lesson-lead { font-size: 12pt; }
+.lesson-figure { padding: 3mm 3.5mm 2.6mm; border-radius: 1.6mm; background: var(--blue-wash); }
+.lesson-figure svg { display: block; width: 100%; height: auto; }
+.lesson-callout {
+  padding: 2.6mm 3.4mm;
+  margin: 3.2mm 0;
+  background: var(--blue-wash);
+  border-left: 2pt solid var(--blue);
+  break-inside: avoid;
+}
+.lesson-callout p:last-child, .lesson-step p:last-child, .lesson-terms p:last-child { margin-bottom: 0; }
+.lesson-callout.try { background: var(--teal-wash); border-color: var(--teal); }
+.lesson-callout.try strong { color: var(--teal); }
+.lesson-callout.caution { background: var(--amber-wash); border-color: var(--amber); }
+.lesson-callout.caution strong { color: var(--amber); }
+.lesson-terms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 36mm), 1fr));
+  gap: 3mm;
+  margin: 3.7mm 0;
+  break-inside: avoid;
+}
+.lesson-terms div { padding-top: 1.6mm; border-top: .8pt solid var(--rule); }
+.lesson-terms strong { display: block; color: var(--blue); font-size: 10pt; }
+.lesson-terms p { font-size: 10pt; }
+.lesson-steps { list-style: none; margin: 3mm 0; padding: 0; }
+.lesson-step {
+  display: grid;
+  grid-template-columns: 6mm minmax(0, 1fr);
+  gap: 2.7mm;
+  padding: 1.8mm 0;
+  break-inside: avoid;
+}
+.lesson-step + .lesson-step { border-top: .45pt solid var(--rule); }
+.step-marker {
+  align-self: start;
+  text-align: center;
+  background: var(--blue-wash);
+  border-radius: 1mm;
+  color: var(--blue);
+  font-size: 9pt;
+  font-weight: 700;
+  line-height: 6mm;
+}
+.lesson-equation { color: var(--blue); font: 700 13pt/1.35 "Cambria Math", "STIX Two Text", serif; margin: .4mm 0 1mm; }
+.lesson-checklist { padding-left: 5mm; }
+.lesson-checklist li + li { margin-top: 1mm; }
+
+.print-question { break-inside: avoid; margin: 0 0 5mm; }
+.print-question > h2 { font-size: 12.5pt; color: var(--blue); margin: 0 0 1.4mm; }
+.print-question > h2 .question-label { font-size: 9pt; margin-right: 1.8mm; color: var(--muted); white-space: nowrap; }
+[data-edition="answers"] .print-question { border-top: .55pt solid var(--rule); padding-top: 2mm; }
+[data-edition="answers"] .print-question > h2 { color: var(--teal); }
+.print-workbook > h2 { margin-top: 0; margin-bottom: 5mm; }
+.print-new-page { break-before: page; }
+.print-prompt { margin-bottom: 2mm; }
+.answer-choices, .answer-lines, .answer-code { list-style: none; padding: 0; margin: 0; }
+.answer-choices li { display: flex; gap: 2.5mm; break-inside: avoid; }
+.answer-choices li > span { flex-shrink: 0; color: var(--blue); font-weight: 700; }
+.answer-choices li p { margin-bottom: 1mm; }
+.answer-blank { display: inline-block; width: 44mm; border-bottom: .7pt solid var(--blue); }
+.answer-lines li, .answer-code li, .answer-table td { height: var(--row-height); break-inside: avoid; }
+.answer-lines li + li, .answer-code li + li { margin-top: 0; }
+.answer-lines li, .answer-code li { border-bottom: .5pt solid #9cb7cc; font-size: 8pt; line-height: 1; }
+.answer-code { padding-left: 3mm; border-left: .7pt solid var(--rule); }
+.answer-space, .answer-grid, .answer-axes { border: .65pt solid #9cb7cc; border-radius: 1mm; }
+.answer-grid svg, .answer-axes svg { display: block; width: 100%; height: 100%; max-height: none; }
+.answer-grid path, .answer-axes path { fill: none; stroke: #a4b7ca; stroke-width: .65px; }
+.answer-axes line { stroke: var(--blue); stroke-width: 1.2px; }
+.answer-axes text { fill: var(--ink); font-size: 10px; }
+@page {
+  @bottom-right { content: counter(page); color: #4d6176; font: 8pt sans-serif; }
+}
+.print-controls { display: none; }
+@media screen {
+  :root { background: #f0f5fa; }
+  body { display: flex; flex-direction: column; }
+  .print-content, .print-controls { width: min(94%, 195mm); margin-inline: auto; }
+  .print-content { background: #fff; padding: clamp(14px, 4vw, 9mm); border: 1px solid var(--rule); margin-bottom: 6mm; }
+  .print-controls { order: -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 4mm 0; }
+  .print-controls label { color: var(--muted); font-size: 10pt; }
+  .print-controls button, .print-controls select { font: inherit; line-height: 1.2; border: 1px solid var(--rule); border-radius: 4px; padding: 8px 10px; }
+  .print-controls button { background: var(--blue); color: white; cursor: pointer; }
+  .print-controls select { background: white; color: var(--ink); }
+  .print-controls :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+  #leapPrintNotice { flex-basis: 100%; font-size: 9pt; color: var(--amber); margin: 0; }
+  #leapPrintNotice:empty { display: none; }
+  .print-content:not(.print-measurement) .lesson-chapter + .lesson-chapter,
+  .print-content:not(.print-measurement) .print-workbook { border-top: 1px solid var(--rule); padding-top: 5mm; }
+  .print-content.print-measurement { margin: 0; padding: 0; border: 0; }
+}
+@media screen and (max-width: 460px) {
+  .print-heading { grid-template-columns: 1fr; }
+  .print-version { white-space: normal; }
+}
+@media print {
+  :root { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-controls { display: none !important; }
+  .print-content { width: auto; margin: 0; }
+}
+</style></head><body><main class="print-content" data-edition="combined"><header class="print-heading"><p class="print-edition">讲义与练习</p><h1>一元一次方程</h1><p class="print-version">版本 linear-equations-03</p></header><section class="print-handout"><section class="lesson-chapter" data-teaching-point="math.equivalence">
+  <p class="lesson-kicker">01　认识等号</p>
+  <h2>这个数放进去，两边会一样吗？</h2>
+  <p class="lesson-lead">三只相同的小包和 5 枚散装积木，一共 20 枚。每只小包里有几枚？先用 <strong>x</strong> 代表一只小包里的数量。</p>
+  <p class="lesson-equation">3x + 5 = 20</p>
+  <p><strong>3x</strong> 是三个 x 加在一起。等号说明左边的总数与右边的 20 相同。<strong>解方程</strong>就是找出所有能让这个说法成立的 x。</p>
+  <figure class="lesson-figure">
+    <svg viewBox="0 0 620 207" width="620" height="207" role="img" aria-label="等量图。第一行左边三包加五块等于二十块，第二行左右各减五，三包等于十五块">
+      <defs>
+        <g id="lesson-pack"><rect width="48" height="37" rx="6" fill="#d2e8fb" stroke="#4380b6"/><text x="24" y="24" text-anchor="middle" fill="#205c99" font-size="18" font-weight="700">x</text></g>
+        <g id="lesson-five" fill="#cc802d"><circle cx="4" cy="4" r="4"/><circle cx="16" cy="4" r="4"/><circle cx="4" cy="16" r="4"/><circle cx="16" cy="16" r="4"/><circle cx="10" cy="10" r="3"/></g>
+      </defs>
+      <g font-family="'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif">
+        <text x="12" y="25" fill="#4d6176" font-size="13">原来的等量关系</text>
+        <use href="#lesson-pack" x="107" y="38"/><use href="#lesson-pack" x="162" y="38"/><use href="#lesson-pack" x="217" y="38"/>
+        <use href="#lesson-five" x="277" y="47"/><text x="329" y="65" fill="#203249" font-size="25">=</text>
+        <rect x="373" y="38" width="125" height="37" rx="5" fill="#fff"/><text x="435.5" y="63" fill="#203249" font-size="18" text-anchor="middle">20 枚</text>
+        <path d="M195 86v30m-5-6 5 6 5-6M436 86v30m-5-6 5 6 5-6" fill="none" stroke="#236e63" stroke-width="2"/>
+        <text x="208" y="105" fill="#236e63" font-size="14">减 5</text><text x="449" y="105" fill="#236e63" font-size="14">减 5</text>
+        <text x="12" y="147" fill="#4d6176" font-size="13">两边各减去 5</text>
+        <use href="#lesson-pack" x="107" y="153"/><use href="#lesson-pack" x="162" y="153"/><use href="#lesson-pack" x="217" y="153"/>
+        <text x="329" y="180" fill="#203249" font-size="25">=</text>
+        <rect x="373" y="153" width="125" height="37" rx="5" fill="#e8f5ef"/><text x="435.5" y="178" fill="#236e63" font-size="18" text-anchor="middle">15 枚</text>
+      </g>
+    </svg>
+    <figcaption>蓝框代表内容相同的小包，橙点代表散装积木。两边各减去 5，剩下的总数仍相等。</figcaption>
+  </figure>
+  <div class="lesson-terms">
+    <div><strong>未知数 x</strong><p>我们要找的数，这里指每包的数量。</p></div>
+    <div><strong>系数 3</strong><p>乘在 x 前面的数，表示有三份 x。</p></div>
+    <div><strong>常数项 +5</strong><p>左边不含 x 的一项，表示 5 枚散装积木。</p></div>
+  </div>
+  <aside class="lesson-callout try">
+    <p><strong>读到这里，先试一次。</strong> 每包 4 枚时总数是多少？每包 5 枚时呢？</p>
+    <p>核对：3 × 4 + 5 = 17，和 20 不等。3 × 5 + 5 = 20，所以 5 是这个方程的解。</p>
+  </aside>
+  <p>像 3x + 5 = 20 这样的式子只含一个未知数，x 的最高次数是 1，所以叫<strong>一元一次方程</strong>。3x 是 3 乘 x，和 x × x 得到的 x² 不同。</p>
+  <p>代入能<strong>检验</strong>猜到的数。下一节从等式本身出发，直接算出这个数。</p>
+</section>
+<section class="lesson-chapter print-new-page" data-teaching-point="math.equivalence">
+  <p class="lesson-kicker">02　解第一道方程</p>
+  <h2>让 x 单独留在一边</h2>
+  <p class="lesson-lead">目标是把方程化成 <strong>x = 某个数</strong>。看见 3x + 5，先撤掉外层的「加 5」，再撤掉「乘 3」。每次对两边做同一个操作。</p>
+  <ol class="lesson-steps">
+    <li class="lesson-step"><span class="step-marker">1</span><div><strong>两边减 5，消去常数项</strong>
+      <p class="lesson-equation">3x + 5 − 5 = 20 − 5　→　3x = 15</p>
+      <p>左边的 +5 和 −5 抵消，右边从 20 变成 15。以后看到「把 +5 移到右边变成 −5」，可以还原成这一行。</p></div></li>
+    <li class="lesson-step"><span class="step-marker">2</span><div><strong>两边除以 3，留下一个 x</strong>
+      <p class="lesson-equation">(3x) ÷ 3 = 15 ÷ 3　→　x = 5</p>
+      <p>三份小包共 15 枚，平均每份 5 枚。除数 3 非零，所以这个操作可以用「两边乘 3」倒回去。</p></div></li>
+    <li class="lesson-step"><span class="step-marker">3</span><div><strong>把 5 代回最初那一行</strong>
+      <p class="lesson-equation">左边 3 × 5 + 5 = 20　　右边 20</p>
+      <p>代回原式能发现化简中漏算的项。两步都能倒回去，所以这串方程有相同的解。这和教学页天平上的两次操作一样。</p></div></li>
+  </ol>
+  <aside class="lesson-callout caution">
+    <p><strong>算错的线索。</strong> 写出 3x = 20 就停下，等于只在左边减了 4。把操作完整写在等号两边，马上就能看见右边漏掉了什么。</p>
+  </aside>
+  <h3>负号也属于这一项</h3>
+  <p>解 <strong>−2x + 7 = 13</strong>。两边减 7 得 −2x = 6。为了让 x 的系数变成 1，要除以 <strong>−2</strong>，得到 x = −3。代回去：−2 × (−3) + 7 = 13。</p>
+  <aside class="lesson-callout try">
+    <p><strong>先写第一步。</strong> 解 5x − 6 = 14。左边的 −6 要用什么消去？</p>
+    <p>核对：两边都加 6，得 5x = 20。再同除以 5，得 x = 4。把 4 代回原式检查。</p>
+  </aside>
+</section>
+<section class="lesson-chapter print-new-page" data-teaching-point="math.denominators">
+  <p class="lesson-kicker">03　括号与两边都有 x</p>
+  <h2>先摊开每一项，再把 x 收到一边</h2>
+  <p class="lesson-lead">括号表示一整组。<strong>−2(x − 3)</strong> 表示用 −2 分别乘 x 和 −3。后一项是两个负数相乘，所以得到 <strong>+6</strong>。</p>
+  <p class="lesson-equation">−2(x − 3) = −2 × x + (−2) × (−3) = −2x + 6</p>
+  <h3>跟着算一遍　4 − 2(x − 3) = x + 1</h3>
+  <ol class="lesson-steps">
+    <li class="lesson-step"><span class="step-marker">1</span><div><strong>展开，再合并同类项</strong>
+      <p class="lesson-equation">4 − 2x + 6 = x + 1　→　10 − 2x = x + 1</p>
+      <p>4 和 6 都是常数，可以相加。−2x 含有 x，要与其他含 x 的项合并。</p></div></li>
+    <li class="lesson-step"><span class="step-marker">2</span><div><strong>两边减 x，再减 10</strong>
+      <p class="lesson-equation">10 − 3x = 1　→　−3x = −9</p>
+      <p>第一步让右边的 x 消失，左边的 −2x − x 变成 −3x。第二步让左边的常数消失。</p></div></li>
+    <li class="lesson-step"><span class="step-marker">3</span><div><strong>同除以 −3，然后检验</strong>
+      <p class="lesson-equation">x = 3</p>
+      <p>原式左边 4 − 2(3 − 3) = 4，右边 3 + 1 = 4。两边相等。</p></div></li>
+  </ol>
+  <aside class="lesson-callout caution"><p><strong>常见错误。</strong> 把 −2(x − 3) 写成 −2x − 6。拿 x = 0 检查：原来是 −2 × (−3) = 6，错误的式子会给 −6。</p></aside>
+  <aside class="lesson-callout try">
+    <p><strong>先自己展开。</strong> 解 2(x + 3) = x + 8。写下括号展开的一行，再做下一步。</p>
+    <p>核对：2x + 6 = x + 8。两边减 x 得 x + 6 = 8，再减 6 得 x = 2。原式两边都是 10。</p>
+  </aside>
+</section>
+<section class="lesson-chapter print-new-page" data-teaching-point="math.denominators">
+  <p class="lesson-kicker">04　分数方程</p>
+  <h2>同乘一个数，去掉每一项的分母</h2>
+  <p class="lesson-lead">分母是固定的非零数时，找一个能同时被这些分母整除的数。分母是 3 和 6，就选 6，因为 6 ÷ 3 = 2、6 ÷ 6 = 1。</p>
+  <h3>完整算一遍　(x + 2) / 3 − x / 6 = 2</h3>
+  <figure class="lesson-figure">
+    <svg viewBox="0 0 620 138" width="620" height="138" role="img" aria-label="去分母逐项对应。六乘第一项得到二乘括号，六乘减去的分数项得到负 x，六乘右边二得到十二">
+      <g font-family="'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">
+        <text x="84" y="22" font-size="14" fill="#236e63">左边第一项</text><text x="307" y="22" font-size="14" fill="#236e63">左边第二项</text><text x="529" y="22" font-size="14" fill="#964821">右边也要乘</text>
+        <rect x="7" y="33" width="156" height="36" rx="6" fill="#fff"/><rect x="229" y="33" width="156" height="36" rx="6" fill="#fff"/><rect x="451" y="33" width="156" height="36" rx="6" fill="#fff1db"/>
+        <text x="85" y="57" font-size="18" fill="#203249">6 × (x + 2) / 3</text><text x="307" y="57" font-size="18" fill="#203249">6 × (−x / 6)</text><text x="529" y="57" font-size="18" fill="#203249">6 × 2</text>
+        <path d="M85 72v24m-4-5 4 5 4-5M307 72v24m-4-5 4 5 4-5M529 72v24m-4-5 4 5 4-5" fill="none" stroke="#236e63" stroke-width="2"/>
+        <text x="85" y="123" font-size="19" font-weight="700" fill="#205c99">2(x + 2)</text><text x="307" y="123" font-size="19" font-weight="700" fill="#205c99">−x</text><text x="529" y="123" font-size="19" font-weight="700" fill="#964821">12</text>
+        <text x="418" y="123" font-size="20" fill="#203249">=</text>
+      </g>
+    </svg>
+    <figcaption>将 6 分给每一项。第一项的整个分子 x + 2 仍留在括号内，第二项保留减号。</figcaption>
+  </figure>
+  <ol class="lesson-steps">
+    <li class="lesson-step"><span class="step-marker">1</span><div><strong>同乘 6，保持等式成立</strong><p class="lesson-equation">2(x + 2) − x = 12</p></div></li>
+    <li class="lesson-step"><span class="step-marker">2</span><div><strong>展开并合并，解出 x</strong><p class="lesson-equation">2x + 4 − x = 12　→　x + 4 = 12　→　x = 8</p></div></li>
+    <li class="lesson-step"><span class="step-marker">3</span><div><strong>代入原式，通分检验</strong><p>左边是 10/3 − 8/6 = 20/6 − 8/6 = 12/6 = 2，与右边相等。</p></div></li>
+  </ol>
+  <aside class="lesson-callout try">
+    <p><strong>快速自检。</strong> (x − 1) / 4 = 2 的两边同乘 4 后，右边写几？</p>
+    <p>核对：右边写 8，所以 x − 1 = 8，x = 9。若分母含 x，要先排除使分母为零的值。本节的题目只用固定分母。</p>
+  </aside>
+</section>
+<section class="lesson-chapter print-new-page" data-teaching-point="math.parameters">
+  <p class="lesson-kicker">05　边界与独立检查</p>
+  <h2>如果化简后，x 消失了</h2>
+  <p class="lesson-lead">看到 <strong>ax = b</strong>，先检查 x 前的系数 a。若 a 为零，任何数乘它都等于零。这时没有可以执行的「除以 a」，直接判断剩下的等式。</p>
+  <table>
+    <thead><tr><th scope="col">化简后</th><th scope="col">怎么想</th><th scope="col">结论</th></tr></thead>
+    <tbody>
+      <tr><td>3x = 12</td><td>3 非零，两边除以 3</td><td>唯一解 x = 4</td></tr>
+      <tr><td>0x = 0</td><td>无论代入哪个实数，两边都是 0</td><td>所有实数都是解</td></tr>
+      <tr><td>0x = 4</td><td>左边永远是 0，等不到 4</td><td>无解</td></tr>
+    </tbody>
+  </table>
+  <p>例如 <strong>2(x + 1) = 2x + 5</strong>。展开后两边减 2x，得到 2 = 5。这个说法对任何 x 都不成立，所以无解。若右边原来是 2x + 2，则最后得到 2 = 2，所有实数都可以。</p>
+  <h3>同一件事，用图像看</h3>
+  <figure class="lesson-figure">
+    <svg viewBox="0 0 620 144" width="620" height="144" role="img" aria-label="三种情况的图像。斜线和水平线相交一次。两条水平线重合。两条不同的水平线平行不相交。">
+      <g stroke="#9bb3ca" fill="#fff">
+        <rect x="3" y="3" width="195" height="111" rx="5"/><rect x="212" y="3" width="195" height="111" rx="5"/><rect x="421" y="3" width="195" height="111" rx="5"/>
+        <path d="M20 89h162M42 103V15M229 89h162M251 103V15M438 89h162M460 103V15" fill="none"/>
+      </g>
+      <g fill="none" stroke-width="2.6">
+        <path d="M24 102L174 19M232 89H389M442 89H596" stroke="#205c99"/>
+        <path d="M24 58H174M232 89H389M442 48H596" stroke="#964821" stroke-dasharray="6 4"/>
+      </g>
+      <circle cx="103.5" cy="58" r="5" fill="#236e63" stroke="#fff" stroke-width="1.5"/>
+      <g text-anchor="middle" font-size="14" fill="#203249" font-family="'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif">
+        <text x="100" y="137">相交一次</text><text x="310" y="137">完全重合</text><text x="519" y="137">平行且不重合</text>
+      </g>
+    </svg>
+    <figcaption>实线是 y = ax，虚线是 y = b。它们在同一个 x 处高度相等时，ax = b 成立。</figcaption>
+  </figure>
+  <p><strong>怎样画两条线？</strong> 以 2x − 1 = 3 为例。在 y = 2x − 1 上取 (0, −1) 和 (2, 3) 并连线。y = 3 上的点高度都等于 3，画一条水平线。交点 (2, 3) 的横坐标 2 就是解，代回也得到 3。</p>
+  <aside class="lesson-callout try">
+    <p><strong>合上讲义前问自己。</strong> 我能写出「两边做了什么」吗？我检查了括号的符号、右边有没有同乘、系数是否为零吗？算出的 x 能代回原式吗？</p>
+  </aside>
+</section>
+<section class="lesson-chapter print-new-page" data-teaching-point="math.parameters">
+  <p class="lesson-kicker">06　实际问题</p>
+  <h2>方程算得对，答案也要符合情境</h2>
+  <p class="lesson-lead">教学页给了一道简化的打车题。起步费 5 元，每千米 3 元，没有其他收费，总价 20 元。问题是走了多远。</p>
+  <ol class="lesson-steps">
+    <li class="lesson-step"><span class="step-marker">1</span><div><strong>先说清楚 x 的意思</strong><p>设 x 为里程的千米数。里程允许小数，但不能为负。每千米 3 元，所以可变费用是 3x 元。</p></div></li>
+    <li class="lesson-step"><span class="step-marker">2</span><div><strong>固定费用加可变费用等于总价</strong><p class="lesson-equation">5 + 3x = 20　→　3x = 15　→　x = 5</p><p>这正是开头积木题的等量关系，只是各项的含义变了。5 千米时，总价为 5 + 3 × 5 = 20 元。</p></div></li>
+  </ol>
+  <aside class="lesson-callout caution">
+    <p><strong>同样的式子，范围可能不同。</strong> 每本本子 3 元，运费 5 元，总价 21 元，会得到本数 16/3。它满足实数方程，但本数必须是非负整数，因此没有符合题意的购买数量。</p>
+  </aside>
+  <aside class="lesson-callout try"><p><strong>独立列式前。</strong> 先写未知量、单位和允许的范围。求解后做两次检查：代回原式，再判断答案是否符合情境。题目册的应用题可以用这两步自查。</p></aside>
+</section>
+</section><section class="print-workbook print-new-page"><h2>练习卷</h2><article class="print-question" data-question="1"><h2><span class="question-label">第 1 题</span>先检验一个数</h2><div class="print-prompt"><p>当 <strong>x = 3</strong> 时，下面哪个等式成立？先算每个选项的左边，再和右边比。</p></div><ul class="answer-choices"><li><span aria-hidden="true">○ A.</span><div>2x + 1 = 7</div></li><li><span aria-hidden="true">○ B.</span><div>2x + 1 = 6</div></li><li><span aria-hidden="true">○ C.</span><div>x + 2 = 6</div></li><li><span aria-hidden="true">○ D.</span><div>3x − 1 = 9</div></li></ul></article><article class="print-question" data-question="2"><h2><span class="question-label">第 2 题</span>写出两边做了什么</h2><div class="print-prompt"><p>解 <strong>4x + 3 = 19</strong>。逐行写出两边的操作，并把你的解代回原式。</p></div><ol class="answer-lines" style="--row-height:7.5mm"><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li></ol></article><article class="print-question" data-question="3"><h2><span class="question-label">第 3 题</span>负号、括号与两边都有 x</h2><div class="print-prompt"><p>解 <strong>5 − (x − 2) = 2x + 1</strong>。先完整写出展开括号的一行，再把含 x 的项移到同一边。</p></div><ol class="answer-lines" style="--row-height:7.4mm"><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li></ol></article><article class="print-question" data-question="4"><h2><span class="question-label">第 4 题</span>给每一项乘上公倍数</h2><div class="print-prompt"><p>解 <strong>(x − 3) / 4 + (x + 1) / 2 = 3</strong>。写出去分母的步骤，再代回原式检验。</p></div><ol class="answer-lines" style="--row-height:7.4mm"><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li></ol></article><article class="print-question print-new-page" data-question="5"><h2><span class="question-label">第 5 题</span>x 消失时，剩下的等式说了什么？</h2><div class="print-prompt"><p>分别判断两个方程有一个解、无解还是有无穷多解，并说出依据。</p><ol><li>3(x + 1) = 3x + 3</li><li>3(x + 1) = 3x + 7</li></ol></div><ol class="answer-lines" style="--row-height:9.33333mm"><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li></ol></article><article class="print-question" data-question="6"><h2><span class="question-label">第 6 题</span>从两条线的交点读出解</h2><div class="print-prompt"><p>每格代表 1 个单位。先为 <strong>y = 2x − 3</strong> 取两个点画线，再画 <strong>y = 3</strong>。标出交点，写出它对应的方程与解。</p></div><div class="answer-axes" style="height:61mm"><svg aria-hidden="true"><defs><pattern id="leap-grid-6" width="5mm" height="5mm" x="50%" y="50%" patternUnits="userSpaceOnUse"><path d="M0 18.898V0H18.898"/></pattern></defs><rect width="100%" height="100%" fill="url(#leap-grid-6)"/><line x1="0" y1="50%" x2="100%" y2="50%"/><line x1="50%" y1="0" x2="50%" y2="100%"/><text x="98%" y="50%" dy="-5" text-anchor="end">x</text><text x="50%" y="4%" dx="5" dy="5">y</text><text x="50%" y="50%" dx="-7" dy="12" text-anchor="end">0</text></svg></div></article><article class="print-question" data-question="7"><h2><span class="question-label">第 7 题</span>挑战｜参数什么时候能约掉？</h2><div class="print-prompt"><p>对每个实数 m，判断 <strong>(m − 2)x = m² − 4</strong> 有几个实数解。提示：右边等于 (m − 2)(m + 2)。先判断 m − 2 是否为零，再决定能否相除。</p></div><ol class="answer-lines" style="--row-height:7.75mm"><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li></ol></article><article class="print-question print-new-page" data-question="8"><h2><span class="question-label">第 8 题</span>列式后检查实际取值</h2><div class="print-prompt"><p>简化的租车模型为固定 8 元，再按每小时 4 元收费，允许按小数小时计费。如果总价为 22 元，租了几小时？若改为购买每张 4 元的车票，另收 8 元服务费，可能刚好付款 22 元吗？分别写出未知量的单位、范围和理由。</p></div><ol class="answer-lines" style="--row-height:7.8mm"><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li></ol></article></section></main><div class="print-controls"><button type="button" id="leapPrintNow">打印 / 另存为 PDF</button><label for="leapPrintDirection">方向</label><select id="leapPrintDirection"><option value="portrait" selected>纵向</option><option value="landscape">横向</option></select><p role="status" id="leapPrintNotice"></p></div><script>const paginatePrint = (pageHeight, checkOverflow = true) => {
+  const spare = 14;
+  const limit = pageHeight - spare;
+  const images = [...document.querySelectorAll("img")];
+  if (images.some(img => !img.complete || !img.naturalWidth)) {
+    return "A print image did not load. Use embedded raster images or inline SVG.";
+  }
+
+  let gridRevision = 0;
+  function continuation(question) {
+    const part = document.createElement("article");
+    part.className = "print-question print-new-page";
+    part.dataset.question = question.dataset.question;
+    const heading = document.createElement("h2");
+    heading.textContent = `第 ${part.dataset.question} 题（续）`;
+    part.append(heading);
+    return part;
+  }
+
+  // Oversize text can break at normal text boundaries. For repeatable answer
+  // areas, pack whole rows into labelled continuation pages instead.
+  function takeUnits(block, available) {
+    if (block.matches(".answer-lines, .answer-code, .answer-table")) {
+      const source = block.matches("table") ? block.tBodies[0] : block;
+      const child = source.firstElementChild;
+      if (!child) return null;
+      const rowHeight = Math.max(child.getBoundingClientRect().height, 1);
+      const headerHeight = block.tHead?.getBoundingClientRect().height || 0;
+      const count = Math.floor((available - headerHeight - 3) / rowHeight);
+      if (count < 1) return null;
+      const piece = block.cloneNode(block.matches("table"));
+      const target = block.matches("table") ? piece.tBodies[0] : piece;
+      target.replaceChildren();
+      for (let i = 0; i < count && source.firstElementChild; i++) {
+        target.append(source.firstElementChild);
+      }
+      if (!source.firstElementChild) block.remove();
+      return piece;
+    }
+    if (block.matches(".answer-grid, .answer-space, .answer-axes") && available >= 32) {
+      const height = block.getBoundingClientRect().height;
+      const piece = block.cloneNode(true);
+      const pattern = piece.querySelector("pattern[id]");
+      if (pattern) {
+        const id = `${pattern.id}-part-${++gridRevision}`;
+        piece.querySelector("rect").setAttribute("fill", `url(#${id})`);
+        pattern.id = id;
+      }
+      const taken = Math.min(Math.floor(available - 2), height);
+      piece.style.height = `${taken}px`;
+      if (height - taken > 2) block.style.height = `${height - taken}px`;
+      else block.remove();
+      return piece;
+    }
+    return null;
+  }
+
+  const questions = [...document.querySelectorAll(".print-question[data-question]")];
+  for (const [index, question] of questions.entries()) {
+    const bounds = question.getBoundingClientRect();
+    if (bounds.height <= limit) continue;
+    const combined = question.parentElement.matches("section.print-new-page");
+    const beginsPage = question.classList.contains("print-new-page");
+    const parentTop = question.parentElement.getBoundingClientRect().top;
+    const firstLimit = index === 0 && !beginsPage ? limit - (bounds.top - parentTop) : limit;
+    if (!combined && index === 0 && beginsPage) question.classList.remove("print-new-page");
+    const body = [...question.children].slice(1).flatMap(block => {
+      // Direct prompt paragraphs, figures and lists are natural boundaries.
+      if (block.matches(".print-prompt") && block.children.length &&
+          [...block.childNodes].every(node => node.nodeType !== 3 || !node.textContent.trim())) {
+        const pieces = [...block.children];
+        for (const piece of pieces) question.insertBefore(piece, block);
+        block.remove();
+        return pieces;
+      }
+      return [block];
+    });
+    for (const block of body) block.remove();
+    let part = question;
+    for (const block of body) {
+      part.append(block);
+      const available = part === question ? firstLimit : limit;
+      if (part.getBoundingClientRect().height <= available) continue;
+      const height = block.getBoundingClientRect().height + 8;
+      const divisible = block.matches(".answer-lines, .answer-code, .answer-table, .answer-grid, .answer-space, .answer-axes");
+      if (divisible && height > limit - 38) {
+        while (block.isConnected) {
+          const used = block.getBoundingClientRect().top - part.getBoundingClientRect().top;
+          const piece = takeUnits(block, (part === question ? firstLimit : limit) - used);
+          if (piece) {
+            if (block.isConnected) part.insertBefore(piece, block);
+            else part.append(piece);
+          }
+          if (!block.isConnected) break;
+          if (!piece && part.children.length === 2 && (part !== question || firstLimit === limit)) {
+            return "An answer row cannot fit on an A4 page.";
+          }
+          const next = continuation(question);
+          part.after(next);
+          part = next;
+          part.append(block);
+        }
+      } else {
+        if (part.children.length > 2) {
+          const next = continuation(question);
+          part.after(next);
+          part = next;
+          part.append(block);
+        }
+        if (part.getBoundingClientRect().height > limit) part.style.breakInside = "auto";
+      }
+    }
+  }
+  if (checkOverflow && document.documentElement.scrollWidth > document.documentElement.clientWidth + 4) {
+    return "Print content extends past the A4 margins. Resize wide figures, tables, or text.";
+  }
+  return null;
+}
+; const printMargins = [16, 16, 16, 16];
+(() => {
+  const direction = document.getElementById("leapPrintDirection");
+  const notice = document.getElementById("leapPrintNotice");
+  const sheet = document.getElementById("leapPaper");
+  const content = document.querySelector(".print-content");
+  let original = null;
+  const chosen = new URLSearchParams(location.search).get("orientation");
+  if (chosen === "portrait" || chosen === "landscape") direction.value = chosen;
+
+  async function printDocument() {
+    if (original) return;
+    await document.fonts.ready;
+    const landscape = direction.value === "landscape";
+    const [top, right, bottom, left] = printMargins;
+    const width = (landscape ? 297 : 210) - left - right;
+    const height = (landscape ? 210 : 297) - top - bottom;
+    if (Math.min(width, height) < 60) {
+      notice.textContent = "当前页边距在这个方向上留出的空间不足。请改回原方向或调整页边距。";
+      return;
+    }
+    sheet.textContent = `@page { size: A4 ${direction.value}; margin: ${printMargins.map(m => m + "mm").join(" ")}; }`;
+    original = content.cloneNode(true);
+    content.classList.add("print-measurement");
+    content.style.width = `${width}mm`;
+    const issue = paginatePrint(height * 96 / 25.4, false)
+      || (content.scrollWidth > content.clientWidth + 4 ? "内容超过 A4 可打印宽度，请调整图表或文本。" : null);
+    content.style.removeProperty("width");
+    content.classList.remove("print-measurement");
+    if (issue) {
+      notice.textContent = issue;
+      content.replaceChildren(...original.childNodes);
+      original = null;
+      return;
+    }
+    notice.textContent = "";
+    window.print();
+  }
+
+  window.addEventListener("afterprint", () => {
+    if (!original) return;
+    content.replaceChildren(...original.childNodes);
+    original = null;
+  });
+  document.getElementById("leapPrintNow").addEventListener("click", printDocument);
+  if (new URLSearchParams(location.search).get("print") === "1") {
+    if (document.readyState === "complete") printDocument();
+    else window.addEventListener("load", printDocument, {once: true});
+  }
+})();
+</script></body></html>

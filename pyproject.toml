@@ -41,6 +41,8 @@ examples = [
     "jsonschema>=4.0",
 ]
 
+print = ["playwright>=1.40"]
+
 [project.urls]
 Homepage = "https://github.com/Vinger-lee/leap-framework"
 Repository = "https://github.com/Vinger-lee/leap-framework"
@@ -50,6 +52,7 @@ Changelog = "https://github.com/Vinger-lee/leap-framework/blob/main/CHANGELOG.md
 [project.scripts]
 leap-mcp = "leap.server:main"
 leap-doctor = "leap.doctor:main"
+leap-print = "leap.printing:main"
 
 [tool.setuptools]
 package-dir = { "" = "src" }
@@ -65,7 +68,7 @@ namespaces = false
 # config/default.yaml is mirrored from the repository root (which stays the file
 # developers edit) so an installed wheel keeps working configuration;
 # tests/test_packaging.py asserts the two copies stay byte-identical.
-leap = ["storage/*.sql", "specs/*.json", "config/*.yaml"]
+leap = ["storage/*.sql", "specs/*.json", "config/*.yaml", "print_assets/*.css", "print_assets/*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

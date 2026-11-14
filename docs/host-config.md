@@ -97,8 +97,8 @@ Copy-Item -Recurse -Force .agents\skills\leap-tutor .claude\skills\leap-tutor
 
 | 档位 | 工具数 | 适用 | 主要限制 |
 |---|---|---|---|
-| `quickstart` | 32 | 日常教学主流程 | 无细粒度证据读取、无 HTML 页面桥接全套接口 |
-| `full` | 71 | 需要拆步评估、证据审查、页面 outbox | 一次性 schema 约 54 KB（quickstart 约 26 KB），宿主上下文更紧 |
+| `quickstart` | 35 | 日常教学主流程 | 无细粒度证据读取、无 HTML 页面桥接全套接口 |
+| `full` | 74 | 需要拆步评估、证据审查、页面 outbox | 一次性 schema 约 54 KB（quickstart 约 26 KB），宿主上下文更紧 |
 
 两档位共用同一套数据；切换档位不需要迁移。工具清单与档位归属以生成的
 [MCP 工具参考](mcp-tools.md) 为准，不要凭本节数字硬编码。

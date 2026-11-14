@@ -23,7 +23,7 @@ Related: [Knowledge_Index](../../Knowledge_Index.md) · [docs/teaching-delivery]
   <img src="https://img.shields.io/github/stars/Vinger-lee/leap-framework?style=social" alt="Stars">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-71%20tools-22bb33" alt="MCP Tools">
+  <img src="https://img.shields.io/badge/MCP-74%20tools-22bb33" alt="MCP Tools">
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
   <b>🤖 AI エージェントに、プロンプトではなく本物のチュータリングエンジンを。</b>

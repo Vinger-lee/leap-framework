@@ -4,9 +4,9 @@ description: >-
   Use the LEAP MCP runtime only when the user explicitly asks for a persistent,
   structured LEAP learning workflow: starting a LEAP lesson, teaching or
   authoring a LEAP teaching package, resuming an existing LEAP session by id,
-  working the LEAP spaced-review queue, or closing a LEAP session.
+  working the LEAP spaced-review queue, closing a LEAP session, or creating A4 print materials from a LEAP lesson.
   中文触发：明确要求“用 LEAP 学某个专题/建立学习会话”、按会话 ID 继续 LEAP 课程、
-  处理 LEAP 复习队列、结束 LEAP 会话、继续上次的学习记录。
+  处理 LEAP 复习队列、结束 LEAP 会话、继续上次的学习记录、为 LEAP 课程生成 A4 讲义或题目册。
   不触发：普通一次性解释或问答、没有 LEAP 会话的泛泛“复习一下”、与 LEAP 无关的
   编程任务、LEAP 源码开发/仓库维护。
   Do not trigger for ordinary one-off explanations, generic review requests
@@ -67,6 +67,9 @@ metadata:
 制作或修改知识结构、教学包、题目和交互页面时，读取
 [内容质量](references/content-quality.md)，并获取当前 `get_teaching_delivery_policy()`。
 不要每轮重复加载完整政策和所有参考文件。
+
+用户请求 LEAP 讲义册、题目册、答案解析或离线 A4 打印资料时，读取
+[打印工作流](references/printing.md)。
 
 失败、部分成功、超时、状态拒绝或工具缺失时，读取
 [恢复流程](references/recovery.md)，先核对权威状态再决定是否重试。

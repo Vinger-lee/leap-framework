@@ -553,3 +553,8 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
 ## Backlinks / 反向关联
 
 [[Knowledge_Index]] · [[docs/subject-knowledge-map]] · [[examples/02-math-linear-equation/README]] · [[examples/02-math-linear-equation/README_CN]] · [[examples/04-physics-free-fall/README]] · [[examples/04-physics-free-fall/README_CN]] · [[examples/04-physics-free-fall/knowledge]] · [[examples/08-electronics-ohms-law/knowledge]]
+
+
+> [!tip]- A4 打印资料
+> 从教学页选择讲义与练习、讲义册、题目册或答案与解析，再设置方向并点击导出 PDF。
+> 课程交互与打印稿分开，只有准备了独立 HTML 才能离线打开打印预览。

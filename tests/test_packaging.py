@@ -59,6 +59,7 @@ def test_console_entry_points_and_python_floor():
     assert project["scripts"] == {
         "leap-mcp": "leap.server:main",
         "leap-doctor": "leap.doctor:main",
+        "leap-print": "leap.printing:main",
     }
 
 

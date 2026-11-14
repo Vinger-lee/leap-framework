@@ -1165,3 +1165,8 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
 ## Backlinks / 反向关联
 
 [[Knowledge_Index]] · [[docs/subject-knowledge-map]] · [[examples/01-python-recursion/knowledge]] · [[examples/05-logic-flowchart/README_CN]]
+
+
+> [!tip]- A4 打印资料
+> 从教学页选择讲义与练习、讲义册、题目册或答案与解析，再设置方向并点击导出 PDF。
+> 课程交互与打印稿分开，只有准备了独立 HTML 才能离线打开打印预览。

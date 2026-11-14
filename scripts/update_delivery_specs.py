@@ -148,8 +148,9 @@ Map each HTML teaching section to a full note section. Register both bodies thro
         schema["properties"]["assessment"]["properties"][name]["type"] = ["number", "null"]
     schema["properties"]["assessment"]["properties"]["provisional"]["description"] = "Feedback has no corresponding successful Runtime assessment receipt. It never grants authority to change mastery, evidence stage or completion."
     tools = schema["properties"]["outbox"]["items"]["properties"]["tool"]["enum"]
-    if "advance_unit" not in tools:
-        tools.append("advance_unit")
+    for name in ("advance_unit", "export_print_pdf"):
+        if name not in tools:
+            tools.append(name)
     serialized = json.dumps(schema, ensure_ascii=False, indent=2)+"\n"
     (SPECS / "interaction_output.schema.json").write_text(serialized, encoding="utf-8")
     (ROOT / "examples/_shared/interaction-output.schema.json").write_text(serialized, encoding="utf-8")

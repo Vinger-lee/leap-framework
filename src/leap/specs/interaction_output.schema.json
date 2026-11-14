@@ -307,7 +307,8 @@
               "record_reflection",
               "schedule_review",
               "advance_unit",
-              "check_advance_unit"
+              "check_advance_unit",
+              "export_print_pdf"
             ],
             "description": "目标 MCP 工具名（对齐文档 §22）"
           },

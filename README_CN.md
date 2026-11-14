@@ -25,7 +25,7 @@ Related: [Knowledge_Index](Knowledge_Index.md) · [docs/teaching-delivery](docs/
   <img src="https://img.shields.io/github/v/release/Vinger-lee/leap-framework" alt="Release">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-71%20tools-22bb33" alt="MCP 工具">
+  <img src="https://img.shields.io/badge/MCP-74%20tools-22bb33" alt="MCP 工具">
   [![Tests](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml)
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
@@ -184,6 +184,11 @@ State Guard 是唯一有权批准状态迁移的组件。当工具返回 `REJECT
 参见[内容质量与真实联调流程](docs/content-quality.md)及[本次交付物审计](docs/quality-audit-2026-10-10.md)。浏览器场景、真实 MCP 联调、内容审校分别验收。
 
 所有模式永久执行完整教学、可控图示、宽屏、完整 Obsidian 原始知识源和头部精准资源规则。先登记实际 Markdown/HTML 正文对 `save_teaching_package`，再登记题目；规范详见 [docs/teaching-delivery](docs/teaching-delivery.md)。学科目录包含11类领域，八个示例配有完整知识笔记与行为清单。课程配方独立于框架维护；通用交付同步入口为 `scripts/sync_delivery.py`。
+
+## A4 打印资料
+
+使用宿主 Agent 按需生成配图讲义、题目册和独立答案册。默认导出 A4 合订册，
+课程页、MCP 和命令行都可使用。安装和示例见 [A4 打印指南](docs/printing.md)。
 
 ## 🧩 可插拔设计
 

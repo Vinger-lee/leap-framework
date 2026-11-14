@@ -122,6 +122,9 @@ ALL_TOOL_NAMES: tuple[str, ...] = FACADE_TOOL_NAMES + (
     "export_session_data",
     "generate_final_report",
     "get_learning_metrics",
+    "get_print_materials",
+    "save_print_materials",
+    "export_print_pdf",
 )
 
 
@@ -143,6 +146,10 @@ QUICKSTART_SETUP_TOOL_NAMES: tuple[str, ...] = (
     # Canonical lesson + registered items
     "save_teaching_package",
     "save_assessment_item",
+    # Optional print workflow, available to personal tutors in either profile.
+    "get_print_materials",
+    "save_print_materials",
+    "export_print_pdf",
     # Split/failed assessment and the facade's misconception next_call
     "commit_assessment",
     "assess_misconception",

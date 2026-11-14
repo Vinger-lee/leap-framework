@@ -17,6 +17,7 @@ from leap.tools.base import LeapToolMixin, ToolContext, ToolError
 from leap.tools.evidence import EvidenceTools
 from leap.tools.facade import FacadeTools
 from leap.tools.knowledge import KnowledgeTools
+from leap.tools.printing import PrintTools
 from leap.tools.retention import RetentionTools
 from leap.tools.session import SessionTools
 from leap.tools.teaching import TeachingTools
@@ -43,6 +44,7 @@ class LeapService(
     KnowledgeTools,
     AssessmentTools,
     RetentionTools,
+    PrintTools,
     TeachingTools,
     EvidenceTools,
     ArtifactTools,

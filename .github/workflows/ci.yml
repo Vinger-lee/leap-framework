@@ -97,6 +97,10 @@ jobs:
         run: python scripts/verify_example_runtime.py --all --json "$RUNNER_TEMP/runtime-verification.json"
       - name: Real page-to-MCP stdio bridge
         run: python scripts/verify_mcp_bridge.py
+      - name: A4 print editions and course-page download
+        run: |
+          python scripts/build_print_example.py --check
+          python scripts/verify_printing.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

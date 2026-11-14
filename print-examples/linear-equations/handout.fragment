@@ -1,0 +1,164 @@
+<section class="lesson-chapter" data-teaching-point="math.equivalence">
+  <p class="lesson-kicker">01　认识等号</p>
+  <h2>这个数放进去，两边会一样吗？</h2>
+  <p class="lesson-lead">三只相同的小包和 5 枚散装积木，一共 20 枚。每只小包里有几枚？先用 <strong>x</strong> 代表一只小包里的数量。</p>
+  <p class="lesson-equation">3x + 5 = 20</p>
+  <p><strong>3x</strong> 是三个 x 加在一起。等号说明左边的总数与右边的 20 相同。<strong>解方程</strong>就是找出所有能让这个说法成立的 x。</p>
+  <figure class="lesson-figure">
+    <svg viewBox="0 0 620 207" width="620" height="207" role="img" aria-label="等量图。第一行左边三包加五块等于二十块，第二行左右各减五，三包等于十五块">
+      <defs>
+        <g id="lesson-pack"><rect width="48" height="37" rx="6" fill="#d2e8fb" stroke="#4380b6"/><text x="24" y="24" text-anchor="middle" fill="#205c99" font-size="18" font-weight="700">x</text></g>
+        <g id="lesson-five" fill="#cc802d"><circle cx="4" cy="4" r="4"/><circle cx="16" cy="4" r="4"/><circle cx="4" cy="16" r="4"/><circle cx="16" cy="16" r="4"/><circle cx="10" cy="10" r="3"/></g>
+      </defs>
+      <g font-family="'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif">
+        <text x="12" y="25" fill="#4d6176" font-size="13">原来的等量关系</text>
+        <use href="#lesson-pack" x="107" y="38"/><use href="#lesson-pack" x="162" y="38"/><use href="#lesson-pack" x="217" y="38"/>
+        <use href="#lesson-five" x="277" y="47"/><text x="329" y="65" fill="#203249" font-size="25">=</text>
+        <rect x="373" y="38" width="125" height="37" rx="5" fill="#fff"/><text x="435.5" y="63" fill="#203249" font-size="18" text-anchor="middle">20 枚</text>
+        <path d="M195 86v30m-5-6 5 6 5-6M436 86v30m-5-6 5 6 5-6" fill="none" stroke="#236e63" stroke-width="2"/>
+        <text x="208" y="105" fill="#236e63" font-size="14">减 5</text><text x="449" y="105" fill="#236e63" font-size="14">减 5</text>
+        <text x="12" y="147" fill="#4d6176" font-size="13">两边各减去 5</text>
+        <use href="#lesson-pack" x="107" y="153"/><use href="#lesson-pack" x="162" y="153"/><use href="#lesson-pack" x="217" y="153"/>
+        <text x="329" y="180" fill="#203249" font-size="25">=</text>
+        <rect x="373" y="153" width="125" height="37" rx="5" fill="#e8f5ef"/><text x="435.5" y="178" fill="#236e63" font-size="18" text-anchor="middle">15 枚</text>
+      </g>
+    </svg>
+    <figcaption>蓝框代表内容相同的小包，橙点代表散装积木。两边各减去 5，剩下的总数仍相等。</figcaption>
+  </figure>
+  <div class="lesson-terms">
+    <div><strong>未知数 x</strong><p>我们要找的数，这里指每包的数量。</p></div>
+    <div><strong>系数 3</strong><p>乘在 x 前面的数，表示有三份 x。</p></div>
+    <div><strong>常数项 +5</strong><p>左边不含 x 的一项，表示 5 枚散装积木。</p></div>
+  </div>
+  <aside class="lesson-callout try">
+    <p><strong>读到这里，先试一次。</strong> 每包 4 枚时总数是多少？每包 5 枚时呢？</p>
+    <p>核对：3 × 4 + 5 = 17，和 20 不等。3 × 5 + 5 = 20，所以 5 是这个方程的解。</p>
+  </aside>
+  <p>像 3x + 5 = 20 这样的式子只含一个未知数，x 的最高次数是 1，所以叫<strong>一元一次方程</strong>。3x 是 3 乘 x，和 x × x 得到的 x² 不同。</p>
+  <p>代入能<strong>检验</strong>猜到的数。下一节从等式本身出发，直接算出这个数。</p>
+</section>
+<section class="lesson-chapter print-new-page" data-teaching-point="math.equivalence">
+  <p class="lesson-kicker">02　解第一道方程</p>
+  <h2>让 x 单独留在一边</h2>
+  <p class="lesson-lead">目标是把方程化成 <strong>x = 某个数</strong>。看见 3x + 5，先撤掉外层的「加 5」，再撤掉「乘 3」。每次对两边做同一个操作。</p>
+  <ol class="lesson-steps">
+    <li class="lesson-step"><span class="step-marker">1</span><div><strong>两边减 5，消去常数项</strong>
+      <p class="lesson-equation">3x + 5 − 5 = 20 − 5　→　3x = 15</p>
+      <p>左边的 +5 和 −5 抵消，右边从 20 变成 15。以后看到「把 +5 移到右边变成 −5」，可以还原成这一行。</p></div></li>
+    <li class="lesson-step"><span class="step-marker">2</span><div><strong>两边除以 3，留下一个 x</strong>
+      <p class="lesson-equation">(3x) ÷ 3 = 15 ÷ 3　→　x = 5</p>
+      <p>三份小包共 15 枚，平均每份 5 枚。除数 3 非零，所以这个操作可以用「两边乘 3」倒回去。</p></div></li>
+    <li class="lesson-step"><span class="step-marker">3</span><div><strong>把 5 代回最初那一行</strong>
+      <p class="lesson-equation">左边 3 × 5 + 5 = 20　　右边 20</p>
+      <p>代回原式能发现化简中漏算的项。两步都能倒回去，所以这串方程有相同的解。这和教学页天平上的两次操作一样。</p></div></li>
+  </ol>
+  <aside class="lesson-callout caution">
+    <p><strong>算错的线索。</strong> 写出 3x = 20 就停下，等于只在左边减了 4。把操作完整写在等号两边，马上就能看见右边漏掉了什么。</p>
+  </aside>
+  <h3>负号也属于这一项</h3>
+  <p>解 <strong>−2x + 7 = 13</strong>。两边减 7 得 −2x = 6。为了让 x 的系数变成 1，要除以 <strong>−2</strong>，得到 x = −3。代回去：−2 × (−3) + 7 = 13。</p>
+  <aside class="lesson-callout try">
+    <p><strong>先写第一步。</strong> 解 5x − 6 = 14。左边的 −6 要用什么消去？</p>
+    <p>核对：两边都加 6，得 5x = 20。再同除以 5，得 x = 4。把 4 代回原式检查。</p>
+  </aside>
+</section>
+<section class="lesson-chapter print-new-page" data-teaching-point="math.denominators">
+  <p class="lesson-kicker">03　括号与两边都有 x</p>
+  <h2>先摊开每一项，再把 x 收到一边</h2>
+  <p class="lesson-lead">括号表示一整组。<strong>−2(x − 3)</strong> 表示用 −2 分别乘 x 和 −3。后一项是两个负数相乘，所以得到 <strong>+6</strong>。</p>
+  <p class="lesson-equation">−2(x − 3) = −2 × x + (−2) × (−3) = −2x + 6</p>
+  <h3>跟着算一遍　4 − 2(x − 3) = x + 1</h3>
+  <ol class="lesson-steps">
+    <li class="lesson-step"><span class="step-marker">1</span><div><strong>展开，再合并同类项</strong>
+      <p class="lesson-equation">4 − 2x + 6 = x + 1　→　10 − 2x = x + 1</p>
+      <p>4 和 6 都是常数，可以相加。−2x 含有 x，要与其他含 x 的项合并。</p></div></li>
+    <li class="lesson-step"><span class="step-marker">2</span><div><strong>两边减 x，再减 10</strong>
+      <p class="lesson-equation">10 − 3x = 1　→　−3x = −9</p>
+      <p>第一步让右边的 x 消失，左边的 −2x − x 变成 −3x。第二步让左边的常数消失。</p></div></li>
+    <li class="lesson-step"><span class="step-marker">3</span><div><strong>同除以 −3，然后检验</strong>
+      <p class="lesson-equation">x = 3</p>
+      <p>原式左边 4 − 2(3 − 3) = 4，右边 3 + 1 = 4。两边相等。</p></div></li>
+  </ol>
+  <aside class="lesson-callout caution"><p><strong>常见错误。</strong> 把 −2(x − 3) 写成 −2x − 6。拿 x = 0 检查：原来是 −2 × (−3) = 6，错误的式子会给 −6。</p></aside>
+  <aside class="lesson-callout try">
+    <p><strong>先自己展开。</strong> 解 2(x + 3) = x + 8。写下括号展开的一行，再做下一步。</p>
+    <p>核对：2x + 6 = x + 8。两边减 x 得 x + 6 = 8，再减 6 得 x = 2。原式两边都是 10。</p>
+  </aside>
+</section>
+<section class="lesson-chapter print-new-page" data-teaching-point="math.denominators">
+  <p class="lesson-kicker">04　分数方程</p>
+  <h2>同乘一个数，去掉每一项的分母</h2>
+  <p class="lesson-lead">分母是固定的非零数时，找一个能同时被这些分母整除的数。分母是 3 和 6，就选 6，因为 6 ÷ 3 = 2、6 ÷ 6 = 1。</p>
+  <h3>完整算一遍　(x + 2) / 3 − x / 6 = 2</h3>
+  <figure class="lesson-figure">
+    <svg viewBox="0 0 620 138" width="620" height="138" role="img" aria-label="去分母逐项对应。六乘第一项得到二乘括号，六乘减去的分数项得到负 x，六乘右边二得到十二">
+      <g font-family="'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">
+        <text x="84" y="22" font-size="14" fill="#236e63">左边第一项</text><text x="307" y="22" font-size="14" fill="#236e63">左边第二项</text><text x="529" y="22" font-size="14" fill="#964821">右边也要乘</text>
+        <rect x="7" y="33" width="156" height="36" rx="6" fill="#fff"/><rect x="229" y="33" width="156" height="36" rx="6" fill="#fff"/><rect x="451" y="33" width="156" height="36" rx="6" fill="#fff1db"/>
+        <text x="85" y="57" font-size="18" fill="#203249">6 × (x + 2) / 3</text><text x="307" y="57" font-size="18" fill="#203249">6 × (−x / 6)</text><text x="529" y="57" font-size="18" fill="#203249">6 × 2</text>
+        <path d="M85 72v24m-4-5 4 5 4-5M307 72v24m-4-5 4 5 4-5M529 72v24m-4-5 4 5 4-5" fill="none" stroke="#236e63" stroke-width="2"/>
+        <text x="85" y="123" font-size="19" font-weight="700" fill="#205c99">2(x + 2)</text><text x="307" y="123" font-size="19" font-weight="700" fill="#205c99">−x</text><text x="529" y="123" font-size="19" font-weight="700" fill="#964821">12</text>
+        <text x="418" y="123" font-size="20" fill="#203249">=</text>
+      </g>
+    </svg>
+    <figcaption>将 6 分给每一项。第一项的整个分子 x + 2 仍留在括号内，第二项保留减号。</figcaption>
+  </figure>
+  <ol class="lesson-steps">
+    <li class="lesson-step"><span class="step-marker">1</span><div><strong>同乘 6，保持等式成立</strong><p class="lesson-equation">2(x + 2) − x = 12</p></div></li>
+    <li class="lesson-step"><span class="step-marker">2</span><div><strong>展开并合并，解出 x</strong><p class="lesson-equation">2x + 4 − x = 12　→　x + 4 = 12　→　x = 8</p></div></li>
+    <li class="lesson-step"><span class="step-marker">3</span><div><strong>代入原式，通分检验</strong><p>左边是 10/3 − 8/6 = 20/6 − 8/6 = 12/6 = 2，与右边相等。</p></div></li>
+  </ol>
+  <aside class="lesson-callout try">
+    <p><strong>快速自检。</strong> (x − 1) / 4 = 2 的两边同乘 4 后，右边写几？</p>
+    <p>核对：右边写 8，所以 x − 1 = 8，x = 9。若分母含 x，要先排除使分母为零的值。本节的题目只用固定分母。</p>
+  </aside>
+</section>
+<section class="lesson-chapter print-new-page" data-teaching-point="math.parameters">
+  <p class="lesson-kicker">05　边界与独立检查</p>
+  <h2>如果化简后，x 消失了</h2>
+  <p class="lesson-lead">看到 <strong>ax = b</strong>，先检查 x 前的系数 a。若 a 为零，任何数乘它都等于零。这时没有可以执行的「除以 a」，直接判断剩下的等式。</p>
+  <table>
+    <thead><tr><th scope="col">化简后</th><th scope="col">怎么想</th><th scope="col">结论</th></tr></thead>
+    <tbody>
+      <tr><td>3x = 12</td><td>3 非零，两边除以 3</td><td>唯一解 x = 4</td></tr>
+      <tr><td>0x = 0</td><td>无论代入哪个实数，两边都是 0</td><td>所有实数都是解</td></tr>
+      <tr><td>0x = 4</td><td>左边永远是 0，等不到 4</td><td>无解</td></tr>
+    </tbody>
+  </table>
+  <p>例如 <strong>2(x + 1) = 2x + 5</strong>。展开后两边减 2x，得到 2 = 5。这个说法对任何 x 都不成立，所以无解。若右边原来是 2x + 2，则最后得到 2 = 2，所有实数都可以。</p>
+  <h3>同一件事，用图像看</h3>
+  <figure class="lesson-figure">
+    <svg viewBox="0 0 620 144" width="620" height="144" role="img" aria-label="三种情况的图像。斜线和水平线相交一次。两条水平线重合。两条不同的水平线平行不相交。">
+      <g stroke="#9bb3ca" fill="#fff">
+        <rect x="3" y="3" width="195" height="111" rx="5"/><rect x="212" y="3" width="195" height="111" rx="5"/><rect x="421" y="3" width="195" height="111" rx="5"/>
+        <path d="M20 89h162M42 103V15M229 89h162M251 103V15M438 89h162M460 103V15" fill="none"/>
+      </g>
+      <g fill="none" stroke-width="2.6">
+        <path d="M24 102L174 19M232 89H389M442 89H596" stroke="#205c99"/>
+        <path d="M24 58H174M232 89H389M442 48H596" stroke="#964821" stroke-dasharray="6 4"/>
+      </g>
+      <circle cx="103.5" cy="58" r="5" fill="#236e63" stroke="#fff" stroke-width="1.5"/>
+      <g text-anchor="middle" font-size="14" fill="#203249" font-family="'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif">
+        <text x="100" y="137">相交一次</text><text x="310" y="137">完全重合</text><text x="519" y="137">平行且不重合</text>
+      </g>
+    </svg>
+    <figcaption>实线是 y = ax，虚线是 y = b。它们在同一个 x 处高度相等时，ax = b 成立。</figcaption>
+  </figure>
+  <p><strong>怎样画两条线？</strong> 以 2x − 1 = 3 为例。在 y = 2x − 1 上取 (0, −1) 和 (2, 3) 并连线。y = 3 上的点高度都等于 3，画一条水平线。交点 (2, 3) 的横坐标 2 就是解，代回也得到 3。</p>
+  <aside class="lesson-callout try">
+    <p><strong>合上讲义前问自己。</strong> 我能写出「两边做了什么」吗？我检查了括号的符号、右边有没有同乘、系数是否为零吗？算出的 x 能代回原式吗？</p>
+  </aside>
+</section>
+<section class="lesson-chapter print-new-page" data-teaching-point="math.parameters">
+  <p class="lesson-kicker">06　实际问题</p>
+  <h2>方程算得对，答案也要符合情境</h2>
+  <p class="lesson-lead">教学页给了一道简化的打车题。起步费 5 元，每千米 3 元，没有其他收费，总价 20 元。问题是走了多远。</p>
+  <ol class="lesson-steps">
+    <li class="lesson-step"><span class="step-marker">1</span><div><strong>先说清楚 x 的意思</strong><p>设 x 为里程的千米数。里程允许小数，但不能为负。每千米 3 元，所以可变费用是 3x 元。</p></div></li>
+    <li class="lesson-step"><span class="step-marker">2</span><div><strong>固定费用加可变费用等于总价</strong><p class="lesson-equation">5 + 3x = 20　→　3x = 15　→　x = 5</p><p>这正是开头积木题的等量关系，只是各项的含义变了。5 千米时，总价为 5 + 3 × 5 = 20 元。</p></div></li>
+  </ol>
+  <aside class="lesson-callout caution">
+    <p><strong>同样的式子，范围可能不同。</strong> 每本本子 3 元，运费 5 元，总价 21 元，会得到本数 16/3。它满足实数方程，但本数必须是非负整数，因此没有符合题意的购买数量。</p>
+  </aside>
+  <aside class="lesson-callout try"><p><strong>独立列式前。</strong> 先写未知量、单位和允许的范围。求解后做两次检查：代回原式，再判断答案是否符合情境。题目册的应用题可以用这两步自查。</p></aside>
+</section>

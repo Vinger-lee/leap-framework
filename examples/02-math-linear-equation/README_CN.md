@@ -22,6 +22,9 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
 本例是一份零依赖中文课程与交互实验。它从未知数、负数和等号讲起，逐行推导 ax+b=c；处理负系数、括号、分母、两边未知数和零系数，最后把结果带回原式及实际情境检查。
 
 - 打开 [交互课程](leap-02-math-linear-equation.html)。桌面浏览器直接打开即可，全部公式、SVG和交互脚本在单文件中。
+- 纸上自学：[彩色讲义](../../print-examples/linear-equations/handout.html)沿用交互天平的 `3x + 5 = 20`，
+  从等号和代入检验讲到括号、分母、零系数、交点与实际取值。接着做[题目册](../../print-examples/linear-equations/workbook.html)，
+  完成后用[答案与解析](../../print-examples/linear-equations/answers.html)核对。也可打开[合订册](../../print-examples/linear-equations/combined.html)。
 - 完整复习：[[examples/02-math-linear-equation/knowledge|规范知识笔记]]；在普通Markdown阅读器中可用 [[examples/02-math-linear-equation/knowledge|知识笔记]]。笔记包含网页全部学习段落与解答，并额外解释可逆运算、参数方程、定义域与更多完整例题。
 - 延伸迁移：[[examples/04-physics-free-fall/knowledge|自由落体]] 中求时间也要同乘、同除，但多出平方根与物理取值域。
 

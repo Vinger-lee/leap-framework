@@ -84,7 +84,7 @@ agent, and which claims would need evidence that does not exist yet.
   response carries a compact `policy_version`; the full policy is returned only by
   `get_teaching_delivery_policy`. `continue_lesson` returns a summary by default (`verbose=True`
   for the full teaching context) and `get_teaching_context` takes `include_template=False`.
-- **Tool profiles change navigation, not authority.** `quickstart` (32 tools) is a complete
+- **Tool profiles change navigation, not authority.** `quickstart` (35 tools) is a complete
   teaching path including `assess_misconception` and `set_domain_grounding_skip`; `full` (71
   tools) adds the fine-grained and HTML-outbox surface. `python -m leap.doctor` and the generated
   tool reference print the live counts.

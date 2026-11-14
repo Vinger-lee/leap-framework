@@ -1,0 +1,335 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; font-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; script-src &#39;sha256-K6TyGWVYZkoqDLhdbem3aqiVeHRJUcBdi1jALO+C9gU=&#39;"><title>一元一次方程 · 题目册</title><style id="leapPaper">@page { size: A4 portrait; margin: 16mm 16mm 16mm 16mm; }</style><style>/* Shared paper and screen styles for learner-facing print editions. */
+:root {
+  --ink: #203249;
+  --muted: #4d6176;
+  --blue: #205c99;
+  --teal: #236e63;
+  --amber: #964821;
+  --blue-wash: #eaf3fc;
+  --teal-wash: #e8f5ef;
+  --amber-wash: #fff1db;
+  --rule: #c0d4e4;
+  color: var(--ink);
+  background: #fff;
+  font: 11pt/1.58 "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", "Noto Sans", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+.print-content { overflow-wrap: anywhere; }
+.print-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 1.25mm 4mm;
+  border-bottom: .55pt solid var(--rule);
+  padding: 0 0 4mm;
+  margin: 0 0 6mm;
+  break-inside: avoid;
+}
+.print-heading p { margin: 0; }
+.print-heading .print-edition {
+  grid-column: 1 / -1;
+  justify-self: start;
+  padding: .4mm 2.5mm .5mm;
+  border-radius: 1mm;
+  background: var(--blue-wash);
+  color: var(--blue);
+  font-size: 9pt;
+  font-weight: 700;
+}
+[data-edition="workbook"] .print-edition { background: var(--amber-wash); color: var(--amber); }
+[data-edition="answers"] .print-edition { background: var(--teal-wash); color: var(--teal); }
+.print-version { color: var(--muted); font-size: 8pt; white-space: nowrap; }
+h1, h2, h3, h4 { line-height: 1.24; break-after: avoid; }
+h1 { font-size: 29pt; margin: 0; letter-spacing: .025em; }
+h2 { font-size: 19pt; margin: 4mm 0 2.3mm; }
+h3 { font-size: 12pt; margin: 4mm 0 1.5mm; color: var(--blue); }
+p { margin: 0 0 2.5mm; orphans: 2; widows: 2; }
+ul, ol { margin: 0 0 3mm; padding-inline-start: 6mm; }
+li + li { margin-top: .6mm; }
+figure { margin: 3.2mm 0; break-inside: avoid; }
+figcaption { font-size: 9pt; color: var(--muted); margin-top: 1.4mm; }
+img, svg { max-width: 100%; max-height: 135mm; vertical-align: middle; }
+img { object-fit: contain; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; padding: 2mm 3mm; border: .5pt solid var(--rule); }
+code, pre, .answer-code { font-family: "Cascadia Mono", "DejaVu Sans Mono", monospace; }
+blockquote { margin: 3mm 0; padding-left: 3mm; border-left: 1pt solid var(--blue); }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 2mm 0; }
+td, th { border: .55pt solid var(--rule); padding: 1.4mm 2mm; text-align: left; vertical-align: top; }
+th { background: var(--blue-wash); color: var(--ink); }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+a { color: var(--blue); }
+
+.lesson-chapter { margin-bottom: 7mm; }
+.lesson-chapter > h2 { margin: 0 0 3mm; }
+.lesson-kicker { color: var(--blue); font-size: 9pt; font-weight: 700; margin: 0 0 .6mm; break-after: avoid; }
+.lesson-lead { font-size: 12pt; }
+.lesson-figure { padding: 3mm 3.5mm 2.6mm; border-radius: 1.6mm; background: var(--blue-wash); }
+.lesson-figure svg { display: block; width: 100%; height: auto; }
+.lesson-callout {
+  padding: 2.6mm 3.4mm;
+  margin: 3.2mm 0;
+  background: var(--blue-wash);
+  border-left: 2pt solid var(--blue);
+  break-inside: avoid;
+}
+.lesson-callout p:last-child, .lesson-step p:last-child, .lesson-terms p:last-child { margin-bottom: 0; }
+.lesson-callout.try { background: var(--teal-wash); border-color: var(--teal); }
+.lesson-callout.try strong { color: var(--teal); }
+.lesson-callout.caution { background: var(--amber-wash); border-color: var(--amber); }
+.lesson-callout.caution strong { color: var(--amber); }
+.lesson-terms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 36mm), 1fr));
+  gap: 3mm;
+  margin: 3.7mm 0;
+  break-inside: avoid;
+}
+.lesson-terms div { padding-top: 1.6mm; border-top: .8pt solid var(--rule); }
+.lesson-terms strong { display: block; color: var(--blue); font-size: 10pt; }
+.lesson-terms p { font-size: 10pt; }
+.lesson-steps { list-style: none; margin: 3mm 0; padding: 0; }
+.lesson-step {
+  display: grid;
+  grid-template-columns: 6mm minmax(0, 1fr);
+  gap: 2.7mm;
+  padding: 1.8mm 0;
+  break-inside: avoid;
+}
+.lesson-step + .lesson-step { border-top: .45pt solid var(--rule); }
+.step-marker {
+  align-self: start;
+  text-align: center;
+  background: var(--blue-wash);
+  border-radius: 1mm;
+  color: var(--blue);
+  font-size: 9pt;
+  font-weight: 700;
+  line-height: 6mm;
+}
+.lesson-equation { color: var(--blue); font: 700 13pt/1.35 "Cambria Math", "STIX Two Text", serif; margin: .4mm 0 1mm; }
+.lesson-checklist { padding-left: 5mm; }
+.lesson-checklist li + li { margin-top: 1mm; }
+
+.print-question { break-inside: avoid; margin: 0 0 5mm; }
+.print-question > h2 { font-size: 12.5pt; color: var(--blue); margin: 0 0 1.4mm; }
+.print-question > h2 .question-label { font-size: 9pt; margin-right: 1.8mm; color: var(--muted); white-space: nowrap; }
+[data-edition="answers"] .print-question { border-top: .55pt solid var(--rule); padding-top: 2mm; }
+[data-edition="answers"] .print-question > h2 { color: var(--teal); }
+.print-workbook > h2 { margin-top: 0; margin-bottom: 5mm; }
+.print-new-page { break-before: page; }
+.print-prompt { margin-bottom: 2mm; }
+.answer-choices, .answer-lines, .answer-code { list-style: none; padding: 0; margin: 0; }
+.answer-choices li { display: flex; gap: 2.5mm; break-inside: avoid; }
+.answer-choices li > span { flex-shrink: 0; color: var(--blue); font-weight: 700; }
+.answer-choices li p { margin-bottom: 1mm; }
+.answer-blank { display: inline-block; width: 44mm; border-bottom: .7pt solid var(--blue); }
+.answer-lines li, .answer-code li, .answer-table td { height: var(--row-height); break-inside: avoid; }
+.answer-lines li + li, .answer-code li + li { margin-top: 0; }
+.answer-lines li, .answer-code li { border-bottom: .5pt solid #9cb7cc; font-size: 8pt; line-height: 1; }
+.answer-code { padding-left: 3mm; border-left: .7pt solid var(--rule); }
+.answer-space, .answer-grid, .answer-axes { border: .65pt solid #9cb7cc; border-radius: 1mm; }
+.answer-grid svg, .answer-axes svg { display: block; width: 100%; height: 100%; max-height: none; }
+.answer-grid path, .answer-axes path { fill: none; stroke: #a4b7ca; stroke-width: .65px; }
+.answer-axes line { stroke: var(--blue); stroke-width: 1.2px; }
+.answer-axes text { fill: var(--ink); font-size: 10px; }
+@page {
+  @bottom-right { content: counter(page); color: #4d6176; font: 8pt sans-serif; }
+}
+.print-controls { display: none; }
+@media screen {
+  :root { background: #f0f5fa; }
+  body { display: flex; flex-direction: column; }
+  .print-content, .print-controls { width: min(94%, 195mm); margin-inline: auto; }
+  .print-content { background: #fff; padding: clamp(14px, 4vw, 9mm); border: 1px solid var(--rule); margin-bottom: 6mm; }
+  .print-controls { order: -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 4mm 0; }
+  .print-controls label { color: var(--muted); font-size: 10pt; }
+  .print-controls button, .print-controls select { font: inherit; line-height: 1.2; border: 1px solid var(--rule); border-radius: 4px; padding: 8px 10px; }
+  .print-controls button { background: var(--blue); color: white; cursor: pointer; }
+  .print-controls select { background: white; color: var(--ink); }
+  .print-controls :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+  #leapPrintNotice { flex-basis: 100%; font-size: 9pt; color: var(--amber); margin: 0; }
+  #leapPrintNotice:empty { display: none; }
+  .print-content:not(.print-measurement) .lesson-chapter + .lesson-chapter,
+  .print-content:not(.print-measurement) .print-workbook { border-top: 1px solid var(--rule); padding-top: 5mm; }
+  .print-content.print-measurement { margin: 0; padding: 0; border: 0; }
+}
+@media screen and (max-width: 460px) {
+  .print-heading { grid-template-columns: 1fr; }
+  .print-version { white-space: normal; }
+}
+@media print {
+  :root { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-controls { display: none !important; }
+  .print-content { width: auto; margin: 0; }
+}
+</style></head><body><main class="print-content" data-edition="workbook"><header class="print-heading"><p class="print-edition">题目册</p><h1>一元一次方程</h1><p class="print-version">版本 linear-equations-03</p></header><article class="print-question" data-question="1"><h2><span class="question-label">第 1 题</span>先检验一个数</h2><div class="print-prompt"><p>当 <strong>x = 3</strong> 时，下面哪个等式成立？先算每个选项的左边，再和右边比。</p></div><ul class="answer-choices"><li><span aria-hidden="true">○ A.</span><div>2x + 1 = 7</div></li><li><span aria-hidden="true">○ B.</span><div>2x + 1 = 6</div></li><li><span aria-hidden="true">○ C.</span><div>x + 2 = 6</div></li><li><span aria-hidden="true">○ D.</span><div>3x − 1 = 9</div></li></ul></article><article class="print-question" data-question="2"><h2><span class="question-label">第 2 题</span>写出两边做了什么</h2><div class="print-prompt"><p>解 <strong>4x + 3 = 19</strong>。逐行写出两边的操作，并把你的解代回原式。</p></div><ol class="answer-lines" style="--row-height:7.5mm"><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li></ol></article><article class="print-question" data-question="3"><h2><span class="question-label">第 3 题</span>负号、括号与两边都有 x</h2><div class="print-prompt"><p>解 <strong>5 − (x − 2) = 2x + 1</strong>。先完整写出展开括号的一行，再把含 x 的项移到同一边。</p></div><ol class="answer-lines" style="--row-height:7.4mm"><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li></ol></article><article class="print-question" data-question="4"><h2><span class="question-label">第 4 题</span>给每一项乘上公倍数</h2><div class="print-prompt"><p>解 <strong>(x − 3) / 4 + (x + 1) / 2 = 3</strong>。写出去分母的步骤，再代回原式检验。</p></div><ol class="answer-lines" style="--row-height:7.4mm"><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li></ol></article><article class="print-question print-new-page" data-question="5"><h2><span class="question-label">第 5 题</span>x 消失时，剩下的等式说了什么？</h2><div class="print-prompt"><p>分别判断两个方程有一个解、无解还是有无穷多解，并说出依据。</p><ol><li>3(x + 1) = 3x + 3</li><li>3(x + 1) = 3x + 7</li></ol></div><ol class="answer-lines" style="--row-height:9.33333mm"><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li></ol></article><article class="print-question" data-question="6"><h2><span class="question-label">第 6 题</span>从两条线的交点读出解</h2><div class="print-prompt"><p>每格代表 1 个单位。先为 <strong>y = 2x − 3</strong> 取两个点画线，再画 <strong>y = 3</strong>。标出交点，写出它对应的方程与解。</p></div><div class="answer-axes" style="height:61mm"><svg aria-hidden="true"><defs><pattern id="leap-grid-6" width="5mm" height="5mm" x="50%" y="50%" patternUnits="userSpaceOnUse"><path d="M0 18.898V0H18.898"/></pattern></defs><rect width="100%" height="100%" fill="url(#leap-grid-6)"/><line x1="0" y1="50%" x2="100%" y2="50%"/><line x1="50%" y1="0" x2="50%" y2="100%"/><text x="98%" y="50%" dy="-5" text-anchor="end">x</text><text x="50%" y="4%" dx="5" dy="5">y</text><text x="50%" y="50%" dx="-7" dy="12" text-anchor="end">0</text></svg></div></article><article class="print-question" data-question="7"><h2><span class="question-label">第 7 题</span>挑战｜参数什么时候能约掉？</h2><div class="print-prompt"><p>对每个实数 m，判断 <strong>(m − 2)x = m² − 4</strong> 有几个实数解。提示：右边等于 (m − 2)(m + 2)。先判断 m − 2 是否为零，再决定能否相除。</p></div><ol class="answer-lines" style="--row-height:7.75mm"><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li></ol></article><article class="print-question print-new-page" data-question="8"><h2><span class="question-label">第 8 题</span>列式后检查实际取值</h2><div class="print-prompt"><p>简化的租车模型为固定 8 元，再按每小时 4 元收费，允许按小数小时计费。如果总价为 22 元，租了几小时？若改为购买每张 4 元的车票，另收 8 元服务费，可能刚好付款 22 元吗？分别写出未知量的单位、范围和理由。</p></div><ol class="answer-lines" style="--row-height:7.8mm"><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li><li>&nbsp;</li></ol></article></main><div class="print-controls"><button type="button" id="leapPrintNow">打印 / 另存为 PDF</button><label for="leapPrintDirection">方向</label><select id="leapPrintDirection"><option value="portrait" selected>纵向</option><option value="landscape">横向</option></select><p role="status" id="leapPrintNotice"></p></div><script>const paginatePrint = (pageHeight, checkOverflow = true) => {
+  const spare = 14;
+  const limit = pageHeight - spare;
+  const images = [...document.querySelectorAll("img")];
+  if (images.some(img => !img.complete || !img.naturalWidth)) {
+    return "A print image did not load. Use embedded raster images or inline SVG.";
+  }
+
+  let gridRevision = 0;
+  function continuation(question) {
+    const part = document.createElement("article");
+    part.className = "print-question print-new-page";
+    part.dataset.question = question.dataset.question;
+    const heading = document.createElement("h2");
+    heading.textContent = `第 ${part.dataset.question} 题（续）`;
+    part.append(heading);
+    return part;
+  }
+
+  // Oversize text can break at normal text boundaries. For repeatable answer
+  // areas, pack whole rows into labelled continuation pages instead.
+  function takeUnits(block, available) {
+    if (block.matches(".answer-lines, .answer-code, .answer-table")) {
+      const source = block.matches("table") ? block.tBodies[0] : block;
+      const child = source.firstElementChild;
+      if (!child) return null;
+      const rowHeight = Math.max(child.getBoundingClientRect().height, 1);
+      const headerHeight = block.tHead?.getBoundingClientRect().height || 0;
+      const count = Math.floor((available - headerHeight - 3) / rowHeight);
+      if (count < 1) return null;
+      const piece = block.cloneNode(block.matches("table"));
+      const target = block.matches("table") ? piece.tBodies[0] : piece;
+      target.replaceChildren();
+      for (let i = 0; i < count && source.firstElementChild; i++) {
+        target.append(source.firstElementChild);
+      }
+      if (!source.firstElementChild) block.remove();
+      return piece;
+    }
+    if (block.matches(".answer-grid, .answer-space, .answer-axes") && available >= 32) {
+      const height = block.getBoundingClientRect().height;
+      const piece = block.cloneNode(true);
+      const pattern = piece.querySelector("pattern[id]");
+      if (pattern) {
+        const id = `${pattern.id}-part-${++gridRevision}`;
+        piece.querySelector("rect").setAttribute("fill", `url(#${id})`);
+        pattern.id = id;
+      }
+      const taken = Math.min(Math.floor(available - 2), height);
+      piece.style.height = `${taken}px`;
+      if (height - taken > 2) block.style.height = `${height - taken}px`;
+      else block.remove();
+      return piece;
+    }
+    return null;
+  }
+
+  const questions = [...document.querySelectorAll(".print-question[data-question]")];
+  for (const [index, question] of questions.entries()) {
+    const bounds = question.getBoundingClientRect();
+    if (bounds.height <= limit) continue;
+    const combined = question.parentElement.matches("section.print-new-page");
+    const beginsPage = question.classList.contains("print-new-page");
+    const parentTop = question.parentElement.getBoundingClientRect().top;
+    const firstLimit = index === 0 && !beginsPage ? limit - (bounds.top - parentTop) : limit;
+    if (!combined && index === 0 && beginsPage) question.classList.remove("print-new-page");
+    const body = [...question.children].slice(1).flatMap(block => {
+      // Direct prompt paragraphs, figures and lists are natural boundaries.
+      if (block.matches(".print-prompt") && block.children.length &&
+          [...block.childNodes].every(node => node.nodeType !== 3 || !node.textContent.trim())) {
+        const pieces = [...block.children];
+        for (const piece of pieces) question.insertBefore(piece, block);
+        block.remove();
+        return pieces;
+      }
+      return [block];
+    });
+    for (const block of body) block.remove();
+    let part = question;
+    for (const block of body) {
+      part.append(block);
+      const available = part === question ? firstLimit : limit;
+      if (part.getBoundingClientRect().height <= available) continue;
+      const height = block.getBoundingClientRect().height + 8;
+      const divisible = block.matches(".answer-lines, .answer-code, .answer-table, .answer-grid, .answer-space, .answer-axes");
+      if (divisible && height > limit - 38) {
+        while (block.isConnected) {
+          const used = block.getBoundingClientRect().top - part.getBoundingClientRect().top;
+          const piece = takeUnits(block, (part === question ? firstLimit : limit) - used);
+          if (piece) {
+            if (block.isConnected) part.insertBefore(piece, block);
+            else part.append(piece);
+          }
+          if (!block.isConnected) break;
+          if (!piece && part.children.length === 2 && (part !== question || firstLimit === limit)) {
+            return "An answer row cannot fit on an A4 page.";
+          }
+          const next = continuation(question);
+          part.after(next);
+          part = next;
+          part.append(block);
+        }
+      } else {
+        if (part.children.length > 2) {
+          const next = continuation(question);
+          part.after(next);
+          part = next;
+          part.append(block);
+        }
+        if (part.getBoundingClientRect().height > limit) part.style.breakInside = "auto";
+      }
+    }
+  }
+  if (checkOverflow && document.documentElement.scrollWidth > document.documentElement.clientWidth + 4) {
+    return "Print content extends past the A4 margins. Resize wide figures, tables, or text.";
+  }
+  return null;
+}
+; const printMargins = [16, 16, 16, 16];
+(() => {
+  const direction = document.getElementById("leapPrintDirection");
+  const notice = document.getElementById("leapPrintNotice");
+  const sheet = document.getElementById("leapPaper");
+  const content = document.querySelector(".print-content");
+  let original = null;
+  const chosen = new URLSearchParams(location.search).get("orientation");
+  if (chosen === "portrait" || chosen === "landscape") direction.value = chosen;
+
+  async function printDocument() {
+    if (original) return;
+    await document.fonts.ready;
+    const landscape = direction.value === "landscape";
+    const [top, right, bottom, left] = printMargins;
+    const width = (landscape ? 297 : 210) - left - right;
+    const height = (landscape ? 210 : 297) - top - bottom;
+    if (Math.min(width, height) < 60) {
+      notice.textContent = "当前页边距在这个方向上留出的空间不足。请改回原方向或调整页边距。";
+      return;
+    }
+    sheet.textContent = `@page { size: A4 ${direction.value}; margin: ${printMargins.map(m => m + "mm").join(" ")}; }`;
+    original = content.cloneNode(true);
+    content.classList.add("print-measurement");
+    content.style.width = `${width}mm`;
+    const issue = paginatePrint(height * 96 / 25.4, false)
+      || (content.scrollWidth > content.clientWidth + 4 ? "内容超过 A4 可打印宽度，请调整图表或文本。" : null);
+    content.style.removeProperty("width");
+    content.classList.remove("print-measurement");
+    if (issue) {
+      notice.textContent = issue;
+      content.replaceChildren(...original.childNodes);
+      original = null;
+      return;
+    }
+    notice.textContent = "";
+    window.print();
+  }
+
+  window.addEventListener("afterprint", () => {
+    if (!original) return;
+    content.replaceChildren(...original.childNodes);
+    original = null;
+  });
+  document.getElementById("leapPrintNow").addEventListener("click", printDocument);
+  if (new URLSearchParams(location.search).get("print") === "1") {
+    if (document.readyState === "complete") printDocument();
+    else window.addEventListener("load", printDocument, {once: true});
+  }
+})();
+</script></body></html>

@@ -51,6 +51,7 @@ The Markdown vault is the complete source; interactive pages are its shorter pro
 - [[docs/subject-notes/electronics]]
 - [[docs/subject-notes/language]]
 - [[docs/teaching-delivery]]
+- [[docs/printing]]
 - [[docs/teaching-upgrade-plan]]
 - [[examples/01-python-recursion/README]]
 - [[examples/01-python-recursion/README_CN]]

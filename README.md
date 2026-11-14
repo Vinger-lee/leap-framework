@@ -19,13 +19,16 @@ Related: [Knowledge_Index](Knowledge_Index.md) · [docs/teaching-delivery](docs/
 
 # 🎓 LEAP Framework
 
+Create illustrated handouts, workbooks, and separate answer keys as A4 PDFs through
+the course page, MCP, or the `leap-print` CLI. See the [printing guide](docs/printing.md).
+
 <p align="center">
   <img src="https://img.shields.io/github/stars/Vinger-lee/leap-framework?style=social" alt="Stars">
   <img src="https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml/badge.svg" alt="CI">
   <img src="https://img.shields.io/github/v/release/Vinger-lee/leap-framework" alt="Release">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-71%20tools-22bb33" alt="MCP Tools">
+  <img src="https://img.shields.io/badge/MCP-74%20tools-22bb33" alt="MCP Tools">
   [![Tests](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml)
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>

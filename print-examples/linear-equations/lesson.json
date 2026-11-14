@@ -1,0 +1,130 @@
+{
+  "title": "一元一次方程",
+  "version": "linear-equations-03",
+  "language": "zh-CN",
+  "questions": [
+    {
+      "title": "先检验一个数",
+      "point_ids": [
+        "math.equivalence"
+      ],
+      "kind": "single_choice",
+      "prompt_html": "<p>当 <strong>x = 3</strong> 时，下面哪个等式成立？先算每个选项的左边，再和右边比。</p>",
+      "options_html": [
+        "2x + 1 = 7",
+        "2x + 1 = 6",
+        "x + 2 = 6",
+        "3x − 1 = 9"
+      ],
+      "answer_html": "<p><strong>A。</strong> 2 × 3 + 1 = 7，和右边相等。B 的左边是 7，C 的左边是 5，D 的左边是 8，都和各自的右边不同。</p>"
+    },
+    {
+      "title": "写出两边做了什么",
+      "point_ids": [
+        "math.equivalence"
+      ],
+      "kind": "calculation",
+      "prompt_html": "<p>解 <strong>4x + 3 = 19</strong>。逐行写出两边的操作，并把你的解代回原式。</p>",
+      "answer_area": {
+        "type": "lines",
+        "lines": 4,
+        "height_mm": 30
+      },
+      "answer_html": "<p>两边减 3，得 <strong>4x = 16</strong>。两边除以 4，得 <strong>x = 4</strong>。代入原式，左边 4 × 4 + 3 = 19，与右边相等。</p><p>如果你写了 4x = 19，检查右边是否也减了 3。</p>"
+    },
+    {
+      "title": "负号、括号与两边都有 x",
+      "point_ids": [
+        "math.equivalence",
+        "math.denominators"
+      ],
+      "kind": "calculation",
+      "prompt_html": "<p>解 <strong>5 − (x − 2) = 2x + 1</strong>。先完整写出展开括号的一行，再把含 x 的项移到同一边。</p>",
+      "answer_area": {
+        "type": "lines",
+        "lines": 5,
+        "height_mm": 37
+      },
+      "answer_html": "<p>括号前是 −1，分给两项后得到 <strong>5 − x + 2 = 2x + 1</strong>，即 7 − x = 2x + 1。两边加 x 得 7 = 3x + 1，再减 1 得 6 = 3x。两边除以 3，得 <strong>x = 2</strong>。</p><p>代回：左边 5 − (2 − 2) = 5，右边 2 × 2 + 1 = 5。</p>"
+    },
+    {
+      "title": "给每一项乘上公倍数",
+      "point_ids": [
+        "math.denominators"
+      ],
+      "kind": "calculation",
+      "prompt_html": "<p>解 <strong>(x − 3) / 4 + (x + 1) / 2 = 3</strong>。写出去分母的步骤，再代回原式检验。</p>",
+      "answer_area": {
+        "type": "lines",
+        "lines": 5,
+        "height_mm": 37
+      },
+      "answer_html": "<p>两边同乘 4，得到 <strong>x − 3 + 2(x + 1) = 12</strong>。展开、合并得 3x − 1 = 12。两边加 1、再除以 3，得 <strong>x = 13/3</strong>。</p><p>代回原式，第一项是 (4/3) ÷ 4 = 1/3，第二项是 (16/3) ÷ 2 = 8/3，相加得 3。若右边仍写成 3，检查是否给它也乘了 4。</p>"
+    },
+    {
+      "title": "x 消失时，剩下的等式说了什么？",
+      "point_ids": [
+        "math.parameters"
+      ],
+      "kind": "short_answer",
+      "new_page": true,
+      "prompt_html": "<p>分别判断两个方程有一个解、无解还是有无穷多解，并说出依据。</p><ol><li>3(x + 1) = 3x + 3</li><li>3(x + 1) = 3x + 7</li></ol>",
+      "answer_area": {
+        "type": "lines",
+        "lines": 3,
+        "height_mm": 28
+      },
+      "answer_html": "<p><strong>① 所有实数都是解。</strong> 展开后两边减 3x，得到 3 = 3。这个式子没有对 x 加任何限制。</p><p><strong>② 无解。</strong> 同样化简得到 3 = 7。每个 x 都会留下这个不成立的等式。</p>"
+    },
+    {
+      "title": "从两条线的交点读出解",
+      "point_ids": [
+        "math.equivalence",
+        "math.parameters"
+      ],
+      "kind": "graphing",
+      "prompt_html": "<p>每格代表 1 个单位。先为 <strong>y = 2x − 3</strong> 取两个点画线，再画 <strong>y = 3</strong>。标出交点，写出它对应的方程与解。</p>",
+      "answer_area": {
+        "type": "axes",
+        "height_mm": 61
+      },
+      "answer_html": "<p>第一条线可以连接 (0, −3) 和 (2, 1)。第二条是穿过 (0, 3) 的水平线。图中交点为 <strong>(3, 3)</strong>。</p><p>纵坐标相等给出 <strong>2x − 3 = 3</strong>。两边加 3，得 2x = 6，所以 <strong>x = 3</strong>。代入两式，y 都等于 3。</p>"
+    },
+    {
+      "title": "挑战｜参数什么时候能约掉？",
+      "point_ids": [
+        "math.parameters",
+        "math.equivalence"
+      ],
+      "kind": "proof",
+      "prompt_html": "<p>对每个实数 m，判断 <strong>(m − 2)x = m² − 4</strong> 有几个实数解。提示：右边等于 (m − 2)(m + 2)。先判断 m − 2 是否为零，再决定能否相除。</p>",
+      "answer_area": {
+        "type": "lines",
+        "lines": 4,
+        "height_mm": 31
+      },
+      "answer_html": "<p><strong>m ≠ 2：</strong> m − 2 非零，可以两边同除，得到唯一解 <strong>x = m + 2</strong>。代回原式有 (m − 2)(m + 2) = m² − 4。</p><p><strong>m = 2：</strong> 原式是 0x = 0，所有实数 x 都成立。若一开始直接约掉 m − 2，就会漏掉这一种情况。</p>"
+    },
+    {
+      "title": "列式后检查实际取值",
+      "point_ids": [
+        "math.equivalence",
+        "math.parameters"
+      ],
+      "kind": "comprehensive",
+      "new_page": true,
+      "prompt_html": "<p>简化的租车模型为固定 8 元，再按每小时 4 元收费，允许按小数小时计费。如果总价为 22 元，租了几小时？若改为购买每张 4 元的车票，另收 8 元服务费，可能刚好付款 22 元吗？分别写出未知量的单位、范围和理由。</p>",
+      "answer_area": {
+        "type": "lines",
+        "lines": 5,
+        "height_mm": 39
+      },
+      "answer_html": "<p>设租车时长为 t 小时，t 可为非负小数。8 + 4t = 22 得 <strong>t = 3.5 小时</strong>，代回得 22 元，且 3.5 在允许的范围内。</p><p>购票时设 n 为张数，n 必须是非负整数。方程给 n = 3.5，不是整数。三张付 20 元，四张付 24 元，所以<strong>无法刚好付款 22 元</strong>。</p>"
+    }
+  ],
+  "course": {
+    "html": "examples/02-math-linear-equation/leap-02-math-linear-equation.html",
+    "node_id": "math.algebra.linear_equation",
+    "example_id": "linear-equation"
+  }
+}

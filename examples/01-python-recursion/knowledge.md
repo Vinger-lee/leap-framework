@@ -1134,3 +1134,8 @@ Python标识符区分大小写：N与n、Factorial与factorial是不同名称。
 ## Backlinks / 反向关联
 
 [[Knowledge_Index]] · [[docs/subject-knowledge-map]] · [[examples/01-python-recursion/README_CN]] · [[examples/05-logic-flowchart/knowledge]]
+
+
+> [!tip]- A4 打印资料
+> 从教学页选择讲义与练习、讲义册、题目册或答案与解析，再设置方向并点击导出 PDF。
+> 课程交互与打印稿分开，只有准备了独立 HTML 才能离线打开打印预览。

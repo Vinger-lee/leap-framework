@@ -447,6 +447,22 @@ button,input,textarea{font:inherit;color:inherit}
 </header>
 
 <main class="wrap">
+  <div data-leap-print aria-label="A4 打印资料" style="display:flex;align-items:center;flex-wrap:wrap;gap:.55rem;margin:1rem 0 1.35rem">
+    <label for="leap-print-edition">打印资料</label>
+    <select id="leap-print-edition" data-print-edition>
+      <option value="combined">讲义与练习</option>
+      <option value="handout">讲义册</option>
+      <option value="workbook">题目册</option>
+      <option value="answers">答案与解析</option>
+    </select>
+    <label for="leap-print-orientation">方向</label>
+    <select id="leap-print-orientation" data-print-orientation>
+      <option value="portrait">纵向</option>
+      <option value="landscape">横向</option>
+    </select>
+    <button type="button" data-print-button>导出 PDF</button>
+    <span data-print-status role="status"></span>
+  </div>
 
   <section class="resource-band" aria-labelledby="flow-resources">
     <h2 id="flow-resources">学习资源与路线：从读箭头到验证循环</h2>
@@ -1012,7 +1028,7 @@ function createLeapBridge(config) {
     ui_state: {mode:"demo",hosted:false,pending_mcp_calls:0,hint_level:0,hint_dependency:null,
       answer_revealed:false,completed:false,local_activity_completed:false}
   };
-  var renderHooks = [], drainWired = false;
+  var renderHooks = [], drainWired = false, printControls = null, pendingPrint = null, printedVersions = new Map();
   function nowSec() { return Math.floor(Date.now() / 1000); }
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
   function isHosted() { return bridge.mode === "hosted"; }
@@ -1116,6 +1132,11 @@ function createLeapBridge(config) {
     });
     Object.keys(results||{}).forEach(function(id) {
       var call=bridge.ledger[id], result=results[id];
+      // PDF bytes are delivery payload, not a learner-state receipt.
+      if (call.tool === "export_print_pdf") {
+        receivePrint(id, result);
+        return;
+      }
       bridge.receipts[id]=clone(result);
       if(!result||result.ok!==true) return;
       var origin=bridge.origins[id];
@@ -1129,6 +1150,81 @@ function createLeapBridge(config) {
     state.assessment.evidence_stage=bridge.server.evidence_stage;
     state.ui_state.hint_dependency=bridge.server.hint_dependency; renderAll(); return snapshot();
   }
+  function receivePrint(id, result) {
+    if (!pendingPrint || pendingPrint.callId !== id) return;
+    var origin = bridge.origins[id];
+    if (origin.session_id !== state.learner.session_id || origin.node_id !== state.node.node_id) {
+      pendingPrint = null;
+      printControls.notice.textContent = "当前课程已切换，请重新导出。";
+      return;
+    }
+    if (result?.status === "needs_authoring") {
+      printControls.notice.textContent = "请宿主 Agent 按导出回执生成独立打印稿，然后重试。";
+      return;
+    }
+    pendingPrint = null;
+    if (result?.ok !== true || result.session_id !== origin.session_id || result.node_id !== origin.node_id ||
+        result.edition !== bridge.ledger[id].args.edition || typeof result.pdf_base64 !== "string") {
+      printControls.notice.textContent = result?.error?.message || "宿主尚未返回此课程的 PDF。";
+      return;
+    }
+    try {
+      var bytes = Uint8Array.from(atob(result.pdf_base64), function (char) { return char.charCodeAt(0); });
+      if (new TextDecoder().decode(bytes.subarray(0, 5)) !== "%PDF-") throw new Error("Invalid PDF");
+      var url = URL.createObjectURL(new Blob([bytes], {type: "application/pdf"}));
+      var link = document.createElement("a");
+      link.href = url;
+      link.download = typeof result.filename === "string" ? result.filename : "leap-print.pdf";
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
+      if ((result.edition === "combined" || result.edition === "workbook") && result.material_id) {
+        printedVersions.set(JSON.stringify([origin.session_id, origin.node_id]), result.material_id);
+      }
+      printControls.notice.textContent = result.version ? "PDF 下载已开始，版本 " + result.version + "。" : "PDF 下载已开始。";
+    } catch (error) {
+      printControls.notice.textContent = "PDF 回执无法读取，请重新导出。";
+    }
+  }
+
+  function mountPrint() {
+    var panel = document.querySelector("[data-leap-print]");
+    if (!panel || printControls) return;
+    printControls = {
+      edition: panel.querySelector("[data-print-edition]"),
+      orientation: panel.querySelector("[data-print-orientation]"),
+      notice: panel.querySelector("[data-print-status]")
+    };
+    panel.querySelector("[data-print-button]").addEventListener("click", function () {
+      var edition = printControls.edition.value;
+      var orientation = printControls.orientation.value;
+      if (!isHosted()) {
+        var files = {combined: panel.dataset.printCombined, handout: panel.dataset.printHandout,
+          workbook: panel.dataset.printWorkbook, answers: panel.dataset.printAnswers};
+        if (!files[edition]) {
+          printControls.notice.textContent = "还没有此版本的离线打印稿。请让宿主 Agent 生成后再打开。";
+          return;
+        }
+        var target = new URL(files[edition], location.href);
+        target.searchParams.set("orientation", orientation);
+        target.searchParams.set("print", "1");
+        window.open(target, "_blank", "noopener");
+        return;
+      }
+      var args = {
+        session_id: state.learner.session_id, node_id: state.node.node_id,
+        edition: edition, orientation: orientation, include_pdf: true
+      };
+      var printed = printedVersions.get(JSON.stringify([args.session_id, args.node_id]));
+      if (edition === "answers" && printed) args.material_id = printed;
+      var call = enqueue("export_print_pdf", args, "生成 A4 PDF。缺少打印稿时，宿主按回执先完成按需创作，再用原 call_id 回传最终 PDF。");
+      pendingPrint = {callId: call.call_id};
+      printControls.notice.textContent = "正在等待宿主生成 PDF。";
+      renderAll();
+    });
+  }
+
   function requestAdvance() {
     var call=enqueue("advance_unit",{session_id:state.learner.session_id,node_id:state.node.node_id},"Runtime State Guard 批准后推进"); renderAll(); return clone(call);
   }
@@ -1171,6 +1267,8 @@ function createLeapBridge(config) {
   }
   function renderAll() {renderOutput();renderSpine();renderBridge();renderRail();renderHooks.forEach(function(fn){fn();});}
   function onRender(fn) {renderHooks.push(fn);fn();}
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mountPrint, {once: true});
+  else mountPrint();
   return {hydrate:hydrate,isHosted:isHosted,getInteractionResult:snapshot,getState:function(){return state;},getMastery:function(){return bridge.server.mastery_probability;},
     peekOutbox:peekOutbox,drainOutbox:drainOutbox,onOutboxChange:function(fn){bridge.hooks.push(fn);},pushEvent:pushEvent,
     setHint:setHint,commitAssessment:commitAssessment,setCompleted:setCompleted,applyToolResults:applyToolResults,requestAdvance:requestAdvance,

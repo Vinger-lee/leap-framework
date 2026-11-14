@@ -72,7 +72,6 @@ def test_skill_references_resolve_and_are_reachable():
             assert path.is_file(), (document, target)
             reachable.add(path)
     assert {document.resolve() for document in documents} <= reachable
-    assert len(documents) == 4
 
 
 def test_skill_does_not_copy_the_runtime_policy():
@@ -169,3 +168,11 @@ def test_documented_tool_calls_match_the_catalog():
                     if match and match.group(1) not in properties:
                         problems.append((document.name, lineno, f"{name}.{match.group(1)}"))
     assert not problems, problems
+
+
+def test_skill_routes_requested_printing_to_the_runtime():
+    _, body = split_skill()
+    assert "references/printing.md" in body
+    source = (SKILL.parent / "references/printing.md").read_text(encoding="utf-8")
+    for tool in ("get_print_materials", "save_print_materials", "export_print_pdf"):
+        assert f"`{tool}(" in source

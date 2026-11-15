@@ -19,7 +19,7 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
 
 # Examples
 
-**Language**: English ｜ Chinese version: see [[examples/README_CN|../examples/README_CN.md]]
+**Language**: English ｜ [中文示例索引](../examples/README_CN.md)
 
 Eight single-file teaching pages. They are **reference implementations**, not the product: each one
 shows how a real teaching page talks to the LEAP runtime.
@@ -34,6 +34,10 @@ shows how a real teaching page talks to the LEAP runtime.
 | 6 | [`examples/06-statistics-probability/`](../examples/06-statistics-probability/) | Statistics — conditional probability |
 | 7 | [`examples/07-chemistry-stoichiometry/`](../examples/07-chemistry-stoichiometry/) | Chemistry — stoichiometry |
 | 8 | [`examples/08-electronics-ohms-law/`](../examples/08-electronics-ohms-law/) | Electronics — Ohm law |
+
+The linear-equations example includes an offline A4 [combined edition](../print-examples/linear-equations/combined.html)
+and a separate [answer key](../print-examples/linear-equations/answers.html). The other examples use the host bridge
+for on-demand print materials. See the [printing guide](printing.md) for the course-to-print workflow.
 
 ## What every page must do
 
@@ -140,4 +144,4 @@ The runtime check needs `playwright` and a Chromium build (`--chromium <path>`),
 
 ## Backlinks / 反向关联
 
-[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]]
+[[Knowledge_Index]] · [[README]] · [[README_CN]] · [[examples/README_CN]] · [[docs/i18n/README.ar]] · [[docs/i18n/README.es]] · [[docs/i18n/README.fr]] · [[docs/i18n/README.ja]] · [[docs/i18n/README.ko]] · [[docs/i18n/README.ru]]

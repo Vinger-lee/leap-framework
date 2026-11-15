@@ -187,8 +187,11 @@ State Guard 是唯一有权批准状态迁移的组件。当工具返回 `REJECT
 
 ## A4 打印资料
 
-使用宿主 Agent 按需生成配图讲义、题目册和独立答案册。默认导出 A4 合订册，
-课程页、MCP 和命令行都可使用。安装和示例见 [A4 打印指南](docs/printing.md)。
+打开[一元一次方程交互课程](examples/02-math-linear-equation/leap-02-math-linear-equation.html)，
+在「打印资料」里选择版式，再点「导出 PDF」。默认是 A4 纵向合订册，讲义和练习分开起页。
+也可以直接打开[配图讲义](print-examples/linear-equations/handout.html)、
+[题目册](print-examples/linear-equations/workbook.html)和[同版本答案解析](print-examples/linear-equations/answers.html)。
+离线打印、Agent 按需组卷及命令行导出见 [A4 打印指南](docs/printing.md)。
 
 ## 🧩 可插拔设计
 

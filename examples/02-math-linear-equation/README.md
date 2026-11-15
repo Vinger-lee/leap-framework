@@ -25,6 +25,13 @@ The canonical note [[examples/02-math-linear-equation/knowledge|Linear-equation 
 
 Study the balance stepper first, use the parameter sliders and line intersection graph to investigate unique/no/all-real solutions, then solve the graduated exercises before opening their complete solutions. The a=0 boundary is explicitly supported. Legal transformations may be performed in different orders; the original q2 exercise checks a specified two-step route to x=5 for 3x+5=20.
 
+For A4 self-study, the Chinese [illustrated handout](../../print-examples/linear-equations/handout.html)
+starts with the same `3x + 5 = 20` balance and works through denominators, zero coefficients,
+line intersections, and practical restrictions on solutions. Try the eight questions in the
+[workbook](../../print-examples/linear-equations/workbook.html) before opening the matching
+[worked answers](../../print-examples/linear-equations/answers.html). The
+[combined edition](../../print-examples/linear-equations/combined.html) prints the handout and workbook together.
+
 Search tiers: **core** `linear equations equality properties equivalent transformations substitution check`; **extension** `distributive property clearing denominators least common multiple units word problems`; **advanced** `parameter linear equation zero coefficient no solution infinitely many solutions reversible operations line intersection`. No unverified video recommendations are included.
 
 All graphics are inline SVG and formulas use native MathML. The responsive reading column expands on desktop and stacks on narrow screens. Controls work with keyboard input and reduced motion. Numerical grading verifies values; learners still need to explain their reasoning and actual domain constraints.

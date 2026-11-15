@@ -19,8 +19,10 @@ Related: [Knowledge_Index](Knowledge_Index.md) · [docs/teaching-delivery](docs/
 
 # 🎓 LEAP Framework
 
-Create illustrated handouts, workbooks, and separate answer keys as A4 PDFs through
-the course page, MCP, or the `leap-print` CLI. See the [printing guide](docs/printing.md).
+Use LEAP for interactive lessons and A4 self-study. In the [linear-equations lesson](examples/02-math-linear-equation/leap-02-math-linear-equation.html),
+explore the balance and then work through the matching [illustrated handout](print-examples/linear-equations/handout.html),
+[workbook](print-examples/linear-equations/workbook.html), and [answer key](print-examples/linear-equations/answers.html).
+The [printing guide](docs/printing.md) covers offline printing and Agent-generated PDF exports.
 
 <p align="center">
   <img src="https://img.shields.io/github/stars/Vinger-lee/leap-framework?style=social" alt="Stars">

@@ -16,6 +16,10 @@ Related: [[Knowledge_Index]]
 
 # LEAP Tutor Implementation Plan
 
+This October 26, 2026 plan records the implementation baseline. For current setup,
+tool profiles, and verification, see the [Agent Skill guide](../../agent-skill.md)
+and [MCP tool reference](../../mcp-tools.md).
+
 **Goal:** Implement the repository-skill route in `LEAP_MCP与Agent_Skill架构方案.md`.
 
 **Architecture:** The skill orchestrates existing MCP tools. Runtime keeps all

@@ -28,7 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add on-demand A4 print materials with separate illustrated handout, workbook,
   and answer-key HTML. Export via the course bridge, MCP, or the `leap-print` CLI.
-  The default combined edition starts the workbook on a fresh page.
+  The default combined edition starts the workbook on a fresh page. The
+  linear-equations lesson ships all four offline editions, with eight questions
+  and a matching worked answer key. See the [printing guide](docs/printing.md).
 
 - Migrate SQLite columns before creating dependent indexes, preserving data
   written by earlier releases.

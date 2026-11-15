@@ -164,7 +164,7 @@ a { color: var(--blue); }
   .print-controls { display: none !important; }
   .print-content { width: auto; margin: 0; }
 }
-</style></head><body><main class="print-content" data-edition="combined"><header class="print-heading"><p class="print-edition">讲义与练习</p><h1>一元一次方程</h1><p class="print-version">版本 linear-equations-03</p></header><section class="print-handout"><section class="lesson-chapter" data-teaching-point="math.equivalence">
+</style></head><body><main class="print-content" data-edition="combined"><header class="print-heading"><p class="print-edition">讲义与练习</p><h1>一元一次方程</h1><p class="print-version">版本 linear-equations-04</p></header><section class="print-handout"><section class="lesson-chapter" data-teaching-point="math.equivalence">
   <p class="lesson-kicker">01　认识等号</p>
   <h2>这个数放进去，两边会一样吗？</h2>
   <p class="lesson-lead">三只相同的小包和 5 枚散装积木，一共 20 枚。每只小包里有几枚？先用 <strong>x</strong> 代表一只小包里的数量。</p>
@@ -219,7 +219,7 @@ a { color: var(--blue); }
       <p>代回原式能发现化简中漏算的项。两步都能倒回去，所以这串方程有相同的解。这和教学页天平上的两次操作一样。</p></div></li>
   </ol>
   <aside class="lesson-callout caution">
-    <p><strong>算错的线索。</strong> 写出 3x = 20 就停下，等于只在左边减了 4。把操作完整写在等号两边，马上就能看见右边漏掉了什么。</p>
+    <p><strong>算错的线索。</strong> 如果写成 3x = 20，就只在左边减了 5。把操作完整写在等号两边，就能看见右边也要减 5。</p>
   </aside>
   <h3>负号也属于这一项</h3>
   <p>解 <strong>−2x + 7 = 13</strong>。两边减 7 得 −2x = 6。为了让 x 的系数变成 1，要除以 <strong>−2</strong>，得到 x = −3。代回去：−2 × (−3) + 7 = 13。</p>
@@ -254,7 +254,7 @@ a { color: var(--blue); }
 <section class="lesson-chapter print-new-page" data-teaching-point="math.denominators">
   <p class="lesson-kicker">04　分数方程</p>
   <h2>同乘一个数，去掉每一项的分母</h2>
-  <p class="lesson-lead">分母是固定的非零数时，找一个能同时被这些分母整除的数。分母是 3 和 6，就选 6，因为 6 ÷ 3 = 2、6 ÷ 6 = 1。</p>
+  <p class="lesson-lead">分母是固定的非零整数时，找它们的一个正公倍数。分母是 3 和 6，就选 6，因为 6 ÷ 3 = 2、6 ÷ 6 = 1。等式两边都乘 6，之后也能同除以 6 回到原式。</p>
   <h3>完整算一遍　(x + 2) / 3 − x / 6 = 2</h3>
   <figure class="lesson-figure">
     <svg viewBox="0 0 620 138" width="620" height="138" role="img" aria-label="去分母逐项对应。六乘第一项得到二乘括号，六乘减去的分数项得到负 x，六乘右边二得到十二">
@@ -300,10 +300,10 @@ a { color: var(--blue); }
         <path d="M20 89h162M42 103V15M229 89h162M251 103V15M438 89h162M460 103V15" fill="none"/>
       </g>
       <g fill="none" stroke-width="2.6">
-        <path d="M24 102L174 19M232 89H389M442 89H596" stroke="#205c99"/>
+        <path d="M18 101L176 22M232 89H389M442 89H596" stroke="#205c99"/>
         <path d="M24 58H174M232 89H389M442 48H596" stroke="#964821" stroke-dasharray="6 4"/>
       </g>
-      <circle cx="103.5" cy="58" r="5" fill="#236e63" stroke="#fff" stroke-width="1.5"/>
+      <circle cx="104" cy="58" r="5" fill="#236e63" stroke="#fff" stroke-width="1.5"/>
       <g text-anchor="middle" font-size="14" fill="#203249" font-family="'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif">
         <text x="100" y="137">相交一次</text><text x="310" y="137">完全重合</text><text x="519" y="137">平行且不重合</text>
       </g>
@@ -324,7 +324,7 @@ a { color: var(--blue); }
     <li class="lesson-step"><span class="step-marker">2</span><div><strong>固定费用加可变费用等于总价</strong><p class="lesson-equation">5 + 3x = 20　→　3x = 15　→　x = 5</p><p>这正是开头积木题的等量关系，只是各项的含义变了。5 千米时，总价为 5 + 3 × 5 = 20 元。</p></div></li>
   </ol>
   <aside class="lesson-callout caution">
-    <p><strong>同样的式子，范围可能不同。</strong> 每本本子 3 元，运费 5 元，总价 21 元，会得到本数 16/3。它满足实数方程，但本数必须是非负整数，因此没有符合题意的购买数量。</p>
+    <p><strong>同样的计价方式，范围可能不同。</strong> 每本本子 3 元，运费 5 元，总价 21 元。设本数为 n，解 5 + 3n = 21 得 n = 16/3。本数必须是非负整数，因此没有符合题意的购买数量。</p>
   </aside>
   <aside class="lesson-callout try"><p><strong>独立列式前。</strong> 先写未知量、单位和允许的范围。求解后做两次检查：代回原式，再判断答案是否符合情境。题目册的应用题可以用这两步自查。</p></aside>
 </section>

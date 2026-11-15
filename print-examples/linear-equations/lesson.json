@@ -1,6 +1,6 @@
 {
   "title": "一元一次方程",
-  "version": "linear-equations-03",
+  "version": "linear-equations-04",
   "language": "zh-CN",
   "questions": [
     {
@@ -88,7 +88,7 @@
         "type": "axes",
         "height_mm": 61
       },
-      "answer_html": "<p>第一条线可以连接 (0, −3) 和 (2, 1)。第二条是穿过 (0, 3) 的水平线。图中交点为 <strong>(3, 3)</strong>。</p><p>纵坐标相等给出 <strong>2x − 3 = 3</strong>。两边加 3，得 2x = 6，所以 <strong>x = 3</strong>。代入两式，y 都等于 3。</p>"
+      "answer_html": "<p>第一条线可以连接 (0, −3) 和 (2, 1)。第二条是穿过 (0, 3) 的水平线。两条线交于 <strong>(3, 3)</strong>。</p><p>纵坐标相等给出 <strong>2x − 3 = 3</strong>。两边加 3，得 2x = 6，所以 <strong>x = 3</strong>。代入两式，y 都等于 3。</p>"
     },
     {
       "title": "挑战｜参数什么时候能约掉？",

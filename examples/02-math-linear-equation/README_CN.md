@@ -23,7 +23,7 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
 
 - 打开 [交互课程](leap-02-math-linear-equation.html)。桌面浏览器直接打开即可，全部公式、SVG和交互脚本在单文件中。
 - 纸上自学：[彩色讲义](../../print-examples/linear-equations/handout.html)沿用交互天平的 `3x + 5 = 20`，
-  从等号和代入检验讲到括号、分母、零系数、交点与实际取值。接着做[题目册](../../print-examples/linear-equations/workbook.html)，
+  从等号和代入检验讲到括号、分母、零系数、交点与实际取值。接着做[题目册](../../print-examples/linear-equations/workbook.html)里的八道新题，
   完成后用[答案与解析](../../print-examples/linear-equations/answers.html)核对。也可打开[合订册](../../print-examples/linear-equations/combined.html)。
 - 完整复习：[[examples/02-math-linear-equation/knowledge|规范知识笔记]]；在普通Markdown阅读器中可用 [[examples/02-math-linear-equation/knowledge|知识笔记]]。笔记包含网页全部学习段落与解答，并额外解释可逆运算、参数方程、定义域与更多完整例题。
 - 延伸迁移：[[examples/04-physics-free-fall/knowledge|自由落体]] 中求时间也要同乘、同除，但多出平方根与物理取值域。
@@ -34,6 +34,9 @@ Related: [[Knowledge_Index]] · [[docs/teaching-delivery]]
 2. 扩展20分钟：先独立解负系数、括号与分母题，再展开对应完整解答。
 3. 边界10分钟：把参数计算器的a调为0，分别让b=c、b≠c，看直线重合与平行分离，写出解集。
 4. 迁移10分钟：列实际问题方程，给未知量写单位与范围，再检验答案是否可行。
+
+离线打开本课 HTML 后，选择「打印资料」和方向，再点「导出 PDF」。浏览器会打开对应的打印稿。
+选 A4 即可打印或另存 PDF。详见 [A4 打印指南](../../docs/printing.md)。
 
 ## 可以探索的图示与任务
 

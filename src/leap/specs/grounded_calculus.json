@@ -1,0 +1,100 @@
+{
+  "course_id": "calculus.limits-derivative",
+  "title": "高等数学：从极限到导数与可导性",
+  "aliases": ["高数", "高等数学", "导数", "极限与导数", "微积分", "单变量微积分", "calculus", "single-variable calculus"],
+  "reviewed_on": "2026-11-15",
+  "review_due_on": "2027-05-14",
+  "status": "approved",
+  "sources": {
+    "openstax-limit": {
+      "publisher": "OpenStax, Rice University",
+      "work": "Calculus Volume 1",
+      "edition": "English edition",
+      "url": "https://openstax.org/books/calculus-volume-1/pages/2-2-the-limit-of-a-function",
+      "locator": "§2.2, Relating One-Sided and Two-Sided Limits",
+      "markers": ["Relating One-Sided and Two-Sided Limits", "if the limit from the left and the limit from the right take on different values"]
+    },
+    "openstax-definition": {
+      "publisher": "OpenStax, Rice University",
+      "work": "Calculus Volume 1",
+      "edition": "English edition",
+      "url": "https://openstax.org/books/calculus-volume-1/pages/3-1-defining-the-derivative",
+      "locator": "§3.1, The Derivative of a Function at a Point",
+      "markers": ["Defining the Derivative", "The Derivative of a Function at a Point"]
+    },
+    "openstax-differentiability": {
+      "publisher": "OpenStax, Rice University",
+      "work": "Calculus Volume 1",
+      "edition": "English edition",
+      "url": "https://openstax.org/books/calculus-volume-1/pages/3-2-the-derivative-as-a-function",
+      "locator": "§3.2, Theorem 3.1 and Figure 3.14",
+      "markers": ["Differentiability Implies Continuity", "continuous at a point and fail to be differentiable"]
+    },
+    "mit-definition": {
+      "publisher": "MIT OpenCourseWare",
+      "work": "18.01SC Single Variable Calculus",
+      "edition": "Fall 2010",
+      "url": "https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/pages/1.-differentiation/part-a-definition-and-basic-rules/session-1-introduction-to-derivatives/",
+      "locator": "Session 1, Limit of Secants and Definition of Derivative",
+      "markers": ["Limit of Secants", "Definition of Derivative"]
+    },
+    "mit-continuity": {
+      "publisher": "MIT OpenCourseWare",
+      "work": "18.01SC Single Variable Calculus",
+      "edition": "Fall 2010",
+      "url": "https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/pages/1.-differentiation/part-a-definition-and-basic-rules/session-5-discontinuity/",
+      "locator": "Session 5, Clip 5: Differentiable Implies Continuous",
+      "markers": ["Differentiable Implies Continuous", "Session 5: Discontinuity"]
+    }
+  },
+  "points": [
+    {
+      "point_id": "calculus.limit",
+      "title": "从左右两侧逼近",
+      "prerequisites": "函数把一个允许的输入 x 对应到一个值 f(x)。坐标图上，x 的位置和函数值的高度分别读横轴和纵轴。",
+      "principle": "在可以从两侧逼近的内点，有限的双侧极限存在，当且仅当左极限和右极限都存在且相等。极限看的是附近的值。",
+      "steps": ["取靠近目标但不等于目标的点。x 比目标小是左侧，比目标大是右侧。", "分别判断两侧的函数值趋向哪里。两侧趋向同一有限值时才记为双侧极限。"],
+      "worked_example": "令 f(x)=−2（x<0）、f(0)=5、f(x)=2（x>0）。x 从左靠近 0 时函数值始终为 −2，从右靠近时始终为 2。双侧极限不存在。",
+      "misconceptions": "把 f(0)=5 直接当成极限会得到错误结论。求极限时看 x≠0 的行为。",
+      "boundaries": "本单元讨论实数函数的有限极限和可从两侧逼近的内点。区间端点需单独说明使用哪一侧。",
+      "comparison": "若把上例左侧也改成 2，左右极限同为 2，双侧极限是 2。即使仍有 f(0)=5，极限也不受影响。",
+      "practice": "判断 x<1 时为 4、x>1 时为 7 的函数在 1 处是否有双侧极限。分别说出左右极限。",
+      "transfer": "观察收费标准在临界点跳变时，分别预测临界点前后的金额，再判断是否存在双侧极限。",
+      "evidence": {"openstax-limit": "在目标的左右两侧分别有定义时，两侧极限的共同值给出双侧极限。若两侧极限不同，双侧极限不存在。"},
+      "check": {"id": "jump", "prompt": "左极限为 −2、右极限为 2。双侧极限存在吗？用 exists 或 does_not_exist 回答。", "answer": "does_not_exist"},
+      "item": {"question": "分段函数在 x<1 时恒为 4，在 x>1 时恒为 7，f(1)=4。求左右极限并判断双侧极限。", "answer": "左极限 4，右极限 7，双侧极限不存在。", "solution": "把 x 限制在 1 的左边时函数值恒为 4，限制在右边时恒为 7。两侧极限不同，f(1) 的取值不改变这个判断。"}
+    },
+    {
+      "point_id": "calculus.derivative",
+      "title": "从割线斜率得到瞬时变化率",
+      "prerequisites": "直线上两个不同横坐标的点，斜率等于纵坐标的变化量除以横坐标的变化量。",
+      "principle": "在内点 a，导数 f′(a) 是 h 趋近 0 时差商 (f(a+h)−f(a))/h 的有限双侧极限。",
+      "steps": ["把 h 当作非零的横坐标变化量，写出通过 (a,f(a)) 和 (a+h,f(a+h)) 的割线斜率。", "先在 h≠0 的前提下化简差商，再让 h 从两侧趋近 0。"],
+      "worked_example": "用定义求 f(x)=x² 在 a=2 的导数。差商 [(2+h)²−4]/h=(4h+h²)/h=4+h，前提是 h≠0。因此 f′(2)=4。",
+      "misconceptions": "把 h=0 直接代入未化简的差商会得到 0/0。取极限只要求 h 接近 0。",
+      "boundaries": "差商要求 f(a) 和附近的 f(a+h) 有定义。双侧极限需为同一有限实数。",
+      "comparison": "在 h=0.1 时得到的是割线斜率 4.1。令 h 趋向 0 得到的 4 才是这个点的瞬时变化率。",
+      "practice": "用同样的展开和约分步骤求 f(x)=x² 在 a=3 的导数。",
+      "transfer": "若 s(t) 是随时间变化的位置，把横坐标变化 h 解释成时间变化，差商和导数分别表示平均和瞬时速度。",
+      "evidence": {"openstax-definition": "导数可以通过割线斜率的差商极限定义，极限存在时给出切线斜率。", "mit-definition": "从两个曲线上点构成的割线出发，让第二点靠近固定点，考察斜率的极限。"},
+      "check": {"id": "square_at_two", "prompt": "从非零 h 的差商化简出发，求 x² 在 x=2 的导数。只填结果。", "answer": "4"},
+      "item": {"question": "从导数定义求 f(x)=x² 在 x=3 的导数，说明何时可以约去 h。", "answer": "6。h≠0 时才可以约去 h。", "solution": "差商 [(3+h)²−9]/h=(6h+h²)/h。h≠0 时等于 6+h。取 h→0 得 6。"}
+    },
+    {
+      "point_id": "calculus.differentiability",
+      "title": "判断可导以及它与连续的关系",
+      "prerequisites": "连续要求函数值存在，函数的双侧极限也存在，并且等于该函数值。导数取的是差商的极限。",
+      "principle": "若函数在内点可导，则它在该点连续。连续的函数仍可能在该点没有导数。",
+      "steps": ["把函数值的变化写成 h 乘以差商。差商有有限极限且 h 趋近 0 时，函数值变化也趋近 0。", "要判断连续函数是否可导，另外检查差商的左右极限。"],
+      "worked_example": "f(x)=|x| 在 0 连续，因为 |h|→0=f(0)。差商 |h|/h 在 h<0 时等于 −1，在 h>0 时等于 1。左右不同，所以 f′(0) 不存在。",
+      "misconceptions": "看到曲线连在一起只能支持连续性的判断。绝对值函数的尖点说明它的左右差商可以不同。",
+      "boundaries": "这里的导数为有限实数，讨论内点的双侧定义。端点的单侧导数另行声明。",
+      "comparison": "x² 和 |x| 都在 0 连续。x² 在 0 的差商为 h，左右趋向 0。|x| 的差商左右趋向不同值。",
+      "practice": "检查 g(x)=|x−1| 在 x=1 的连续性与可导性，并给出左右差商。",
+      "transfer": "对在接合点连续的分段函数，分别计算两侧差商，判断接合点有没有同一个切线斜率。",
+      "evidence": {"openstax-differentiability": "在一点可导可以推得该点连续。连续本身不足以推出可导，绝对值函数在原点构成反例。", "mit-continuity": "可导蕴含连续。证明用差商乘以横坐标增量，令增量趋向零。"},
+      "check": {"id": "absolute_at_zero", "prompt": "按左、右的顺序写出 |x| 在 x=0 的差商极限。用英文逗号分隔。", "answer": "-1,1"},
+      "item": {"question": "g(x)=|x−1| 在 x=1 连续吗？可导吗？分别说明原因。", "answer": "在 1 连续，但在 1 不可导。", "solution": "g(1)=0，|x−1| 随 x→1 趋近 0，所以连续。非零 h 的差商为 |h|/h，左侧 −1、右侧 1，双侧极限不存在。"}
+    }
+  ]
+}

@@ -397,7 +397,7 @@ def test_export_session_data_stays_inside_the_artifact_root(tmp_path):
     from leap.tools import build_service
 
     root = tmp_path / "artifacts"
-    service = build_service(":memory:", {"artifact_root": str(root)})
+    service = build_service(":memory:", {"artifact_root": str(root)}, strict_grounding=False)
     try:
         sid = service.create_session("exporter", "export fixture")["session_id"]
         relative = service.export_session_data(sid, output_path="session.json")["export"]

@@ -196,10 +196,12 @@ class StateVersionConflict(Exception):
 class StateGuard:
     """Enforces the invariants that keep learner state consistent."""
 
-    def __init__(self, db: Database, cfg: Any, events: Any = None, translator: Any = None) -> None:
+    def __init__(self, db: Database, cfg: Any, events: Any = None, translator: Any = None,
+                 *, strict_grounding: bool = True) -> None:
         self._db = db
         self._cfg = cfg
         self._events = events
+        self.strict_grounding = strict_grounding
         if translator is None:
             from leap.i18n import translator_for
 
@@ -219,7 +221,7 @@ class StateGuard:
     def check_domain_grounding(self, session_id: str) -> GuardDecision:
         """Block learner diagnostics until agent self-calibration is done."""
         session = self._db.query_one(
-            "SELECT allow_skip_domain_grounding, domain_grounding_stage, "
+            "SELECT topic, allow_skip_domain_grounding, domain_grounding_stage, "
             "benchmark_report_artifact_id FROM learning_sessions WHERE session_id = ?",
             (session_id,),
         )
@@ -239,6 +241,24 @@ class StateGuard:
             metadata = {}
         if not isinstance(metadata, dict):
             metadata = {}
+        if self.strict_grounding:
+            from leap.runtime.grounding import FORMAT_VERSION, GroundingError, resolve_course, revision
+
+            next_call = {"tool": "get_grounding_sources", "arguments": {"session_id": session_id}}
+            try:
+                course = resolve_course(session["topic"])
+            except GroundingError as exc:
+                return GuardDecision.reject(str(exc), details={"error_code": exc.code, "next_call": next_call})
+            course_revision = revision(course)
+            if (stage != "completed" or metadata.get("evidence_format_version") != FORMAT_VERSION
+                    or metadata.get("course_revision") != course_revision):
+                return GuardDecision.reject("A reviewed calibration receipt is required for this course revision",
+                                            details={"next_call": next_call})
+            return GuardDecision.allow("Reviewed evidence is current", details={
+                "course_id": course["course_id"], "course_revision": course_revision,
+                "benchmark_report_artifact_id": report_id, "source_ids": metadata["source_ids"],
+                "reviewed_on": course["reviewed_on"], "review_due_on": course["review_due_on"],
+            })
         evidence_recorded = bool(metadata.get("evidence_format_version") == 1
                                  and metadata.get("source_count", 0) > 0
                                  and metadata.get("verification")

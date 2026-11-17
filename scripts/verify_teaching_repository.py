@@ -79,7 +79,7 @@ def simulate_registration(page: Path, markdown: str, html: str, manifest: dict) 
     """Register one shipped example through the real public tool path."""
     from leap.tools import ToolError, build_service
 
-    service = build_service(":memory:")
+    service = build_service(":memory:", strict_grounding=False)
     try:
         session = service.create_session(
             "example-registration-verifier", f"registration simulation: {page.stem}")

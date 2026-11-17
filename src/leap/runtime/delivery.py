@@ -133,6 +133,7 @@ class VisibleTeaching(HTMLParser):
         self.classes: set[str] = set()
         self.elements: dict[str, list[tuple[str, dict]]] = {}
         self.hidden_ids: set[str] = set()
+        self.teaching_anchors: list[str] = []
 
     @staticmethod
     def _attr_hides(attributes: dict) -> bool:
@@ -144,6 +145,8 @@ class VisibleTeaching(HTMLParser):
     def handle_starttag(self, tag, attrs):
         attributes = dict(attrs)
         hide = tag in HIDDEN_TAGS or self._attr_hides(attributes)
+        if tag == "section" and not self.hidden and not hide and attributes.get("data-teaching-point"):
+            self.teaching_anchors.append(attributes["data-teaching-point"])
         if attributes.get("id"):
             identifier = attributes["id"]
             self.ids.add(identifier)
@@ -643,6 +646,8 @@ def validate_teaching_package(markdown: str, html: str, manifest: Any) -> dict:
         errors.extend(visual_errors)
     points = manifest.get("teaching_points")
     points_list = points if isinstance(points, list) else []
+    if parser.teaching_anchors and parser.teaching_anchors != [point.get("point_id") for point in points_list if isinstance(point, dict)]:
+        errors.append("HTML data-teaching-point anchors must cover the manifest teaching points in order")
     text_only = _text_only_points(points_list)
     has_visual_points = any(
         isinstance(point, dict) and isinstance(point.get("visualization"), dict)

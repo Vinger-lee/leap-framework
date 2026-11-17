@@ -1,4 +1,4 @@
-"""Tool profiles: progressive exposure of a 70-tool surface.
+"""Tool profiles: progressive exposure of the registered tools.
 
 These tests guard the two things that can go wrong with profile filtering: a
 tool silently disappearing when it should stay, and a profile that quietly
@@ -95,6 +95,7 @@ def test_quickstart_keeps_every_facade_tool_and_the_setup_path():
     assert set(FACADE_TOOL_NAMES) <= quickstart
     # A complete lesson needs grounding, the DAG, the package and the items.
     for required in (
+        "get_grounding_sources",
         "save_benchmark_report",
         "save_knowledge_nodes",
         "save_knowledge_edges",

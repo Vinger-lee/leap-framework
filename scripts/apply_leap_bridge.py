@@ -11,7 +11,7 @@ import re
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 BRIDGE_MARKER = "LEAP_HOST_BRIDGE"
-KERNEL = REPO_ROOT / "examples/_shared/bridge-kernel.js"
+KERNEL = REPO_ROOT / "src/leap/teaching_assets/bridge-kernel.js"
 REQUIRED_BRIDGE_PARTS = (("banner", BRIDGE_MARKER),("state object", "var bridge = {"),
     ("outbox queue", "outbox: []"),("hydrate()", "function hydrate("),
     ("drainOutbox()", "function drainOutbox("),("peekOutbox()", "function peekOutbox("),

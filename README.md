@@ -22,7 +22,7 @@ Related: [Knowledge_Index](Knowledge_Index.md) · [docs/teaching-delivery](docs/
 Use LEAP for interactive lessons and A4 self-study. In the [linear-equations lesson](examples/02-math-linear-equation/leap-02-math-linear-equation.html),
 explore the balance and then work through the matching [illustrated handout](print-examples/linear-equations/handout.html),
 [workbook](print-examples/linear-equations/workbook.html), and [answer key](print-examples/linear-equations/answers.html).
-The [printing guide](docs/printing.md) covers offline printing and Agent-generated PDF exports.
+The [printing guide](docs/printing.md) covers offline printing and reviewed MCP PDF exports.
 
 <p align="center">
   <img src="https://img.shields.io/github/stars/Vinger-lee/leap-framework?style=social" alt="Stars">
@@ -30,7 +30,7 @@ The [printing guide](docs/printing.md) covers offline printing and Agent-generat
   <img src="https://img.shields.io/github/v/release/Vinger-lee/leap-framework" alt="Release">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-74%20tools-22bb33" alt="MCP Tools">
+  <img src="https://img.shields.io/badge/MCP-75%20tools-22bb33" alt="MCP Tools">
   [![Tests](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml)
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
@@ -134,7 +134,7 @@ For teaching-page verification dependencies, commands and acceptance criteria, s
 
 ```
 1. Goal Specification
-2. Domain Grounding          ← the agent studies the topic before teaching it
+2. Domain Grounding          ← the agent reads reviewed sources and solves checks
 3. Learner Diagnostic
 4. Knowledge Representation  ← DAG of knowledge nodes
 5. Learner State Initialisation
@@ -190,19 +190,21 @@ Hosts supporting repository skills can load
 conditional recovery guidance. See [setup and acceptance](docs/agent-skill.md) and
 [host configuration](docs/host-config.md) for copy-paste `mcpServers` samples and the per-host
 discovery matrix (Claude Code, for example, scans `.claude/skills`, not `.agents/skills`).
-The skill is a draft; host discovery, activation and the MCP connection still need separate
-verification. Quickstart is a complete teaching path: it records new misconceptions
-(`assess_misconception`), records a learner's informed decision to skip domain grounding
-(`set_domain_grounding_skip`), recovers split assessments and closes sessions explicitly; a
-closed session stops suggesting teaching calls. Responses carry a compact `policy_version`
+The skill is a draft. Verify host discovery, activation and the MCP connection separately.
+Quickstart records misconceptions, recovers split assessments and closes sessions explicitly.
+A closed session stops suggesting teaching calls. Responses carry a compact `policy_version`
 instead of the full policy, and `continue_lesson` returns a summary unless `verbose=True`.
 Use full for the existing HTML outbox bridge.
 
-Domain Grounding now requires source locators, excerpts, linked claims, checked examples and limitations in `save_benchmark_report(verification=...)`. Text alone remains pending; teaching entry points are guarded too. Hosts must read sources themselves and register checked questions with `save_assessment_item` before delivery. Free-text reasoning needs host semantic review: LEAP validates submitted records and estimates state; it does not prove subject-matter correctness.
+Both profiles use the reviewed source library. The first unit covers limits, derivatives and differentiability. Start with `start_learning(..., topic="高等数学")`, then call `get_grounding_sources(session_id)`. Read the source locators and solve the checks independently. Submit `save_benchmark_report` with the actual reading report, `course_revision`, every `chunk_id` and a `check_answers` map from check IDs to answer strings. The runtime rejects legacy host attestations and skip requests. If sources are absent, expired or withdrawn, pause formal teaching.
+
+After calibration, call `get_grounding_sources(session_id, include_lesson=True)`. Register `.lesson.node` with `save_knowledge_nodes`, the returned `subject`, `markdown`, `html` and `manifest` with `save_teaching_package`, then each reviewed item with `save_assessment_item`. Supply the session ID, node ID, a unique item ID and the accepted package ID. Free-text reasoning needs host semantic review. For A4, save `.lesson.print_draft` with `save_print_materials` and the session, node and package IDs.
+
+The same SQLite database keeps calibration receipts and readable learning history across restarts. The first pack has a 180-day review period. Maintainers can run `python scripts/review_grounding_sources.py` to check approved source links and locators on demand, then restart MCP after manually approving and publishing an update. The full profile can save new material as `save_artifact(artifact_type="teaching_draft", ...)` for review. See the [host integration guide](docs/INTEGRATION.md).
 
 See the [content-quality and integration workflow](docs/content-quality.md) and [audit of the reported delivery](docs/quality-audit-2026-10-10.md). Browser scenario checks and real MCP integration checks are separate from content review.
 
-Every mode uses the permanent depth, controllable diagrams, wide layout, complete Obsidian source and precise resource policy. Register the actual Markdown/HTML pair with `save_teaching_package` before registering questions. See [docs/teaching-delivery](docs/teaching-delivery.md), the 11-domain catalog in [docs/subject-knowledge-map](docs/subject-knowledge-map.md), and the separate curriculum delivery workflow; course recipes are maintained outside this framework.
+The delivery policy covers depth, controllable diagrams, wide layout, full Obsidian source and precise resources. The 11-domain catalog and example lessons are available for reference and offline preview. See the [delivery policy](docs/teaching-delivery.md) and [subject knowledge map](docs/subject-knowledge-map.md).
 
 ## 🧩 Pluggable by design
 

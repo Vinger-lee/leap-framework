@@ -45,6 +45,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Reviewed sources for the first higher-mathematics unit, covering limits,
+  derivatives and differentiability. Both MCP profiles expose
+  `get_grounding_sources` for reading locators, answering checks and retrieving
+  the reviewed node, Markdown, HTML, items and print draft after calibration.
+- An on-demand source precheck via `python scripts/review_grounding_sources.py`.
+  The first pack has a 180-day review period. Maintainers approve updates manually.
+- Full course export saves the registered teaching HTML and four A4 PDFs in one
+  course-title folder under a configurable output directory. The file names carry
+  the course title, and the course page requests PDFs for its own package version.
+
 - Repository `leap-tutor` skill draft with conditional lifecycle, content-quality
   and recovery references, versioned with LEAP 2.1.0.
 - Skill contracts and real MCP stdio tests for both profiles: evidence and DAG
@@ -61,6 +71,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   hosts that connect LEAP over stdio.
 
 ### Changed
+
+- Formal teaching, assessment, review and export require current reviewed
+  evidence. Teaching packages, items and print drafts must match the reviewed
+  content. Legacy host attestations and grounding waivers are rejected. SQLite
+  preserves calibration receipts and readable history across restarts.
+  Hosts can save new content with `save_artifact` as a `teaching_draft` in full.
+  The tool profiles provide 75 tools in full and 36 in quickstart.
 
 - **Anatomy visual contracts are enforced for new deliveries.** A first teaching
   package for a session/node must carry a full `anatomy.v2` contract; legacy
@@ -96,13 +113,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `policy_version` instead of the full policy (fetch it with
   `get_teaching_delivery_policy`); `continue_lesson` defaults to a summary
   (`verbose=True` for the full context) and `get_teaching_context` takes
-  `include_template=False` by default. Quickstart gains
-  `set_domain_grounding_skip`, `assess_misconception`, `find_session` and
-  `get_teaching_context`.
+  `include_template=False` by default. Quickstart includes `assess_misconception`,
+  `find_session` and `get_teaching_context`.
 - Quickstart now exposes existing `commit_assessment`, `resolve_misconception`,
-  `assess_misconception` and `complete_session` tools; the server registers 71
-  tools in the `full` profile and 32 in `quickstart` (previously 70 and 28).
-  Existing public signatures are unchanged.
+  `assess_misconception` and `complete_session` tools.
 - Server instructions route detailed workflows to the optional skill, retaining
   Runtime boundaries and dynamic visual-authoring policy. Integration guides
   retain the full prompt for hosts without skill support.
@@ -121,7 +135,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   documents the same 0/1/2 exit-code contract as the example gate.
 - **Agent skill guidance tightened.** The `leap-tutor` description narrows its
   trigger conditions (ordinary one-off questions and LEAP source development do
-  not trigger it); the skill documents the domain-grounding skip flow, closed
+  not trigger it); the skill documents reviewed-source calibration, closed
   session behaviour and the rule that review ratings must be real learner input;
   `docs/host-config.md` replaces per-host guesswork and the integration guide
   separates a quickstart-compatible prompt from full-only fine-grained tooling.

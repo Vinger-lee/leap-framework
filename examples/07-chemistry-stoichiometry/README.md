@@ -23,7 +23,7 @@ Allow 35–50 minutes with basic chemical formulas, ratios and unit conversion. 
 
 Two tools use different scales: an integer molecule demonstration consumes 2H2 and 1O2 per full batch, while a macroscopic calculator uses continuous moles. The default 6 g H2 / 32 g O2 model yields 36 g water with 2 g H2 remaining. Sliders, play/pause, forward/backward/reset, hydrogen-limiting and stoichiometric presets, invalid input and zero-theoretical-yield boundaries are covered.
 
-Fixed tasks include minimal balancing, limiting-reactant outputs, coefficient-versus-mass choices, one explanation collected for semantic review, and a new exact task after confirmed full solutions. Every retry retains the original answer. Objective correctness does not establish reasoning, transfer or confidence. The page uses `window.LEAP=createLeapBridge(config)` with inline `examples/_shared/bridge-kernel.js`, provisional assessments, item-specific attempt references and Runtime receipts. Local completion requests the guard; Runtime owns actual advancement.
+Fixed tasks include minimal balancing, limiting-reactant outputs, coefficient-versus-mass choices, one explanation collected for semantic review, and a new exact task after confirmed full solutions. Every retry retains the original answer. Objective correctness does not establish reasoning, transfer or confidence. The page uses `window.LEAP=createLeapBridge(config)` with inline `src/leap/teaching_assets/bridge-kernel.js`, provisional assessments, item-specific attempt references and Runtime receipts. Local completion requests the guard; Runtime owns actual advancement.
 
 Identifiers: `chem.stoichiometry.limiting` / `chemistry` / `stoichiometry`. Run from the repository root:
 

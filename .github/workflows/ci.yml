@@ -101,6 +101,7 @@ jobs:
         run: |
           python scripts/build_print_example.py --check
           python scripts/verify_printing.py
+          python scripts/verify_reviewed_course.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

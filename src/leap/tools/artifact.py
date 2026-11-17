@@ -73,11 +73,17 @@ class ArtifactTools(LeapToolMixin):
         """
         from leap.runtime.delivery import validate_teaching_package, validate_visual_source_links
         session = self.require_session(session_id)
-        self.require_grounding(session_id)
+        grounding = self.require_grounding(session_id)
         node = self.require_node(node_id)
         if node["session_id"] != session_id:
             raise ToolError("invalid_node", "teaching node must belong to this session")
         self.require_text(subject, "subject")
+        if self.guard.strict_grounding:
+            from leap.runtime.grounding import course_node_id, lesson_pair, reviewed_course
+
+            approved = lesson_pair(reviewed_course(), grounding["source_ids"])
+            if node_id != course_node_id(session_id) or subject != "calculus" or (markdown, html, manifest) != approved:
+                raise ToolError("grounding_unreviewed_content", "Register the exact reviewed lesson returned by get_grounding_sources")
         result = validate_teaching_package(markdown, html, manifest)
         if not result["valid"]:
             raise ToolError("teaching_package_incomplete", "Teaching pair does not meet the permanent delivery policy", result)
@@ -139,6 +145,8 @@ class ArtifactTools(LeapToolMixin):
                     "warnings": warnings,
                     "markdown_sha256": hashlib.sha256(markdown.encode("utf-8")).hexdigest(),
                     "html_sha256": hashlib.sha256(html.encode("utf-8")).hexdigest()}
+        if self.guard.strict_grounding:
+            metadata["course_revision"] = grounding["course_revision"]
         self.db.execute(
             "INSERT INTO artifacts (artifact_id, learner_id, session_id, artifact_type, content, metadata, version, created_at) VALUES (?,?,?,?,?,?,?,?)",
             (artifact_id, session["learner_id"], session_id, "teaching_package", self._dumps(content), self._dumps(metadata), "3.0", ts),
@@ -218,6 +226,10 @@ class ArtifactTools(LeapToolMixin):
         accepted save_teaching_package call. Full bodies are validated there.
         """
         artifact_type = self.require_text(artifact_type, "artifact_type")
+        if self.guard.strict_grounding and artifact_type.casefold() in {
+            "agent_benchmark_report", "teaching_package", "print_materials", "diagnostic_result",
+        }:
+            raise ToolError("reserved_artifact_type", "This artifact must be created by its dedicated LEAP tool")
         if path_or_uri is None and content is None:
             raise ToolError(
                 "invalid_argument", "provide at least one of 'path_or_uri' or 'content'"
@@ -228,12 +240,18 @@ class ArtifactTools(LeapToolMixin):
         is_teaching = (artifact_type.lower() in teaching_types or
                        (path_or_uri and str(path_or_uri).lower().endswith((".html", ".htm", ".md"))) or
                        (isinstance(content, str) and "<html" in content.lower()))
-        if is_teaching:
+        if self.guard.strict_grounding and artifact_type == "teaching_draft":
+            metadata = {"grounding_state": "unreviewed"}
+        elif is_teaching:
             package_id = metadata.get("teaching_package_id") if isinstance(metadata, dict) else None
             row = self.db.query_one("SELECT metadata FROM artifacts WHERE artifact_id=? AND session_id=? AND artifact_type='teaching_package'", (package_id, session_id)) if package_id else None
             if not row:
                 raise ToolError("teaching_package_required", "Register both teaching bodies with save_teaching_package before saving a teaching artifact")
             package_meta = json.loads(row["metadata"])
+            if self.guard.strict_grounding:
+                self.require_reviewed_package(session_id, package_id, self.require_grounding(session_id))
+                if path_or_uri is not None:
+                    raise ToolError("grounding_unreviewed_content", "Store the reviewed body rather than an unverified external path")
             if content is not None:
                 digest = hashlib.sha256(content.encode("utf-8")).hexdigest()
                 if digest not in {package_meta["markdown_sha256"], package_meta["html_sha256"]}:
@@ -263,6 +281,15 @@ class ArtifactTools(LeapToolMixin):
         if row is None:
             raise ToolError("unknown_artifact", f"artifact not found: {artifact_id}")
         data = dict(row)
+        if self.guard.strict_grounding and data["artifact_type"] in {"teaching_draft", "teaching_package", "print_materials"}:
+            data["grounding_state"] = "historical"
+            if data["artifact_type"] == "teaching_draft":
+                data["grounding_state"] = "unreviewed"
+            elif data["session_id"]:
+                decision = self.guard.check_domain_grounding(data["session_id"])
+                metadata = json.loads(data["metadata"] or "{}")
+                if decision.allowed and metadata.get("course_revision") == decision.details["course_revision"]:
+                    data["grounding_state"] = "current"
         if not include_content:
             data.pop("content", None)
         return self.ok(artifact=data)

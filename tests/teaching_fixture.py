@@ -1,5 +1,11 @@
-"""Explicit synthetic teaching pair for structural workflow tests only."""
+"""Synthetic services and teaching content for structural workflow tests."""
+from functools import partial
+
 from leap.runtime.delivery import html_teaching_text
+from leap.tools import build_service
+
+
+build_fixture_service = partial(build_service, strict_grounding=False)
 
 
 def teaching_pair():

@@ -106,6 +106,7 @@ ALL_TOOL_NAMES: tuple[str, ...] = FACADE_TOOL_NAMES + (
     "record_transfer_result",
     "record_reflection",
     "complete_session",
+    "get_grounding_sources",
     "save_benchmark_report",
     "save_benchmark_claim",
     "get_evidence",
@@ -131,6 +132,7 @@ ALL_TOOL_NAMES: tuple[str, ...] = FACADE_TOOL_NAMES + (
 #: Everything a complete lesson needs beyond the coarse loop.
 QUICKSTART_SETUP_TOOL_NAMES: tuple[str, ...] = (
     # Domain grounding + delivery contract
+    "get_grounding_sources",
     "save_benchmark_report",
     "set_domain_grounding_skip",
     "get_teaching_delivery_policy",

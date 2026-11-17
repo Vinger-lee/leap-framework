@@ -43,7 +43,7 @@ def check_paper(pdf: bytes, orientation: str, pages: int | None = None) -> None:
 
 def seed(database: Path, course: Path, page: dict) -> str:
     """Register the shipped teaching pair with synthetic evidence in a temporary DB."""
-    svc = build_service(database)
+    svc = build_service(database, strict_grounding=False)
     try:
         sid = svc.create_session("print-reader", "linear equations")["session_id"]
         manifest = json.loads(course.with_suffix(".delivery.json").read_text(encoding="utf-8"))
@@ -80,7 +80,11 @@ async def check_bridge(database: Path, sid: str, chromium: str | None, spec: dic
     env = {**os.environ, "LEAP__DATABASE_PATH": str(database), "PYTHONPATH": str(ROOT / "src")}
     if chromium:
         env["LEAP_PRINT_CHROMIUM"] = chromium
-    server = StdioServerParameters(command=sys.executable, args=["-m", "leap.server", "--tool-profile", "quickstart"], env=env)
+    server = StdioServerParameters(
+        command=sys.executable,
+        args=[str(ROOT / "tests" / "fixture_mcp_server.py"), "--tool-profile", "quickstart"],
+        env=env,
+    )
     async with asyncio.timeout(120), stdio_client(server) as (read, write), ClientSession(read, write) as session:
         await session.initialize()
 
@@ -143,7 +147,8 @@ async def check_bridge(database: Path, sid: str, chromium: str | None, spec: dic
                 async with page.expect_download() as downloaded:
                     await page.evaluate("data => window.LEAP.applyToolResults(data)", {queued["call_id"]: result})
                 download = await downloaded.value
-                assert download.suggested_filename.endswith("-combined.pdf")
+                assert download.suggested_filename == result["filename"]
+                assert download.suggested_filename.endswith(" - 合订册.pdf")
                 assert (await download.path()).read_bytes() == base64.b64decode(result["pdf_base64"])
 
                 # Another version was authored after the user downloaded the worksheet.

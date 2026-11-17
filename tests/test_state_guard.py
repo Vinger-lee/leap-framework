@@ -63,13 +63,13 @@ class TestDomainGroundingGate:
         assert result["ok"] is True
         assert result["state_guard"]["allow_skip_domain_grounding"] is True
 
-    def test_notice_is_returned_when_warning_enabled(self, service):
-        session = service.create_session("L1", "recursion", domain_grounding_warn_user=True)
+    def test_notice_is_returned_when_warning_enabled(self, strict_service):
+        session = strict_service.create_session("L1", "recursion", domain_grounding_warn_user=True)
         assert session["domain_grounding_notice"]
-        assert "Token" in session["domain_grounding_notice"]
+        assert "经预审的权威来源" in session["domain_grounding_notice"]
 
-    def test_notice_is_suppressed_when_warning_disabled(self, service):
-        session = service.create_session("L1", "recursion", domain_grounding_warn_user=False)
+    def test_notice_is_suppressed_when_warning_disabled(self, strict_service):
+        session = strict_service.create_session("L1", "recursion", domain_grounding_warn_user=False)
         assert session["domain_grounding_notice"] is None
 
 

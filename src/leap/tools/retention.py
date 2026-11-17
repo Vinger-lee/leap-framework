@@ -127,6 +127,12 @@ class RetentionTools(LeapToolMixin):
             row = dict(row)
             node = self.require_node(row["node_id"], session_id)
             resolved_session_id = node["session_id"]
+            if self.guard.strict_grounding:
+                self.require_grounding(resolved_session_id)
+                from leap.runtime.grounding import course_node_id
+
+                if row["node_id"] != course_node_id(resolved_session_id):
+                    raise ToolError("grounding_coverage_missing", "The review belongs to a historical node outside the current course")
 
             try:
                 rating_int = int(rating)

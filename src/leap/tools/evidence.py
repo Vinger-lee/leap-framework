@@ -1,8 +1,7 @@
 """Evidence / Grounding tools (section 22.9, section 17).
 
-``save_benchmark_report`` is the core write of the Domain Grounding stage. While
-``allow_skip_domain_grounding`` is false, the State Guard refuses
-``generate_diagnostic`` until a valid report exists (section 22.9).
+`get_grounding_sources` retrieves pre-reviewed evidence and `save_benchmark_report`
+records the calibration receipt required before teaching.
 """
 
 from __future__ import annotations
@@ -21,6 +20,38 @@ class EvidenceTools(LeapToolMixin):
     # ------------------------------------------------------------------
     # 22.9 Evidence / Grounding
     # ------------------------------------------------------------------
+    def get_grounding_sources(self, session_id: str, *, point_ids: list[str] | None = None,
+                              include_lesson: bool = False) -> dict:
+        """Retrieve reviewed passages for this session topic, before calibration.
+
+        Read the passages and solve the checks before saving the benchmark. With
+        include_lesson, return the reviewed teaching pair after calibration.
+        """
+        from leap.runtime.grounding import (
+            GroundingError, course_node_id, lesson_pair, print_draft, retrieve_evidence, reviewed_items,
+        )
+
+        session = self.require_session(session_id)
+        try:
+            evidence = retrieve_evidence(session["topic"], point_ids)
+        except GroundingError as exc:
+            raise ToolError(exc.code, str(exc)) from exc
+        course = evidence["course"]
+        response = dict(course_id=course["course_id"], title=course["title"],
+                        course_revision=evidence["course_revision"], sources=evidence["sources"],
+                        reviewed_on=course["reviewed_on"], review_due_on=course["review_due_on"],
+                        checks=[{"id": point["check"]["id"], "prompt": point["check"]["prompt"]}
+                                for point in course["points"]])
+        if include_lesson:
+            receipt = self.require_grounding(session_id)
+            markdown, html, manifest = lesson_pair(course, receipt["source_ids"])
+            response["lesson"] = {"markdown": markdown, "html": html, "manifest": manifest,
+                                  "subject": "calculus", "items": reviewed_items(course, receipt["source_ids"]),
+                                  "print_draft": print_draft(course),
+                                  "node": {"node_id": course_node_id(session_id), "title": course["title"],
+                                           "unit_tag": "calculus", "bloom_level": "understand"}}
+        return self.ok(session_id=session_id, **response)
+
     def save_benchmark_report(
         self,
         session_id: str,
@@ -28,18 +59,25 @@ class EvidenceTools(LeapToolMixin):
         *,
         source_refs: list[dict] | None = None,
         verification: dict | None = None,
+        course_revision: str | None = None,
+        chunk_ids: list[str] | None = None,
+        check_answers: dict[str, str] | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Save grounding evidence; prose alone remains pending and does not unlock teaching.
+        """Calibrate against retrieved reviewed passages and independently solve their checks.
 
-        The full text is stored as an artifact of type agent_benchmark_report;
-        source_refs require source, source_type, locator and excerpt. verification
-        requires scope, claims (claim + source_index), worked_examples (problem,
-        solution, check_method, check_result) and limitations. Read sources with
-        host tools first. Runtime checks completeness, not truth of the content.
+        Submit course_revision, every retrieved chunk_id, and check_answers keyed
+        by the returned check ids. The server records locators and provenance from
+        the reviewed pack. Host-reported source_refs and verification are legacy
+        arguments and cannot authorize production teaching.
         """
         session = self.require_session(session_id)
         report_text = self.require_text(report_text, "report_text")
+        if self.guard.strict_grounding:
+            if source_refs is not None or verification is not None:
+                raise ToolError("grounding_host_attestation_unsupported", "Use reviewed passage IDs and their calibration checks")
+            return self._save_reviewed_report(session, report_text, course_revision,
+                                              chunk_ids, check_answers, request_id)
         refs = list(source_refs or [])
         if any(not isinstance(ref, Mapping) for ref in refs):
             raise ToolError("invalid_argument", "source_refs must contain source objects")
@@ -185,6 +223,58 @@ class EvidenceTools(LeapToolMixin):
                 else None
             ),
         )
+
+    def _save_reviewed_report(self, session, report_text, course_revision, chunk_ids, check_answers, request_id):
+        from leap.runtime.grounding import FORMAT_VERSION, GroundingError, normalized_answer, retrieve_evidence
+
+        self.require_active_session(session)
+        session_id = session["session_id"]
+        try:
+            evidence = retrieve_evidence(session["topic"])
+        except GroundingError as exc:
+            raise ToolError(exc.code, str(exc)) from exc
+        if course_revision != evidence["course_revision"]:
+            raise ToolError("grounding_revision_required", "Retrieve the current reviewed course revision first",
+                            {"next_call": {"tool": "get_grounding_sources", "arguments": {"session_id": session_id}}})
+        sources = {record["chunk_id"]: record for record in evidence["sources"]}
+        selected_ids = set(chunk_ids or [])
+        if selected_ids != set(sources):
+            raise ToolError("grounding_coverage_missing", "Read every reviewed passage before starting this course",
+                            {"missing_chunk_ids": sorted(set(sources) - selected_ids)})
+        expected = {point["check"]["id"]: point["check"]["answer"] for point in evidence["course"]["points"]}
+        answers = check_answers or {}
+        incorrect = [key for key, answer in expected.items() if normalized_answer(answers.get(key)) != answer]
+        if incorrect:
+            raise ToolError("grounding_check_failed", "Recheck the indicated derivations against the source pack",
+                            {"check_ids": incorrect})
+        timestamp = now_ts()
+        report_id = new_id("art")
+        source_ids = [new_id("src") for _ in sources]
+        metadata = {"evidence_format_version": FORMAT_VERSION, "source_count": len(source_ids),
+                    "course_id": evidence["course"]["course_id"], "course_revision": course_revision,
+                    "source_ids": source_ids, "chunk_fingerprints": {key: row["fingerprint"] for key, row in sources.items()},
+                    "passed_checks": list(expected)}
+        with self.db.transaction():
+            for source_id, source in zip(source_ids, sources.values()):
+                self.db.execute(
+                    "INSERT INTO evidence_sources (source_id, session_id, source, source_type, authority, "
+                    "retrieved_at, last_verified, metadata) VALUES (?,?,?,?,?,?,?,?)",
+                    (source_id, session_id, source["url"], "reviewed_reference", source["publisher"], timestamp, None,
+                     self._dumps({**source, "excerpt": source["summary"], "reviewed_on": evidence["course"]["reviewed_on"]})),
+                )
+            self.db.execute(
+                "INSERT INTO artifacts (artifact_id, learner_id, session_id, artifact_type, content, metadata, version, created_at) "
+                "VALUES (?,?,?,'agent_benchmark_report',?,?,'2',?)",
+                (report_id, session["learner_id"], session_id, report_text, self._dumps(metadata), timestamp),
+            )
+            self.db.execute("UPDATE learning_sessions SET benchmark_report_artifact_id=?, "
+                            "domain_grounding_stage='completed', updated_at=? WHERE session_id=?",
+                            (report_id, timestamp, session_id))
+            self.events.emit("domain_grounding_completed", session_id=session_id, learner_id=session["learner_id"],
+                             payload={"artifact_id": report_id, "source_count": len(source_ids)}, request_id=request_id)
+        return self.ok(session_id=session_id, artifact_id=report_id, domain_grounding_stage="completed",
+                       evidence_format_version=FORMAT_VERSION, course_revision=course_revision, sources_saved=source_ids,
+                       next_step="generate_diagnostic", content_verified_by_runtime=False)
 
     def save_benchmark_claim(
         self,

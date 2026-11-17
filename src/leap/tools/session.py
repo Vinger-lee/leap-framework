@@ -64,9 +64,8 @@ class SessionTools(LeapToolMixin):
     ) -> dict:
         """Create a learning session. learner_id is required (P0 is single-learner).
 
-        Domain-grounding switches are stored per session, not globally. When
-        domain_grounding_warn_user is true the returned notice must be shown to
-        the user before the grounding stage starts.
+        A current reviewed source pack is required to proceed. If a grounding
+        notice is returned, show it to the user before starting calibration.
         """
         learner_id = self.require_text(learner_id, "learner_id")
         topic = self.require_text(topic, "topic")
@@ -81,6 +80,10 @@ class SessionTools(LeapToolMixin):
             if domain_grounding_warn_user is None
             else bool(domain_grounding_warn_user)
         )
+        if self.guard.strict_grounding:
+            if allow_skip_domain_grounding is True:
+                raise ToolError("grounding_waiver_disabled", "Reviewed sources are mandatory for formal teaching")
+            allow_skip = False
 
         self.ensure_learner(learner_id, learner_name)
         session_id = new_id("ses")
@@ -112,15 +115,18 @@ class SessionTools(LeapToolMixin):
             domain_grounding_stage="pending",
             allow_skip_domain_grounding=allow_skip,
             domain_grounding_warn_user=warn_user,
-            domain_grounding_notice=(
-                self.t(DOMAIN_GROUNDING_NOTICE_KEY) if warn_user else None
-            ),
+            domain_grounding_notice=(self._grounding_notice() if warn_user else None),
             next_step="domain_grounding",
             guidance=(
-                "Domain Grounding is mandatory unless allow_skip_domain_grounding is true. "
-                "Call save_benchmark_report before generate_diagnostic."
+                "Retrieve reviewed sources with get_grounding_sources and pass their checks before teaching."
+                if self.guard.strict_grounding else
+                "Call save_benchmark_report before generate_diagnostic unless calibration was waived."
             ),
         )
+
+    def _grounding_notice(self) -> str:
+        key = "domain_grounding.reviewed_notice" if self.guard.strict_grounding else DOMAIN_GROUNDING_NOTICE_KEY
+        return self.t(key)
 
     def find_session(self, learner_id: str, topic: str | None = None) -> dict:
         """Find existing sessions by learner and optionally topic.
@@ -172,18 +178,17 @@ class SessionTools(LeapToolMixin):
         reason: str | None = None,
         request_id: str | None = None,
     ) -> dict:
-        """Record the post-creation Domain Grounding decision (skip or require).
+        """Clear historical waivers and configure the grounding notice.
 
-        The grounding switches used to be write-once at ``create_session`` time,
-        so when the learner answered "skip it" after seeing the notice the host
-        had to throw the session away and create a new one. This tool lets the
-        decision be recorded on the existing session. Changing the switch does
-        not erase evidence; it only changes the gate for later tool calls.
+        Pass allow_skip=false to remove an old waiver. Production formal teaching
+        requires current reviewed evidence regardless of the historical flag.
         """
         session = self.require_session(session_id)
         previous_skip = bool(session.get("allow_skip_domain_grounding"))
         previous_warn = bool(session.get("domain_grounding_warn_user"))
         new_skip = bool(allow_skip)
+        if self.guard.strict_grounding and new_skip:
+            raise ToolError("grounding_waiver_disabled", "Reviewed sources are mandatory for formal teaching")
         new_warn = previous_warn if warn_user is None else bool(warn_user)
         ts = now_ts()
         with self.db.transaction():
@@ -376,8 +381,7 @@ class SessionTools(LeapToolMixin):
     def generate_diagnostic(self, session_id: str, *, request_id: str | None = None) -> dict:
         """Return a diagnostic blueprint.
 
-        Rejected by the State Guard until Domain Grounding is completed, unless
-        the session was created with allow_skip_domain_grounding=true.
+        The State Guard requires a current reviewed grounding receipt.
         """
         session = self.require_session(session_id)
         decision = self.guard.check_domain_grounding(session_id)
@@ -389,7 +393,8 @@ class SessionTools(LeapToolMixin):
                 payload={"tool": "generate_diagnostic", **decision.as_dict()},
                 request_id=request_id,
             )
-            raise ToolError("domain_grounding_required", decision.reason, decision.as_dict())
+            raise ToolError(decision.details.get("error_code", "domain_grounding_required"),
+                            decision.reason, decision.as_dict())
 
         goal_row = self.db.query_one(
             "SELECT * FROM learning_goals WHERE session_id = ? ORDER BY rowid DESC LIMIT 1",
@@ -406,6 +411,12 @@ class SessionTools(LeapToolMixin):
             request_id=request_id,
         )
 
+        reviewed_fields = {}
+        if self.guard.strict_grounding:
+            from leap.runtime.grounding import reviewed_course, reviewed_items
+
+            reviewed_fields = {"reviewed_items": reviewed_items(reviewed_course(), decision.details["source_ids"]),
+                               "grounding": decision.details}
         return self.ok(
             session_id=session_id,
             diagnostic_depth=depth,
@@ -415,12 +426,15 @@ class SessionTools(LeapToolMixin):
             time_budget=goal.get("time_budget"),
             prior_knowledge=goal.get("prior_knowledge"),
             guidance=(
+                "Use the approved questions after registering them against the reviewed lesson."
+                if self.guard.strict_grounding else
                 "Generate items with the host agent's LLM, then submit each answer through "
                 "submit_diagnostic. Keep the probe short when prior_knowledge is high; extend "
                 "it when prerequisites are unknown."
             ),
             generation_requirements=delivery_policy()["generation_requirements"],
             state_guard=decision.as_dict(),
+            **reviewed_fields,
         )
 
     def submit_diagnostic(
@@ -484,6 +498,8 @@ class SessionTools(LeapToolMixin):
     ) -> dict:
         """Persist the diagnostic summary and mark the diagnostic phase complete."""
         session = self.require_session(session_id)
+        if self.guard.strict_grounding:
+            self.require_grounding(session_id)
         artifact_id = new_id("art")
         ts = now_ts()
         payload = result if isinstance(result, str) else json_dumps(result)
@@ -511,6 +527,8 @@ class SessionTools(LeapToolMixin):
         status = str(session.get("status") or "active")
         if status in {"completed", "abandoned"}:
             return "closed"
+        if self.guard.strict_grounding and not self.guard.check_domain_grounding(session["session_id"]).allowed:
+            return "domain_grounding"
         if session.get("domain_grounding_stage") != "completed" and not session.get(
             "allow_skip_domain_grounding"
         ):

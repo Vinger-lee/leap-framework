@@ -1,6 +1,6 @@
 """Installation self-check: ``python -m leap.doctor`` / ``leap-doctor``.
 
-The runtime needs a Python interpreter, three runtime dependencies, a writable
+The runtime needs a Python interpreter, its runtime dependencies, a writable
 SQLite location, a readable configuration and a self-consistent message
 catalogue. When one of those is wrong the failure usually surfaces much later as
 an opaque tool error, so this module checks them up front and reports
@@ -33,7 +33,7 @@ from leap.storage import Database
 __all__ = ["run_checks", "render", "main"]
 
 MIN_PYTHON = (3, 11)
-RUNTIME_DEPENDENCIES = ("mcp", "fsrs", "yaml")
+RUNTIME_DEPENDENCIES = ("mcp", "fsrs", "yaml", "langchain_core.documents", "langgraph.graph")
 #: The MCP SDK API server.py imports. ``mcp`` 1.x does not ship it, so the
 #: dependency lower bound is checked here explicitly instead of failing at
 #: server start with an ImportError.

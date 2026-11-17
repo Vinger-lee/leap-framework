@@ -15,10 +15,15 @@ Related: [[Knowledge_Index]]
 
 LEAP 为个人学习生成独立的讲义册、题目册和答案解析。课程 HTML 用于交互。
 四种打印版式使用可离线打开的 HTML，题目册与答案解析共享题号和版本。
+讲义正文应能直接用于纸上自学，完整展示图解、参与推导的每一步和自检过程。书目可放在独立的
+`bibliography_html` 片段里，列出出版者、书名、章节和可见网址。讲义册在正文后印参考文献，
+合订册在练习卷后印参考文献。
+从教学课件调用打印时，沿用 outbox 的 `package_id` 查询、登记和导出。浏览器会校验返回的 `package_id`，
+同一会话和节点存在新版课件时，也按当前打开的课件取对应讲义。切换教学包时重新打开课件。课件的交互控件由宿主处理，纸面保留静态图解和推导。
 
 | 版本 | 内容 |
 |---|---|
-| `combined` | 默认合订册。讲义在前，练习另起一页。 |
+| `combined` | 合订册。讲义在前，练习另起一页。 |
 | `handout` | 自学讲义，从具体问题起步，配有图解、逐步例题、易错分析和自检。 |
 | `workbook` | 题干、配图、选项和答题区。 |
 | `answers` | 与题目册同版本的答案和解析，单独导出。 |
@@ -35,7 +40,7 @@ LEAP 为个人学习生成独立的讲义册、题目册和答案解析。课程
 
 下载仓库并保留目录结构后，可以直接用浏览器打开课程 HTML。选择「打印资料」和方向，
 点「导出 PDF」会打开相应的独立打印页，并调起浏览器打印。选择 A4 和「另存为 PDF」即可。
-仓库自带的离线配套打印稿对应一元一次方程，其余示例可由连接了 LEAP MCP 的宿主 Agent 按需生成。
+仓库自带的一元一次方程配套打印稿可离线预览和打印。正式 MCP 导出使用有有效证据的预审课程。
 
 > [!tip]- 安装与验收
 > 安装 `.[print]` 后运行 `python -m playwright install chromium`。
@@ -58,30 +63,47 @@ leap-print my-handout.html -o handout.pdf --orientation landscape --margins-mm 1
 
 ## 宿主 Agent 和 MCP
 
-1. 调用 `get_print_materials(session_id, node_id)` 查找已保存版本。默认复用最新打印稿。
-   用户要求更新或换题时，通过 `include_source=True` 取得课程 Markdown、教学点和学习证据。
-2. 根据讲义重新出题。覆盖核心教学点，用已有作答和薄弱点调整题量、难度与比重。
-   无作答证据时按讲义组卷。独立解题，核对条件、边界、干扰项、答案和解析。
-3. 调用 `save_print_materials` 保存讲义 HTML 片段和题目。用返回的
-   `uncovered_point_ids` 检查覆盖缺口，并逐节核对讲义与课程中的符号、模型和前置知识。
-   按需保存新版本，旧版本可由 `material_id` 找回。
-4. 调用 `export_print_pdf`。默认将合订册写入 `artifact_root`，返回文件路径。可指定
-   `edition`、`orientation`、`margins_mm`，也可传 `include_pdf=True` 取得下载字节。
-   对编辑过的 HTML，可保存为新打印稿版本或用命令行直接导出。
-5. 打包离线课程时，用 `get_print_materials` 的 `html_directory` 保存四份 HTML。
+1. 用 `get_print_materials(session_id, node_id)` 查找已保存版本。正式导出要求当前有效
+   证据和预审版本。历史稿可由 `material_id` 读取。首包是高数「从极限到导数与可导性」，
+   校准与教学包登记见 [[docs/INTEGRATION_CN]]。
+2. 从 `get_grounding_sources(session_id, include_lesson=True)` 取 `.lesson.print_draft`。
+   独立核对讲义、题目与答案，用 `save_print_materials` 原样提交预审打印稿的
+   `title`、`handout_html`、`questions`、`language`，及实际会话、节点和教学包 ID。
+   查看返回的 `uncovered_point_ids`。方向和边距可按需设置。
+3. 调用 `export_print_pdf(session_id, node_id, package_id=...)` 导出完整课程目录，按回执的
+   `output_directory`、`html_path` 和 `pdf_paths` 交付。可指定 `orientation`、`margins_mm`。
+   显式传 `edition` 只保存对应 PDF 和同一课件。传 `include_pdf=True` 可下载单份 PDF，
+   传 `output_path` 可将单份 PDF 写到 `artifact_root` 下的指定位置。
+   历史稿和新编草稿仅供查看或离线打印，请保留其状态标识。
+4. 打包离线课程时，用 `get_print_materials` 的 `html_directory` 保存四份 HTML。
    给课程页的 `[data-leap-print]` 元素配置四个 `data-print-<edition>` 相对路径。
    打开课程页可离线跳转到独立打印稿，再由浏览器另存为 PDF。
 
 宿主页面桥接沿用 `LEAP.hydrate`、`LEAP.drainOutbox` 和 `LEAP.applyToolResults`。
-课程页发出 `export_print_pdf`。如回执为 `needs_authoring`，宿主按回执读取授课资料并完成
-上述创作和保存步骤，然后重新导出同一版式，将最终下载回执映射到原 `call_id`。
+课程页发出 `export_print_pdf`。如回执为 `needs_authoring`，宿主读取预审打印稿并完成
+上述保存步骤，然后重新导出同一版式，将最终下载回执映射到原 `call_id`。
 如果宿主没有接出队和回执，离线发放时使用独立打印 HTML。答案册由用户在课程页主动选择，
 也可通过宿主 Agent 按需导出。课程页会为当前页面里最近下载的题目册或合订册使用同版本答案。
-保存个人题稿时，记录返回的 `material_id` 和封面版本号。以后补打答案册时，
-用该 `material_id` 和 `edition="answers"` 导出原版解析。
+保存时记录 `material_id` 和封面版本号。版本仍有效时可用该 `material_id` 和
+`edition="answers"` 补打配套解析。
 
-`include_source=True` 会把当前会话的学习状态和评估摘要交给宿主。个性化讲义和题稿可能含有个人学习记录，
-导出物宜保存在用户本地。仓库中的静态样例使用公开课程内容。
+`include_source=True` 会把当前会话的学习状态和评估摘要交给宿主。仓库静态样例
+使用公开课程内容。
+
+## 课程导出目录
+
+默认保存在用户目录的 `~/LEAP/课程输出/`。可以在宿主环境设置 `LEAP__COURSE_OUTPUT_ROOT`
+指定独立位置。目录和文件名取教学节点标题，文件系统不接受的字符会替换为连字符。
+重复导出同名课程时，新目录会加上 ` (2)`、` (3)` 等序号。
+
+```text
+高等数学：从极限到导数与可导性/
+├── 高等数学：从极限到导数与可导性 - 教学课件.html
+├── 高等数学：从极限到导数与可导性 - 讲义册.pdf
+├── 高等数学：从极限到导数与可导性 - 题目册.pdf
+├── 高等数学：从极限到导数与可导性 - 答案与解析.pdf
+└── 高等数学：从极限到导数与可导性 - 合订册.pdf
+```
 
 ## 自学讲义的排版
 
@@ -106,4 +128,4 @@ leap-print my-handout.html -o handout.pdf --orientation landscape --margins-mm 1
   需要确定续页位置时由作者显式分段。
 
 完整组卷样例见 [lesson.json](../print-examples/linear-equations/lesson.json)。
-Runtime 校验结构、版本和教学点关联。配图表达、题目正确性和讲义覆盖由宿主 Agent 复核。
+Runtime 校验预审版本、内容匹配和教学点关联。配图表达、题目正确性和讲义覆盖由宿主 Agent 复核。

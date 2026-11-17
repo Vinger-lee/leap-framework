@@ -29,9 +29,10 @@ agent, and which claims would need evidence that does not exist yet.
 - **Mastery estimation.** `mastery_probability` is computed server-side from submitted evidence by
   the configured estimator; the host cannot send it.
 - **Review scheduling.** FSRS intervals and retrievability, per node and per card.
-- **Delivery structure.** Domain grounding needs source locators, excerpts, linked claims, worked
-  checks and limitations; a teaching package must pair canonical Markdown with its projection and
-  carry the required sections before items can be registered.
+- **Delivery structure.** Domain Grounding requires the current reviewed course revision,
+  its complete set of source chunks and independently solved checks. Formal teaching packages,
+  items and print materials must match that reviewed revision. The first unit covers limits,
+  derivatives and differentiability. Historical records remain readable.
 - **Auditability.** Every state change is an event with a request id, and rejections are logged with
   their reason.
 
@@ -84,10 +85,9 @@ agent, and which claims would need evidence that does not exist yet.
   response carries a compact `policy_version`; the full policy is returned only by
   `get_teaching_delivery_policy`. `continue_lesson` returns a summary by default (`verbose=True`
   for the full teaching context) and `get_teaching_context` takes `include_template=False`.
-- **Tool profiles change navigation, not authority.** `quickstart` (35 tools) is a complete
-  teaching path including `assess_misconception` and `set_domain_grounding_skip`; `full` (71
-  tools) adds the fine-grained and HTML-outbox surface. `python -m leap.doctor` and the generated
-  tool reference print the live counts.
+- **Tool profiles share the same guard.** `quickstart` (36 tools) provides the reviewed
+  teaching workflow. `full` (75 tools) adds fine-grained tools, draft storage and the HTML
+  outbox. `python -m leap.doctor` and the generated tool reference print the live counts.
 - **Operational footprint.** The host runs an MCP stdio process, a SQLite file and a YAML config.
   `python -m leap.doctor` checks those prerequisites, and the `quickstart` tool profile reduces the
   catalog an agent must navigate, but the process still has to be supervised like any other local

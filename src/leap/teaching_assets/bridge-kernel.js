@@ -87,9 +87,16 @@ function createLeapBridge(config) {
   }
   function hydrate(ctx) {
     if(!ctx||typeof ctx!=="object"||ctx.ok===false) throw new TypeError("hydrate requires a successful Runtime context");
+    if (config.course_revision && (ctx.grounding?.course_revision !== config.course_revision || !ctx.reviewed_package_id)) {
+      throw new Error("当前上下文与这份课件的预审版本不一致，请打开已登记的课件。");
+    }
     var sess=ctx.session||{},node=ctx.current_node||ctx.node||{},ks=ctx.knowledge_state||{};
     var learner=ctx.learner_id||sess.learner_id, sid=ctx.session_id||sess.session_id;
     if(!learner||!sid||!node.node_id) throw new TypeError("Runtime context needs learner, session and node identifiers");
+    if (config.course_revision && isHosted() && sid === state.learner.session_id && node.node_id === state.node.node_id &&
+        ctx.reviewed_package_id !== bridge.context.reviewed_package_id) {
+      throw new Error("这份课件已绑定教学包，请打开新版课件再接入新的上下文。");
+    }
     if(sid!==state.learner.session_id||node.node_id!==state.node.node_id) {
       if(bridge.outbox.length) throw new Error("切换上下文前必须先取走并处理原节点的调用队列");
       bridge.attempts={}; bridge.latestAssessmentCall=null; state.ui_state.completed=false; state.ui_state.local_activity_completed=false;
@@ -147,6 +154,12 @@ function createLeapBridge(config) {
       printControls.notice.textContent = "当前课程已切换，请重新导出。";
       return;
     }
+    var request = bridge.ledger[id].args;
+    if (request.package_id && result?.ok === true && result.package_id !== request.package_id) {
+      pendingPrint = null;
+      printControls.notice.textContent = "打印回执对应另一份课件，请重新导出。";
+      return;
+    }
     if (result?.status === "needs_authoring") {
       printControls.notice.textContent = "请宿主 Agent 按导出回执生成独立打印稿，然后重试。";
       return;
@@ -169,7 +182,7 @@ function createLeapBridge(config) {
       link.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
       if ((result.edition === "combined" || result.edition === "workbook") && result.material_id) {
-        printedVersions.set(JSON.stringify([origin.session_id, origin.node_id]), result.material_id);
+        printedVersions.set(JSON.stringify([origin.session_id, origin.node_id, request.package_id || null]), result.material_id);
       }
       printControls.notice.textContent = result.version ? "PDF 下载已开始，版本 " + result.version + "。" : "PDF 下载已开始。";
     } catch (error) {
@@ -205,7 +218,8 @@ function createLeapBridge(config) {
         session_id: state.learner.session_id, node_id: state.node.node_id,
         edition: edition, orientation: orientation, include_pdf: true
       };
-      var printed = printedVersions.get(JSON.stringify([args.session_id, args.node_id]));
+      if (config.course_revision) args.package_id = bridge.context.reviewed_package_id;
+      var printed = printedVersions.get(JSON.stringify([args.session_id, args.node_id, args.package_id || null]));
       if (edition === "answers" && printed) args.material_id = printed;
       var call = enqueue("export_print_pdf", args, "生成 A4 PDF。缺少打印稿时，宿主按回执先完成按需创作，再用原 call_id 回传最终 PDF。");
       pendingPrint = {callId: call.call_id};
@@ -218,6 +232,12 @@ function createLeapBridge(config) {
     var call=enqueue("advance_unit",{session_id:state.learner.session_id,node_id:state.node.node_id},"Runtime State Guard 批准后推进"); renderAll(); return clone(call);
   }
   function peekOutbox() {return clone(bridge.outbox);}
+  function reviewedItemId(index) {return isHosted() ? bridge.context.reviewed_item_ids?.[index] || null : null;}
+  function attemptReceipt(itemId) {
+    var attempt = bridge.attempts[itemId];
+    var receipt = attempt && bridge.receipts[attempt.call_id];
+    return receipt ? clone(receipt) : null;
+  }
   function drainOutbox() {var out=peekOutbox();bridge.outbox.length=0;renderAll();return out;}
   function snapshot() {
     var out=clone(state); out.ui_state.mode=bridge.mode; out.ui_state.hosted=isHosted();out.ui_state.pending_mcp_calls=bridge.outbox.length;
@@ -258,8 +278,9 @@ function createLeapBridge(config) {
   function onRender(fn) {renderHooks.push(fn);fn();}
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mountPrint, {once: true});
   else mountPrint();
-  return {hydrate:hydrate,isHosted:isHosted,getInteractionResult:snapshot,getState:function(){return state;},getMastery:function(){return bridge.server.mastery_probability;},
+  return {hydrate:hydrate,isHosted:isHosted,reviewedItemId:reviewedItemId,getInteractionResult:snapshot,getState:function(){return state;},getMastery:function(){return bridge.server.mastery_probability;},
     peekOutbox:peekOutbox,drainOutbox:drainOutbox,onOutboxChange:function(fn){bridge.hooks.push(fn);},pushEvent:pushEvent,
     setHint:setHint,commitAssessment:commitAssessment,setCompleted:setCompleted,applyToolResults:applyToolResults,requestAdvance:requestAdvance,
+    attemptReceipt:attemptReceipt,
     aggregate:aggregate,onRender:onRender,refresh:renderAll,HINT_DEP:HINT_DEP,STAGE_CN:STAGE_CN};
 }

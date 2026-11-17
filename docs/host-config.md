@@ -65,6 +65,8 @@ MCP SDK 需要 **2.3+**（代码使用 `mcp.server.mcpserver.MCPServer`；1.x �
   设置了 `LEAP_HOME` 时相对 `LEAP_HOME`，否则相对**当前工作目录**（不是仓库根，也不是
   安装目录）。推荐二选一：写绝对路径，或设 `LEAP_HOME=E:\...\leap-work` 并保持相对值。
   不设置时默认 `data/leap.db` 与 `artifacts/`。
+- 完整课程交付默认写到用户目录的 `~/LEAP/课程输出/`。可以设置独立的
+  `LEAP__COURSE_OUTPUT_ROOT`，每次导出的教学 HTML 和 A4 PDF 都放在同一个课程标题文件夹中。
 - server 把日志写到 stderr；stdout 保留给 MCP 协议。启动日志会打印实际数据库路径、配置
   值来源与 `LEAP_HOME` 状态（例如 `LEAP runtime ready: db=... (configured as 'data/leap.db',
   LEAP_HOME=(unset)) schema=2.1.0`），排错先看它。
@@ -97,8 +99,8 @@ Copy-Item -Recurse -Force .agents\skills\leap-tutor .claude\skills\leap-tutor
 
 | 档位 | 工具数 | 适用 | 主要限制 |
 |---|---|---|---|
-| `quickstart` | 35 | 日常教学主流程 | 无细粒度证据读取、无 HTML 页面桥接全套接口 |
-| `full` | 74 | 需要拆步评估、证据审查、页面 outbox | 一次性 schema 约 54 KB（quickstart 约 26 KB），宿主上下文更紧 |
+| `quickstart` | 36 | 预审来源校准与日常教学主流程 | 无细粒度证据读取、无 HTML 页面桥接全套接口 |
+| `full` | 75 | 拆步评估、证据审查、教学草稿、页面 outbox | 工具 schema 占用较多宿主上下文 |
 
 两档位共用同一套数据；切换档位不需要迁移。工具清单与档位归属以生成的
 [MCP 工具参考](mcp-tools.md) 为准，不要凭本节数字硬编码。
@@ -107,9 +109,11 @@ Copy-Item -Recurse -Force .agents\skills\leap-tutor .claude\skills\leap-tutor
 
 1. 启动后先调用只读工具确认连接，例如 `get_teaching_delivery_policy`（无参数，quickstart 可用）；
    失败就停下报告，不要伪造回执。
-2. 若加载了 Skill，确认触发一次学习请求时 `start_learning` 被调用，且**不**为普通一次性
-   提问创建会话。
-3. 检查工具目录：宿主显示 32（quickstart）或 71（full）个 `mcp__leap__*` 工具。
+2. 若加载了 Skill，可用「用 LEAP 学高等数学的极限和导数」检验。
+   确认 `start_learning` 的主题为「高等数学」，然后调用 `get_grounding_sources`。
+   普通一次性提问无需创建会话。
+3. 检查工具目录中是否有 `get_grounding_sources`。两档都需要当前版本的预审证据；
+   旧宿主自证与跳过请求会被拒绝。完整调用见 [[docs/INTEGRATION_CN]]。
 4. 结束一次试用后，用 `get_learner_snapshot(session_id)` 核对会话状态；关闭用
    `complete_session(session_id)`，并确认回执（关闭后不得继续教学调用）。
 
@@ -123,6 +127,15 @@ Copy-Item -Recurse -Force .agents\skills\leap-tutor .claude\skills\leap-tutor
 | 宿主显示 Skill 但 MCP 未连接 | 两者独立配置；Skill 只组织流程，所有状态写入仍走 MCP。文件存在不代表 Skill 已激活。 |
 | 数据库出现意外数据 | 默认 DB 是仓库根 `data/leap.db`；隔离实验请设置绝对路径 `LEAP__DATABASE_PATH`。 |
 | 调用返回 `session_closed` | 会话已关闭；不要再继续教学，按用户意图用 `complete_session(status="active", reopen=True)` 显式重开。 |
+| 返回 `grounding_unsupported`、`grounding_withdrawn` 或 `grounding_expired` | 暂停正式授课。首包仅覆盖「从极限到导数与可导性」，复核期限为 180 天。历史记录可读，沿用同一个 SQLite 路径以便重启后续学。 |
+
+## 7. 维护预审来源
+
+按需运行 `python scripts/review_grounding_sources.py` 预查已批准链接、定位和期限。
+退出码 `0` 表示预查通过，`1` 表示需要人工复核，`2` 表示有来源的可达性待确认。
+发布前由维护者核对原文和教学主张，手动更新预审包，再重启 MCP 服务加载新版本。
+本机巡检暂未确认 MIT OCW 的可达性。巡检结果不会修改预审包，运行时继续按本地
+批准版本、复核期限与会话回执判定。
 
 > [!note]- 验证顺序：先只读、再建会话、最后写状态
 > 先调 `get_teaching_delivery_policy` 确认连接，再执行一次最小 `start_learning`，

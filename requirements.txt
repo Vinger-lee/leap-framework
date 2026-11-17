@@ -3,3 +3,5 @@
 mcp>=2.3,<3
 fsrs>=5
 PyYAML>=6
+langchain-core>=1,<2
+langgraph>=1,<2

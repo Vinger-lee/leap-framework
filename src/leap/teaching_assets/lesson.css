@@ -1,0 +1,62 @@
+:root {
+  --paper: #FAF9F6; --surface-sunk: #F3F1EC; --ink: #191B20; --hairline: #E8E4DC;
+  --accent: #2B4AC4; --ok: #2E7D5B; --warn: #B3861A; --err: #B4432F;
+  --fs-display: 32px; --fs-h2: 22px; --fs-h3: 17px; --fs-body: 15.5px;
+  --fs-small: 13px; --fs-micro: 11.5px; --fs-mono: 12px;
+  --ev-estimated: #9AA1AD; --ev-practiced: #4C7BD9; --ev-demonstrated: #2E8B84;
+  --ev-retained: #4C8B3F; --ev-transferred: #B3861A;
+  --hint-1: #E4C77C; --hint-2: #D4A43C; --hint-3: #B3861A; --hint-4: #7A7F8A;
+  --font-display: "DM Serif Text", "Noto Serif CJK SC", "Songti SC", SimSun, Georgia, serif;
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px;
+  --s-8: 32px; --s-10: 40px; --s-12: 48px; --s-16: 64px; --s-20: 80px;
+  font: var(--fs-body)/1.7 "Source Sans 3", "Noto Sans CJK SC", "Microsoft YaHei", system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+.wrap { width: calc(100% - 48px); max-width: 1800px; margin: 0 auto; }
+.lesson-header { background: #eef3fb; border-bottom: 1px solid var(--hairline); padding: var(--s-8) 0 var(--s-6); }
+.lesson-header p, .lesson-kicker { color: #425379; font-size: var(--fs-small); }
+h1, h2, h3 { line-height: 1.25; font-family: var(--font-display); }
+h1 { font-size: var(--fs-display); margin: 0 0 var(--s-3); }
+h2 { font-size: var(--fs-h2); margin: 0 0 var(--s-3); }
+h3 { font-size: var(--fs-h3); margin: var(--s-5) 0 var(--s-2); }
+a { color: var(--accent); text-underline-offset: .2em; }
+nav, .controls { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4); align-items: center; }
+.lesson-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 420px); gap: var(--s-8); padding: var(--s-6) 0 var(--s-12); }
+.lesson-chapter { padding: var(--s-5) var(--s-6); background: #fff; border: 1px solid var(--hairline); margin-bottom: var(--s-5); }
+.lesson-chapter p, .lesson-chapter li { max-inline-size: 78ch; }
+.lesson-kicker { margin: 0 0 var(--s-1); }
+.lesson-lead { font-size: 17px; }
+.lesson-figure { margin: var(--s-4) 0; background: #eaf3fc; padding: var(--s-3); }
+.lesson-figure svg { display: block; width: 100%; height: auto; max-height: 270px; }
+figcaption { font-size: var(--fs-small); color: #3c5068; margin-top: var(--s-2); }
+.lesson-callout { background: #e8f5ef; border-inline-start: 3px solid var(--ok); padding: var(--s-2) var(--s-4); }
+.lesson-callout p, .lesson-step p { margin: var(--s-1) 0; }
+.lesson-equation { color: #274a82; font-family: "STIX Two Text", "Cambria Math", serif; overflow-wrap: anywhere; }
+.lesson-steps { list-style: none; padding: 0; }
+.lesson-step { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: var(--s-3); padding: var(--s-2) 0; border-bottom: 1px solid var(--hairline); }
+.step-marker { text-align: center; color: var(--accent); background: #eef3fb; height: 24px; }
+.practice, .agent-panel, .print-panel { padding: var(--s-4); border: 1px solid var(--hairline); background: #fff; margin-bottom: var(--s-4); min-width: 0; }
+.practice article { border-top: 1px solid var(--hairline); padding-top: var(--s-3); margin-top: var(--s-3); }
+.practice article h3 { margin-top: 0; }
+button, select, textarea, input { font: inherit; }
+button, select { min-height: 36px; padding: 5px 9px; border: 1px solid #a6b3ca; border-radius: 4px; background: #fff; color: #203249; }
+button, summary { cursor: pointer; }
+button:focus-visible, select:focus-visible, textarea:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+textarea { display: block; width: 100%; min-height: 80px; margin: var(--s-1) 0 var(--s-2); color: inherit; }
+input[type="range"] { flex: 1 1 140px; min-width: 0; }
+pre { font: var(--fs-mono)/1.5 monospace; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 280px; }
+.secant-controls { padding: var(--s-3); background: var(--surface-sunk); }
+.secant-controls p, [data-print-status], .practice-status { margin: var(--s-2) 0 0; }
+.source-list { margin-bottom: var(--s-4); overflow-wrap: anywhere; }
+.evidence-rail, .progress-track { position: relative; height: 12px; background: #eef3fb; margin: var(--s-2) 0; }
+.rail-dot { position: absolute; width: 6px; height: 12px; background: var(--accent); }
+.progress-track span { display: block; height: 100%; width: 0; background: var(--ok); }
+.agent-panel p { margin: var(--s-1) 0; }
+@media (max-width: 800px) {
+  .wrap { width: calc(100% - 24px); }
+  .lesson-grid { grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
+  .lesson-chapter { padding: var(--s-4); }
+}

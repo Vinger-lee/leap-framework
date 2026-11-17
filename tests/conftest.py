@@ -6,6 +6,7 @@ import pytest
 
 from leap.config import Config, load_config
 from leap.tools import LeapService, build_service
+from tests.teaching_fixture import build_fixture_service
 
 
 def complete_grounding(service, session_id, report_text="# Test baseline", **kwargs):
@@ -28,8 +29,16 @@ def base_config() -> Config:
 
 @pytest.fixture
 def service() -> LeapService:
-    """A fully isolated in-memory runtime."""
-    svc = build_service(":memory:")
+    """An isolated runtime for synthetic evidence and legacy workflow tests."""
+    svc = build_fixture_service()
+    yield svc
+    svc.close()
+
+
+@pytest.fixture
+def strict_service() -> LeapService:
+    """An isolated runtime with the formal grounding gate enabled."""
+    svc = build_service()
     yield svc
     svc.close()
 

@@ -135,20 +135,20 @@ class TestTranslator:
 # ---------------------------------------------------------------------------
 class TestLocaleReachesTheSurface:
     @staticmethod
-    def _service(locale: str):
-        return build_service(":memory:", {"locale": locale})
+    def _service(locale: str, *, strict_grounding: bool = True):
+        return build_service(":memory:", {"locale": locale}, strict_grounding=strict_grounding)
 
     def test_grounding_notice_is_localised(self):
         zh = self._service("zh-CN").create_session("L1", "t")["domain_grounding_notice"]
         en = self._service("en").create_session("L1", "t")["domain_grounding_notice"]
-        assert "领域自学校准" in zh
-        assert "domain self-calibration" in en
+        assert "经预审的权威来源" in zh
+        assert "reviewed sources" in en
         assert zh != en
 
     def test_guard_rejection_reason_is_localised(self):
         messages = {}
         for locale in ("zh-CN", "en"):
-            svc = self._service(locale)
+            svc = self._service(locale, strict_grounding=False)
             sid = svc.create_session("L1", "t")["session_id"]
             with pytest.raises(Exception) as exc:
                 svc.generate_diagnostic(sid)
@@ -171,7 +171,7 @@ class TestLocaleReachesTheSurface:
 
     def test_report_headings_are_localised(self):
         for locale, expected in (("zh-CN", "学习目标"), ("en", "Learning Goal")):
-            svc = self._service(locale)
+            svc = self._service(locale, strict_grounding=False)
             sid = svc.create_session("L1", "t")["session_id"]
             complete_grounding(svc, sid, "# b")
             markdown = svc.generate_final_report(sid)["markdown"]
@@ -181,7 +181,7 @@ class TestLocaleReachesTheSurface:
         """Locale affects text only, never state transitions."""
         decisions = {}
         for locale in ("zh-CN", "en"):
-            svc = self._service(locale)
+            svc = self._service(locale, strict_grounding=False)
             sid = svc.create_session("L1", "t")["session_id"]
             complete_grounding(svc, sid, "# b")
             svc.save_knowledge_nodes(

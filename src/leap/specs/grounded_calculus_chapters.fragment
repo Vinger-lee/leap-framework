@@ -1,0 +1,99 @@
+<section class="lesson-chapter" id="calculus-limit" data-teaching-point="calculus.limit">
+  <p class="lesson-kicker">第一节 · 单侧极限</p>
+  <h2>先看目标两边，再决定有没有极限</h2>
+  <p class="lesson-lead">把 <i>f</i>(<i>x</i>) 想成给每个输入 <i>x</i> 标一个高度。求 <i>x</i> 趋近 0 时的极限，就是追踪靠近 0 的点的高度，判断它们是否逼近同一个数。</p>
+  <figure class="lesson-figure">
+    <svg id="limit-graph" viewBox="0 0 620 146" role="img" aria-label="分段函数图。零左边的高度是负二，零右边是二，零处实心点高度为五。">
+      <g fill="none" stroke="#71869a" stroke-width="1.5">
+        <path d="M38 88H584m-7-4 7 4-7 4M310 130V12m-4 7 4-7 4 7"/>
+        <path d="M87 110H310M310 66H533M310 33H488" stroke="#9bb2c6" stroke-dasharray="4 5"/>
+      </g>
+      <path d="M58 110H304" stroke="#236e63" stroke-width="3"/>
+      <path d="M316 66H562" stroke="#205c99" stroke-width="3"/>
+      <circle cx="310" cy="110" r="5" fill="#eaf3fc" stroke="#236e63" stroke-width="2.5"/>
+      <circle cx="310" cy="66" r="5" fill="#eaf3fc" stroke="#205c99" stroke-width="2.5"/>
+      <circle cx="310" cy="33" r="5" fill="#964821"/>
+      <g fill="#203249" font-family="sans-serif" font-size="15">
+        <text x="587" y="94">x</text><text x="320" y="15">f(x)</text><text x="318" y="103">0</text>
+        <text x="91" y="101">左侧：−2</text><text x="470" y="57">右侧：2</text><text x="329" y="28">f(0) = 5</text>
+      </g>
+    </svg>
+    <figcaption>空心点表示左右两段各自逼近的高度。实心点给出函数在 0 处的值。</figcaption>
+  </figure>
+  <h3>例题 · 分别从左边和右边靠近 0</h3>
+  <ol>
+    <li><strong>从左侧靠近。</strong> <i>x</i> 可以依次取 −0.1、−0.01、−0.001。只要 <i>x</i>&lt;0，函数值就等于 −2，所以左极限是 −2。</li>
+    <li><strong>从右侧靠近。</strong> 同样检查所有充分靠近 0 的正数。它们的函数值都等于 2，所以右极限是 2。</li>
+    <li><strong>比较左右极限。</strong> −2 与 2 不相等，所以双侧极限不存在。即使把 <i>f</i>(0) 改成其他数，左右两段也没有变化。</li>
+  </ol>
+  <p>在目标点两边都能逼近、且讨论有限极限时，左右极限都存在并相等，才有双侧极限。如果图中左边也改成高度 2，双侧极限就是 2，即便 <i>f</i>(0) 仍是 5。</p>
+  <aside class="lesson-callout try">
+    <p><strong>先做自检</strong>　令 <i>g</i>(<i>x</i>) = (<i>x</i>² − 1)/(<i>x</i> − 1)（<i>x</i> ≠ 1），并设 <i>g</i>(1) = 7。<i>x</i> 趋近 1 时，<i>g</i>(<i>x</i>) 趋近几？</p>
+    <p><strong>核对</strong>　把分子写成 (<i>x</i> − 1)(<i>x</i> + 1)。在 <i>x</i> ≠ 1 时可约掉 <i>x</i> − 1，留下 <i>x</i> + 1。左右两边都趋近 2，极限是 2。</p>
+  </aside>
+</section>
+
+<section class="lesson-chapter print-new-page" id="calculus-derivative" data-teaching-point="calculus.derivative">
+  <p class="lesson-kicker">第二节 · 导数定义</p>
+  <h2>把割线的第二个点向第一个点移动</h2>
+  <p class="lesson-lead">同一条曲线上，固定 <i>P</i> 的横坐标为 <i>a</i>，另取横坐标为 <i>a</i> + <i>h</i> 的点 <i>Q</i>。横坐标的变化量 <i>h</i> 可正可负，竖向变化量为 <i>f</i>(<i>a</i> + <i>h</i>) − <i>f</i>(<i>a</i>)。</p>
+  <figure class="lesson-figure">
+    <svg id="secant-graph" viewBox="0 0 620 181" role="img" aria-label="平方函数在 P 点的切线，以及经过 P 和 Q 的割线。具体数据在刻度控件旁。">
+      <path d="M46 164H568m-7-4 7 4-7 4M54 169V12m-4 7 4-7 4 7" fill="none" stroke="#71869a" stroke-width="1.5"/>
+      <path id="secant-rise" d="M270 104H378V29" fill="none" stroke="#71869a" stroke-width="1.3" stroke-dasharray="5 4"/>
+      <path d="M162 149Q270 119 378 29" fill="none" stroke="#203249" stroke-width="3"/>
+      <path id="secant-line" d="M218 140.11L400 13.72" fill="none" stroke="#236e63" stroke-width="2.2" stroke-dasharray="6 4"/>
+      <path d="M176 156.22L418 21.78" fill="none" stroke="#205c99" stroke-width="2.2"/>
+      <circle cx="270" cy="104" r="5" fill="#205c99"/>
+      <circle id="secant-q" cx="378" cy="29" r="5" fill="#236e63"/>
+      <g fill="#203249" font-family="sans-serif" font-size="15">
+        <text x="576" y="169">x</text><text x="65" y="17">f(x)</text><text x="135" y="129">f(x) = x²</text>
+        <text x="220" y="91">P(2, 4)</text><text id="secant-q-label" x="398" y="17">Q(3, 9)</text>
+        <text id="secant-run-label" x="304" y="124">h = 1</text><text id="secant-rise-label" x="389" y="79">Δf = 5</text>
+        <path d="M452 111h31" stroke="#236e63" stroke-width="2.2" stroke-dasharray="6 4"/><text x="491" y="116">割线</text>
+        <path d="M452 136h31" stroke="#205c99" stroke-width="2.2"/><text x="491" y="141">切线</text>
+      </g>
+    </svg>
+    <figcaption>连接 <i>P</i> 与 <i>Q</i> 的直线叫割线。初始图取 <i>h</i> = 1，割线斜率为 (9 − 4)/1 = 5。</figcaption>
+  </figure>
+  <!-- LEAP_SECANT_CONTROLS -->
+  <h3>例题 · 用定义求 <i>f</i>(<i>x</i>) = <i>x</i>² 在 <i>x</i> = 2 的导数</h3>
+  <ol class="lesson-steps">
+    <li class="lesson-step"><span class="step-marker">1</span><div><strong>先写差商，保留 <i>h</i> ≠ 0</strong><p class="lesson-equation">[<i>f</i>(2 + <i>h</i>) − <i>f</i>(2)]/<i>h</i> = [(2 + <i>h</i>)² − 4]/<i>h</i></p><p>这个比值是两点之间的平均变化率。<i>h</i> 为零时两点重合，原比值无法计算。</p></div></li>
+    <li class="lesson-step"><span class="step-marker">2</span><div><strong>展开分子，再约掉非零的 <i>h</i></strong><p class="lesson-equation">(4<i>h</i> + <i>h</i>²)/<i>h</i> = 4 + <i>h</i>　(<i>h</i> ≠ 0)</p><p>约分后，每一个靠近 0 的非零 <i>h</i> 的差商都等于 4 + <i>h</i>。</p></div></li>
+    <li class="lesson-step"><span class="step-marker">3</span><div><strong>从两边取极限</strong><p>例如 <i>h</i> = −0.01 时差商为 3.99，<i>h</i> = 0.01 时为 4.01。无论从哪一边趋近 0，4 + <i>h</i> 与 4 的距离都是 |<i>h</i>|，这个距离趋近 0。故 <i>f</i>′(2) = 4。</p></div></li>
+  </ol>
+  <aside class="lesson-callout try">
+    <p><strong>先做自检</strong>　同样的函数在 <i>x</i> = 1 的导数是多少？写出仍有 <i>h</i> 的那一步。</p>
+    <p><strong>核对</strong>　当 <i>h</i> ≠ 0 时，[(1 + <i>h</i>)² − 1]/<i>h</i> = 2 + <i>h</i>。让 <i>h</i> 趋近 0，得到 2。</p>
+  </aside>
+</section>
+
+<section class="lesson-chapter print-new-page" id="calculus-differentiability" data-teaching-point="calculus.differentiability">
+  <p class="lesson-kicker">第三节 · 连续与可导</p>
+  <h2>函数值能接上，斜率还需要检查</h2>
+  <p class="lesson-lead">判断 <i>f</i> 在 <i>a</i> 处是否连续，先求附近的函数值趋近哪里，再和实际的 <i>f</i>(<i>a</i>) 比较。判断可导时，要先用函数值的变化除以 <i>h</i>，再问这个比值能否趋近同一个有限数。</p>
+  <h3>为什么可导一定连续</h3>
+  <p>把 <i>f</i>(<i>a</i> + <i>h</i>) 与 <i>f</i>(<i>a</i>) 的差写成下面的乘积，其中 <i>h</i> ≠ 0。</p>
+  <p class="lesson-equation"><i>f</i>(<i>a</i> + <i>h</i>) − <i>f</i>(<i>a</i>) = <i>h</i> × [<i>f</i>(<i>a</i> + <i>h</i>) − <i>f</i>(<i>a</i>)]/<i>h</i></p>
+  <p>如果导数存在，右边的差商有有限极限。它乘上趋近 0 的 <i>h</i>，乘积也趋近 0。因此附近的函数值趋近 <i>f</i>(<i>a</i>)，这就是连续。</p>
+  <figure class="lesson-figure">
+    <svg id="absolute-graph" viewBox="0 0 620 138" role="img" aria-label="绝对值函数在原点形成尖点。左支斜率为负一，右支斜率为一。">
+      <path d="M92 108H529m-7-4 7 4-7 4M308 126V13m-4 7 4-7 4 7" fill="none" stroke="#71869a" stroke-width="1.5"/>
+      <path d="M240 40L308 108" fill="none" stroke="#236e63" stroke-width="3"/>
+      <path d="M308 108L376 40" fill="none" stroke="#205c99" stroke-width="3"/>
+      <circle cx="308" cy="108" r="4" fill="#203249"/>
+      <g fill="#203249" font-family="sans-serif" font-size="15">
+        <text x="537" y="114">x</text><text x="319" y="17">f(x)</text><text x="318" y="125">0</text>
+        <text x="144" y="52">左支斜率 −1</text><text x="389" y="52">右支斜率 1</text>
+      </g>
+    </svg>
+    <figcaption>两条线在原点接上。左右两侧的斜率不同，原点没有同一个有限的差商极限。</figcaption>
+  </figure>
+  <h3>反例 · <i>f</i>(<i>x</i>) = |<i>x</i>| 在 0 连续，但不可导</h3>
+  <p>因为 |<i>h</i>| 趋近 0，且 <i>f</i>(0) = 0，所以函数在 0 连续。差商是 |<i>h</i>|/<i>h</i>。当 <i>h</i>&lt;0 时，|<i>h</i>| = −<i>h</i>，差商等于 −1。当 <i>h</i>&gt;0 时，|<i>h</i>| = <i>h</i>，差商等于 1。左右极限不相等，因此 <i>f</i>′(0) 不存在。</p>
+  <aside class="lesson-callout try">
+    <p><strong>先做自检</strong>　把图形整体向上移动 2，得到 <i>g</i>(<i>x</i>) = |<i>x</i>| + 2。在 0 处仍然连续吗？导数存在吗？</p>
+    <p><strong>核对</strong>　<i>g</i>(0) = 2，附近的函数值也趋近 2。差商中的两项都带 +2，相减时抵消，所以差商仍是 |<i>h</i>|/<i>h</i>，导数仍不存在。</p>
+  </aside>
+</section>

@@ -112,7 +112,7 @@ class TestPluggableSeams:
 # G2 - section 31 interleaving
 # ---------------------------------------------------------------------------
 def _unit_service(cfg=None):
-    svc = build_service(":memory:", cfg)
+    svc = build_service(":memory:", cfg, strict_grounding=False)
     sid = svc.create_session("L1", "recursion")["session_id"]
     complete_grounding(svc, sid, "# baseline")
     svc.save_knowledge_nodes(sid, [

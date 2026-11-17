@@ -63,7 +63,7 @@ class AssessmentTools(LeapToolMixin):
         use the latest accepted package for this session/node.
         """
         self.require_session(session_id)
-        self.require_grounding(session_id)
+        grounding = self.require_grounding(session_id)
         item_id = self.require_text(item_id, "item_id")
         for name, value in (("question", question), ("expected_answer", expected_answer), ("solution", solution)):
             self.require_text(value, name)
@@ -92,12 +92,24 @@ class AssessmentTools(LeapToolMixin):
                         and (not node_id or json.loads(p["metadata"]).get("node_id") == node_id)), None)
         if package is None:
             raise ToolError("teaching_package_required", "Register the canonical lesson and projected HTML before its exercises")
+        if self.guard.strict_grounding:
+            from leap.runtime.grounding import course_node_id, reviewed_course, reviewed_items
+
+            self.require_reviewed_package(session_id, package["artifact_id"], grounding)
+            submitted = dict(question=question, expected_answer=expected_answer, solution=solution,
+                             assumptions=assumptions, verification_checks=verification_checks, source_ids=source_ids)
+            if (node_id != course_node_id(session_id)
+                    or submitted not in reviewed_items(reviewed_course(), grounding["source_ids"])
+                    or rejected_answers or assessor_scope != "host_semantic_review"):
+                raise ToolError("grounding_unreviewed_content", "Register an exact reviewed item and solution from the current lesson")
         from leap.tools.base import json_dumps
         rubric = {"expected_answer": expected_answer, "solution": solution, "assumptions": assumptions,
                   "verification_checks": verification_checks, "source_ids": source_ids or [],
                   "rejected_answers": rejected_answers or [], "assessor_scope": assessor_scope,
                   "content_verified_by_runtime": False}
         rubric["teaching_package_id"] = package["artifact_id"]
+        if self.guard.strict_grounding:
+            rubric["course_revision"] = grounding["course_revision"]
         self.db.execute(
             "INSERT INTO assessment_items (item_id, session_id, node_id, question, rubric, created_at) VALUES (?,?,?,?,?,?)",
             (item_id, session_id, node_id, question, json_dumps(rubric), now_ts()),
@@ -240,14 +252,19 @@ class AssessmentTools(LeapToolMixin):
             session = self.require_session(session_id)
             self.require_active_session(session)
             answer = self.require_text(answer, "answer")
-            self.require_grounding(session_id)
+            grounding = self.require_grounding(session_id)
             if item_id:
-                item = self.db.query_one("SELECT session_id, node_id FROM assessment_items WHERE item_id = ?", (item_id,))
+                item = self.db.query_one("SELECT session_id, node_id, rubric FROM assessment_items WHERE item_id = ?", (item_id,))
                 if not item or item["session_id"] != session_id:
                     raise ToolError("unknown_assessment_item", "Register this session's item with save_assessment_item before submitting answers")
                 if node_id and item["node_id"] and node_id != item["node_id"]:
                     raise ToolError("invalid_node", "attempt node does not match item node")
                 node_id = node_id or item["node_id"]
+                if self.guard.strict_grounding:
+                    import json
+
+                    if json.loads(item["rubric"] or "{}").get("course_revision") != grounding["course_revision"]:
+                        raise ToolError("grounding_unreviewed_content", "Register the item against the current reviewed lesson")
             node_id = node_id or session.get("current_node_id")
             if node_id:
                 # Validate ownership *before* the row is written: an attempt against
@@ -333,13 +350,17 @@ class AssessmentTools(LeapToolMixin):
             with self.db.transaction():
                 session = self.require_session(session_id)
 
-                self.require_grounding(session_id)
+                grounding = self.require_grounding(session_id)
                 if raw_answer != attempt["answer"]:
                     raise ToolError("raw_answer_mismatch", "raw_answer must match the referenced attempt exactly")
+                if self.guard.strict_grounding and not attempt.get("item_id"):
+                    raise ToolError("assessment_item_required", "Score only an attempt linked to a reviewed item")
                 if attempt.get("item_id"):
                     import json
                     rubric_text = self.db.scalar("SELECT rubric FROM assessment_items WHERE item_id = ?", (attempt["item_id"],))
                     rubric = json.loads(rubric_text) if rubric_text else {}
+                    if self.guard.strict_grounding and rubric.get("course_revision") != grounding["course_revision"]:
+                        raise ToolError("grounding_unreviewed_content", "The attempted item is outside the current reviewed lesson")
                     if rubric.get("assessor_scope") == "host_semantic_review" and assessor_type == "rule":
                         raise ToolError("semantic_review_required", "Host must semantically assess free-text reasoning before committing")
 
@@ -630,6 +651,8 @@ class AssessmentTools(LeapToolMixin):
             node = self.require_node(node_id, session_id)
             resolved_session_id = node["session_id"]
             session = self.require_active_session(self.require_session(resolved_session_id))
+            if self.guard.strict_grounding:
+                self.require_grounding(resolved_session_id)
             if session["learner_id"] != learner_id:
                 raise ToolError(
                     "invalid_learner",

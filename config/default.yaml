@@ -85,3 +85,4 @@ tool_profile: full
 # --- Storage ---------------------------------------------------------------
 database_path: data/leap.db
 artifact_root: artifacts
+course_output_root: ~/LEAP/课程输出

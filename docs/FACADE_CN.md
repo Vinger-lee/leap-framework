@@ -46,8 +46,8 @@ Runtime 的工具面刻意做成细粒度：每次状态变更都是独立的可
 - **掌握度仍由服务端估计**，`mastery_probability` 不接受宿主传入。
 - **交付政策 3.0 仍然生效**：回包使用紧凑 envelope，只携带 `policy_version`；需要完整政策时
   调用一次 `get_teaching_delivery_policy()`，不凭记忆复述。
-- **前置与题目门禁仍然生效**：未完成 Domain Grounding 时，`submit_answer` 与 `continue_lesson`
-  同样返回 `domain_grounding_required`。
+- **两档均执行领域校准与题目门禁**。`submit_answer` 和 `continue_lesson`
+  等工具要求当前有效证据和预审教学包。
 
 ### `submit_answer` 的两种合法用法
 
@@ -59,9 +59,9 @@ Runtime 的工具面刻意做成细粒度：每次状态变更都是独立的可
 `resolve_misconception`（解决已有误解）也在两个档位中可用，使教学门面的误解分支
 有真实可执行的后续工具。必须先有纠正证据再标记解决。
 
-建会话后如需记录用户“跳过领域校准”的选择，使用两个档位都提供的
-`set_domain_grounding_skip(session_id, allow_skip=True, reason=...)`：先展示 notice
-并取得明确知情确认，再记录选择；不重开新会话，不自行跳过。
+用 `get_grounding_sources` 读取预审来源的定位和检查题，按 [[docs/INTEGRATION_CN]]
+完成校准并登记预审教学包。首包用 `topic="高等数学"`，范围为「从极限到导数与可导性」。
+证据缺失、撤回或过期时暂停正式授课。
 
 `start_learning` 默认复用同一 learner+topic 的 active 会话（回包
 `existing_session=true`）；确实要新会话时才传 `force_new=True`。
@@ -87,8 +87,8 @@ Runtime 的工具面刻意做成细粒度：每次状态变更都是独立的可
 
 | 档位 | 内容 |
 |---|---|
-| `quickstart` | 粗粒度教学 API + Domain Grounding、知识 DAG、canonical 教学包、题目登记、诊断、评估恢复、误解记录与解决、领域校准跳过记录、迁移、反思、报告与显式关闭；`continue_lesson` 默认紧凑摘要 |
-| `full` | 全部已注册工具（默认），含细粒度状态/证据查询和页面桥接 |
+| `quickstart` | 36 个工具，涵盖粗粒度教学 API、预审来源校准、知识 DAG、预审教学包与题目登记、诊断、评估恢复、误解、迁移、反思、报告和结课 |
+| `full` | 75 个工具（默认），含细粒度状态与证据查询、教学草稿和页面桥接 |
 
 数量与逐工具档位归属见 [[docs/mcp-tools|生成工具参考]]。`next_call` 及其后续调用
 仍需检查宿主真实目录。现有 HTML outbox 全套桥接与细粒度证据读取需 `full`；

@@ -57,6 +57,7 @@ MESSAGES: dict[str, dict[str, str]] = {
     # ------------------------------------------------------------------
     "zh-CN": {
         # Domain Grounding (section 20 / 22.9)
+        "domain_grounding.reviewed_notice": "正式授课前会检索经预审的权威来源，并复核本课的关键例题。缺少有效证据时会暂停授课。",
         "domain_grounding.notice": (
             "即将执行【领域自学校准】，我会先学习该专题，生成知识基准报告后再对你开展教学。"
             "此过程会消耗更多 Token 并需要等待一段时间，但可以显著提升知识准确性。"
@@ -104,6 +105,7 @@ MESSAGES: dict[str, dict[str, str]] = {
     },
     # ------------------------------------------------------------------
     "en": {
+        "domain_grounding.reviewed_notice": "Formal teaching requires reviewed sources and checked worked examples. Teaching pauses when current evidence is unavailable.",
         "domain_grounding.notice": (
             "About to run [domain self-calibration]: I will study this topic first and produce a "
             "knowledge baseline report before teaching you. This costs extra tokens and some "

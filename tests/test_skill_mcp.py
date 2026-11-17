@@ -31,7 +31,8 @@ async def test_learning_recovery_and_closure_over_stdio(tmp_path, profile):
     root = Path(__file__).resolve().parents[1]
     database = tmp_path / "skill.sqlite"
     params = StdioServerParameters(
-        command=sys.executable, args=["-m", "leap.server", "--tool-profile", profile],
+        command=sys.executable,
+        args=[str(root / "tests" / "fixture_mcp_server.py"), "--tool-profile", profile],
         env={**os.environ, "LEAP__DATABASE_PATH": str(database), "PYTHONPATH": str(root / "src")},
     )
     async with asyncio.timeout(120), stdio_client(params) as (read, write):
@@ -350,7 +351,7 @@ async def test_quickstart_and_full_expose_the_skill_loop_tools():
     required = {
         "start_learning", "continue_lesson", "log_teaching_action", "submit_answer",
         "advance_lesson", "get_review_queue", "review_answer", "get_learner_snapshot",
-        "save_benchmark_report", "get_teaching_delivery_policy", "get_subject_catalog",
+        "get_grounding_sources", "save_benchmark_report", "get_teaching_delivery_policy", "get_subject_catalog",
         "decompose_topic", "save_knowledge_nodes", "save_knowledge_edges",
         "validate_knowledge_dag", "save_teaching_package", "save_assessment_item",
         "generate_diagnostic", "submit_diagnostic", "save_diagnostic_result", "start_unit",
@@ -361,4 +362,5 @@ async def test_quickstart_and_full_expose_the_skill_loop_tools():
     assert required <= quickstart, sorted(required - quickstart)
     assert required <= full, sorted(required - full)
     assert quickstart < full
+    assert (len(full), len(quickstart)) == (75, 36)
     assert "get_teaching_context" in quickstart

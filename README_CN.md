@@ -25,7 +25,7 @@ Related: [Knowledge_Index](Knowledge_Index.md) · [docs/teaching-delivery](docs/
   <img src="https://img.shields.io/github/v/release/Vinger-lee/leap-framework" alt="Release">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/MCP-74%20tools-22bb33" alt="MCP 工具">
+  <img src="https://img.shields.io/badge/MCP-75%20tools-22bb33" alt="MCP 工具">
   [![Tests](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/Vinger-lee/leap-framework/actions/workflows/ci.yml)
   <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
@@ -125,7 +125,7 @@ LEAP_HOME=/var/lib/leap leap-mcp --tool-profile quickstart
 
 ```
 1. 目标定义
-2. 领域校准            ← Agent 先学习该专题，再开始教学
+2. 领域校准            ← Agent 阅读预审来源并独立解答检查题
 3. 学习者诊断
 4. 知识表示            ← 知识节点 DAG
 5. 学习者状态初始化
@@ -173,25 +173,31 @@ State Guard 是唯一有权批准状态迁移的组件。当工具返回 `REJECT
 按需读取学习生命周期、内容制作与恢复参考。接入与验收见 [docs/agent-skill.md](docs/agent-skill.md)，
 可直接复制的 `mcpServers` 配置样例与各宿主发现规则（例如 Claude Code 扫描 `.claude/skills`
 而不是 `.agents/skills`）见 [docs/host-config.md](docs/host-config.md)。Skill 仍是草案，
-宿主发现、激活与 MCP 连接需要分别验证。`quickstart` 档位是一条完整教学路径：可记录新误解
-（`assess_misconception`）、记录学习者知情选择跳过领域校准（`set_domain_grounding_skip`）、
-恢复拆分评估并显式结课；已关闭的会话不再建议教学调用。回包只带紧凑的 `policy_version`
+宿主发现、激活与 MCP 连接需要分别验证。`quickstart` 支持记录新误解、恢复拆分评估与
+显式结课。已关闭的会话不再建议教学调用。回包只带紧凑的 `policy_version`
 而非完整政策，`continue_lesson` 默认只返回摘要（`verbose=True` 才展开）。现有 HTML outbox
 桥接仍需 `full` 档位。
 
-领域校准现在要求 `save_benchmark_report(verification=...)` 提供来源定位、摘录、关联论断、复核例题和不确定性；仅保存文字报告会保持 pending，教学入口也受门禁约束。宿主必须自行阅读资料，出题前用 `save_assessment_item` 登记题目条件、答案、推导与独立检查。自由文本推理必须由宿主做语义评估：LEAP 检查记录并估计学习状态，不能证明学科答案正确。
+两档使用同一预审来源库。首个单元是「从极限到导数与可导性」。用 `start_learning(..., topic="高等数学")` 建会话，再用 `get_grounding_sources(session_id)` 获取片段和检查题。实际阅读每个原文定位并独立解答检查题后，通过 `save_benchmark_report` 提交阅读与复核记录、`course_revision`、全部 `chunk_id` 和以检查 ID 映射到答案字符串的 `check_answers`。旧宿主自证和跳过请求会被拒绝。来源未收录、过期或撤回时暂停正式授课。
+
+校准后调用 `get_grounding_sources(session_id, include_lesson=True)`。用 `save_knowledge_nodes` 登记 `.lesson.node`，用 `save_teaching_package` 原样登记返回的 `subject`、`markdown`、`html` 和 `manifest`，再用 `save_assessment_item` 登记预审题目，带实际会话、节点、唯一题目 ID 与教学包 ID。自由文本由宿主做语义评阅。A4 正式版使用 `.lesson.print_draft`，带会话、节点和教学包 ID 调用 `save_print_materials`。
+
+重启后沿用同一 SQLite 数据库可恢复校准回执和历史学习记录。首包复核期限为 180 天。维护者可按需运行 `python scripts/review_grounding_sources.py` 预查已批准链接与定位，人工核准并发布更新后重启 MCP。新编内容可通过 full 的 `save_artifact(artifact_type="teaching_draft", ...)` 保存为待审草稿。详见[宿主接入指南](docs/INTEGRATION_CN.md)。
 
 参见[内容质量与真实联调流程](docs/content-quality.md)及[本次交付物审计](docs/quality-audit-2026-10-10.md)。浏览器场景、真实 MCP 联调、内容审校分别验收。
 
-所有模式永久执行完整教学、可控图示、宽屏、完整 Obsidian 原始知识源和头部精准资源规则。先登记实际 Markdown/HTML 正文对 `save_teaching_package`，再登记题目；规范详见 [docs/teaching-delivery](docs/teaching-delivery.md)。学科目录包含11类领域，八个示例配有完整知识笔记与行为清单。课程配方独立于框架维护；通用交付同步入口为 `scripts/sync_delivery.py`。
+交付政策涵盖内容深度、可控图示、宽屏、完整 Obsidian 知识源和精准资源。学科目录可参考，八个仓库示例可离线预览。详见[交付政策](docs/teaching-delivery.md)和[学科知识地图](docs/subject-knowledge-map.md)。
 
 ## A4 打印资料
+
+通过宿主 Agent 导出整套课程时，默认在 `~/LEAP/课程输出/课程名/` 保存教学课件 HTML、
+讲义册、题目册、答案与解析、合订册。文件名均带课程标题。
 
 打开[一元一次方程交互课程](examples/02-math-linear-equation/leap-02-math-linear-equation.html)，
 在「打印资料」里选择版式，再点「导出 PDF」。默认是 A4 纵向合订册，讲义和练习分开起页。
 也可以直接打开[配图讲义](print-examples/linear-equations/handout.html)、
 [题目册](print-examples/linear-equations/workbook.html)和[同版本答案解析](print-examples/linear-equations/answers.html)。
-离线打印、Agent 按需组卷及命令行导出见 [A4 打印指南](docs/printing.md)。
+离线打印、预审材料的 MCP 导出及命令行用法见 [A4 打印指南](docs/printing.md)。
 
 ## 🧩 可插拔设计
 

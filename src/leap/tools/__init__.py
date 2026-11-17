@@ -68,11 +68,14 @@ def build_service(
     config: Config | dict[str, Any] | None = None,
     *,
     initialize: bool = True,
+    strict_grounding: bool = True,
 ) -> LeapService:
     """Create a ready-to-use service.
 
     ``database_path`` defaults to an in-memory database, which is what tests
     and examples use. Production runs point it at ``data/leap.db``.
+    Disabling strict grounding is reserved for synthetic integration fixtures;
+    the production MCP entry point always uses the default.
 
     The concrete storage backend, estimator, aggregator, policy engine,
     scheduler and artifact store are all resolved from configuration through
@@ -85,7 +88,7 @@ def build_service(
     else:
         cfg = load_config()
 
-    ctx = ToolContext.build(None, cfg, database_path=str(database_path))
+    ctx = ToolContext.build(None, cfg, database_path=str(database_path), strict_grounding=strict_grounding)
     if initialize:
         ctx.db.initialize()
     return LeapService(ctx)

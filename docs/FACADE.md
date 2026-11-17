@@ -56,8 +56,8 @@ After a session is closed, `next_call` is null.
 - **Delivery policy 3.0 still applies.** Responses use a compact envelope carrying only
   `policy_version`; fetch the full policy once with `get_teaching_delivery_policy()` and do not
   quote it from memory.
-- **Grounding and item gates still apply.** `submit_answer` and `continue_lesson` fail with
-  `domain_grounding_required` exactly like the fine-grained tools do.
+- **Grounding and item gates apply to both profiles.** Calls such as `submit_answer`
+  and `continue_lesson` require current reviewed evidence and the reviewed package.
 
 ### Two valid shapes of `submit_answer`
 
@@ -73,10 +73,10 @@ misconception) and `resolve_misconception`, so the facade's misconception branch
 executable steps in each direction. Collect correction evidence before marking a
 misconception resolved.
 
-When the learner decides to skip Domain Grounding after session creation, both profiles
-also expose `set_domain_grounding_skip(session_id, allow_skip=True, reason=...)`: show the
-notice and obtain explicit informed confirmation first, then record the choice. Never
-open a second session and never skip on your own.
+Use `get_grounding_sources` to retrieve the approved source locators and checks, then
+complete calibration and register the reviewed lesson as described in [[docs/INTEGRATION]].
+The first pack covers limits, derivatives and differentiability in `topic="高等数学"`.
+Formal teaching pauses when evidence is missing, withdrawn or expired.
 
 `start_learning` resumes an active session for the same learner+topic by default
 (`existing_session=true`); pass `force_new=True` only when a second session is really
@@ -117,8 +117,8 @@ profile, so the runtime keeps every capability and switching profiles needs no m
 
 | Profile | Contents |
 |---|---|
-| `quickstart` | Coarse tutor API, grounding, DAG, teaching packages, items, diagnosis, assessment recovery, misconception recording and resolution, domain-grounding skip recording, transfer, reflection, reports and explicit closure; `continue_lesson` returns a compact summary by default |
-| `full` | Every registered tool (the default), including detailed evidence reads and page bridging |
+| `quickstart` | 36 tools: coarse tutor API, reviewed-source calibration, DAG, reviewed registers for lessons and items, diagnosis, assessment recovery, misconceptions, transfer, reflection, reports and closure |
+| `full` | 75 tools (the default), including detailed evidence reads, teaching drafts and page bridging |
 
 Counts and per-tool membership come from the [[docs/mcp-tools|generated reference]].
 Check the host's actual catalog for `next_call` and its follow-ups. The existing

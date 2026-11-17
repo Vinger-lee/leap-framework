@@ -10,10 +10,10 @@ envelope（`policy_version`），需要完整交付政策时单独调用
 | MCP 未连接 | 明确说明未连接，停止受影响步骤；不伪造调用或回执。 |
 | 工具不可见 | 检查真实目录与档位；只采用文档化替代路径，否则说明缺口或切换档位。 |
 | 参数校验失败 | 读错误及 schema，修正具体参数；不原样重复请求。 |
-| Domain Grounding pending | 按 missing_evidence 补真实来源、定位、摘录或独立检查；不伪造或自行开启跳过。 |
-| 用户要求跳过校准 | 先取得明确知情确认，再调用 `set_domain_grounding_skip(session_id, allow_skip=True, reason=...)` 记录；不重开会话、不自行跳过。 |
+| 校准缺失或检查失败 | 重新读取 `get_grounding_sources()` 返回的来源定位，按回执补齐版本、片段和独立检查答案，重新提交校准。 |
+| 课程无预审包、证据过期或失效 | 说明具体缺口并暂停正式授课。维护者发布有效版本后，在原会话重新校准。历史学习记录仍可读。 |
 | 知识 DAG 被拒 | 修复环、缺失端点、孤立节点等实际问题，再保存并校验；不进入被门禁挡住的步骤。 |
-| 教学包不完整 | 对照返回 validation 补正文、覆盖、manifest 与来源关联；仅改措辞不算修复。 |
+| 正式内容与预审包不符 | 用 `get_grounding_sources(session_id, include_lesson=True)` 重新取得当前会话材料，按返回值原样登记。 |
 | State Guard 拒绝 | 读 guard 与 remediation，补教前置、纠错、收集无提示/迁移/复习证据后重读状态；不接受 manual_override 绕过。 |
 | 状态版本过期 | `get_learner_snapshot()` 后重新决策，不把旧快照用于强制推进。 |
 | `session_closed` | 会话已关闭；停止教学写入，查询快照确认状态，按用户意图用 `complete_session(status="active", reopen=True)` 显式重开后再继续。 |
@@ -41,6 +41,7 @@ quickstart 和 full 均提供这条恢复路径。若宿主仍看到旧目录，
 
 - `get_learner_snapshot()` 可确认会话状态和当前节点；它不能确认某次新评分的
   回执。保存已有 attempt_id、package_id、报告 ID、请求与错误。
+- 重启后用原 SQLite 数据库和原会话恢复。校准回执会持久化，过期或旧版本需要重验。
 - `get_assessment_history()`、`get_evidence()`、`list_artifacts()`（full only）
   可按需要核查细节；quickstart 无法确认具体写入时应说明未知，暂停该写入并
   请求所需读能力，不盲目补写第二条作答、评分、报告或新会话。

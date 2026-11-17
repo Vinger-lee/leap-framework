@@ -17,7 +17,7 @@ Related: [[Knowledge_Index]] · [[docs/mcp-tools]]
 > [!note]- 阅读与验证顺序
 > 本文件是 2026-10-26 的架构评审与实施草案：分析基于当时的仓库与 MCP SDK 快照，不代表这些能力已经实现、测试或发布。
 > 建议顺序：§0 执行摘要 → §1–§3 职责边界 → §5 Skill 草案 → §8 分发方案；动手实现前重新核对仓库当前状态与 SDK 版本。
-> 现行入口见 [接入与验收](docs/agent-skill.md)、[交付政策](docs/teaching-delivery.md) 与 [工具目录](docs/mcp-tools.md)。
+> 现行入口见 [接入与验收](agent-skill.md)、[交付政策](teaching-delivery.md) 与 [工具目录](mcp-tools.md)。
 
 # LEAP MCP + Agent Skill 架构方案与实施指南
 

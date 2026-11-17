@@ -110,6 +110,9 @@ class FacadeTools(LeapToolMixin):
         step = info.get("next_step")
         if step == "closed":
             return {**LIFECYCLE_NEXT_CALL["closed"], "lifecycle_step": "closed"}
+        if step == "domain_grounding" and self.guard.strict_grounding:
+            return {"tool": "get_grounding_sources", "arguments": {"session_id": session_id},
+                    "lifecycle_step": step, "why": "Retrieve reviewed evidence and solve its checks before teaching."}
         guidance = dict(LIFECYCLE_NEXT_CALL.get(step, LIFECYCLE_NEXT_CALL["teaching"]))
         guidance["lifecycle_step"] = step
         return guidance
@@ -146,6 +149,8 @@ class FacadeTools(LeapToolMixin):
         instead of silently creating a second one (``existing_session=True``).
         Pass ``force_new=True`` to deliberately start another session.
         """
+        if self.guard.strict_grounding and allow_skip_domain_grounding is True:
+            raise ToolError("grounding_waiver_disabled", "Reviewed sources are mandatory for formal teaching")
         existing = None
         if reuse_existing and not force_new:
             found = self._lean(self.find_session(learner_id, topic))
@@ -209,7 +214,8 @@ class FacadeTools(LeapToolMixin):
             goal_saved=goal_saved,
             learning_mode=learning_mode,
             mode_notice=mode_notice,
-            domain_grounding_stage=session.get("domain_grounding_stage"),
+            domain_grounding_stage=("pending" if self.guard.strict_grounding and next_call.get("lifecycle_step") == "domain_grounding"
+                                    else session.get("domain_grounding_stage")),
             domain_grounding_notice=session.get("domain_grounding_notice"),
             allow_skip_domain_grounding=session.get("allow_skip_domain_grounding"),
             next_step=next_call.get("lifecycle_step"),
@@ -253,7 +259,12 @@ class FacadeTools(LeapToolMixin):
         next_call: dict[str, Any]
         due_reviews = context.get("due_review_count") or 0
         misconceptions = context.get("misconceptions") or []
-        if misconceptions:
+        if self.guard.strict_grounding and not context["reviewed_package_id"]:
+            next_call = {"tool": "get_grounding_sources", "arguments": {"session_id": session_id, "include_lesson": True},
+                         "why": "Register the reviewed lesson before teaching or assigning questions."}
+        elif self.guard.strict_grounding and not session.get("current_node_id"):
+            next_call = self._next_call_for_step(session_id)
+        elif misconceptions:
             next_call = {
                 "tool": "resolve_misconception",
                 "why": "An active misconception must be corrected before new material is added.",
@@ -293,6 +304,9 @@ class FacadeTools(LeapToolMixin):
             next_call=next_call,
             coarse_of=["get_teaching_context", "get_session_info"],
         )
+        if self.guard.strict_grounding:
+            payload["grounding"] = context["grounding"]
+            payload["reviewed_package_id"] = context["reviewed_package_id"]
         if verbose:
             payload["teaching_context"] = context
         else:
@@ -519,6 +533,8 @@ class FacadeTools(LeapToolMixin):
         with self.db.transaction():
             session = self.require_session(session_id)
             self.require_active_session(session)
+            if self.guard.strict_grounding:
+                self.require_grounding(session_id)
             resolved_tag = self._resolve_unit_tag(session_id, unit_tag, node_id)
             decision = self.guard.check_unit(
                 session_id, resolved_tag, expected_state_version=expected_state_version
@@ -613,6 +629,11 @@ class FacadeTools(LeapToolMixin):
         """
         due = self._lean(self.get_due_reviews(learner_id, limit=limit, session_id=session_id))
         items = due.get("due_reviews") or []
+        if self.guard.strict_grounding:
+            if session_id is not None:
+                self.require_grounding(session_id)
+            items = [item for item in items if self.guard.check_domain_grounding(
+                self.session_of_node(item.get("node_id")) or "").allowed]
         next_call: dict[str, Any]
         if items:
             first = items[0]
@@ -640,7 +661,7 @@ class FacadeTools(LeapToolMixin):
         return self.ok(
             learner_id=learner_id,
             session_id=session_id,
-            count=due.get("count", len(items)),
+            count=len(items),
             due_reviews=items,
             blocks_new_learning=False,
             next_call=next_call,

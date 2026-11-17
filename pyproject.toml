@@ -27,6 +27,8 @@ dependencies = [
     "mcp>=2.3,<3",
     "fsrs>=5",
     "PyYAML>=6",
+    "langchain-core>=1,<2",
+    "langgraph>=1,<2",
 ]
 
 [project.optional-dependencies]
@@ -68,7 +70,8 @@ namespaces = false
 # config/default.yaml is mirrored from the repository root (which stays the file
 # developers edit) so an installed wheel keeps working configuration;
 # tests/test_packaging.py asserts the two copies stay byte-identical.
-leap = ["storage/*.sql", "specs/*.json", "config/*.yaml", "print_assets/*.css", "print_assets/*.js"]
+leap = ["storage/*.sql", "specs/*.json", "specs/*.fragment", "config/*.yaml", "print_assets/*.css", "print_assets/*.js",
+        "teaching_assets/*.css", "teaching_assets/*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

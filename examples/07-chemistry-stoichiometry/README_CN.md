@@ -34,7 +34,7 @@ aliases:
 - 完整文字解释采集，宿主语义审阅，关键词不判分。
 - 主动递进提示、二次确认完整答案、新的后置变式。
 
-桥接由内联 `examples/_shared/bridge-kernel.js` 的 `createLeapBridge(config)` 创建。宿主hydrate上下文、取契约、peek预览、drain取走调用；新客观评估provisional，其他维度未评估，item专属attempt引用。活动结束只请求guard检查，Runtime回执决定是否推进。标识：`chem.stoichiometry.limiting` / `chemistry` / `stoichiometry`。
+桥接由内联 `src/leap/teaching_assets/bridge-kernel.js` 的 `createLeapBridge(config)` 创建。宿主hydrate上下文、取契约、peek预览、drain取走调用；新客观评估provisional，其他维度未评估，item专属attempt引用。活动结束只请求guard检查，Runtime回执决定是否推进。标识：`chem.stoichiometry.limiting` / `chemistry` / `stoichiometry`。
 
 浏览器场景在 `leap-07-chemistry-stoichiometry.runtime.json`：全117组粒子参数及各整份守恒、小数mol/零/过量/恰好质量、输入边界、部分分改错、文字采集、提示确认、后置验证与宿主桥。仓库根目录执行：
 

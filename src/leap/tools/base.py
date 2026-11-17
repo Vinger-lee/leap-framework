@@ -131,6 +131,7 @@ class ToolContext:
         cfg: Config | None = None,
         *,
         database_path: str = ":memory:",
+        strict_grounding: bool = True,
     ) -> "ToolContext":
         from leap.i18n import translator_for
         from leap.runtime.plugins import (
@@ -155,7 +156,7 @@ class ToolContext:
             db=db,
             cfg=cfg,
             events=events,
-            guard=StateGuard(db, cfg, events, translator=translator),
+            guard=StateGuard(db, cfg, events, translator=translator, strict_grounding=strict_grounding),
             policy=create_from_config(
                 KIND_POLICY_ENGINE, cfg, db, default="rule_based", events=events
             ),
@@ -321,10 +322,21 @@ class LeapToolMixin:
                 return overrides[key]
         return self.conf(key, default)
 
-    def require_grounding(self, session_id: str) -> None:
+    def require_grounding(self, session_id: str) -> dict:
         decision = self.guard.check_domain_grounding(session_id)
         if not decision.allowed:
-            raise ToolError("domain_grounding_required", decision.reason, decision.as_dict())
+            raise ToolError(decision.details.get("error_code", "domain_grounding_required"),
+                            decision.reason, decision.as_dict())
+        return decision.details
+
+    def require_reviewed_package(self, session_id: str, package_id: str, grounding: dict) -> None:
+        row = self.db.query_one(
+            "SELECT metadata FROM artifacts WHERE artifact_id=? AND session_id=? AND artifact_type='teaching_package'",
+            (package_id, session_id),
+        )
+        metadata = json.loads(row["metadata"] or "{}") if row else {}
+        if metadata.get("course_revision") != grounding["course_revision"]:
+            raise ToolError("grounding_unreviewed_content", "Register the reviewed lesson for the current source revision")
 
     def ensure_learner(self, learner_id: str, name: str | None = None) -> dict:
         """Create the learner row on first sight (P0 is single-learner)."""

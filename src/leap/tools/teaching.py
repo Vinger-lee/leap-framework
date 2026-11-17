@@ -36,13 +36,18 @@ class TeachingTools(LeapToolMixin):
         pass ``include_template=True`` once, while authoring the lesson, instead
         of re-sending it on every teaching turn.
         """
-        self.require_grounding(session_id)
+        grounding = self.require_grounding(session_id)
         if node_id:
             # A node id is a global primary key: never build a session's context
             # from another session's node.
             self.require_node(node_id, session_id)
         context = self.policy.build_teaching_context(session_id, node_id)
         node_id = node_id or context["session"].get("current_node_id")
+        if self.guard.strict_grounding and node_id:
+            from leap.runtime.grounding import course_node_id
+
+            if node_id != course_node_id(session_id):
+                raise ToolError("grounding_coverage_missing", "The requested node is outside the reviewed course")
 
         recommended: list[str] = []
         try:
@@ -74,6 +79,26 @@ class TeachingTools(LeapToolMixin):
             "SELECT artifact_id, metadata FROM artifacts WHERE session_id=? "
             "AND artifact_type='teaching_package' ORDER BY rowid DESC", (session_id,)
         )
+        if self.guard.strict_grounding:
+            context["grounding"] = grounding
+            from leap.runtime.grounding import course_node_id, reviewed_course
+
+            context["reviewed_package_id"] = self.db.scalar(
+                "SELECT artifact_id FROM artifacts WHERE session_id=? AND artifact_type='teaching_package' "
+                "AND json_extract(metadata, '$.course_revision')=? AND json_extract(metadata, '$.node_id')=? "
+                "ORDER BY rowid DESC LIMIT 1", (session_id, grounding["course_revision"], course_node_id(session_id)),
+            )
+            if not context["reviewed_package_id"]:
+                context["recommended_actions"] = []
+                context["recommended_strategy"] = None
+            else:
+                items = self.rows(
+                    "SELECT item_id, question FROM assessment_items WHERE session_id=? "
+                    "AND json_extract(rubric, '$.teaching_package_id')=? ORDER BY rowid ASC",
+                    (session_id, context["reviewed_package_id"]),
+                )
+                ids = {item["question"]: item["item_id"] for item in items}
+                context["reviewed_item_ids"] = [ids.get(point["item"]["question"]) for point in reviewed_course()["points"]]
         return self.ok(session_id=session_id, node_id=node_id, **context)
 
     # ------------------------------------------------------------------
@@ -133,6 +158,8 @@ class TeachingTools(LeapToolMixin):
     ) -> dict:
         """Evaluate the policy for the current state without persisting a decision."""
         self.require_session(session_id)
+        if self.guard.strict_grounding:
+            self.require_grounding(session_id)
         context = self.policy.build_teaching_context(session_id, node_id)
         decision = self.policy.evaluate(session_id, node_id, trigger_event=trigger_event)
 
@@ -185,6 +212,8 @@ class TeachingTools(LeapToolMixin):
     ) -> dict:
         """Record the decision actually acted on, for later replay."""
         self.require_session(session_id)
+        if self.guard.strict_grounding:
+            self.require_grounding(session_id)
         recommendation = self.policy.evaluate(session_id, node_id, trigger_event=trigger_event)
 
         if selected_strategy and selected_strategy not in STRATEGIES:
@@ -243,6 +272,11 @@ class TeachingTools(LeapToolMixin):
         self.require_active_session(session)
         self.require_grounding(session_id)
         resolved_node = self._resolve_entry_node(session_id, unit_tag, node_id)
+        if self.guard.strict_grounding:
+            from leap.runtime.grounding import course_node_id
+
+            if resolved_node != course_node_id(session_id):
+                raise ToolError("grounding_coverage_missing", "The requested unit is outside the reviewed course")
         ts = now_ts()
         with self.db.transaction():
             self.db.execute(
@@ -271,6 +305,8 @@ class TeachingTools(LeapToolMixin):
         text or a tool argument.
         """
         self.require_session(session_id)
+        if self.guard.strict_grounding:
+            self.require_grounding(session_id)
         resolved_tag = self._resolve_unit_tag(session_id, unit_tag, node_id)
         decision = self.guard.check_unit(
             session_id,
@@ -299,6 +335,8 @@ class TeachingTools(LeapToolMixin):
         with self.db.transaction():
             session = self.require_session(session_id)
             self.require_active_session(session)
+            if self.guard.strict_grounding:
+                self.require_grounding(session_id)
             resolved_tag = self._resolve_unit_tag(session_id, unit_tag, node_id)
             decision = self.guard.check_unit(
                 session_id,
@@ -321,7 +359,12 @@ class TeachingTools(LeapToolMixin):
     ) -> dict:
         """Apply a unit transition after the caller's guard allowed it."""
         session_id = session["session_id"]
-        next_unit_tag, next_node = self._next_unit_after(session_id, resolved_tag)
+        if self.guard.strict_grounding:
+            # Only one reviewed unit is installed. Nodes from older course versions
+            # remain in history and cannot become the next unit automatically.
+            next_unit_tag, next_node = None, None
+        else:
+            next_unit_tag, next_node = self._next_unit_after(session_id, resolved_tag)
         ts = now_ts()
         with self.db.transaction():
             self.db.execute(

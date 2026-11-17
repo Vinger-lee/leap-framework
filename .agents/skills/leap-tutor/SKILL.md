@@ -33,7 +33,7 @@ metadata:
   `follow_up` 和 `then`。不可用时只走有文档的可用替代路径，或报告缺口。
   新误解在 quickstart 也可用 `assess_misconception()` 记录；`rollback_unit()`（full only）、
   细粒度证据读取和页面 outbox 只在 `full`；`find_session()` 与
-  `get_teaching_context()` 两个档位都提供。
+  `get_teaching_context()`、`get_grounding_sources()` 两个档位都提供。
 - 会话关闭后 Runtime 返回 `session_closed` 且 `next_call` 为 null；不得继续
   教学调用，需按用户意图显式重开会话。
 - 回包使用紧凑 envelope（`policy_version` 与 policy_id/version/mandatory）；完整交付
@@ -45,12 +45,12 @@ metadata:
 
 - 不自行计算或提交 `mastery_probability`。使用当前 Runtime 返回的值及状态。
 - 不绕过 State Guard，不把 REJECT 当成可用提示词覆盖的建议。
-- 实际阅读权威来源后才保存 Domain Grounding；不编造定位、摘录、独立复核或
-  阅读活动。不为了过门禁自行开启跳过校准；按真实 notice 取得用户选择。
+- 用预审来源库完成 Domain Grounding。实际读取返回的定位并独立解答检查题；
+  缺少有效来源时暂停正式授课。
 - 结构验收、来源关联、学科真实性、浏览器行为与学习效果分别报告。
   保存成功不能认证来源或学科结论，`content_verified_by_runtime: false` 仍是未认证。
-- 先完成 canonical Markdown，再派生 HTML；教学包接受后才登记正式题目。
-  所有模式均应用当前交付政策，不在 Skill 中硬编码替代动态策略。
+- 按原内容登记预审 Markdown、HTML 和 manifest，教学包接受后才登记预审题目。
+  所有模式均应用当前交付政策。新编内容可用 full 档位保存为教学草稿。
 - 逐题独立求解，复核条件、边界、反例、等价正确答案与干扰项。
 - 开放式回答必须语义评阅，不以关键词打分。只提交有证据支持的评分维度；
   允许为空的未评维度留空，不伪造信心。
@@ -76,17 +76,13 @@ metadata:
 
 ## 核心调用路线
 
-1. 新会话优先 `start_learning()`：同一 learner+topic 的 active 会话默认被复用
+1. 新会话优先 `start_learning()`。首包使用 `topic="高等数学"`，只覆盖
+   「从极限到导数与可导性」。同一 learner+topic 的 active 会话默认被复用
    （回包 `existing_session=true`），只有确实需要第二个会话时才传 `force_new=True`。
-   展示实际返回的 `domain_grounding_notice`，
-   原样告知开销、等待与跳过风险，按要求取得用户选择。
-   - 用户选择继续：按 Domain Grounding 流程补真实来源证据。
-   - 用户选择跳过：先取得明确、知情的确认，再调用
-     `set_domain_grounding_skip(session_id, allow_skip=True, reason=...)`
-     记录选择（参数以当前 schema 为准）；不得重开新会话，不得自行跳过。
+   用 `get_grounding_sources(session_id)` 获取预审片段和检查题，完成校准后读取预审课程。
 2. 已有 ID 时用 `get_learner_snapshot()` 恢复；ID 不明时用 `find_session()`
    （两个档位都提供）查找，不无故创建重复会话。
-3. 完成真实来源校准、有效知识 DAG、教学包和题目登记，再进入诊断与教学。
+3. 按生命周期流程完成来源校准，登记预审节点、教学包和题目，再进入诊断与教学。
 4. 日常优先 `continue_lesson()` → `log_teaching_action()` → `submit_answer()`。
    `continue_lesson()` 默认返回紧凑摘要；只有需要完整上下文时才传
    `verbose=True`。记录实际教学动作，对原始答案语义评阅。
@@ -111,7 +107,7 @@ metadata:
 
 ## 完成检查
 
-仅在实际证据支持时确认：真实连接；必需校准（或用户知情跳过并已记录）；DAG
+仅在实际证据支持时确认：真实连接；当前版本的预审校准；DAG
 有效；教学包接受；题目独立复核并登记；原文和评分匹配；推进获守卫允许且已
 执行；适用的复习、迁移和反思已记录；报告区分观测与估计；要求关闭时有成功
 回执且无 `session_closed` 之后的写入。明确列出任何阻塞或未验证项。

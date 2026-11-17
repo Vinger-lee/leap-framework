@@ -28,7 +28,9 @@ from leap.server import build_server, registered_tool_names  # noqa: E402 - need
 
 async def verify(database: Path, chromium: str | None):
     env = {**os.environ, "LEAP__DATABASE_PATH": str(database), "PYTHONPATH": str(ROOT / "src")}
-    params = StdioServerParameters(command=sys.executable, args=["-m", "leap.server"], env=env)
+    params = StdioServerParameters(
+        command=sys.executable, args=[str(ROOT / "tests" / "fixture_mcp_server.py")], env=env,
+    )
     async with stdio_client(params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()

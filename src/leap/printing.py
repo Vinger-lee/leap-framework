@@ -16,6 +16,7 @@ import sys
 from typing import Any, Sequence
 
 EDITIONS = {"combined": "讲义与练习", "handout": "讲义册", "workbook": "题目册", "answers": "答案与解析"}
+DEFAULT_COURSE_OUTPUT_ROOT = "~/LEAP/课程输出"
 KINDS = {
     "single_choice": "choices", "multiple_choice": "choices", "true_false": "choices",
     "fill_blank": "blank", "short_answer": "lines", "calculation": "space",
@@ -232,7 +233,7 @@ def _print_controls(settings: PrintSettings) -> tuple[str, str]:
 
 def build_documents(
     title: str, handout_html: str, questions: list[dict], *, version: str,
-    settings: PrintSettings = PrintSettings(), language: str = "zh-CN",
+    settings: PrintSettings = PrintSettings(), language: str = "zh-CN", bibliography_html: str | None = None,
 ) -> dict[str, str]:
     """Compile independent editable HTML editions from the host's print draft."""
     if not isinstance(title, str) or not title.strip() or len(title) > 220:
@@ -242,6 +243,10 @@ def build_documents(
     if not isinstance(language, str) or not re.fullmatch(r"[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*", language):
         raise PrintError("language must be a language tag")
     handout = '<section class="print-handout">' + _fragment(handout_html, "handout_html") + "</section>"
+    bibliography = ""
+    if bibliography_html is not None:
+        bibliography = ('<section class="print-bibliography print-new-page">'
+                        + _fragment(bibliography_html, "bibliography_html") + "</section>")
     if not isinstance(questions, list) or not 1 <= len(questions) <= 100:
         raise PrintError("provide one to one hundred questions")
     pairs = [_question(question, idx) for idx, question in enumerate(questions, 1)]
@@ -251,8 +256,9 @@ def build_documents(
     safe_title, safe_version = escape(title), escape(version)
     controls, csp = _print_controls(settings)
     contents = {
-        "handout": handout, "workbook": workbook, "answers": answers,
-        "combined": handout + '<section class="print-workbook print-new-page"><h2>练习卷</h2>' + workbook + "</section>",
+        "handout": handout + bibliography, "workbook": workbook, "answers": answers,
+        "combined": handout + '<section class="print-workbook print-new-page"><h2>练习卷</h2>'
+                    + workbook + "</section>" + bibliography,
     }
     documents = {
         edition: (
@@ -362,6 +368,43 @@ def write_html_editions(directory: Path, documents: dict[str, str]) -> None:
             target.unlink(missing_ok=True)
         directory.rmdir()
         raise
+
+
+def course_filename_stem(title: str) -> str:
+    """Preserve the course title in a portable path component."""
+    stem = re.sub(r'[<>:"/\\|?*\x00-\x1f\x7f]+', "-", title).strip(" .")
+    stem = stem[:90].encode("utf-8")[:160].decode("utf-8", errors="ignore").rstrip(" .")
+    if re.fullmatch(r"CON|PRN|AUX|NUL|CONIN\$|CONOUT\$|(?:COM|LPT)[1-9¹²³]", stem.partition(".")[0].rstrip(), re.I):
+        stem = f"_{stem}"
+    return stem or "课程"
+
+
+def write_course_files(root: Path, stem: str, documents: dict[str, bytes]) -> Path:
+    """Reserve a new course folder and remove this export's files if a write fails."""
+    root.mkdir(parents=True, exist_ok=True)
+    directory = root / stem
+    number = 1
+    while True:
+        try:
+            directory.mkdir()
+            break
+        except FileExistsError:
+            number += 1
+            directory = root / f"{stem} ({number})"
+
+    written = []
+    try:
+        for filename, payload in documents.items():
+            target = directory / filename
+            with target.open("xb") as handle:
+                written.append(target)
+                handle.write(payload)
+    except OSError:
+        for target in written:
+            target.unlink(missing_ok=True)
+        directory.rmdir()
+        raise
+    return directory
 
 
 def save_pdf(output: Path, payload: bytes, *, overwrite: bool = False) -> None:

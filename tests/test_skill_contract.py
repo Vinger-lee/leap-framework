@@ -13,11 +13,6 @@ from leap.server import build_server, registered_tool_names
 
 SKILL = REPO_ROOT / ".agents/skills/leap-tutor/SKILL.md"
 
-#: The explicit post-creation Domain Grounding skip-recording tool. Keep this in
-#: sync with the runtime (src/leap/tools/session.py) and the skill documentation.
-SKIP_TOOL = "set_domain_grounding_skip"
-
-
 def skill_documents():
     assert SKILL.is_file()
     return [SKILL, *sorted((SKILL.parent / "references").glob("*.md"))]
@@ -108,7 +103,7 @@ def test_quickstart_covers_the_documented_recovery_path():
         "resolve_misconception",
         "assess_misconception",
         "complete_session",
-        SKIP_TOOL,
+        "get_grounding_sources",
         "generate_final_report",
     ):
         assert required in quickstart, required

@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
-KERNEL = ROOT / "examples/_shared/bridge-kernel.js"
+KERNEL = ROOT / "src/leap/teaching_assets/bridge-kernel.js"
 
 
 def normalize(path: Path) -> None:

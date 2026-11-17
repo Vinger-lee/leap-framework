@@ -37,13 +37,12 @@ from reading a file or connecting a server.
    可调用。`.agents/skills/` 是跨客户端共享约定，但**是否扫描由宿主决定**；
    Claude Code 只扫描 `.claude/skills/`，需复制（见配置页 §3）。文件出现在仓库中
    不证明已安装或激活。
-3. 触发方式：用明确的学习请求（例如“用 LEAP 学习线性方程”），或按宿主自己的
+3. 触发方式：用明确的学习请求（例如“用 LEAP 学高等数学的极限和导数”），或按宿主自己的
    显式语法调用（Claude Code 为 `/leap-tutor`）。**不要假定 `$leap-tutor` 这类
    写法在所有宿主可用**；各宿主语法以厂商文档为准。
 4. 不支持 Skill 的宿主继续使用 [[docs/INTEGRATION_CN|中文接入指南]] /
-   [[docs/INTEGRATION|English integration guide]]；指南按档位分成两份提示词，
-   复制时选与当前工具面对应的那份。服务器仍提供核心边界和动态教学政策，
-   不依赖 Skill 执行门禁。
+   [[docs/INTEGRATION|English integration guide]]。两档共用预审课程准备流程，按
+   实际档位选教学提示词。领域校准和交付政策由服务器执行。
 
 ## 宿主支持矩阵
 
@@ -58,14 +57,18 @@ from reading a file or connecting a server.
 
 任何"未验证"行都不得在发布说明中写成"支持"；需要实际加载日志才能升级状态。
 
-## 档位差异（本次修复后）
+## 档位差异
 
-| 档位 | 本次调整 | 保留的限制 |
+| 档位 | 工具数 | 用途 |
 |---|---|---|
-| quickstart | 开放 `commit_assessment`、`resolve_misconception`、`assess_misconception`、`complete_session`、`find_session` 与建会话后的领域校准跳过记录工具 `set_domain_grounding_skip`；关闭会话后明确 `session_closed` / `next_call=null` | 无细粒度证据查询与页面 outbox 全套接口；需要时切到 full |
-| full | 全部工具（本次新增 `set_domain_grounding_skip`） | 客户端仍须独立配置 MCP 和 Skill |
+| quickstart | 36 | 预审来源校准、正式教学、评估恢复、误解、复习与结课 |
+| full | 75 | 包含 quickstart，并提供细粒度证据查询、教学草稿和页面 outbox 全套接口 |
 
 实际工具数与档位归属以 [[docs/mcp-tools|生成的工具参考]] 为准，不要按本节数字硬编码。
+
+两档从 `get_grounding_sources` 获取同一预审来源。当前覆盖「高等数学」的
+「从极限到导数与可导性」。实际阅读并独立完成检查后，登记返回的预审节点、教学包、
+题目及打印材料。缺少有效证据时暂停正式授课。重启后沿用原 SQLite 数据库；历史记录可读。
 
 `next_call`、`follow_up` 和 `then` 需要核对真实目录。`submit_answer` 无分数或
 评分失败后，保留 attempt_id，直接提交 commit_assessment；不重复保存原答。
@@ -81,7 +84,7 @@ from reading a file or connecting a server.
 政策）；完整政策只在创作前调用一次 `get_teaching_delivery_policy()`。日常教学
 优先 `continue_lesson()`，它默认返回紧凑摘要，只有需要完整教学上下文时才传
 `verbose=True`；需要时再单独取 `get_teaching_delivery_policy()`。选 `quickstart`
-还能缩小一次性工具 schema（约 26 KB vs full 约 54 KB）。
+可缩小一次性工具 schema。
 
 ## 实施基线与复现
 
@@ -96,10 +99,9 @@ python -m pytest
 python scripts/generate_tool_reference.py --check
 ```
 
-静态检查验证 frontmatter、版本、参考路径和工具存在性；真实 stdio 测试使用临时
-SQLite 与明确标记的合成来源，验证 Runtime 契约，并覆盖校准跳过记录、误解记录、
-复习评分、迁移、反思与关闭后行为。它们不证明宿主触发、真实来源阅读、语义评分
-质量、浏览器效果或学习效果。
+静态检查验证 frontmatter、版本、参考路径和工具存在性。stdio 测试用临时 SQLite
+检查预审来源校准、拒绝旧自证与跳过、误解、复习、迁移、反思和关闭后行为。
+宿主触发、实际阅读与语义评阅、浏览器行为和学习效果需要独立验收。
 
 ## 场景验收矩阵
 
@@ -109,10 +111,10 @@ SQLite 与明确标记的合成来源，验证 Runtime 契约，并覆盖校准�
 | E2E-02 普通问题 | 新宿主只问“递归是什么”，确认不建 LEAP 会话；待实测 |
 | E2E-03 MCP 未连接 | 断开测试连接后请求 LEAP，确认明确报告不可用且不编造回执；待宿主实测 |
 | E2E-04 已有会话 | stdio 测试按 session_id 恢复快照，确认没有第二个会话 |
-| E2E-05 缺领域证据 | stdio 测试拒绝诊断、保存 pending、补证据后通过 |
-| E2E-06 用户选择跳过校准 | stdio 测试：显示 notice 后调用 `set_domain_grounding_skip`，会话不重开，诊断/教学继续 |
+| E2E-05 缺领域证据 | stdio 测试拒绝诊断，完成预审来源校准后通过 |
+| E2E-06 旧自证和跳过 | stdio 测试拒绝旧宿主自证及跳过请求，正式教学暂停 |
 | E2E-07 DAG 无效 | stdio 测试拒绝悬空边，补节点后保存并重新校验 |
-| E2E-08 包覆盖不足 | stdio 测试拒绝残缺 Markdown，补全后接受并标记未认证学科内容 |
+| E2E-08 替换预审内容 | stdio 测试拒绝与预审包不符的内容，接受原样登记 |
 | E2E-09 自由文本 | stdio 测试拒绝 rule 评分、接受 model 证据且原文不变；语义质量待宿主实测 |
 | E2E-10 评分阶段失败 | stdio 测试 invalid_score 保留 attempt_id，修复后没有重复作答 |
 | E2E-11 拒绝推进 | stdio 测试返回 remediation 且会话节点与状态版本不变 |
@@ -123,11 +125,9 @@ SQLite 与明确标记的合成来源，验证 Runtime 契约，并覆盖校准�
 
 ## 本次验证记录
 
-2026-11-08（修复后）：全量测试与技能契约测试结果见仓库测试输出；随本页更新的
-`tests/test_skill_contract.py` 校验 frontmatter、版本、参考路径与双档位工具
-存在性，`tests/test_skill_mcp.py` 在真实 stdio 上覆盖主流程、校准跳过、误解、
-复习、迁移、反思与关闭后行为。知识库检查覆盖全部 Markdown；架构方案文档按
-知识库格式维护，技能文件使用独立契约检查，不按教材格式验收。
+技能契约见 `tests/test_skill_contract.py`，stdio 工作流见 `tests/test_skill_mcp.py`
+和 `tests/test_grounded_calculus.py`。知识库检查覆盖全部 Markdown，技能文件使用
+独立契约检查。
 
 ## 宿主试用、指标和发布条件
 

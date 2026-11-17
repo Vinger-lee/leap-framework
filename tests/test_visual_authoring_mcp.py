@@ -17,7 +17,8 @@ from tests.test_teaching_delivery import current_visual_pair
 async def test_host_receives_visual_workflow_and_registration_checks(tmp_path, profile):
     root = Path(__file__).resolve().parents[1]
     params = StdioServerParameters(
-        command=sys.executable, args=["-m", "leap.server", "--tool-profile", profile],
+        command=sys.executable,
+        args=[str(root / "tests" / "fixture_mcp_server.py"), "--tool-profile", profile],
         env={**os.environ, "LEAP__DATABASE_PATH": str(tmp_path / "visual.sqlite"),
              "PYTHONPATH": str(root / "src")},
     )

@@ -25,8 +25,9 @@ Related: [[Knowledge_Index]] · [[docs/FACADE_CN]] · [[docs/INTEGRATION_CN]] ·
 - **迁移裁决权**：任何推进都必须通过 State Guard；被拒的迁移是结构化拒绝，绝不静默写入。
 - **掌握度估计**：`mastery_probability` 由服务端按配置的估计器从提交的证据计算，宿主无法传入。
 - **复习排程**：按节点与卡片计算 FSRS 间隔与可提取度。
-- **交付结构**：Domain Grounding 需要来源定位、摘录、关联声明、实际核验与局限；教学包必须把
-  canonical Markdown 与其投影配对并包含必需章节，之后才能登记题目。
+- **交付结构**。领域校准要求当前预审课程版本、完整来源片段与独立完成的检查答案。
+  正式教学包、题目和打印稿须与该版本一致。首个单元为「从极限到导数与可导性」，
+  历史记录仍可读取。
 - **审计性**：每次状态变更都是带 request id 的事件，拒绝也会记录原因。
 
 ## 2. 仍由宿主 Agent（及其 LLM）承担的部分
@@ -64,9 +65,9 @@ Related: [[Knowledge_Index]] · [[docs/FACADE_CN]] · [[docs/INTEGRATION_CN]] ·
   每个回包只带紧凑的 `policy_version`，完整政策仅在 `get_teaching_delivery_policy` 返回；
   `continue_lesson` 默认返回摘要（`verbose=True` 才带完整教学上下文），
   `get_teaching_context` 默认 `include_template=False`。
-- **工具档位改变的是导航范围，不是权威**：`quickstart`（35 个工具）是一条完整教学路径，
-  含 `assess_misconception` 与 `set_domain_grounding_skip`；`full`（74 个工具）额外提供
-  细粒度接口与 HTML outbox 桥接。实时数量以 `python -m leap.doctor` 与生成的工具参考为准。
+- **两档工具共用门禁**。`quickstart`（36 个工具）提供预审教学流程，`full`（75 个工具）
+  还提供细粒度接口、教学草稿与 HTML outbox 桥接。实时数量以 `python -m leap.doctor`
+  与生成的工具参考为准。
 - **运维足迹**：宿主需要运行 MCP stdio 进程、SQLite 文件与 YAML 配置。`python -m leap.doctor`
   可自检这些前提，`quickstart` 档位可缩小 Agent 需要面对的工具目录，但进程本身仍需像本地服务一样
   看护。

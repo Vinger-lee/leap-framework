@@ -7,37 +7,24 @@ manifest 契约和工具 schema；回包为紧凑 envelope（`policy_version`）
 
 ## 实际来源与独立检查
 
-- 实际阅读后才记录 source、source_type、locator、excerpt；不编造章节、页码
-  或最新考纲适配。限制中说明未读到、无法验证或版本不符的内容。
-- `save_benchmark_report()` 的 verification 包含 scope、带 source_index 的
-  claims、worked_examples（problem/solution/check_method/check_result）和
-  limitations。source_index 引用本次提交来源下标；保存返回的 sources_saved。
-- 校验结构只能说明记录符合规则，不能证明实际阅读或学科真伪。
+- 实际阅读 `get_grounding_sources()` 返回的每个来源定位，独立解答检查题，
+  核对教材版本、主张条件、推导和反例，并在 `report_text` 记录阅读与复核。
+- `save_benchmark_report()` 使用返回的课程版本、全部片段 ID 和独立解答，
+  来源与审核日期由版本化来源包提供。保留回执和版本以便续学。
+- 结构检查与来源版本匹配只说明登记符合 Runtime 规则。独立的阅读和复核仍是宿主任务。
 - 正式题目独立求解并另法复核；检查定义域、量词、定理条件、参数、边界和反例。
   单选题只有一个正确选项；接受等价表示和不同有效推理。数值抽样不能证明恒成立。
 
 ## Markdown、HTML 与 manifest
 
-1. 写完整 canonical Obsidian Markdown，包含前置、机制和条件、完整推导、
-   检查过的例题、误解、边界、比较、梯度练习、迁移及解析。
-2. 再派生离线 HTML，覆盖一致的教学内容并保留 Markdown 扩展。双方顶部有
-   核验过的相关视频或 core/extension/advanced 精确检索词及适用的互链。
-   检索词不能描述为已核验视频，HTML 不替代完整知识源。
-3. manifest 提供实际 teaching_points、resources、html_segments、
-   markdown_extensions 和同会话 source_ids；可视化 selector 必须对应真实元素。
-4. 新建或修改图解按 `get_teaching_delivery_policy()` 返回的当前视觉契约先研究与建模，再
-   构造图形。保存真实结构/形式来源及 evidence_source_id，映射部件或状态、
-   连接关系、假设与限制，独立复核典型和边界结果。所有读数共用领域状态。
-5. 部件说明适用时：悬停/聚焦预览；点击、Enter、Space、触摸选择；离开恢复
-   选择；Escape/清除恢复总览。查看部件不改变模型状态或学习证据。
-6. 注册前实际测试鼠标、键盘、触摸、控制器、公式、代码、同步读数、静态/减少
-   动态效果、宽屏和手机布局。报告测试范围，不把静态检查说成浏览器已执行。
-7. `save_teaching_package()` 必须提交完整 markdown、html 与 manifest 正文，
-   不能只传路径或“已验证”声明。读取 validation 和 package_id，修复真实缺失项。
-8. 接受后才 `save_assessment_item()`，关联 teaching_package_id、同会话
-   source_ids，并保存解答、条件与独立 verification_checks。开放式题的
-   assessor_scope 为 host_semantic_review。
-9. 内容实质变化时重登记教学包；题目 ID 不可覆盖，变更题意或答案用新版本 ID。
+1. 校准后从 `get_grounding_sources(session_id, include_lesson=True)` 读取预审
+   Markdown、HTML、manifest 和题目，按[生命周期](lifecycle.md)原样登记。
+   检查 `validation` 和实际 `package_id`，登记题目时使用该 ID 与预审条目的来源 ID。
+2. 交付交互页前按适用功能检查鼠标、键盘、触摸、公式、同步读数、静态/减少动态效果、
+   宽屏和手机布局。查看部件只改变展示。报告实际完成的浏览器检查。
+3. 新编解释、题目或图解可用 `save_artifact()`（full only），传
+   `artifact_type="teaching_draft"`，保存为待审草稿。正式内容的变更由维护者复核并
+   随来源包发布。制作草稿时继续使用完整 Markdown、派生离线 HTML 和当前视觉契约。
 
 完整交互规范可用 `get_web_component_spec()`（full only）。quickstart 以当前
 交付政策为准；如任务需要该档位未提供的规范或页面桥接工具，应调整档位或报告

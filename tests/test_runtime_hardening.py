@@ -29,6 +29,7 @@ from leap.runtime.metrics import diagnostic_split
 from leap.runtime.state_guard import effective_config, transfer_required
 from leap.storage import Database, now_ts
 from leap.tools import LeapService, ToolError, build_service
+from tests.teaching_fixture import build_fixture_service
 
 REFS = [
     {
@@ -78,7 +79,7 @@ def _commit(service: LeapService, session_id: str, node_id: str, score: float = 
 # ---------------------------------------------------------------------------
 class TestParallelWrites:
     def test_parallel_submit_answer_rows_are_all_recorded_once(self):
-        service = build_service(":memory:")
+        service = build_fixture_service()
         session_id = _grounded(service)
         _nodes(service, session_id, [{"node_id": "par.n1", "title": "t", "unit_tag": "u1"}])
         barrier = threading.Barrier(9)
@@ -132,7 +133,7 @@ class TestParallelWrites:
         db.close()
 
     def test_parallel_reads_do_not_raise_on_the_shared_connection(self):
-        service = build_service(":memory:")
+        service = build_fixture_service()
         session_id = _grounded(service)
         errors: list[str] = []
         barrier = threading.Barrier(9)
@@ -189,8 +190,8 @@ class TestRetrySafety:
 
     def test_expected_state_version_conflict_is_structured(self, tmp_path):
         database = tmp_path / "race.sqlite"
-        service_a = build_service(str(database))
-        service_b = build_service(str(database))
+        service_a = build_fixture_service(database)
+        service_b = build_fixture_service(database)
         session_id = _grounded(service_a, learner="race-learner", topic="race")
         _nodes(service_a, session_id, [{"node_id": "race.n1", "title": "t", "unit_tag": "u1"}])
         answers = ["answer A", "answer B"]
@@ -342,7 +343,7 @@ class TestGuidedPaths:
         assert grounded_service.generate_diagnostic(session_id)["ok"] is True
 
     def test_learning_gain_uses_only_post_diagnostic_assessment_results(self):
-        service = build_service(":memory:")
+        service = build_fixture_service()
         session_id = _grounded(service)
         _nodes(service, session_id, [{"node_id": "g.n1", "title": "t", "unit_tag": "u1"}])
         # Documented stage 4: diagnostic answers are attempts, not assessments.
@@ -395,7 +396,7 @@ class TestAdvanceSemantics:
         return session_id
 
     def test_start_unit_uses_dependency_order_not_node_id_sort(self):
-        service = build_service(":memory:")
+        service = build_fixture_service()
         session_id = self._session_with_two_units(service)
         result = service.start_unit(session_id, unit_tag="u1")
         assert result["current_node_id"] == "u1.a"
@@ -404,7 +405,7 @@ class TestAdvanceSemantics:
     def test_advance_moves_to_the_next_unit_and_reports_it(self, monkeypatch):
         from leap.runtime.state_guard import GuardDecision
 
-        service = build_service(":memory:")
+        service = build_fixture_service()
         session_id = self._session_with_two_units(service)
         service.start_unit(session_id, unit_tag="u1")
         monkeypatch.setattr(
@@ -427,8 +428,8 @@ class TestAdvanceSemantics:
         from leap.runtime.state_guard import GuardDecision
 
         database = tmp_path / "advance.sqlite"
-        first = build_service(database)
-        second = build_service(database)
+        first = build_fixture_service(database)
+        second = build_fixture_service(database)
         try:
             session_id = self._session_with_two_units(first)
             expected = first.get_session_info(session_id)["session"]["state_version"]
@@ -475,7 +476,7 @@ class TestAdvanceSemantics:
             second.close()
 
     def test_next_step_after_diagnostic_points_to_start_unit(self):
-        service = build_service(":memory:")
+        service = build_fixture_service()
         session_id = _grounded(service)
         _nodes(service, session_id, [{"node_id": "d.n1", "title": "t", "unit_tag": "u1"}])
         assert service.get_session_info(session_id)["next_step"] == "diagnostic"
@@ -487,7 +488,7 @@ class TestAdvanceSemantics:
         service.close()
 
     def test_cross_session_node_ids_are_rejected(self):
-        service = build_service(":memory:")
+        service = build_fixture_service()
         session_a = _grounded(service, learner="a", topic="a")
         session_b = _grounded(service, learner="b", topic="b")
         _nodes(service, session_a, [{"node_id": "a.node", "title": "a", "unit_tag": "ua"}])
@@ -509,7 +510,7 @@ class TestAdvanceSemantics:
 # ---------------------------------------------------------------------------
 class TestEffectiveConfiguration:
     def test_learning_mode_overrides_reach_tools_and_guard(self):
-        service = build_service(":memory:")
+        service = build_fixture_service()
         session_id = _grounded(service)
         _nodes(
             service,
@@ -526,7 +527,7 @@ class TestEffectiveConfiguration:
         service.close()
 
     def test_exam_mode_narrows_the_hint_ceiling_in_submit_attempt(self):
-        service = build_service(":memory:")
+        service = build_fixture_service()
         session_id = _grounded(service)
         _nodes(service, session_id, [{"node_id": "hint.n1", "title": "t", "unit_tag": "u1"}])
         service.set_learning_configuration(session_id, request="我要准备考试")
@@ -537,7 +538,7 @@ class TestEffectiveConfiguration:
         service.close()
 
     def test_structural_failures_are_structured_not_internal(self):
-        service = build_service(":memory:")
+        service = build_fixture_service()
         session_a = _grounded(service, learner="a", topic="a")
         session_b = _grounded(service, learner="b", topic="b")
         _nodes(service, session_a, [{"node_id": "a.node", "title": "a", "unit_tag": "ua"}])
@@ -660,7 +661,7 @@ class TestClosingLifecycle:
         assert service.generate_diagnostic(session_id)["ok"] is True
 
     def test_retained_node_regresses_after_a_long_gap(self):
-        service = build_service(":memory:")
+        service = build_fixture_service()
         session_id = _grounded(service)
         _nodes(service, session_id, [{"node_id": "r.n1", "title": "t", "unit_tag": "u1"}])
         service.submit_attempt(session_id, "answer", node_id="r.n1")
@@ -682,7 +683,7 @@ class TestClosingLifecycle:
         service.close()
 
     def test_transfer_scores_are_validated_and_session_scoped(self):
-        service = build_service(":memory:")
+        service = build_fixture_service()
         session_a = _grounded(service, learner="ts", topic="topic-a")
         session_b = _grounded(service, learner="ts", topic="topic-b")
         _nodes(service, session_a, [{"node_id": "tsna", "title": "a", "unit_tag": "u"}])
@@ -740,7 +741,7 @@ async def test_parallel_tool_calls_over_real_stdio_are_serialized(tmp_path):
     database = tmp_path / "parallel.sqlite"
     params = StdioServerParameters(
         command=sys.executable,
-        args=["-m", "leap.server"],
+        args=[str(root / "tests" / "fixture_mcp_server.py")],
         env={**os.environ, "LEAP__DATABASE_PATH": str(database), "PYTHONPATH": str(root / "src")},
     )
     async with asyncio.timeout(60), stdio_client(params) as (read, write):
